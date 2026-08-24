@@ -9,7 +9,7 @@
  * a bottom sheet (opened by selecting a word or tapping "Details").
  */
 
-import { Panel, PanelGroup, PanelResizeHandle } from "react-resizable-panels";
+import { Group, Panel, Separator } from "react-resizable-panels";
 import { Drawer } from "vaul";
 import type { ReactNode } from "react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
@@ -39,8 +39,8 @@ export function AppShell({ children }: { children: ReactNode }) {
             {children}
           </main>
         ) : (
-          <PanelGroup direction="horizontal" className="min-w-0 flex-1" autoSaveId="scriptorium-shell">
-            <Panel defaultSize={74} minSize={45} className="min-w-0">
+          <Group orientation="horizontal" className="min-w-0 flex-1" id="scriptorium-shell">
+            <Panel defaultSize="74%" minSize="45%" className="min-w-0">
               <main className="h-full overflow-y-auto" id="workspace">
                 {children}
               </main>
@@ -48,18 +48,18 @@ export function AppShell({ children }: { children: ReactNode }) {
 
             {inspectorOpen && (
               <>
-                <PanelResizeHandle
-                  className="w-px bg-border transition-colors hover:bg-ring data-[resize-handle-active]:bg-ring"
+                <Separator
+                  className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
                   aria-label="Resize inspector"
                 />
-                <Panel defaultSize={26} minSize={18} maxSize={40} className="min-w-[240px]">
+                <Panel defaultSize="26%" minSize="240px" maxSize="40%" className="min-w-[240px]">
                   <aside aria-label="Inspector" className="h-full overflow-hidden bg-card">
                     <InspectorPanel />
                   </aside>
                 </Panel>
               </>
             )}
-          </PanelGroup>
+          </Group>
         )}
       </div>
 

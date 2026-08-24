@@ -26,8 +26,8 @@ interface SearchHit {
   id: string;
   group: string;
   label: string;
-  detail?: string;
-  to?: string;
+  detail?: string | undefined;
+  to?: string | undefined;
 }
 
 export function searchWorkspace(query: string, noteTitles: string[]): SearchHit[] {
@@ -102,7 +102,7 @@ export function CommandPalette() {
     () => [
       { id: "cmd-scripture", label: "Open Scripture", icon: BookOpen, run: () => navigate({ to: "/scripture" }) },
       { id: "cmd-library", label: "Open Library", icon: Library, run: () => navigate({ to: "/library" }) },
-      { id: "cmd-search-library", label: "Search Library", icon: Search, run: () => navigate({ to: "/search", search: { scope: "library" } }) },
+      { id: "cmd-search-library", label: "Search Library", icon: Search, run: () => navigate({ to: "/search" }) },
       { id: "cmd-knowledge", label: "Open Knowledge", icon: Network, run: () => navigate({ to: "/knowledge" }) },
       {
         id: "cmd-new-study",
