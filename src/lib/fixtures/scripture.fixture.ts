@@ -86,7 +86,16 @@ const t = (
   morphology: Token["morphology"],
   transliteration?: string,
   strongs?: string,
-): Token => ({ id, language, surface, lemma, gloss, morphology, transliteration, strongs });
+): Token => ({
+  id,
+  language,
+  surface,
+  lemma,
+  gloss,
+  morphology,
+  ...(transliteration !== undefined ? { transliteration } : {}),
+  ...(strongs !== undefined ? { strongs } : {}),
+});
 
 /** John 1:1 — WH 1881 (public domain), word-for-word DEMO tokens. */
 const JOHN_1_1_TOKENS: Token[] = [
