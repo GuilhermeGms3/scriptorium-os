@@ -10,33 +10,53 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as ScriptureIndexRouteImport } from './routes/scripture/index'
+import { Route as ScriptureBookChapterRouteImport } from './routes/scripture/$book.$chapter'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ScriptureIndexRoute = ScriptureIndexRouteImport.update({
+  id: '/scripture/',
+  path: '/scripture/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ScriptureBookChapterRoute = ScriptureBookChapterRouteImport.update({
+  id: '/scripture/$book/$chapter',
+  path: '/scripture/$book/$chapter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/scripture/': typeof ScriptureIndexRoute
+  '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/scripture': typeof ScriptureIndexRoute
+  '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/scripture/': typeof ScriptureIndexRoute
+  '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths: '/' | '/scripture/' | '/scripture/$book/$chapter'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to: '/' | '/scripture' | '/scripture/$book/$chapter'
+  id: '__root__' | '/' | '/scripture/' | '/scripture/$book/$chapter'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  ScriptureIndexRoute: typeof ScriptureIndexRoute
+  ScriptureBookChapterRoute: typeof ScriptureBookChapterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +68,27 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/scripture/': {
+      id: '/scripture/'
+      path: '/scripture'
+      fullPath: '/scripture/'
+      preLoaderRoute: typeof ScriptureIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/scripture/$book/$chapter': {
+      id: '/scripture/$book/$chapter'
+      path: '/scripture/$book/$chapter'
+      fullPath: '/scripture/$book/$chapter'
+      preLoaderRoute: typeof ScriptureBookChapterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  ScriptureIndexRoute: ScriptureIndexRoute,
+  ScriptureBookChapterRoute: ScriptureBookChapterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
