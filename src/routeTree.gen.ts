@@ -10,12 +10,18 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as ScriptureIndexRouteImport } from './routes/scripture/index'
 import { Route as ScriptureBookChapterRouteImport } from './routes/scripture/$book.$chapter'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const KnowledgeRoute = KnowledgeRouteImport.update({
+  id: '/knowledge',
+  path: '/knowledge',
   getParentRoute: () => rootRouteImport,
 } as any)
 const ScriptureIndexRoute = ScriptureIndexRouteImport.update({
@@ -31,30 +37,39 @@ const ScriptureBookChapterRoute = ScriptureBookChapterRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/knowledge': typeof KnowledgeRoute
   '/scripture/': typeof ScriptureIndexRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/knowledge': typeof KnowledgeRoute
   '/scripture': typeof ScriptureIndexRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/knowledge': typeof KnowledgeRoute
   '/scripture/': typeof ScriptureIndexRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/scripture/' | '/scripture/$book/$chapter'
+  fullPaths: '/' | '/knowledge' | '/scripture/' | '/scripture/$book/$chapter'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/scripture' | '/scripture/$book/$chapter'
-  id: '__root__' | '/' | '/scripture/' | '/scripture/$book/$chapter'
+  to: '/' | '/knowledge' | '/scripture' | '/scripture/$book/$chapter'
+  id:
+    | '__root__'
+    | '/'
+    | '/knowledge'
+    | '/scripture/'
+    | '/scripture/$book/$chapter'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  KnowledgeRoute: typeof KnowledgeRoute
   ScriptureIndexRoute: typeof ScriptureIndexRoute
   ScriptureBookChapterRoute: typeof ScriptureBookChapterRoute
 }
@@ -66,6 +81,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof IndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/knowledge': {
+      id: '/knowledge'
+      path: '/knowledge'
+      fullPath: '/knowledge'
+      preLoaderRoute: typeof KnowledgeRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/scripture/': {
@@ -87,6 +109,7 @@ declare module '@tanstack/react-router' {
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  KnowledgeRoute: KnowledgeRoute,
   ScriptureIndexRoute: ScriptureIndexRoute,
   ScriptureBookChapterRoute: ScriptureBookChapterRoute,
 }
