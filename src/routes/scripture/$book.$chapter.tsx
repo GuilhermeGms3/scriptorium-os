@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { ScriptureToolbar } from "../../components/scripture/scripture-toolbar";
@@ -7,12 +7,25 @@ import { BooksPanel } from "../../components/scripture/books-panel";
 import { OriginalVerse, Verse, type ReaderView } from "../../components/scripture/verse";
 import { ParallelVersions } from "../../components/scripture/parallel-versions";
 import { InterlinearView } from "../../components/scripture/interlinear-view";
+import { AnalysisLenses } from "../../components/scripture/analysis-lenses";
+import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
+import { bookLabel, passageLabel, t } from "../../lib/i18n";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
+  loader: async ({ params }) => {
+    const chapter = Number(params.chapter);
+    if (Number.isInteger(chapter) && chapter > 0) {
+      return ScriptureRepository.loadChapter(params.book, chapter);
+    }
+    return null;
+  },
+  pendingComponent: () => <EmptyReader message={t("scripture.loadingCorpusChapter")} />,
+  errorComponent: () => <EmptyReader message={t("scripture.corpusChapterError")} />,
   head: ({ params }) => {
     const book = ScriptureRepository.listBooks().find((b) => b.id === params.book);
-    const title = `${book?.name ?? "Scripture"} ${params.chapter} — Scriptorium Reader`;
-    const description = `Read ${book?.name ?? "scripture"} ${params.chapter} with parallel translations, original-language tokens and word-level analysis in Scriptorium.`;
+    const localizedBook = book ? bookLabel(book.id, book.name) : t("navigation.scripture");
+    const title = `${localizedBook} ${params.chapter} — ${t("scripture.reader")} Scriptorium`;
+    const description = t("scripture.metaDescription");
     return {
       meta: [
         { title },
@@ -27,23 +40,42 @@ export const Route = createFileRoute("/scripture/$book/$chapter")({
 
 function ChapterReader() {
   const { book: bookId, chapter: chapterParam } = Route.useParams();
+  const loadedChapter = Route.useLoaderData();
   const chapter = Number(chapterParam);
   const { setPassageContext, selectWord, readingPrefs } = useWorkbench();
 
-  const [editionId, setEditionId] = useState("web");
+  ScriptureRepository.primeChapter(loadedChapter);
+
+  const [editionId, setEditionId] = useState(() =>
+    ScriptureRepository.defaultEditionId(bookId, chapter),
+  );
   const [view, setView] = useState<ReaderView>("single");
 
   const book = ScriptureRepository.listBooks().find((b) => b.id === bookId);
-  const content = ScriptureRepository.getChapter(bookId, chapter);
-  const editions = ScriptureRepository.listEditions();
+  const activeRef = useMemo(
+    () => ({
+      bookId,
+      chapter,
+    }),
+    [bookId, chapter],
+  );
+  const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef);
+  const editions = bundle?.passage.editions ?? ScriptureRepository.listEditions();
+  const effectiveEditionId = editions.some((edition) => edition.id === editionId)
+    ? editionId
+    : ScriptureRepository.defaultEditionId(bookId, chapter);
+  const displayedEdition =
+    view === "original" || view === "interlinear"
+      ? editions.find((edition) => edition.kind === "original-language")
+      : editions.find((edition) => edition.id === effectiveEditionId);
 
   useEffect(() => {
-    setPassageContext(book ? `${book.name} ${chapter}` : null);
+    setPassageContext(book ? { ref: activeRef, label: passageLabel(activeRef) } : null);
     selectWord(null);
-  }, [book, chapter, setPassageContext, selectWord]);
+  }, [activeRef, book, bundle?.identity.label, chapter, setPassageContext, selectWord]);
 
   if (!book) {
-    return <EmptyReader message="Unknown book." />;
+    return <EmptyReader message={t("scripture.unknownBook")} />;
   }
 
   return (
@@ -57,7 +89,7 @@ function ChapterReader() {
           book={book}
           chapter={chapter}
           editions={editions}
-          editionId={editionId}
+          editionId={effectiveEditionId}
           onEditionChange={setEditionId}
           view={view}
           onViewChange={setView}
@@ -66,30 +98,32 @@ function ChapterReader() {
         />
 
         <div className="min-h-0 flex-1 overflow-y-auto">
-          {!content ? (
+          {!bundle ? (
             <EmptyReader
-              message={`${book.name} ${chapter} is not part of the bundled demo dataset.`}
-              hint="Chapters available in this prototype: Genesis 1, Psalm 23, John 1, Romans 5."
+              message={t("scripture.notInDemo", {
+                passage: `${bookLabel(book.id, book.name)} ${chapter}`,
+              })}
+              hint={t("scripture.demoChapters")}
             />
           ) : (
             <article className="mx-auto max-w-3xl px-5 py-6 md:px-8">
               <header className="mb-5 border-b border-border pb-3">
                 <p className="meta-label">
-                  {view === "parallel" ? "Parallel reading" : editions.find((e) => e.id === editionId)?.title}
+                  {view === "parallel" ? t("scripture.parallelReading") : displayedEdition?.title}
                 </p>
                 <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
-                  {book.name} {chapter}
+                  {bookLabel(book.id, book.name)} {chapter}
                 </h1>
               </header>
 
               {view === "single" && (
                 <div className="reading-text">
-                  {content.verses.map((v) => (
+                  {bundle.passage.verses.map((v) => (
                     <Verse
                       key={v.verse}
                       verse={v}
-                      editionId={editionId}
-                      bookName={book.name}
+                      editionId={effectiveEditionId}
+                      bookName={bookLabel(book.id, book.name)}
                       chapter={chapter}
                       verseMode={readingPrefs.verseMode}
                     />
@@ -99,7 +133,7 @@ function ChapterReader() {
 
               {view === "parallel" && (
                 <ParallelVersions
-                  verses={content.verses}
+                  verses={bundle.passage.verses}
                   editions={editions.filter((e) => e.kind === "translation")}
                 />
               )}
@@ -107,11 +141,15 @@ function ChapterReader() {
               {view === "original" && (
                 <div>
                   <p className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                    Click any word to open the Word Inspector. Original-language tokens are bundled
-                    only for a few demo verses.
+                    {t("scripture.originalHint")}
                   </p>
-                  {content.verses.map((v) => (
-                    <OriginalVerse key={v.verse} verse={v} bookName={book.name} chapter={chapter} />
+                  {bundle.passage.verses.map((v) => (
+                    <OriginalVerse
+                      key={v.verse}
+                      verse={v}
+                      bookName={bookLabel(book.id, book.name)}
+                      chapter={chapter}
+                    />
                   ))}
                 </div>
               )}
@@ -119,19 +157,29 @@ function ChapterReader() {
               {view === "interlinear" && (
                 <div>
                   <p className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                    Visual interlinear scaffold (surface / transliteration / gloss / parsing). A real
-                    alignment engine is future work.
+                    {t("scripture.interlinearHint")}
                   </p>
-                  {content.verses.map((v) => (
-                    <InterlinearView key={v.verse} verse={v} bookName={book.name} chapter={chapter} />
+                  {bundle.passage.verses.map((v) => (
+                    <InterlinearView
+                      key={v.verse}
+                      verse={v}
+                      bookName={bookLabel(book.id, book.name)}
+                      chapter={chapter}
+                    />
                   ))}
                 </div>
               )}
 
+              <div className="mt-10 border-t border-border pt-6">
+                <AnalysisLenses
+                  passageLabel={passageLabel(bundle.identity.ref)}
+                  lenses={bundle.lenses}
+                  analyses={bundle.analyses}
+                />
+              </div>
+
               <footer className="mt-8 border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
-                DEMO / SEED DATA. English text: World English Bible &amp; American Standard Version
-                (public domain). Greek: Westcott &amp; Hort 1881 (public domain). Hebrew: Masoretic
-                text (public domain). No copyrighted translation is bundled.
+                {bundle.provenance.attribution ?? t("scripture.demoFooter")}
               </footer>
             </article>
           )}
@@ -144,14 +192,14 @@ function ChapterReader() {
 function EmptyReader({ message, hint }: { message: string; hint?: string }) {
   return (
     <div className="mx-auto max-w-md px-6 py-16 text-center">
-      <p className="meta-label">Not imported</p>
+      <p className="meta-label">{t("scripture.notImported")}</p>
       <p className="mt-2 text-sm text-foreground">{message}</p>
       {hint && <p className="mt-1.5 text-xs text-muted-foreground">{hint}</p>}
       <Link
         to="/scripture"
         className="mt-5 inline-flex rounded-md border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"
       >
-        Back to Scripture
+        {t("scripture.back")}
       </Link>
     </div>
   );

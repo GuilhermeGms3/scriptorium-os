@@ -5,6 +5,7 @@
 import { BookMarked, Moon, PanelRight, Search, Sun } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { cn } from "../../lib/utils";
+import { t } from "../../lib/i18n";
 
 export function TopBar() {
   const { setPaletteOpen, resolvedTheme, setTheme, inspectorOpen, setInspectorOpen } =
@@ -18,7 +19,7 @@ export function TopBar() {
           SCRIPTORIUM
         </span>
         <span className="hidden rounded border border-border px-1 py-px font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:inline">
-          open biblical knowledge system
+          {t("shell.productDescriptor")}
         </span>
       </div>
 
@@ -26,10 +27,10 @@ export function TopBar() {
         <button
           onClick={() => setPaletteOpen(true)}
           className="flex h-7 w-full max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          aria-label="Open search and commands"
+          aria-label={t("shell.openSearch")}
         >
           <Search className="size-3.5" />
-          <span className="flex-1 text-left">Search or command…</span>
+          <span className="flex-1 text-left">{t("shell.searchCommand")}</span>
           <kbd className="hidden rounded border border-border bg-background px-1 font-mono text-[10px] text-muted-foreground sm:inline">
             ⌘K
           </kbd>
@@ -40,8 +41,8 @@ export function TopBar() {
         <button
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
           className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          aria-label="Toggle dark mode"
-          title="Toggle dark mode"
+          aria-label={t("shell.toggleTheme")}
+          title={t("shell.toggleTheme")}
         >
           {resolvedTheme === "dark" ? (
             <Sun className="size-4" strokeWidth={1.75} />
@@ -57,9 +58,9 @@ export function TopBar() {
               ? "bg-accent text-foreground"
               : "text-muted-foreground hover:bg-accent hover:text-foreground",
           )}
-          aria-label="Toggle inspector"
+          aria-label={t("shell.toggleInspector")}
           aria-pressed={inspectorOpen}
-          title="Toggle inspector"
+          title={t("shell.toggleInspector")}
         >
           <PanelRight className="size-4" strokeWidth={1.75} />
         </button>

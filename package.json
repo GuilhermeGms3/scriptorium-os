@@ -8,6 +8,11 @@
     "build": "vite build",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
+    "corpus:acquire": "tsx scripts/corpus/cli.ts acquire",
+    "corpus:verify": "tsx scripts/corpus/cli.ts verify",
+    "corpus:import": "tsx scripts/corpus/cli.ts import",
+    "corpus:build": "tsx scripts/corpus/cli.ts build",
+    "test": "vitest run",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
@@ -80,11 +85,14 @@
     "eslint-plugin-prettier": "^5.2.6",
     "eslint-plugin-react-hooks": "^5.2.0",
     "eslint-plugin-react-refresh": "^0.4.20",
+    "fast-xml-parser": "^5.11.1",
     "globals": "^15.15.0",
     "nitro": "3.0.260603-beta",
     "prettier": "^3.7.3",
+    "tsx": "^4.23.12",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.56.1",
-    "vite": "8.1.5"
+    "vite": "8.1.5",
+    "vitest": "^4.1.11"
   }
 }

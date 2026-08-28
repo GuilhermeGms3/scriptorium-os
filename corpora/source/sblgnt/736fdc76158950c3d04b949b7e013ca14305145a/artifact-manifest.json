@@ -1,0 +1,519 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg-sblgnt-1.2-candidate",
+  "corpusId": "sblgnt",
+  "editionId": "sblgnt-1.2",
+  "repository": "https://github.com/Faithlife/SBLGNT.git",
+  "commitSha": "736fdc76158950c3d04b949b7e013ca14305145a",
+  "retrievedAt": "2026-08-27T17:45:14.727Z",
+  "packageDigest": {
+    "algorithm": "SHA-256",
+    "value": "9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d"
+  },
+  "artifacts": [
+    {
+      "id": "artifact:sblgnt:1.2:1cor",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/1Cor.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/1Cor.xml",
+      "fileName": "1Cor.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5a12d44dd6a9c7c236da21dc85a1d60915c54c988c59ba456f27bf528da1812b"
+      },
+      "byteSize": 342330
+    },
+    {
+      "id": "artifact:sblgnt:1.2:1john",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/1John.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/1John.xml",
+      "fileName": "1John.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3786d543f13a83d0e5f3cc1fd645c3b9e240a4c14fd412e0b2fa304d27d4a66b"
+      },
+      "byteSize": 102101
+    },
+    {
+      "id": "artifact:sblgnt:1.2:1pet",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/1Pet.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/1Pet.xml",
+      "fileName": "1Pet.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "82693ac93851f9f415fa126508f6e893dfb4b2f8131ee953c822a342eb78d5fa"
+      },
+      "byteSize": 85461
+    },
+    {
+      "id": "artifact:sblgnt:1.2:1thess",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/1Thess.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/1Thess.xml",
+      "fileName": "1Thess.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "22a5dcf8e0cc80d06fcb8fcd01aef72860058cfab4b7b42cfa94dd229e2c7065"
+      },
+      "byteSize": 73887
+    },
+    {
+      "id": "artifact:sblgnt:1.2:1tim",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/1Tim.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/1Tim.xml",
+      "fileName": "1Tim.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "7078cf18cf4325e4fb093785da774b48cc8306fd24dd2aa00041335c1bc88efc"
+      },
+      "byteSize": 81717
+    },
+    {
+      "id": "artifact:sblgnt:1.2:2cor",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/2Cor.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/2Cor.xml",
+      "fileName": "2Cor.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "897a92f3f010f796b8549e643c0ae96957827020a890808a689c6ba389085a43"
+      },
+      "byteSize": 222992
+    },
+    {
+      "id": "artifact:sblgnt:1.2:2john",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/2John.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/2John.xml",
+      "fileName": "2John.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "132d3e497afb40247097175b9de4a8791de14366a0c5a923ed59f05a7c0d9586"
+      },
+      "byteSize": 12074
+    },
+    {
+      "id": "artifact:sblgnt:1.2:2pet",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/2Pet.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/2Pet.xml",
+      "fileName": "2Pet.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "59612036f3847ddd1e6f5435b62458a9c1aa7eff4c6fc6107659e980346275b2"
+      },
+      "byteSize": 55525
+    },
+    {
+      "id": "artifact:sblgnt:1.2:2thess",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/2Thess.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/2Thess.xml",
+      "fileName": "2Thess.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3b7fbae3d238039f11bb599e1b99139a2d2a8626f293ccefc601d1a50a03d433"
+      },
+      "byteSize": 40902
+    },
+    {
+      "id": "artifact:sblgnt:1.2:2tim",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/2Tim.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/2Tim.xml",
+      "fileName": "2Tim.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "6d3add4060e870089d71e4621bcec5cc12759ebb4689fe6864368ae56c76b6fc"
+      },
+      "byteSize": 62532
+    },
+    {
+      "id": "artifact:sblgnt:1.2:3john",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/3John.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/3John.xml",
+      "fileName": "3John.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "389c6751dc8e5de45c9173fdd3b499aa8574d425345055723ff2a46b2d8d173f"
+      },
+      "byteSize": 11161
+    },
+    {
+      "id": "artifact:sblgnt:1.2:acts",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Acts.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Acts.xml",
+      "fileName": "Acts.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5040d5a8570ce8f391209f228707c560e83fccc439f364d0a8baf89666025ea3"
+      },
+      "byteSize": 921255
+    },
+    {
+      "id": "artifact:sblgnt:1.2:col",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Col.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Col.xml",
+      "fileName": "Col.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "87079753db107d3034b8af8a91ccb0495da393389a02df4588cff3a4de4cd837"
+      },
+      "byteSize": 79114
+    },
+    {
+      "id": "artifact:sblgnt:1.2:eph",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Eph.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Eph.xml",
+      "fileName": "Eph.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "9edf592842f0a94d35790ad999ed51049a19510178bd2b858c3f29849d44df45"
+      },
+      "byteSize": 120457
+    },
+    {
+      "id": "artifact:sblgnt:1.2:gal",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Gal.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Gal.xml",
+      "fileName": "Gal.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "02188ec87b20a983424693971f2710b7b77c53ae0a7d6c4bd95a7fc293f2f17a"
+      },
+      "byteSize": 111663
+    },
+    {
+      "id": "artifact:sblgnt:1.2:heb",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Heb.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Heb.xml",
+      "fileName": "Heb.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "50ee82c41b032b4b786ca7790eb3ce412865bd80e823d9cfdc22a812a1d6a865"
+      },
+      "byteSize": 247580
+    },
+    {
+      "id": "artifact:sblgnt:1.2:jas",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Jas.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Jas.xml",
+      "fileName": "Jas.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5cb6fdeefb734ef842e102938f0f10791415276ae09cbd33215a359e1025f7e5"
+      },
+      "byteSize": 87475
+    },
+    {
+      "id": "artifact:sblgnt:1.2:john",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/John.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/John.xml",
+      "fileName": "John.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "11fa4ec61127f109f4582845737963dc66a532e33dca7d489875b9dd91da00e2"
+      },
+      "byteSize": 762321
+    },
+    {
+      "id": "artifact:sblgnt:1.2:jude",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Jude.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Jude.xml",
+      "fileName": "Jude.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "b83680c0d23b032273ec0e0c858f3c24ba684114b78ebddb2475dd78aac7165b"
+      },
+      "byteSize": 23202
+    },
+    {
+      "id": "artifact:sblgnt:1.2:luke",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Luke.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Luke.xml",
+      "fileName": "Luke.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "960c0f7743f6ee68b7ee341991b76e14e83143eac4ba1f2df179327ec4bae8d5"
+      },
+      "byteSize": 970739
+    },
+    {
+      "id": "artifact:sblgnt:1.2:mark",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Mark.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Mark.xml",
+      "fileName": "Mark.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5901ccefcd7d9aedfaf228b1f99c3a13f37b4509c1b38d16123a860247a59d76"
+      },
+      "byteSize": 572329
+    },
+    {
+      "id": "artifact:sblgnt:1.2:matt",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Matt.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Matt.xml",
+      "fileName": "Matt.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "98030ff7ddec7d1b89811c912b64e52a6c6a5806048e619abc708fe19a416424"
+      },
+      "byteSize": 909675
+    },
+    {
+      "id": "artifact:sblgnt:1.2:phil",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Phil.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Phil.xml",
+      "fileName": "Phil.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2f8933cdf0f8f459a6e192ad99c8aa07cb06e94d400875f88e64290bf489ed54"
+      },
+      "byteSize": 80931
+    },
+    {
+      "id": "artifact:sblgnt:1.2:phlm",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Phlm.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Phlm.xml",
+      "fileName": "Phlm.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5e055c7dbe6b8326b559f6d7d135a39e6da0b499271f1eec6eae87fd93590ef3"
+      },
+      "byteSize": 16865
+    },
+    {
+      "id": "artifact:sblgnt:1.2:rev",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Rev.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Rev.xml",
+      "fileName": "Rev.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "f6ba340dfd9010436aac55a17246ed45ef24c6b8e4510dc4bcb62c0a9ac4bc83"
+      },
+      "byteSize": 474728
+    },
+    {
+      "id": "artifact:sblgnt:1.2:rom",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Rom.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Rom.xml",
+      "fileName": "Rom.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "99f8cced61efe841d146bd1e0c67333d7a4cca78a55e14da8c9390166e0a6209"
+      },
+      "byteSize": 347059
+    },
+    {
+      "id": "artifact:sblgnt:1.2:sblgnt",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/sblgnt.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/sblgnt.xml",
+      "fileName": "sblgnt.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3386e5ce7f960318d99c10e2918a58c0eb8c7dd5f02c9d1ecd37834db5904603"
+      },
+      "byteSize": 325
+    },
+    {
+      "id": "artifact:sblgnt:1.2:titus",
+      "packageId": "pkg-sblgnt-1.2-candidate",
+      "role": "source",
+      "repository": "https://github.com/Faithlife/SBLGNT.git",
+      "sourcePath": "data/sblgnt/xml/Titus.xml",
+      "sourceUrl": "https://github.com/LogosBible/SBLGNT/blob/736fdc76158950c3d04b949b7e013ca14305145a/data/sblgnt/xml/Titus.xml",
+      "fileName": "Titus.xml",
+      "mediaType": "application/xml",
+      "format": "xml",
+      "retrievedAt": "2026-08-27T17:45:14.727Z",
+      "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4c66c26c8ce316056d0423018d3497501e1a9ef033a1fc1ebd5829ba2d177fd9"
+      },
+      "byteSize": 33932
+    }
+  ]
+}

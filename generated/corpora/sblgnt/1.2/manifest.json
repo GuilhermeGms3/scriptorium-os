@@ -1,0 +1,646 @@
+{
+  "schemaVersion": 1,
+  "importer": {
+    "name": "Scriptorium Corpus Pipeline",
+    "version": "1.0.0",
+    "adapter": "sblgnt-xml"
+  },
+  "corpusId": "sblgnt",
+  "editionId": "sblgnt-1.2",
+  "packageId": "pkg-sblgnt-1.2-candidate",
+  "sourceRevision": "736fdc76158950c3d04b949b7e013ca14305145a",
+  "sourcePackageDigest": {
+    "algorithm": "SHA-256",
+    "value": "9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d"
+  },
+  "attribution": "SBL Greek New Testament, edited by Michael W. Holmes.",
+  "versificationScheme": "sblgnt-1.2",
+  "sourceArtifactIds": [
+    "artifact:sblgnt:1.2:1cor",
+    "artifact:sblgnt:1.2:1john",
+    "artifact:sblgnt:1.2:1pet",
+    "artifact:sblgnt:1.2:1thess",
+    "artifact:sblgnt:1.2:1tim",
+    "artifact:sblgnt:1.2:2cor",
+    "artifact:sblgnt:1.2:2john",
+    "artifact:sblgnt:1.2:2pet",
+    "artifact:sblgnt:1.2:2thess",
+    "artifact:sblgnt:1.2:2tim",
+    "artifact:sblgnt:1.2:3john",
+    "artifact:sblgnt:1.2:acts",
+    "artifact:sblgnt:1.2:col",
+    "artifact:sblgnt:1.2:eph",
+    "artifact:sblgnt:1.2:gal",
+    "artifact:sblgnt:1.2:heb",
+    "artifact:sblgnt:1.2:jas",
+    "artifact:sblgnt:1.2:john",
+    "artifact:sblgnt:1.2:jude",
+    "artifact:sblgnt:1.2:luke",
+    "artifact:sblgnt:1.2:mark",
+    "artifact:sblgnt:1.2:matt",
+    "artifact:sblgnt:1.2:phil",
+    "artifact:sblgnt:1.2:phlm",
+    "artifact:sblgnt:1.2:rev",
+    "artifact:sblgnt:1.2:rom",
+    "artifact:sblgnt:1.2:sblgnt",
+    "artifact:sblgnt:1.2:titus"
+  ],
+  "transformations": [
+    {
+      "id": "transformation:sblgnt:1.0.0:parse-xml",
+      "type": "parse-xml",
+      "inputArtifactIds": [
+        "artifact:sblgnt:1.2:1cor",
+        "artifact:sblgnt:1.2:1john",
+        "artifact:sblgnt:1.2:1pet",
+        "artifact:sblgnt:1.2:1thess",
+        "artifact:sblgnt:1.2:1tim",
+        "artifact:sblgnt:1.2:2cor",
+        "artifact:sblgnt:1.2:2john",
+        "artifact:sblgnt:1.2:2pet",
+        "artifact:sblgnt:1.2:2thess",
+        "artifact:sblgnt:1.2:2tim",
+        "artifact:sblgnt:1.2:3john",
+        "artifact:sblgnt:1.2:acts",
+        "artifact:sblgnt:1.2:col",
+        "artifact:sblgnt:1.2:eph",
+        "artifact:sblgnt:1.2:gal",
+        "artifact:sblgnt:1.2:heb",
+        "artifact:sblgnt:1.2:jas",
+        "artifact:sblgnt:1.2:john",
+        "artifact:sblgnt:1.2:jude",
+        "artifact:sblgnt:1.2:luke",
+        "artifact:sblgnt:1.2:mark",
+        "artifact:sblgnt:1.2:matt",
+        "artifact:sblgnt:1.2:phil",
+        "artifact:sblgnt:1.2:phlm",
+        "artifact:sblgnt:1.2:rev",
+        "artifact:sblgnt:1.2:rom",
+        "artifact:sblgnt:1.2:sblgnt",
+        "artifact:sblgnt:1.2:titus"
+      ],
+      "outputDatasetId": "dataset:sblgnt:1.2:9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d"
+    },
+    {
+      "id": "transformation:sblgnt:1.0.0:chapter-shards",
+      "type": "build-chapter-shards",
+      "inputArtifactIds": [
+        "artifact:sblgnt:1.2:1cor",
+        "artifact:sblgnt:1.2:1john",
+        "artifact:sblgnt:1.2:1pet",
+        "artifact:sblgnt:1.2:1thess",
+        "artifact:sblgnt:1.2:1tim",
+        "artifact:sblgnt:1.2:2cor",
+        "artifact:sblgnt:1.2:2john",
+        "artifact:sblgnt:1.2:2pet",
+        "artifact:sblgnt:1.2:2thess",
+        "artifact:sblgnt:1.2:2tim",
+        "artifact:sblgnt:1.2:3john",
+        "artifact:sblgnt:1.2:acts",
+        "artifact:sblgnt:1.2:col",
+        "artifact:sblgnt:1.2:eph",
+        "artifact:sblgnt:1.2:gal",
+        "artifact:sblgnt:1.2:heb",
+        "artifact:sblgnt:1.2:jas",
+        "artifact:sblgnt:1.2:john",
+        "artifact:sblgnt:1.2:jude",
+        "artifact:sblgnt:1.2:luke",
+        "artifact:sblgnt:1.2:mark",
+        "artifact:sblgnt:1.2:matt",
+        "artifact:sblgnt:1.2:phil",
+        "artifact:sblgnt:1.2:phlm",
+        "artifact:sblgnt:1.2:rev",
+        "artifact:sblgnt:1.2:rom",
+        "artifact:sblgnt:1.2:sblgnt",
+        "artifact:sblgnt:1.2:titus"
+      ],
+      "outputDatasetId": "dataset:sblgnt:1.2:9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d"
+    }
+  ],
+  "datasetId": "dataset:sblgnt:1.2:9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d",
+  "books": [
+    {
+      "id": "matthew",
+      "name": "Matthew",
+      "abbreviation": "Matt",
+      "order": 40,
+      "chapters": 28,
+      "chapterFiles": {
+        "1": "books/matthew/01.json",
+        "2": "books/matthew/02.json",
+        "3": "books/matthew/03.json",
+        "4": "books/matthew/04.json",
+        "5": "books/matthew/05.json",
+        "6": "books/matthew/06.json",
+        "7": "books/matthew/07.json",
+        "8": "books/matthew/08.json",
+        "9": "books/matthew/09.json",
+        "10": "books/matthew/10.json",
+        "11": "books/matthew/11.json",
+        "12": "books/matthew/12.json",
+        "13": "books/matthew/13.json",
+        "14": "books/matthew/14.json",
+        "15": "books/matthew/15.json",
+        "16": "books/matthew/16.json",
+        "17": "books/matthew/17.json",
+        "18": "books/matthew/18.json",
+        "19": "books/matthew/19.json",
+        "20": "books/matthew/20.json",
+        "21": "books/matthew/21.json",
+        "22": "books/matthew/22.json",
+        "23": "books/matthew/23.json",
+        "24": "books/matthew/24.json",
+        "25": "books/matthew/25.json",
+        "26": "books/matthew/26.json",
+        "27": "books/matthew/27.json",
+        "28": "books/matthew/28.json"
+      }
+    },
+    {
+      "id": "mark",
+      "name": "Mark",
+      "abbreviation": "Mark",
+      "order": 41,
+      "chapters": 16,
+      "chapterFiles": {
+        "1": "books/mark/01.json",
+        "2": "books/mark/02.json",
+        "3": "books/mark/03.json",
+        "4": "books/mark/04.json",
+        "5": "books/mark/05.json",
+        "6": "books/mark/06.json",
+        "7": "books/mark/07.json",
+        "8": "books/mark/08.json",
+        "9": "books/mark/09.json",
+        "10": "books/mark/10.json",
+        "11": "books/mark/11.json",
+        "12": "books/mark/12.json",
+        "13": "books/mark/13.json",
+        "14": "books/mark/14.json",
+        "15": "books/mark/15.json",
+        "16": "books/mark/16.json"
+      }
+    },
+    {
+      "id": "luke",
+      "name": "Luke",
+      "abbreviation": "Luke",
+      "order": 42,
+      "chapters": 24,
+      "chapterFiles": {
+        "1": "books/luke/01.json",
+        "2": "books/luke/02.json",
+        "3": "books/luke/03.json",
+        "4": "books/luke/04.json",
+        "5": "books/luke/05.json",
+        "6": "books/luke/06.json",
+        "7": "books/luke/07.json",
+        "8": "books/luke/08.json",
+        "9": "books/luke/09.json",
+        "10": "books/luke/10.json",
+        "11": "books/luke/11.json",
+        "12": "books/luke/12.json",
+        "13": "books/luke/13.json",
+        "14": "books/luke/14.json",
+        "15": "books/luke/15.json",
+        "16": "books/luke/16.json",
+        "17": "books/luke/17.json",
+        "18": "books/luke/18.json",
+        "19": "books/luke/19.json",
+        "20": "books/luke/20.json",
+        "21": "books/luke/21.json",
+        "22": "books/luke/22.json",
+        "23": "books/luke/23.json",
+        "24": "books/luke/24.json"
+      }
+    },
+    {
+      "id": "john",
+      "name": "John",
+      "abbreviation": "John",
+      "order": 43,
+      "chapters": 21,
+      "chapterFiles": {
+        "1": "books/john/01.json",
+        "2": "books/john/02.json",
+        "3": "books/john/03.json",
+        "4": "books/john/04.json",
+        "5": "books/john/05.json",
+        "6": "books/john/06.json",
+        "7": "books/john/07.json",
+        "8": "books/john/08.json",
+        "9": "books/john/09.json",
+        "10": "books/john/10.json",
+        "11": "books/john/11.json",
+        "12": "books/john/12.json",
+        "13": "books/john/13.json",
+        "14": "books/john/14.json",
+        "15": "books/john/15.json",
+        "16": "books/john/16.json",
+        "17": "books/john/17.json",
+        "18": "books/john/18.json",
+        "19": "books/john/19.json",
+        "20": "books/john/20.json",
+        "21": "books/john/21.json"
+      }
+    },
+    {
+      "id": "acts",
+      "name": "Acts",
+      "abbreviation": "Acts",
+      "order": 44,
+      "chapters": 28,
+      "chapterFiles": {
+        "1": "books/acts/01.json",
+        "2": "books/acts/02.json",
+        "3": "books/acts/03.json",
+        "4": "books/acts/04.json",
+        "5": "books/acts/05.json",
+        "6": "books/acts/06.json",
+        "7": "books/acts/07.json",
+        "8": "books/acts/08.json",
+        "9": "books/acts/09.json",
+        "10": "books/acts/10.json",
+        "11": "books/acts/11.json",
+        "12": "books/acts/12.json",
+        "13": "books/acts/13.json",
+        "14": "books/acts/14.json",
+        "15": "books/acts/15.json",
+        "16": "books/acts/16.json",
+        "17": "books/acts/17.json",
+        "18": "books/acts/18.json",
+        "19": "books/acts/19.json",
+        "20": "books/acts/20.json",
+        "21": "books/acts/21.json",
+        "22": "books/acts/22.json",
+        "23": "books/acts/23.json",
+        "24": "books/acts/24.json",
+        "25": "books/acts/25.json",
+        "26": "books/acts/26.json",
+        "27": "books/acts/27.json",
+        "28": "books/acts/28.json"
+      }
+    },
+    {
+      "id": "romans",
+      "name": "Romans",
+      "abbreviation": "Rom",
+      "order": 45,
+      "chapters": 16,
+      "chapterFiles": {
+        "1": "books/romans/01.json",
+        "2": "books/romans/02.json",
+        "3": "books/romans/03.json",
+        "4": "books/romans/04.json",
+        "5": "books/romans/05.json",
+        "6": "books/romans/06.json",
+        "7": "books/romans/07.json",
+        "8": "books/romans/08.json",
+        "9": "books/romans/09.json",
+        "10": "books/romans/10.json",
+        "11": "books/romans/11.json",
+        "12": "books/romans/12.json",
+        "13": "books/romans/13.json",
+        "14": "books/romans/14.json",
+        "15": "books/romans/15.json",
+        "16": "books/romans/16.json"
+      }
+    },
+    {
+      "id": "1-corinthians",
+      "name": "1 Corinthians",
+      "abbreviation": "1 Cor",
+      "order": 46,
+      "chapters": 16,
+      "chapterFiles": {
+        "1": "books/1-corinthians/01.json",
+        "2": "books/1-corinthians/02.json",
+        "3": "books/1-corinthians/03.json",
+        "4": "books/1-corinthians/04.json",
+        "5": "books/1-corinthians/05.json",
+        "6": "books/1-corinthians/06.json",
+        "7": "books/1-corinthians/07.json",
+        "8": "books/1-corinthians/08.json",
+        "9": "books/1-corinthians/09.json",
+        "10": "books/1-corinthians/10.json",
+        "11": "books/1-corinthians/11.json",
+        "12": "books/1-corinthians/12.json",
+        "13": "books/1-corinthians/13.json",
+        "14": "books/1-corinthians/14.json",
+        "15": "books/1-corinthians/15.json",
+        "16": "books/1-corinthians/16.json"
+      }
+    },
+    {
+      "id": "2-corinthians",
+      "name": "2 Corinthians",
+      "abbreviation": "2 Cor",
+      "order": 47,
+      "chapters": 13,
+      "chapterFiles": {
+        "1": "books/2-corinthians/01.json",
+        "2": "books/2-corinthians/02.json",
+        "3": "books/2-corinthians/03.json",
+        "4": "books/2-corinthians/04.json",
+        "5": "books/2-corinthians/05.json",
+        "6": "books/2-corinthians/06.json",
+        "7": "books/2-corinthians/07.json",
+        "8": "books/2-corinthians/08.json",
+        "9": "books/2-corinthians/09.json",
+        "10": "books/2-corinthians/10.json",
+        "11": "books/2-corinthians/11.json",
+        "12": "books/2-corinthians/12.json",
+        "13": "books/2-corinthians/13.json"
+      }
+    },
+    {
+      "id": "galatians",
+      "name": "Galatians",
+      "abbreviation": "Gal",
+      "order": 48,
+      "chapters": 6,
+      "chapterFiles": {
+        "1": "books/galatians/01.json",
+        "2": "books/galatians/02.json",
+        "3": "books/galatians/03.json",
+        "4": "books/galatians/04.json",
+        "5": "books/galatians/05.json",
+        "6": "books/galatians/06.json"
+      }
+    },
+    {
+      "id": "ephesians",
+      "name": "Ephesians",
+      "abbreviation": "Eph",
+      "order": 49,
+      "chapters": 6,
+      "chapterFiles": {
+        "1": "books/ephesians/01.json",
+        "2": "books/ephesians/02.json",
+        "3": "books/ephesians/03.json",
+        "4": "books/ephesians/04.json",
+        "5": "books/ephesians/05.json",
+        "6": "books/ephesians/06.json"
+      }
+    },
+    {
+      "id": "philippians",
+      "name": "Philippians",
+      "abbreviation": "Phil",
+      "order": 50,
+      "chapters": 4,
+      "chapterFiles": {
+        "1": "books/philippians/01.json",
+        "2": "books/philippians/02.json",
+        "3": "books/philippians/03.json",
+        "4": "books/philippians/04.json"
+      }
+    },
+    {
+      "id": "colossians",
+      "name": "Colossians",
+      "abbreviation": "Col",
+      "order": 51,
+      "chapters": 4,
+      "chapterFiles": {
+        "1": "books/colossians/01.json",
+        "2": "books/colossians/02.json",
+        "3": "books/colossians/03.json",
+        "4": "books/colossians/04.json"
+      }
+    },
+    {
+      "id": "1-thessalonians",
+      "name": "1 Thessalonians",
+      "abbreviation": "1 Thess",
+      "order": 52,
+      "chapters": 5,
+      "chapterFiles": {
+        "1": "books/1-thessalonians/01.json",
+        "2": "books/1-thessalonians/02.json",
+        "3": "books/1-thessalonians/03.json",
+        "4": "books/1-thessalonians/04.json",
+        "5": "books/1-thessalonians/05.json"
+      }
+    },
+    {
+      "id": "2-thessalonians",
+      "name": "2 Thessalonians",
+      "abbreviation": "2 Thess",
+      "order": 53,
+      "chapters": 3,
+      "chapterFiles": {
+        "1": "books/2-thessalonians/01.json",
+        "2": "books/2-thessalonians/02.json",
+        "3": "books/2-thessalonians/03.json"
+      }
+    },
+    {
+      "id": "1-timothy",
+      "name": "1 Timothy",
+      "abbreviation": "1 Tim",
+      "order": 54,
+      "chapters": 6,
+      "chapterFiles": {
+        "1": "books/1-timothy/01.json",
+        "2": "books/1-timothy/02.json",
+        "3": "books/1-timothy/03.json",
+        "4": "books/1-timothy/04.json",
+        "5": "books/1-timothy/05.json",
+        "6": "books/1-timothy/06.json"
+      }
+    },
+    {
+      "id": "2-timothy",
+      "name": "2 Timothy",
+      "abbreviation": "2 Tim",
+      "order": 55,
+      "chapters": 4,
+      "chapterFiles": {
+        "1": "books/2-timothy/01.json",
+        "2": "books/2-timothy/02.json",
+        "3": "books/2-timothy/03.json",
+        "4": "books/2-timothy/04.json"
+      }
+    },
+    {
+      "id": "titus",
+      "name": "Titus",
+      "abbreviation": "Titus",
+      "order": 56,
+      "chapters": 3,
+      "chapterFiles": {
+        "1": "books/titus/01.json",
+        "2": "books/titus/02.json",
+        "3": "books/titus/03.json"
+      }
+    },
+    {
+      "id": "philemon",
+      "name": "Philemon",
+      "abbreviation": "Phlm",
+      "order": 57,
+      "chapters": 1,
+      "chapterFiles": {
+        "1": "books/philemon/01.json"
+      }
+    },
+    {
+      "id": "hebrews",
+      "name": "Hebrews",
+      "abbreviation": "Heb",
+      "order": 58,
+      "chapters": 13,
+      "chapterFiles": {
+        "1": "books/hebrews/01.json",
+        "2": "books/hebrews/02.json",
+        "3": "books/hebrews/03.json",
+        "4": "books/hebrews/04.json",
+        "5": "books/hebrews/05.json",
+        "6": "books/hebrews/06.json",
+        "7": "books/hebrews/07.json",
+        "8": "books/hebrews/08.json",
+        "9": "books/hebrews/09.json",
+        "10": "books/hebrews/10.json",
+        "11": "books/hebrews/11.json",
+        "12": "books/hebrews/12.json",
+        "13": "books/hebrews/13.json"
+      }
+    },
+    {
+      "id": "james",
+      "name": "James",
+      "abbreviation": "Jas",
+      "order": 59,
+      "chapters": 5,
+      "chapterFiles": {
+        "1": "books/james/01.json",
+        "2": "books/james/02.json",
+        "3": "books/james/03.json",
+        "4": "books/james/04.json",
+        "5": "books/james/05.json"
+      }
+    },
+    {
+      "id": "1-peter",
+      "name": "1 Peter",
+      "abbreviation": "1 Pet",
+      "order": 60,
+      "chapters": 5,
+      "chapterFiles": {
+        "1": "books/1-peter/01.json",
+        "2": "books/1-peter/02.json",
+        "3": "books/1-peter/03.json",
+        "4": "books/1-peter/04.json",
+        "5": "books/1-peter/05.json"
+      }
+    },
+    {
+      "id": "2-peter",
+      "name": "2 Peter",
+      "abbreviation": "2 Pet",
+      "order": 61,
+      "chapters": 3,
+      "chapterFiles": {
+        "1": "books/2-peter/01.json",
+        "2": "books/2-peter/02.json",
+        "3": "books/2-peter/03.json"
+      }
+    },
+    {
+      "id": "1-john",
+      "name": "1 John",
+      "abbreviation": "1 John",
+      "order": 62,
+      "chapters": 5,
+      "chapterFiles": {
+        "1": "books/1-john/01.json",
+        "2": "books/1-john/02.json",
+        "3": "books/1-john/03.json",
+        "4": "books/1-john/04.json",
+        "5": "books/1-john/05.json"
+      }
+    },
+    {
+      "id": "2-john",
+      "name": "2 John",
+      "abbreviation": "2 John",
+      "order": 63,
+      "chapters": 1,
+      "chapterFiles": {
+        "1": "books/2-john/01.json"
+      }
+    },
+    {
+      "id": "3-john",
+      "name": "3 John",
+      "abbreviation": "3 John",
+      "order": 64,
+      "chapters": 1,
+      "chapterFiles": {
+        "1": "books/3-john/01.json"
+      }
+    },
+    {
+      "id": "jude",
+      "name": "Jude",
+      "abbreviation": "Jude",
+      "order": 65,
+      "chapters": 1,
+      "chapterFiles": {
+        "1": "books/jude/01.json"
+      }
+    },
+    {
+      "id": "revelation",
+      "name": "Revelation",
+      "abbreviation": "Rev",
+      "order": 66,
+      "chapters": 22,
+      "chapterFiles": {
+        "1": "books/revelation/01.json",
+        "2": "books/revelation/02.json",
+        "3": "books/revelation/03.json",
+        "4": "books/revelation/04.json",
+        "5": "books/revelation/05.json",
+        "6": "books/revelation/06.json",
+        "7": "books/revelation/07.json",
+        "8": "books/revelation/08.json",
+        "9": "books/revelation/09.json",
+        "10": "books/revelation/10.json",
+        "11": "books/revelation/11.json",
+        "12": "books/revelation/12.json",
+        "13": "books/revelation/13.json",
+        "14": "books/revelation/14.json",
+        "15": "books/revelation/15.json",
+        "16": "books/revelation/16.json",
+        "17": "books/revelation/17.json",
+        "18": "books/revelation/18.json",
+        "19": "books/revelation/19.json",
+        "20": "books/revelation/20.json",
+        "21": "books/revelation/21.json",
+        "22": "books/revelation/22.json"
+      }
+    }
+  ],
+  "statistics": {
+    "artifacts": 28,
+    "books": 27,
+    "chapters": 260,
+    "verses": 7939,
+    "textUnits": 7939,
+    "tokenOccurrences": 137741,
+    "paragraphBoundaries": 1282,
+    "bytesProcessed": 6850332,
+    "errors": 0,
+    "warnings": 0
+  },
+  "structuralDecisions": [
+    "Storage schema v2 omits only token editionId, textUnitId, ref and language inherited from chapter/verse; repository restores the v1 domain exactly. JSON whitespace is removed.",
+    "Each source <w> is preserved as one TokenOccurrence; no whitespace retokenization is performed.",
+    "Source <prefix> and <suffix> values are preserved on the adjacent token.",
+    "Source <p> boundaries are preserved as paragraph IDs and chapter-local boundary ranges.",
+    "Lexeme, gloss, morphology and Strong identifiers remain absent because the SBLGNT XML does not supply them.",
+    "Generated storage is partitioned by book and chapter; no per-verse files are created."
+  ]
+}

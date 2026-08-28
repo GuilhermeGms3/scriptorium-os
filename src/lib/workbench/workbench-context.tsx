@@ -13,7 +13,7 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import type { Token } from "../domain/scripture";
+import type { PassageRef, TokenOccurrence } from "../domain/scripture";
 import type { Note, NoteLink, Study } from "../domain/study";
 import { StudyRepository } from "../repositories/study-repository";
 
@@ -26,8 +26,13 @@ export interface ReadingPreferences {
 }
 
 export interface WordSelection {
-  token: Token;
+  token: TokenOccurrence;
   verseLabel: string; // e.g. "John 1:1"
+}
+
+export interface PassageContext {
+  ref: PassageRef;
+  label: string;
 }
 
 interface WorkbenchState {
@@ -45,8 +50,8 @@ interface WorkbenchState {
   setInspectorOpen: (open: boolean) => void;
 
   /** Passage context for the Passage Inspector. */
-  passageContext: string | null; // e.g. "John 1"
-  setPassageContext: (label: string | null) => void;
+  passageContext: PassageContext | null;
+  setPassageContext: (context: PassageContext | null) => void;
 
   readingPrefs: ReadingPreferences;
   setReadingPrefs: (p: Partial<ReadingPreferences>) => void;
@@ -74,7 +79,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [wordSelection, setWordSelection] = useState<WordSelection | null>(null);
   const [inspectorOpen, setInspectorOpen] = useState(true);
-  const [passageContext, setPassageContext] = useState<string | null>(null);
+  const [passageContext, setPassageContextState] = useState<PassageContext | null>(null);
 
   const [readingPrefs, setReadingPrefsState] = useState<ReadingPreferences>(() => {
     if (typeof window === "undefined")
@@ -151,6 +156,11 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
     if (sel) setInspectorOpen(true);
   }, []);
 
+  const setPassageContext = useCallback((context: PassageContext | null) => {
+    setPassageContextState(context);
+    if (context === null) setWordSelection(null);
+  }, []);
+
   const addNote = useCallback(
     (title: string, body: string, links: NoteLink[]) => {
       const note = StudyRepository.createNote({ title, body, links });
@@ -200,9 +210,23 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       refreshUserData,
     }),
     [
-      theme, setTheme, resolvedTheme, paletteOpen, wordSelection, selectWord,
-      inspectorOpen, passageContext, readingPrefs, setReadingPrefs, notes,
-      addNote, studies, createStudy, addToStudy, refreshUserData,
+      theme,
+      setTheme,
+      resolvedTheme,
+      paletteOpen,
+      wordSelection,
+      selectWord,
+      inspectorOpen,
+      passageContext,
+      setPassageContext,
+      readingPrefs,
+      setReadingPrefs,
+      notes,
+      addNote,
+      studies,
+      createStudy,
+      addToStudy,
+      refreshUserData,
     ],
   );
 

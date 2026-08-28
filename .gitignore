@@ -16,6 +16,14 @@ dist-ssr
 .nitro
 *.local
 
+# Corpus pipeline transactional work areas (source snapshots and generated datasets are tracked)
+corpora/.staging/
+generated/corpora/*/.staging/
+corpora/source/stepbible-tagnt/.acquire-*/
+generated/corpora/stepbible-tagnt/.import-*/
+generated/corpora/stepbible-tagnt/.previous-*/
+generated/corpora/stepbible-tagnt/.import.lock
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

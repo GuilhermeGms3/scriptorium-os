@@ -1,73 +1,241 @@
-/**
- * ============================================================================
- * DEMO / SEED DATA — Knowledge Graph fixtures
- * ============================================================================
- * A tiny, coherent demo graph: a few entities, typed relations (Knowledge
- * Bridges) and one evidence-classified claim. No real graph database yet —
- * the domain model is the deliverable of this phase.
- * ============================================================================
- */
-
+/** DEMO / SEED DATA — typed graph records. Unsourced edges remain draft/demo. */
 import type {
+  EvidenceKind,
   KnowledgeClaim,
   KnowledgeEntity,
   KnowledgeRelation,
+  RelationKind,
+  SupportLevel,
+  TextAnchor,
 } from "../domain/knowledge";
 
+const demoProvenance = {
+  acquisition: "bundled",
+  creationMethod: "human",
+  isDemo: true,
+} as const;
+
+const entity = (entityId: string): TextAnchor => ({ type: "entity", entityId });
+const passage = (bookId: string, chapter: number, verse: number): TextAnchor => ({
+  type: "passage",
+  ref: { bookId, chapter, verseStart: verse },
+});
+
+function demoRelation(
+  id: string,
+  from: TextAnchor,
+  to: TextAnchor,
+  kind: RelationKind,
+  evidenceKind: EvidenceKind,
+  description?: string,
+  sourceFragmentIds: string[] = [],
+  supportLevel: SupportLevel = sourceFragmentIds.length > 0 ? "direct" : "unknown",
+): KnowledgeRelation {
+  return {
+    id,
+    from,
+    to,
+    relation: { kind: "known", value: kind },
+    ...(description !== undefined ? { description } : {}),
+    evidence: [
+      {
+        kind: evidenceKind,
+        sourceFragmentIds,
+        supportLevel,
+        ...(!sourceFragmentIds.length
+          ? { assessmentNote: "DEMO / UNSOURCED relation awaiting a source." }
+          : {}),
+      },
+    ],
+    sourceFragmentIds,
+    reviewStatus: sourceFragmentIds.length ? "imported" : "draft",
+    provenance: demoProvenance,
+  };
+}
+
 export const DEMO_ENTITIES: KnowledgeEntity[] = [
-  { id: "ent-jesus", type: "person", name: "Jesus", description: "Central figure of the New Testament (DEMO record)." },
-  { id: "ent-john", type: "person", name: "John", description: "Traditional author attribution of the Fourth Gospel (DEMO record).", traditionIds: ["christian"] },
-  { id: "ent-paul", type: "person", name: "Paul", description: "Apostle; traditional author of Romans (DEMO record)." },
+  {
+    id: "ent-jesus",
+    type: "person",
+    name: "Jesus",
+    description: "Central figure of the New Testament (DEMO record).",
+  },
+  {
+    id: "ent-john",
+    type: "person",
+    name: "John",
+    description: "Traditional author attribution of the Fourth Gospel (DEMO record).",
+    traditionIds: ["christian"],
+  },
+  {
+    id: "ent-paul",
+    type: "person",
+    name: "Paul",
+    description: "Apostle; traditional author of Romans (DEMO record).",
+  },
   { id: "ent-peter", type: "person", name: "Peter", description: "Apostle (DEMO record)." },
-  { id: "ent-nazareth", type: "place", name: "Nazareth", description: "Town in Galilee (DEMO record)." },
-  { id: "ent-galilee", type: "place", name: "Galilee", description: "Region of northern Palestine (DEMO record)." },
+  {
+    id: "ent-nazareth",
+    type: "place",
+    name: "Nazareth",
+    description: "Town in Galilee (DEMO record).",
+  },
+  {
+    id: "ent-galilee",
+    type: "place",
+    name: "Galilee",
+    description: "Region of northern Palestine (DEMO record).",
+  },
   { id: "ent-jerusalem", type: "place", name: "Jerusalem", description: "City (DEMO record)." },
   { id: "ent-rome", type: "place", name: "Rome", description: "Imperial capital (DEMO record)." },
-  { id: "ent-logos", type: "concept", name: "Logos", originalForm: "λόγος", description: "DEMO concept node — 'word / reason'. Analysis to be supplied by licensed sources." },
+  {
+    id: "ent-logos",
+    type: "concept",
+    name: "Logos",
+    originalForm: "λόγος",
+    description: "DEMO concept node — analysis awaits licensed sources.",
+  },
   { id: "ent-kingdom", type: "concept", name: "Kingdom of God", description: "DEMO concept node." },
   { id: "ent-covenant", type: "concept", name: "Covenant", description: "DEMO concept node." },
-  { id: "ent-john-1-1", type: "passage", name: "John 1:1", description: "Passage node in the demo graph." },
-  { id: "ent-gen-1-1", type: "passage", name: "Genesis 1:1", description: "Passage node in the demo graph." },
+  {
+    id: "ent-john-1-1",
+    type: "passage",
+    name: "John 1:1",
+    description: "Passage node in the demo graph.",
+  },
+  {
+    id: "ent-gen-1-1",
+    type: "passage",
+    name: "Genesis 1:1",
+    description: "Passage node in the demo graph.",
+  },
   { id: "ent-gospel-john", type: "work", name: "Gospel of John", description: "Work node (DEMO)." },
-  { id: "ent-lxx", type: "work", name: "Septuagint", description: "Greek translation corpus of the Hebrew Bible (DEMO node)." },
-  { id: "ent-word-logos", type: "word", name: "λόγος", originalForm: "λόγος", description: "Greek lemma λόγος (DEMO lexical record)." },
+  {
+    id: "ent-lxx",
+    type: "work",
+    name: "Septuagint",
+    description: "Catalog-level DEMO node; no corpus imported.",
+  },
+  {
+    id: "ent-word-logos",
+    type: "word",
+    name: "λόγος",
+    originalForm: "λόγος",
+    description: "Greek lemma λόγος (DEMO lexical record).",
+  },
   { id: "ent-creation", type: "event", name: "Creation", description: "DEMO event node." },
-  { id: "ent-greek", type: "historical-source", name: "Greek Language", description: "Language node used for linguistic bridges (DEMO)." },
+  {
+    id: "ent-greek",
+    type: "historical-source",
+    name: "Greek Language",
+    description: "Language node used for DEMO bridges.",
+  },
 ];
 
 export const DEMO_RELATIONS: KnowledgeRelation[] = [
-  { id: "rel-1", fromId: "ent-jesus", toId: "ent-nazareth", relation: "located-in", description: "Associated with Nazareth in the gospel narratives.", sourceIds: [], evidenceType: "textual" },
-  { id: "rel-2", fromId: "ent-jesus", toId: "ent-galilee", relation: "located-in", description: "Ministry setting in the synoptic narratives.", sourceIds: [], evidenceType: "textual" },
-  { id: "rel-3", fromId: "ent-jesus", toId: "ent-john", relation: "related-to", sourceIds: [], evidenceType: "traditional" },
-  { id: "rel-4", fromId: "ent-jesus", toId: "ent-peter", relation: "related-to", sourceIds: [], evidenceType: "traditional" },
-  { id: "rel-5", fromId: "ent-nazareth", toId: "ent-galilee", relation: "part-of", sourceIds: [], evidenceType: "historical" },
-  { id: "rel-6", fromId: "ent-gospel-john", toId: "ent-john", relation: "authored", description: "Traditional attribution; authorship is debated in scholarship.", sourceIds: [], confidence: 0.5, evidenceType: "traditional" },
-  { id: "rel-7", fromId: "ent-john-1-1", toId: "ent-word-logos", relation: "mentioned-in", description: "λόγος occurs three times in John 1:1.", sourceIds: [], evidenceType: "textual", confidence: 1 },
-  { id: "rel-8", fromId: "ent-john-1-1", toId: "ent-logos", relation: "related-to", description: "The passage is the primary locus for the Logos concept in John.", sourceIds: [], evidenceType: "theological", confidence: 0.8 },
-  { id: "rel-9", fromId: "ent-john-1-1", toId: "ent-gen-1-1", relation: "echoes", description: "'In the beginning' resonates with Genesis 1:1. The nature of the allusion is a scholarly question.", sourceIds: [], evidenceType: "scholarly-hypothesis", confidence: 0.6 },
-  { id: "rel-10", fromId: "ent-gen-1-1", toId: "ent-creation", relation: "related-to", sourceIds: [], evidenceType: "textual" },
-  { id: "rel-11", fromId: "ent-word-logos", toId: "ent-greek", relation: "part-of", description: "λόγος is a common Greek noun with a wide semantic range.", sourceIds: [], evidenceType: "linguistic" },
-  { id: "rel-12", fromId: "ent-word-logos", toId: "ent-lxx", relation: "attested-in", description: "λόγος is attested in the Septuagint corpus.", sourceIds: [], evidenceType: "linguistic" },
-  { id: "rel-13", fromId: "ent-logos", toId: "ent-word-logos", relation: "related-to", sourceIds: [], evidenceType: "linguistic" },
+  demoRelation(
+    "rel-1",
+    entity("ent-jesus"),
+    entity("ent-nazareth"),
+    "located-in",
+    "textual",
+    "DEMO association awaiting an explicit source.",
+  ),
+  demoRelation(
+    "rel-2",
+    entity("ent-jesus"),
+    entity("ent-galilee"),
+    "located-in",
+    "textual",
+    "DEMO association awaiting an explicit source.",
+  ),
+  demoRelation("rel-3", entity("ent-jesus"), entity("ent-john"), "related-to", "traditional"),
+  demoRelation("rel-4", entity("ent-jesus"), entity("ent-peter"), "related-to", "traditional"),
+  demoRelation("rel-5", entity("ent-nazareth"), entity("ent-galilee"), "part-of", "historical"),
+  demoRelation(
+    "rel-6",
+    entity("ent-gospel-john"),
+    entity("ent-john"),
+    "authored",
+    "traditional",
+    "Traditional attribution; DEMO / UNSOURCED in this dataset.",
+  ),
+  demoRelation(
+    "rel-7",
+    passage("john", 1, 1),
+    { type: "lemma", lemmaId: "grc:λόγος" },
+    "contains-occurrence-of",
+    "textual",
+    "The token occurrences in the bundled edition link this passage to the lemma.",
+    ["frag-wh-john-1-1"],
+  ),
+  demoRelation(
+    "rel-8",
+    passage("john", 1, 1),
+    entity("ent-logos"),
+    "related-to",
+    "theological",
+    "DEMO conceptual link awaiting a scholarly source.",
+  ),
+  demoRelation(
+    "rel-9",
+    passage("john", 1, 1),
+    passage("genesis", 1, 1),
+    "echoes",
+    "textual",
+    "DEMO / UNSOURCED proposed resonance; not verified scholarship.",
+  ),
+  demoRelation("rel-10", passage("genesis", 1, 1), entity("ent-creation"), "related-to", "textual"),
+  demoRelation(
+    "rel-11",
+    { type: "lemma", lemmaId: "grc:λόγος" },
+    entity("ent-greek"),
+    "part-of",
+    "linguistic",
+    "Structured lexical link in the DEMO model.",
+    ["frag-demo-lexicon-logos"],
+  ),
+  demoRelation(
+    "rel-12",
+    { type: "lemma", lemmaId: "grc:λόγος" },
+    entity("ent-lxx"),
+    "attested-in",
+    "linguistic",
+    "DEMO / UNSOURCED. LXX corpus is not imported.",
+  ),
+  demoRelation(
+    "rel-13",
+    entity("ent-logos"),
+    { type: "lemma", lemmaId: "grc:λόγος" },
+    "related-to",
+    "linguistic",
+    "DEMO conceptual link awaiting a source.",
+  ),
 ];
 
-/** A DEMO evidence-classified claim — the shape future engines must follow. */
 export const DEMO_CLAIMS: KnowledgeClaim[] = [
   {
     id: "claim-1",
     proposition:
-      "The noun λόγος in John 1:1 is nominative singular masculine (DEMO morphological claim).",
-    classification: "linguistic",
-    sourceIds: ["src-wh-john-1-1"],
-    confidence: 1,
+      "The occurrence λόγος in John 1:1 is parsed as nominative singular masculine in the DEMO token data.",
+    anchors: [
+      passage("john", 1, 1),
+      { type: "token", tokenId: "j1.1.5" },
+      { type: "lemma", lemmaId: "grc:λόγος" },
+    ],
+    kind: "linguistic-analysis",
+    evidence: [
+      {
+        kind: "linguistic",
+        sourceFragmentIds: ["frag-demo-lexicon-logos"],
+        supportLevel: "unknown",
+        assessmentNote: "DEMO morphology only; no production morphology source is imported.",
+      },
+    ],
+    sourceFragmentIds: ["frag-demo-lexicon-logos"],
+    origin: "editorial",
+    reviewStatus: "draft",
+    supportLevel: "unknown",
+    assessmentNote: "DEMO morphology record; a production morphology dataset is not imported.",
   },
 ];
-
-/** DEMO Knowledge Bridge chain rendered on /knowledge. */
-export const DEMO_BRIDGE_CHAIN = [
-  { entityId: "ent-john-1-1", edge: { relation: "contains word", evidenceType: "textual" } },
-  { entityId: "ent-word-logos", edge: { relation: "is part of", evidenceType: "linguistic" } },
-  { entityId: "ent-greek", edge: { relation: "attested in", evidenceType: "linguistic" } },
-  { entityId: "ent-lxx", edge: { relation: "lexical resonance", evidenceType: "scholarly-hypothesis" } },
-  { entityId: "ent-gen-1-1", edge: null },
-] as const;

@@ -3,6 +3,7 @@
  */
 
 import type { Edition, VerseContent } from "../../lib/domain/scripture";
+import { t, textDirectionForLanguage } from "../../lib/i18n";
 
 export function ParallelVersions({
   verses,
@@ -13,7 +14,7 @@ export function ParallelVersions({
 }) {
   return (
     <div className="min-w-0 overflow-x-auto">
-      <table className="w-full border-collapse" aria-label="Parallel versions">
+      <table className="w-full border-collapse" aria-label={t("scripture.parallelVersions")}>
         <thead>
           <tr className="border-b border-border">
             <th className="w-8 py-1 pr-2 text-left font-mono text-[10px] font-medium text-muted-foreground" />
@@ -35,7 +36,11 @@ export function ParallelVersions({
                 {v.verse}
               </td>
               {editions.map((ed) => (
-                <td key={ed.id} className="reading-text px-3 py-2 text-[0.95em]">
+                <td
+                  key={ed.id}
+                  dir={ed.direction ?? textDirectionForLanguage(ed.language)}
+                  className="reading-text px-3 py-2 text-[0.95em]"
+                >
                   {v.translations[ed.id] ?? (
                     <span className="font-sans text-xs text-muted-foreground italic">—</span>
                   )}

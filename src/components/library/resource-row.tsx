@@ -3,14 +3,8 @@
  */
 
 import type { LibraryResource } from "../../lib/domain/library";
-import { RESOURCE_TYPE_LABELS } from "../../lib/repositories/library-repository";
 import { cn } from "../../lib/utils";
-
-const AVAILABILITY_LABEL: Record<LibraryResource["availability"], string> = {
-  local: "local",
-  remote: "remote",
-  "not-downloaded": "not downloaded",
-};
+import { languageLabel, resourceTypeLabel, statusLabel } from "../../lib/i18n";
 
 export function ResourceRow({
   resource,
@@ -33,14 +27,14 @@ export function ResourceRow({
       <span className="min-w-0">
         <span className="block truncate text-[13px] font-medium">{resource.title}</span>
         <span className="block truncate font-mono text-[11px] text-muted-foreground">
-          {[resource.author, resource.year, RESOURCE_TYPE_LABELS[resource.type]]
+          {[resource.author, resource.year, resourceTypeLabel(resource.type)]
             .filter(Boolean)
             .join(" · ")}
         </span>
       </span>
       <span className="flex shrink-0 items-center gap-1.5 font-mono text-[9px] tracking-wider uppercase">
         <span className="rounded border border-border px-1 py-px text-muted-foreground">
-          {resource.language}
+          {languageLabel(resource.language)}
         </span>
         <span
           className={cn(
@@ -50,7 +44,7 @@ export function ResourceRow({
               : "border border-border text-muted-foreground",
           )}
         >
-          {AVAILABILITY_LABEL[resource.availability]}
+          {statusLabel(resource.availability)}
         </span>
       </span>
     </button>

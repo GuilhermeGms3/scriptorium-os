@@ -6,23 +6,23 @@
 import { Link, useRouterState } from "@tanstack/react-router";
 import { BookOpen, Home, Library, NotebookPen, Search } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { t } from "../../lib/i18n";
 
 const ITEMS = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/scripture", label: "Scripture", icon: BookOpen },
-  { to: "/study", label: "Study", icon: NotebookPen },
-  { to: "/library", label: "Library", icon: Library },
-  { to: "/search", label: "Search", icon: Search },
+  { to: "/", label: t("navigation.home"), icon: Home },
+  { to: "/scripture", label: t("navigation.scripture"), icon: BookOpen },
+  { to: "/study", label: t("navigation.study"), icon: NotebookPen },
+  { to: "/library", label: t("navigation.library"), icon: Library },
+  { to: "/search", label: t("navigation.search"), icon: Search },
 ] as const;
 
 export function MobileNav() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isActive = (to: string) =>
-    to === "/" ? pathname === "/" : pathname.startsWith(to);
+  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("navigation.primary")}
       className="flex h-14 shrink-0 items-stretch border-t border-border bg-background md:hidden"
     >
       {ITEMS.map(({ to, label, icon: Icon }) => (

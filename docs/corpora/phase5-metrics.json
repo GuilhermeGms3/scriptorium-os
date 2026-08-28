@@ -1,0 +1,94 @@
+{
+  "measuredAt": "2026-08-27T22:56:01.498Z",
+  "runs": [
+    {
+      "run": 1,
+      "durationMs": 15409,
+      "sourceDigest": "cf25559458fc739b475234ecea7396ebcebaba67ec5cfc1a17615e44a7c596a9",
+      "generatedTreeDigest": "08e391c09172cc79c4f9d06b209cea0205af3acac700ba84a5f93d63ab03fbff",
+      "files": 520,
+      "statistics": {
+        "sourceRecords": 142096,
+        "sblMemberRecords": 137210,
+        "targetTokens": 137741,
+        "successfullyAligned": 137074,
+        "exact": 82918,
+        "normalized": 53740,
+        "positional": 416,
+        "ambiguous": 75,
+        "unmatched": 592,
+        "morphologicalAnnotations": 137321,
+        "unmappedMorphology": 0,
+        "lexicalIds": 137074,
+        "uniqueLexemes": 5621,
+        "booksCovered": 27,
+        "chapters": 260,
+        "sourceRecordsWithoutTarget": 5022
+      }
+    },
+    {
+      "run": 2,
+      "durationMs": 17165,
+      "sourceDigest": "cf25559458fc739b475234ecea7396ebcebaba67ec5cfc1a17615e44a7c596a9",
+      "generatedTreeDigest": "08e391c09172cc79c4f9d06b209cea0205af3acac700ba84a5f93d63ab03fbff",
+      "files": 520,
+      "statistics": {
+        "sourceRecords": 142096,
+        "sblMemberRecords": 137210,
+        "targetTokens": 137741,
+        "successfullyAligned": 137074,
+        "exact": 82918,
+        "normalized": 53740,
+        "positional": 416,
+        "ambiguous": 75,
+        "unmatched": 592,
+        "morphologicalAnnotations": 137321,
+        "unmappedMorphology": 0,
+        "lexicalIds": 137074,
+        "uniqueLexemes": 5621,
+        "booksCovered": 27,
+        "chapters": 260,
+        "sourceRecordsWithoutTarget": 5022
+      }
+    }
+  ],
+  "storage": {
+    "sblgntGeneratedBefore": 74746655,
+    "sblgntGeneratedAfter": 23829469,
+    "tagntSourceArtifacts": 30610515,
+    "tagntSourceIncludingCustodyManifest": 30614834,
+    "tagntGenerated": 33726686,
+    "totalSourceAndGenerated": 95042559,
+    "sblgntChapters": {
+      "count": 260,
+      "totalBytes": 23809868,
+      "averageBytes": 91576.41538461538,
+      "largest": {
+        "path": "books/matthew/26.json",
+        "bytes": 216690,
+        "sha256": "50139e4360a36d76fe761c992fe389d1d27ab138b53232509f9a3394edc4f3a8"
+      }
+    },
+    "tagntChapters": {
+      "count": 260,
+      "totalBytes": 27749432,
+      "averageBytes": 106728.58461538462,
+      "largest": {
+        "path": "books/matthew/26.json",
+        "bytes": 251389,
+        "sha256": "25044562e1f6e69398f24c210bb52119d8986e4035d4d8fd3d70d45bddb36c73"
+      }
+    },
+    "concordance": {
+      "count": 256,
+      "totalBytes": 4794335,
+      "averageBytes": 18727.87109375,
+      "largest": {
+        "path": "lexical/a2.json",
+        "bytes": 396300,
+        "sha256": "090d81eca5aea9ebd1872f20498ff4fa416293e3f27626eb3bc71b9fa7678de3"
+      }
+    },
+    "sblgntGeneratedTreeDigest": "10d61d46bb1ca561bf0f64fecd2551e41d449486159235baf04ef0beb4c7b8f8"
+  }
+}

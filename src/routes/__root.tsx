@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WorkbenchProvider } from "../lib/workbench/workbench-context";
 import { AppShell } from "../components/shell/app-shell";
+import { DEFAULT_LOCALE, t } from "../lib/i18n";
 
 function NotFoundComponent() {
   return (
@@ -20,17 +21,15 @@ function NotFoundComponent() {
       <div className="max-w-md text-center">
         <p className="meta-label">404</p>
         <h1 className="mt-2 font-serif text-3xl font-semibold text-foreground">
-          Page not found
+          {t("error.notFoundTitle")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          The page you're looking for doesn't exist or has been moved.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("error.notFoundDescription")}</p>
         <div className="mt-6">
           <Link
             to="/"
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Go home
+            {t("error.goHome")}
           </Link>
         </div>
       </div>
@@ -49,11 +48,9 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
       <div className="max-w-md text-center">
         <h1 className="text-xl font-semibold tracking-tight text-foreground">
-          This page didn't load
+          {t("error.loadTitle")}
         </h1>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Something went wrong on our end. You can try refreshing or head back home.
-        </p>
+        <p className="mt-2 text-sm text-muted-foreground">{t("error.loadDescription")}</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <button
             onClick={() => {
@@ -62,13 +59,13 @@ function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
             }}
             className="inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90"
           >
-            Try again
+            {t("error.tryAgain")}
           </button>
           <a
             href="/"
             className="inline-flex items-center justify-center rounded-md border border-input bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
           >
-            Go home
+            {t("error.goHome")}
           </a>
         </div>
       </div>
@@ -81,17 +78,15 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Scriptorium — Open Biblical Knowledge System" },
+      { title: t("home.metaTitle") },
       {
         name: "description",
-        content:
-          "An open, local-first environment for reading, research and study of the Bible: original languages, library, knowledge graph and sources.",
+        content: t("home.metaDescription"),
       },
-      { property: "og:title", content: "Scriptorium — Open Biblical Knowledge System" },
+      { property: "og:title", content: t("home.metaTitle") },
       {
         property: "og:description",
-        content:
-          "An open, local-first environment for reading, research and study of the Bible.",
+        content: t("home.metaDescription"),
       },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
@@ -117,7 +112,7 @@ const THEME_INIT = `(function(){try{var t=localStorage.getItem('scriptorium.them
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang={DEFAULT_LOCALE} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
         <HeadContent />

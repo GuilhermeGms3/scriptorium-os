@@ -9,12 +9,9 @@ import type {
   KnowledgeEntity,
   KnowledgeRelation,
 } from "../domain/knowledge";
-import {
-  DEMO_BRIDGE_CHAIN,
-  DEMO_CLAIMS,
-  DEMO_ENTITIES,
-  DEMO_RELATIONS,
-} from "../fixtures/knowledge.fixture";
+import type { PassageRef } from "../domain/scripture";
+import { passageRefsOverlap } from "../domain/scripture";
+import { DEMO_CLAIMS, DEMO_ENTITIES, DEMO_RELATIONS } from "../fixtures/knowledge.fixture";
 
 export const ENTITY_TYPE_LABELS: Record<EntityType, string> = {
   person: "Person",
@@ -39,7 +36,17 @@ export const KnowledgeRepository = {
 
   relationsOf(entityId: string): KnowledgeRelation[] {
     return DEMO_RELATIONS.filter(
-      (r) => r.fromId === entityId || r.toId === entityId,
+      (relation) =>
+        (relation.from.type === "entity" && relation.from.entityId === entityId) ||
+        (relation.to.type === "entity" && relation.to.entityId === entityId),
+    );
+  },
+
+  relationsForPassage(ref: PassageRef): KnowledgeRelation[] {
+    return DEMO_RELATIONS.filter(
+      (relation) =>
+        (relation.from.type === "passage" && passageRefsOverlap(relation.from.ref, ref)) ||
+        (relation.to.type === "passage" && passageRefsOverlap(relation.to.ref, ref)),
     );
   },
 
@@ -51,18 +58,19 @@ export const KnowledgeRepository = {
     return DEMO_CLAIMS;
   },
 
-  /** The curated demo bridge chain (John 1:1 → λόγος → … → Genesis). */
-  demoBridgeChain() {
-    return DEMO_BRIDGE_CHAIN;
+  claimsForPassage(ref: PassageRef): KnowledgeClaim[] {
+    return DEMO_CLAIMS.filter((claim) =>
+      claim.anchors.some(
+        (anchor) => anchor.type === "passage" && passageRefsOverlap(anchor.ref, ref),
+      ),
+    );
   },
 
   search(query: string): KnowledgeEntity[] {
     const q = query.toLowerCase().trim();
     if (!q) return [];
     return DEMO_ENTITIES.filter(
-      (e) =>
-        e.name.toLowerCase().includes(q) ||
-        e.originalForm?.toLowerCase().includes(q),
+      (e) => e.name.toLowerCase().includes(q) || e.originalForm?.toLowerCase().includes(q),
     );
   },
 };

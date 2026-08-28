@@ -20,6 +20,7 @@ import { StatusBar } from "./status-bar";
 import { MobileNav } from "./mobile-nav";
 import { InspectorPanel } from "./inspector-panel";
 import { CommandPalette } from "../search/command-palette";
+import { t } from "../../lib/i18n";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { inspectorOpen, wordSelection, selectWord } = useWorkbench();
@@ -50,10 +51,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               <>
                 <Separator
                   className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
-                  aria-label="Resize inspector"
+                  aria-label={t("shell.resizeInspector")}
                 />
                 <Panel defaultSize="26%" minSize="240px" maxSize="40%" className="min-w-[240px]">
-                  <aside aria-label="Inspector" className="h-full overflow-hidden bg-card">
+                  <aside
+                    aria-label={t("shell.inspector")}
+                    className="h-full overflow-hidden bg-card"
+                  >
                     <InspectorPanel />
                   </aside>
                 </Panel>
@@ -78,7 +82,7 @@ export function AppShell({ children }: { children: ReactNode }) {
           <Drawer.Overlay className="fixed inset-0 z-40 bg-black/40" />
           <Drawer.Content
             className="fixed inset-x-0 bottom-0 z-50 flex max-h-[78dvh] flex-col rounded-t-xl border-t border-border bg-card outline-none"
-            aria-label="Inspector"
+            aria-label={t("shell.inspector")}
           >
             <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
             <div className="min-h-0 flex-1 overflow-y-auto">

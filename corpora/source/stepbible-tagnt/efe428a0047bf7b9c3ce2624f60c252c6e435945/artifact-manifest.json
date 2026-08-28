@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg-stepbible-tagnt",
+  "commitSha": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+  "repository": "https://github.com/STEPBible/STEPBible-Data",
+  "retrievedAt": "2026-08-27T22:38:52.486Z",
+  "artifacts": [
+    {
+      "id": "artifact:tagnt:efe428a0047bf7b9c3ce2624f60c252c6e435945:0",
+      "packageId": "pkg-stepbible-tagnt",
+      "role": "source",
+      "repository": "https://github.com/STEPBible/STEPBible-Data",
+      "sourcePath": "README.md",
+      "sourceUrl": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/README.md",
+      "fileName": "README.md",
+      "mediaType": "text/plain; charset=utf-8",
+      "format": "unknown",
+      "retrievedAt": "2026-08-27T22:38:52.486Z",
+      "sourceRevision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "261d5157c0ffeadeedad3f734db945a4c3642e3e4ce5fa28002985b6c52437b1"
+      },
+      "byteSize": 14495
+    },
+    {
+      "id": "artifact:tagnt:efe428a0047bf7b9c3ce2624f60c252c6e435945:1",
+      "packageId": "pkg-stepbible-tagnt",
+      "role": "source",
+      "repository": "https://github.com/STEPBible/STEPBible-Data",
+      "sourcePath": "Translators Amalgamated OT+NT/TAGNT Mat-Jhn - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt",
+      "sourceUrl": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Mat-Jhn%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt",
+      "fileName": "TAGNT Mat-Jhn - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt",
+      "mediaType": "text/plain; charset=utf-8",
+      "format": "tsv",
+      "retrievedAt": "2026-08-27T22:38:52.486Z",
+      "sourceRevision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "ab8eaaeb68e17a1dcfa34e1e9350358f22f03bc2a97244d848750ad81044bc8e"
+      },
+      "byteSize": 14189032
+    },
+    {
+      "id": "artifact:tagnt:efe428a0047bf7b9c3ce2624f60c252c6e435945:2",
+      "packageId": "pkg-stepbible-tagnt",
+      "role": "source",
+      "repository": "https://github.com/STEPBible/STEPBible-Data",
+      "sourcePath": "Translators Amalgamated OT+NT/TAGNT Act-Rev - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt",
+      "sourceUrl": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/Translators%20Amalgamated%20OT%2BNT/TAGNT%20Act-Rev%20-%20Translators%20Amalgamated%20Greek%20NT%20-%20STEPBible.org%20CC-BY.txt",
+      "fileName": "TAGNT Act-Rev - Translators Amalgamated Greek NT - STEPBible.org CC-BY.txt",
+      "mediaType": "text/plain; charset=utf-8",
+      "format": "tsv",
+      "retrievedAt": "2026-08-27T22:38:52.486Z",
+      "sourceRevision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "524e32375361e6d3fa2f7ef00b87605fdc4317a762f395651a05fdc31ad031b7"
+      },
+      "byteSize": 15939932
+    },
+    {
+      "id": "artifact:tagnt:efe428a0047bf7b9c3ce2624f60c252c6e435945:3",
+      "packageId": "pkg-stepbible-tagnt",
+      "role": "source",
+      "repository": "https://github.com/STEPBible/STEPBible-Data",
+      "sourcePath": "Morphology codes/TEGMC - Translators Expansion of Greek Morphhology Codes - STEPBible.org CC BY.txt",
+      "sourceUrl": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/Morphology%20codes/TEGMC%20-%20Translators%20Expansion%20of%20Greek%20Morphhology%20Codes%20-%20STEPBible.org%20CC%20BY.txt",
+      "fileName": "TEGMC - Translators Expansion of Greek Morphhology Codes - STEPBible.org CC BY.txt",
+      "mediaType": "text/plain; charset=utf-8",
+      "format": "tsv",
+      "retrievedAt": "2026-08-27T22:38:52.486Z",
+      "sourceRevision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5f0416f7617019a6082285214903bde569a980d5fd3b88b8d7020d944e94de82"
+      },
+      "byteSize": 467056
+    }
+  ],
+  "packageDigest": {
+    "algorithm": "SHA-256",
+    "value": "cf25559458fc739b475234ecea7396ebcebaba67ec5cfc1a17615e44a7c596a9"
+  }
+}

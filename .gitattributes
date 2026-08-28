@@ -1,0 +1,6 @@
+# Source corpus artifacts are immutable byte snapshots; never normalize line endings.
+corpora/source/** -text
+
+# Generated datasets are reproducible UTF-8 JSON with LF endings.
+generated/corpora/**/*.json text eol=lf
+

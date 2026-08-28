@@ -15,35 +15,40 @@ import {
   Settings,
 } from "lucide-react";
 import { cn } from "../../lib/utils";
+import { t } from "../../lib/i18n";
 
 const MAIN_NAV = [
-  { to: "/", label: "Home", icon: Home },
-  { to: "/scripture", label: "Scripture", icon: BookOpen },
-  { to: "/study", label: "Study", icon: NotebookPen },
-  { to: "/library", label: "Library", icon: Library },
-  { to: "/knowledge", label: "Knowledge", icon: Network },
-  { to: "/search", label: "Search", icon: Search },
+  { to: "/", label: t("navigation.home"), icon: Home },
+  { to: "/scripture", label: t("navigation.scripture"), icon: BookOpen },
+  { to: "/study", label: t("navigation.study"), icon: NotebookPen },
+  { to: "/library", label: t("navigation.library"), icon: Library },
+  { to: "/knowledge", label: t("navigation.knowledge"), icon: Network },
+  { to: "/search", label: t("navigation.search"), icon: Search },
 ] as const;
 
 const UTILITY_NAV = [
-  { to: "/library", label: "Downloads & Resources", icon: Download, search: { tab: "collections" } },
-  { to: "/settings", label: "Settings", icon: Settings },
-  { to: "/about", label: "Help & About", icon: HelpCircle },
+  {
+    to: "/library",
+    label: t("navigation.downloads"),
+    icon: Download,
+    search: { tab: "collections" },
+  },
+  { to: "/settings", label: t("navigation.settings"), icon: Settings },
+  { to: "/about", label: t("navigation.helpAbout"), icon: HelpCircle },
 ] as const;
 
 export function PrimarySidebar() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-  const isActive = (to: string) =>
-    to === "/" ? pathname === "/" : pathname.startsWith(to);
+  const isActive = (to: string) => (to === "/" ? pathname === "/" : pathname.startsWith(to));
 
   return (
     <nav
-      aria-label="Primary"
+      aria-label={t("navigation.primary")}
       className="flex h-full w-52 shrink-0 flex-col border-r border-sidebar-border bg-sidebar"
     >
       <div className="flex-1 overflow-y-auto px-2 py-2">
-        <p className="meta-label px-2 pb-1.5 pt-1">Workspace</p>
+        <p className="meta-label px-2 pb-1.5 pt-1">{t("navigation.workspace")}</p>
         <ul className="space-y-0.5">
           {MAIN_NAV.map(({ to, label, icon: Icon }) => (
             <li key={label}>

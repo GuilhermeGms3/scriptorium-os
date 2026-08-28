@@ -9,12 +9,13 @@ import { ChevronLeft, ChevronRight, Columns2, Rows3, WholeWord, BookOpenText } f
 import type { Book, Edition } from "../../lib/domain/scripture";
 import type { ReaderView } from "./verse";
 import { cn } from "../../lib/utils";
+import { bookLabel, t } from "../../lib/i18n";
 
 const VIEWS: { id: ReaderView; label: string; icon: typeof Rows3 }[] = [
-  { id: "single", label: "Single", icon: Rows3 },
-  { id: "parallel", label: "Parallel", icon: Columns2 },
-  { id: "original", label: "Original", icon: BookOpenText },
-  { id: "interlinear", label: "Interlinear", icon: WholeWord },
+  { id: "single", label: t("scripture.view.single"), icon: Rows3 },
+  { id: "parallel", label: t("scripture.view.parallel"), icon: Columns2 },
+  { id: "original", label: t("scripture.view.original"), icon: BookOpenText },
+  { id: "interlinear", label: t("scripture.view.interlinear"), icon: WholeWord },
 ];
 
 export function ScriptureToolbar({
@@ -39,32 +40,45 @@ export function ScriptureToolbar({
   hasNext: boolean;
 }) {
   const navigate = useNavigate();
-  const translations = editions.filter((e) => e.kind === "translation");
+  const selectableEditions = editions.filter(
+    (edition) => edition.kind === "translation" || edition.kind === "original-language",
+  );
 
   return (
     <div
       className="sticky top-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur"
       role="toolbar"
-      aria-label="Scripture reader controls"
+      aria-label={t("scripture.toolbar")}
     >
       {/* Book / chapter */}
       <div className="flex items-center gap-1">
         <button
           disabled={!hasPrev}
-          onClick={() => navigate({ to: "/scripture/$book/$chapter", params: { book: book.id, chapter: String(chapter - 1) } })}
+          onClick={() =>
+            navigate({
+              to: "/scripture/$book/$chapter",
+              params: { book: book.id, chapter: String(chapter - 1) },
+            })
+          }
           className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
-          aria-label="Previous chapter"
+          aria-label={t("scripture.previousChapter")}
         >
           <ChevronLeft className="size-4" />
         </button>
         <span className="min-w-24 text-center text-sm font-medium">
-          {book.name} <span className="font-mono text-muted-foreground">{chapter}</span>
+          {bookLabel(book.id, book.name)}{" "}
+          <span className="font-mono text-muted-foreground">{chapter}</span>
         </span>
         <button
           disabled={!hasNext}
-          onClick={() => navigate({ to: "/scripture/$book/$chapter", params: { book: book.id, chapter: String(chapter + 1) } })}
+          onClick={() =>
+            navigate({
+              to: "/scripture/$book/$chapter",
+              params: { book: book.id, chapter: String(chapter + 1) },
+            })
+          }
           className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
-          aria-label="Next chapter"
+          aria-label={t("scripture.nextChapter")}
         >
           <ChevronRight className="size-4" />
         </button>
@@ -74,14 +88,14 @@ export function ScriptureToolbar({
 
       {/* Edition */}
       <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="meta-label">Version</span>
+        <span className="meta-label">{t("scripture.version")}</span>
         <select
           value={editionId}
           onChange={(e) => onEditionChange(e.target.value)}
           className="h-7 rounded-md border border-input bg-background px-1.5 font-mono text-xs text-foreground"
-          aria-label="Translation"
+          aria-label={t("scripture.translation")}
         >
-          {translations.map((ed) => (
+          {selectableEditions.map((ed) => (
             <option key={ed.id} value={ed.id}>
               {ed.abbreviation}
             </option>
@@ -92,7 +106,11 @@ export function ScriptureToolbar({
       <div className="flex-1" />
 
       {/* View mode */}
-      <div className="flex rounded-md border border-input" role="group" aria-label="View mode">
+      <div
+        className="flex rounded-md border border-input"
+        role="group"
+        aria-label={t("scripture.viewMode")}
+      >
         {VIEWS.map(({ id, label, icon: Icon }) => (
           <button
             key={id}

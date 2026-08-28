@@ -5,12 +5,12 @@ import { useWorkbench } from "../lib/workbench/workbench-context";
 import { LibraryRepository } from "../lib/repositories/library-repository";
 import { ScriptureRepository } from "../lib/repositories/scripture-repository";
 import { ResearchAssistant } from "../components/common/research-assistant";
+import { bookLabel, formatNumber, morphologyLabel, statusLabel, t } from "../lib/i18n";
 
 export const Route = createFileRoute("/")({
   head: () => {
-    const title = "Scriptorium — Open Biblical Knowledge System";
-    const description =
-      "A local-first research workstation for the Bible: reader, original languages, library, study workspace and knowledge graph.";
+    const title = t("home.metaTitle");
+    const description = t("home.metaDescription");
     return {
       meta: [
         { title },
@@ -34,9 +34,9 @@ function Home() {
   return (
     <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
       <header className="border-b border-border pb-3">
-        <p className="meta-label">Workspace</p>
+        <p className="meta-label">{t("home.workspace")}</p>
         <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
-          Resume your study
+          {t("home.resume")}
         </h1>
       </header>
 
@@ -44,18 +44,18 @@ function Home() {
         <div className="space-y-6">
           {/* Continue reading */}
           <section>
-            <SectionHeading icon={BookOpen} title="Continue reading" />
+            <SectionHeading icon={BookOpen} title={t("home.continueReading")} />
             <Link
               to="/scripture/$book/$chapter"
               params={{ book: "john", chapter: "1" }}
               className="group mt-2 block border-l-2 border-primary/60 pl-3 transition-colors hover:border-primary"
             >
-              <p className="font-serif text-lg font-medium">John 1</p>
+              <p className="font-serif text-lg font-medium">{bookLabel("john")} 1</p>
               <p className="mt-0.5 line-clamp-2 font-serif text-sm text-muted-foreground">
                 In the beginning was the Word, and the Word was with God, and the Word was God.
               </p>
               <p className="mt-1 font-mono text-[11px] text-muted-foreground">
-                last position: v.1 · World English Bible
+                {t("home.lastPosition")}: v.1 · World English Bible
                 <ArrowRight className="ml-1 inline size-3 transition-transform group-hover:translate-x-0.5" />
               </p>
             </Link>
@@ -63,7 +63,7 @@ function Home() {
 
           {/* Continue studying */}
           <section>
-            <SectionHeading icon={FileText} title="Continue studying" />
+            <SectionHeading icon={FileText} title={t("home.continueStudying")} />
             {demoStudy ? (
               <Link
                 to="/study/$slug"
@@ -72,9 +72,10 @@ function Home() {
               >
                 <p className="text-[15px] font-medium">{demoStudy.title}</p>
                 <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                  {demoStudy.items.filter((i) => i.kind === "resource").length} sources linked ·{" "}
-                  {notes.length} notes ·{" "}
-                  {demoStudy.items.filter((i) => i.kind === "passage").length} passages
+                  {formatNumber(demoStudy.items.filter((i) => i.kind === "resource").length)}{" "}
+                  {t("home.sourcesLinked")} · {formatNumber(notes.length)} {t("home.notes")} ·{" "}
+                  {formatNumber(demoStudy.items.filter((i) => i.kind === "passage").length)}{" "}
+                  {t("home.passages")}
                 </p>
               </Link>
             ) : null}
@@ -82,7 +83,7 @@ function Home() {
 
           {/* Recent library */}
           <section>
-            <SectionHeading icon={Library} title="Recent library" />
+            <SectionHeading icon={Library} title={t("home.recentLibrary")} />
             <ul className="mt-2 divide-y divide-border border-y border-border">
               {recentResources.map((r) => (
                 <li key={r.id} className="flex items-baseline justify-between gap-3 py-1.5">
@@ -90,7 +91,7 @@ function Home() {
                     {r.title}
                   </Link>
                   <span className="shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                    {r.availability === "local" ? "local" : "not downloaded"}
+                    {statusLabel(r.availability)}
                   </span>
                 </li>
               ))}
@@ -99,19 +100,16 @@ function Home() {
 
           {/* Recent notes */}
           <section>
-            <SectionHeading icon={StickyNote} title="Recent notes" />
+            <SectionHeading icon={StickyNote} title={t("home.recentNotes")} />
             {notes.length === 0 ? (
-              <p className="mt-2 text-sm text-muted-foreground">
-                No notes yet. Notes are stored locally in this browser and can be linked to
-                passages, words, resources, concepts and studies.
-              </p>
+              <p className="mt-2 text-sm text-muted-foreground">{t("home.noNotes")}</p>
             ) : (
               <ul className="mt-2 divide-y divide-border border-y border-border">
                 {notes.slice(0, 4).map((n) => (
                   <li key={n.id} className="py-1.5">
                     <p className="text-[13px] font-medium">{n.title}</p>
                     <p className="font-mono text-[10px] text-muted-foreground">
-                      {n.links.map((l) => l.label).join(" · ") || "unlinked"}
+                      {n.links.map((l) => l.label).join(" · ") || t("home.unlinked")}
                     </p>
                   </li>
                 ))}
@@ -123,25 +121,25 @@ function Home() {
         <aside className="space-y-5">
           {/* Word of the day */}
           <section className="rounded-lg border border-border bg-card p-3.5">
-            <p className="meta-label">Word of the day · demo</p>
+            <p className="meta-label">{t("home.wordOfDay")}</p>
             <p className="original-text mt-1.5 text-3xl leading-tight">{wordOfDay?.lemma}</p>
             <p className="font-mono text-xs text-muted-foreground">{wordOfDay?.transliteration}</p>
             <dl className="mt-3 space-y-1.5 text-[13px]">
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                  lemma
+                  {t("home.lemma")}
                 </dt>
                 <dd className="original-text">{wordOfDay?.lemma}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                  class
+                  {t("home.wordClass")}
                 </dt>
-                <dd>{wordOfDay?.partOfSpeech}</dd>
+                <dd>{wordOfDay ? morphologyLabel(wordOfDay.partOfSpeech) : null}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                  senses
+                  {t("home.senses")}
                 </dt>
                 <dd className="text-foreground/85">{wordOfDay?.glosses.slice(0, 3).join(", ")}</dd>
               </div>
@@ -151,27 +149,21 @@ function Home() {
               search={{ entity: "ent-word-logos" }}
               className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
             >
-              Explore word <ArrowRight className="size-3" />
+              {t("home.exploreWord")} <ArrowRight className="size-3" />
             </Link>
             <p className="mt-2.5 text-[10px] leading-relaxed text-muted-foreground">
-              Demonstration content from the bundled demo lexicon.
+              {t("home.demoLexicon")}
             </p>
           </section>
 
-          <ResearchAssistant contextLabel="John 1:1" />
+          <ResearchAssistant contextLabel={`${bookLabel("john")} 1:1`} />
         </aside>
       </div>
     </div>
   );
 }
 
-function SectionHeading({
-  icon: Icon,
-  title,
-}: {
-  icon: typeof BookOpen;
-  title: string;
-}) {
+function SectionHeading({ icon: Icon, title }: { icon: typeof BookOpen; title: string }) {
   return (
     <h2 className="flex items-center gap-1.5">
       <Icon className="size-3.5 text-muted-foreground" strokeWidth={1.75} />

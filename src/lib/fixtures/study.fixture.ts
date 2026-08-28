@@ -7,27 +7,7 @@
  * ============================================================================
  */
 
-import type { SourceReference, Study } from "../domain/study";
-
-export const DEMO_SOURCES: SourceReference[] = [
-  {
-    id: "src-wh-john-1-1",
-    author: "Westcott & Hort",
-    work: "The New Testament in the Original Greek",
-    edition: "1881",
-    location: "John 1:1",
-    year: 1881,
-    resourceId: "res-wh",
-  },
-  {
-    id: "src-demo-lexicon-logos",
-    author: "Scriptorium demo data",
-    work: "Greek–English Lexicon (DEMO excerpt)",
-    location: "λόγος",
-    year: 2026,
-    resourceId: "res-lexicon-demo",
-  },
-];
+import type { Study } from "../domain/study";
 
 export const DEMO_STUDY: Study = {
   id: "study-logos",

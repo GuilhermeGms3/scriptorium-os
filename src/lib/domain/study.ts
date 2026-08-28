@@ -5,20 +5,8 @@
  * linked to passages, words, resources, concepts and studies.
  */
 
+import type { TextAnchor } from "./knowledge";
 import type { PassageRef } from "./scripture";
-
-/** A citable source reference — reused by claims, notes, AI output, history. */
-export interface SourceReference {
-  id: string;
-  author?: string;
-  work: string;
-  edition?: string;
-  /** Page, section, verse range, URL fragment... */
-  location?: string;
-  year?: number;
-  resourceId?: string;
-  url?: string;
-}
 
 export type NoteLinkKind = "passage" | "word" | "resource" | "concept" | "study";
 
@@ -27,6 +15,8 @@ export interface NoteLink {
   /** PassageRef serialized, lemma, resource id, concept id or study id. */
   target: string;
   label: string;
+  /** Structured target for new records; legacy local notes may only have target/label. */
+  anchor?: TextAnchor;
 }
 
 export interface Note {
@@ -39,13 +29,7 @@ export interface Note {
 }
 
 export type StudyItemKind =
-  | "passage"
-  | "word"
-  | "concept"
-  | "resource"
-  | "note"
-  | "person"
-  | "place";
+  "passage" | "word" | "concept" | "resource" | "note" | "person" | "place";
 
 export interface StudyItem {
   id: string;

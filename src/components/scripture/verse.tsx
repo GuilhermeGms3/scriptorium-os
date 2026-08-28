@@ -8,6 +8,7 @@
 import type { VerseContent } from "../../lib/domain/scripture";
 import { OriginalToken } from "./original-token";
 import { cn } from "../../lib/utils";
+import { t, textDirectionForLanguage } from "../../lib/i18n";
 
 export type ReaderView = "single" | "parallel" | "original" | "interlinear";
 
@@ -28,7 +29,7 @@ export function Verse({
   const label = `${bookName} ${chapter}:${verse.verse}`;
 
   return (
-    <span className={cn(verseMode === "verse" && "mb-3 block")}>
+    <span id={`verse-${verse.verse}`} className={cn(verseMode === "verse" && "mb-3 block")}>
       <span
         className="mr-1.5 align-super font-mono text-[10px] font-medium text-muted-foreground select-none"
         aria-hidden
@@ -38,7 +39,7 @@ export function Verse({
       <span className="sr-only">{label}. </span>
       {text ?? (
         <span className="text-sm text-muted-foreground italic">
-          [Translation not imported for this verse — demo dataset]
+          {t("scripture.translationMissing")}
         </span>
       )}
       {verseMode === "paragraph" && " "}
@@ -57,7 +58,7 @@ export function OriginalVerse({
   chapter: number;
 }) {
   const label = `${bookName} ${chapter}:${verse.verse}`;
-  const isHebrew = verse.original?.[0]?.language === "hbo";
+  const direction = textDirectionForLanguage(verse.original?.[0]?.language ?? "en");
 
   if (!verse.original) {
     return (
@@ -66,15 +67,18 @@ export function OriginalVerse({
           {verse.verse}
         </span>
         <span className="text-sm text-muted-foreground italic">
-          Original text not yet imported for this verse (demo dataset).
+          {t("scripture.originalMissing")}
         </span>
       </div>
     );
   }
 
   return (
-    <div className="mb-4" dir={isHebrew ? "rtl" : "ltr"}>
-      <span className="me-1.5 align-super font-mono text-[10px] text-muted-foreground select-none" dir="ltr">
+    <div id={`verse-${verse.verse}`} className="mb-4" dir={direction}>
+      <span
+        className="me-1.5 align-super font-mono text-[10px] text-muted-foreground select-none"
+        dir="ltr"
+      >
         {verse.verse}
       </span>
       {verse.original.map((token) => (

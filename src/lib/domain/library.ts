@@ -6,14 +6,41 @@
  * is never assumed.
  */
 
+import type { LanguageCode } from "./scripture";
+
+export type PermissionDecision = "yes" | "no" | "unknown" | "conditional";
+
+export interface ResourceLicensePermissions {
+  redistribution: PermissionDecision;
+  modification: PermissionDecision;
+  commercialUse: PermissionDecision;
+  shareAlike: PermissionDecision;
+  attribution: PermissionDecision;
+}
+
 export interface ResourceLicense {
+  id?: string;
   name: string;
+  url?: string;
+  status?:
+    | "public-domain"
+    | "open-license"
+    | "restricted"
+    | "permission-required"
+    | "personal"
+    | "unknown";
   copyrightHolder?: string;
+  mayStore?: boolean;
+  mayRedistribute?: boolean;
+  mayModify?: boolean;
+  mayUseCommercially?: boolean;
   redistributionAllowed: boolean;
   commercialUseAllowed?: boolean;
   attributionRequired?: boolean;
   attributionText?: string;
   sourceUrl?: string;
+  /** Operational interpretation used by corpus safety gates. */
+  permissions?: ResourceLicensePermissions;
 }
 
 export type ResourceType =
@@ -34,10 +61,12 @@ export type IndexingStatus = "indexed" | "pending" | "not-indexed";
 
 export interface LibraryResource {
   id: string;
+  /** Canonical corpus package when this catalog row represents registered corpus data. */
+  corpusPackageId?: string;
   title: string;
   author?: string;
   type: ResourceType;
-  language: string;
+  language: LanguageCode;
   year?: number;
   publisher?: string;
   license?: ResourceLicense;
