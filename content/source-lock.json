@@ -1,0 +1,21 @@
+{
+  "stepBibleTbesg": {
+    "revision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+    "url": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/Lexicons/TBESG%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Greek%20-%20STEPBible.org%20CC%20BY.txt",
+    "sha256": "312f723d7b8ef263bbdfb0451c9b8057125804dfff390b6f8544cff2a84b57f4",
+    "sizeBytes": 4736912,
+    "license": "CC BY 4.0",
+    "attribution": "STEP Bible data, Tyndale House, Cambridge."
+  },
+  "stepBibleTbesh": {
+    "revision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+    "url": "https://raw.githubusercontent.com/STEPBible/STEPBible-Data/efe428a0047bf7b9c3ce2624f60c252c6e435945/Lexicons/TBESH%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Hebrew%20-%20STEPBible.org%20CC%20BY.txt",
+    "sha256": "464dccadd95fd8620dd05fa0d7a4caba58ec3c4d5db3ebf38e43d046ca25b591",
+    "sizeBytes": 3288045,
+    "license": "Repository marked CC BY 4.0; definition field withheld from redistribution pending the additional permission named in the file header",
+    "attribution": "STEP Bible data, Tyndale House, Cambridge; TBESH based on Abridged BDB by Online Bible.",
+    "redistributionStatus": "partial-only",
+    "includedFields": ["extended-strong", "lemma", "transliteration", "morphology", "gloss"],
+    "excludedFields": ["definition"]
+  }
+}

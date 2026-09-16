@@ -5,6 +5,7 @@
  */
 
 import type { VerseContent } from "../../lib/domain/scripture";
+import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { cn } from "../../lib/utils";
 import { morphologyLabel, t, textDirectionForLanguage } from "../../lib/i18n";
@@ -13,14 +14,19 @@ export function InterlinearView({
   verse,
   bookName,
   chapter,
+  annotations,
 }: {
   verse: VerseContent;
   bookName: string;
   chapter: number;
+  annotations: LinguisticAnnotation[];
 }) {
   const { selectWord, wordSelection } = useWorkbench();
   const label = `${bookName} ${chapter}:${verse.verse}`;
   const direction = textDirectionForLanguage(verse.original?.[0]?.language ?? "en");
+  const annotationsByToken = new Map(
+    annotations.map((annotation) => [annotation.targetTokenId, annotation]),
+  );
 
   if (!verse.original) {
     return (
@@ -37,8 +43,14 @@ export function InterlinearView({
 
   return (
     <div className="mb-5 overflow-x-auto pb-1">
-      <div className="mb-1 font-mono text-[10px] text-muted-foreground select-none">
-        {verse.verse}
+      <div className="mb-2 border-l-2 border-border pl-3">
+        <p className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+          {t("scripture.portugueseParallel")}
+        </p>
+        <p className="mt-0.5 font-serif text-sm leading-relaxed">
+          <span className="mr-1 font-mono text-[10px] text-muted-foreground">{verse.verse}</span>
+          {Object.values(verse.translations)[0]}
+        </p>
       </div>
       <div
         className="flex min-w-max gap-x-4 gap-y-2"
@@ -48,6 +60,8 @@ export function InterlinearView({
       >
         {verse.original.map((token) => {
           const selected = wordSelection?.token.id === token.id;
+          const annotation = annotationsByToken.get(token.id);
+          const morphology = annotation?.normalized.morphology[0];
           return (
             <button
               key={token.id}
@@ -64,11 +78,14 @@ export function InterlinearView({
                 {token.suffix}
               </span>
               <span className="font-mono text-[10px] text-muted-foreground">
-                {token.transliteration ?? ""}
+                {annotation?.normalized.transliteration ?? token.transliteration ?? ""}
               </span>
-              <span className="text-xs text-foreground/80">{token.gloss ?? "—"}</span>
+              <span className="text-xs text-foreground/80">
+                {annotation?.normalized.lemmas[0] ?? token.lemma ?? "—"}
+              </span>
               <span className="font-mono text-[9px] tracking-wide text-muted-foreground">
-                {token.morphology?.code ??
+                {morphology?.rawMorphologyCode ??
+                  token.morphology?.code ??
                   (token.morphology
                     ? morphologyLabel(token.morphology.partOfSpeech)
                     : t("scripture.notSupplied"))}

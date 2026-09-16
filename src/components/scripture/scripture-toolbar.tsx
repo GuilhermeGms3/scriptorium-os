@@ -28,6 +28,7 @@ export function ScriptureToolbar({
   onViewChange,
   hasPrev,
   hasNext,
+  availableViews,
 }: {
   book: Book;
   chapter: number;
@@ -38,6 +39,7 @@ export function ScriptureToolbar({
   onViewChange: (v: ReaderView) => void;
   hasPrev: boolean;
   hasNext: boolean;
+  availableViews: Record<ReaderView, boolean>;
 }) {
   const navigate = useNavigate();
   const selectableEditions = editions.filter(
@@ -111,23 +113,27 @@ export function ScriptureToolbar({
         role="group"
         aria-label={t("scripture.viewMode")}
       >
-        {VIEWS.map(({ id, label, icon: Icon }) => (
-          <button
-            key={id}
-            onClick={() => onViewChange(id)}
-            aria-pressed={view === id}
-            title={label}
-            className={cn(
-              "flex h-7 items-center gap-1.5 px-2.5 text-xs transition-colors first:rounded-l-md last:rounded-r-md",
-              view === id
-                ? "bg-primary text-primary-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
-            )}
-          >
-            <Icon className="size-3.5" strokeWidth={1.75} />
-            <span className="hidden sm:inline">{label}</span>
-          </button>
-        ))}
+        {VIEWS.map(({ id, label, icon: Icon }) => {
+          const enabled = availableViews[id];
+          return (
+            <button
+              key={id}
+              onClick={() => onViewChange(id)}
+              disabled={!enabled}
+              aria-pressed={view === id}
+              title={enabled ? label : t("scripture.viewUnavailable", { view: label })}
+              className={cn(
+                "flex h-7 items-center gap-1.5 px-2.5 text-xs transition-colors first:rounded-l-md last:rounded-r-md disabled:cursor-not-allowed disabled:opacity-35",
+                view === id
+                  ? "bg-primary text-primary-foreground"
+                  : "text-muted-foreground hover:bg-accent hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-muted-foreground",
+              )}
+            >
+              <Icon className="size-3.5" strokeWidth={1.75} />
+              <span className="hidden sm:inline">{label}</span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );

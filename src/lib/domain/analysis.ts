@@ -1,4 +1,5 @@
 import type { ClaimKind, EvidenceKind, ReviewStatus, TextAnchor } from "./knowledge";
+import type { PerspectiveProfile } from "./perspective";
 
 export type StudyLensId =
   | "textual"
@@ -24,18 +25,16 @@ export interface StudyLens {
   evidenceKinds: EvidenceKind[];
 }
 
-export interface Perspective {
-  id: string;
-  label: string;
-  description?: string;
-  traditionIds?: string[];
-}
+/** @deprecated Use PerspectiveProfile; retained while analysis panels migrate. */
+export type Perspective = PerspectiveProfile;
 
 export interface PassageAnalysis {
   id: string;
   anchor: TextAnchor;
   lensId: StudyLensId;
+  /** @deprecated Use perspectiveProfileIds. */
   perspectiveId?: string;
+  perspectiveProfileIds?: string[];
   title: string;
   summary?: string;
   status: AnalysisStatus;

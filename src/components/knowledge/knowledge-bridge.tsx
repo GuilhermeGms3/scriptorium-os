@@ -2,22 +2,25 @@
 import { ArrowDown } from "lucide-react";
 import type { TextAnchor } from "../../lib/domain/knowledge";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
-import { KnowledgeRepository } from "../../lib/repositories/knowledge-repository";
-import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
+import { hasAvailableData } from "../../lib/domain/availability";
 import { EvidenceTag } from "./knowledge-entity";
 import { bookLabel, relationLabel, reviewStatusLabel, t } from "../../lib/i18n";
 
-function anchorLabel(anchor: TextAnchor): string {
-  if (anchor.type === "entity")
-    return KnowledgeRepository.getEntity(anchor.entityId)?.name ?? anchor.entityId;
+function anchorLabel(anchor: TextAnchor, entityNames: Map<string, string>): string {
+  if (anchor.type === "entity") return entityNames.get(anchor.entityId) ?? anchor.entityId;
   if (anchor.type === "lemma") return anchor.lemmaId.split(":").slice(1).join(":");
   if (anchor.type === "passage") {
-    const bookData = ScriptureRepository.getBook(anchor.ref.bookId);
+    const bookData = ScriptureKnowledgeEngine.getBook(anchor.ref.bookId);
     const book = bookLabel(anchor.ref.bookId, bookData?.name);
     return `${book} ${anchor.ref.chapter}${anchor.ref.verseStart ? `:${anchor.ref.verseStart}` : ""}`;
   }
   if (anchor.type === "token") return anchor.tokenId;
   if (anchor.type === "text-unit") return anchor.textUnitId;
+  if (anchor.type === "canonical-text") {
+    return anchor.anchor.passage
+      ? `${anchor.anchor.passage.bookId ?? anchor.anchor.workId} ${anchor.anchor.passage.chapter ?? ""}${anchor.anchor.passage.verseStart !== undefined ? `:${anchor.anchor.passage.verseStart}` : ""}`
+      : (anchor.anchor.startUnitId ?? anchor.anchor.workId);
+  }
   return anchor.workId;
 }
 
@@ -28,7 +31,12 @@ export function KnowledgeBridge({ onSelect }: { onSelect?: (id: string) => void 
     verseStart: 1,
     verseEnd: 5,
   });
-  const relations = bundle?.relations.status === "available" ? bundle.relations.data : [];
+  const relations = bundle && hasAvailableData(bundle.relations) ? bundle.relations.data : [];
+  const entityNames = new Map(
+    bundle && hasAvailableData(bundle.entities)
+      ? bundle.entities.data.map((entity) => [entity.id, entity.name])
+      : [],
+  );
 
   return (
     <div className="rounded-lg border border-border bg-card p-4">
@@ -42,13 +50,13 @@ export function KnowledgeBridge({ onSelect }: { onSelect?: (id: string) => void 
             className="rounded-md border border-border bg-background px-2.5 py-2"
           >
             <div className="flex flex-wrap items-center gap-1.5 text-[13px]">
-              <AnchorButton anchor={relation.from} onSelect={onSelect} />
+              <AnchorButton anchor={relation.from} entityNames={entityNames} onSelect={onSelect} />
               <ArrowDown className="size-3 -rotate-90 text-muted-foreground" />
               <span className="font-mono text-[9px] uppercase text-muted-foreground">
                 {relationLabel(relation.relation.value)}
               </span>
               <ArrowDown className="size-3 -rotate-90 text-muted-foreground" />
-              <AnchorButton anchor={relation.to} onSelect={onSelect} />
+              <AnchorButton anchor={relation.to} entityNames={entityNames} onSelect={onSelect} />
             </div>
             <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
               {relation.evidence.map((evidence) => (
@@ -73,9 +81,11 @@ export function KnowledgeBridge({ onSelect }: { onSelect?: (id: string) => void 
 
 function AnchorButton({
   anchor,
+  entityNames,
   onSelect,
 }: {
   anchor: TextAnchor;
+  entityNames: Map<string, string>;
   onSelect?: ((id: string) => void) | undefined;
 }) {
   if (anchor.type === "entity") {
@@ -84,13 +94,13 @@ function AnchorButton({
         onClick={() => onSelect?.(anchor.entityId)}
         className="underline-offset-2 hover:underline"
       >
-        {anchorLabel(anchor)}
+        {anchorLabel(anchor, entityNames)}
       </button>
     );
   }
   return (
     <span className={anchor.type === "lemma" ? "original-text text-base" : ""}>
-      {anchorLabel(anchor)}
+      {anchorLabel(anchor, entityNames)}
     </span>
   );
 }

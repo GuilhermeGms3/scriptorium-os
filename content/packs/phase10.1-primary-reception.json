@@ -1,0 +1,160 @@
+{
+  "id": "scriptorium-phase10.1-primary-reception",
+  "version": "10.1.0",
+  "importedAt": "2026-09-16T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "source:gutenberg:77576",
+      "sourceType": "primary-source-edition",
+      "title": "The Writings of the Apostolic Fathers",
+      "locator": "https://www.gutenberg.org/ebooks/77576",
+      "checksum": "2a50a9cb4e98ab58a01fc6e11df700a9ab685b638d52be954fc0a7467eb598cb",
+      "metadata": {
+        "edition": "Edinburgh: T. & T. Clark, 1870",
+        "translators": ["Alexander Roberts", "James Donaldson", "F. Crombie"],
+        "rights": { "license": "Public domain source edition", "redistribution": "allowed" },
+        "provenance": { "acquisition": "bundled", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "source-imported"
+      }
+    },
+    {
+      "id": "source:wlc-oshb:2.2-runtime",
+      "sourceType": "scripture-edition",
+      "title": "Westminster Leningrad Codex with OSHB morphology 2.2",
+      "locator": "https://github.com/openscriptures/morphhb/releases/tag/v.2.2",
+      "checksum": "3b8c2f52df0d5bfd85fa20d50dfd5744ec7c65796f30e7addf247ffbb5eb65c6",
+      "metadata": {
+        "rights": { "textLicense": "Public Domain", "morphologyLicense": "CC-BY-4.0", "redistribution": "allowed-with-attribution" },
+        "provenance": { "acquisition": "bundled", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "verified"
+      }
+    }
+  ],
+  "knowledgeEntities": [
+    {
+      "id": "entity:work:epistle-diognetus",
+      "type": "work",
+      "name": "Epistle to Diognetus",
+      "description": "Anonymous early Christian apologetic work in the imported 1870 public-domain English edition.",
+      "sourceIds": ["source:gutenberg:77576"]
+    }
+  ],
+  "ontology": [],
+  "ontologyRelations": [],
+  "perspectives": [],
+  "claims": [
+    {
+      "id": "claim:diognetus-7-divine-word",
+      "proposition": "Diognetus 7 describes God's emissary as the divine Word and explicitly distinguishes this claim from an earthly invention.",
+      "kind": "historical-source-observation",
+      "anchor": { "type": "text-unit", "textUnitId": "textunit:primary-sources:work:epistle-diognetus:a0a1cf9ce8325c0438a0" },
+      "sourceIds": ["source:gutenberg:77576"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "claim:genesis-1-1-bereshit",
+      "proposition": "The WLC text of Genesis 1:1 begins with the Hebrew token בְּרֵאשִׁית and supplies OSHB lemma and morphology identifiers for its components.",
+      "kind": "linguistic-analysis",
+      "anchor": { "type": "passage", "ref": { "bookId": "genesis", "chapter": 1, "verseStart": 1, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "sourceIds": ["source:wlc-oshb:2.2-runtime"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "claim:philippians-2-6-morphe",
+      "proposition": "The SBLGNT text of Philippians 2:6 contains the form μορφῇ in the phrase μορφῇ θεοῦ.",
+      "kind": "linguistic-analysis",
+      "anchor": { "type": "passage", "ref": { "bookId": "philippians", "chapter": 2, "verseStart": 6, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "claim:romans-3-25-hilasterion",
+      "proposition": "The SBLGNT text of Romans 3:25 contains the form ἱλαστήριον.",
+      "kind": "linguistic-analysis",
+      "anchor": { "type": "passage", "ref": { "bookId": "romans", "chapter": 3, "verseStart": 25, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "claim:mark-1-1-euangelion",
+      "proposition": "The SBLGNT text of Mark 1:1 opens with Ἀρχὴ τοῦ εὐαγγελίου.",
+      "kind": "linguistic-analysis",
+      "anchor": { "type": "passage", "ref": { "bookId": "mark", "chapter": 1, "verseStart": 1, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "claim:psalm-22-opening",
+      "proposition": "The WLC text of Psalm 22 opens with לָמָה עֲזַבְתָּנִי after its superscription in the source versification.",
+      "kind": "textual-observation",
+      "anchor": { "type": "passage", "ref": { "bookId": "psalms", "chapter": 22, "verseStart": 1, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "sourceIds": ["source:wlc-oshb:2.2-runtime"],
+      "supportLevel": "direct",
+      "reviewStatus": "source-checked"
+    }
+  ],
+  "knowledgeRelations": [
+    {
+      "id": "relation:john-1-diognetus-7-thematic",
+      "from": { "type": "passage", "ref": { "bookId": "john", "chapter": 1, "verseStart": 1, "verseEnd": 18, "versificationSchemeId": "scriptorium-bcv-1" } },
+      "to": { "type": "text-unit", "textUnitId": "textunit:primary-sources:work:epistle-diognetus:a0a1cf9ce8325c0438a0" },
+      "type": "thematic-relationship",
+      "description": "Editorial cross-reference based on Word/Logos vocabulary; it is not classified as an explicit quotation or proof of literary dependence.",
+      "sourceIds": ["source:gutenberg:77576", "source:sblgnt:1.2"],
+      "reviewStatus": "source-checked"
+    },
+    {
+      "id": "relation:diognetus-7-work",
+      "from": { "type": "text-unit", "textUnitId": "textunit:primary-sources:work:epistle-diognetus:a0a1cf9ce8325c0438a0" },
+      "to": { "type": "entity", "entityId": "entity:work:epistle-diognetus" },
+      "type": "part-of-work",
+      "sourceIds": ["source:gutenberg:77576"],
+      "reviewStatus": "source-checked"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:diognetus-7-imported-unit",
+      "label": "Imported text of Diognetus 7",
+      "target": { "kind": "text-anchor", "anchor": { "kind": "text-unit", "corpusId": "apostolic-fathers-public-domain", "editionId": "apostolic-fathers-pd-en-1", "workId": "work:epistle-diognetus", "versificationSchemeId": "scriptorium-document-locator-1", "startUnitId": "textunit:primary-sources:work:epistle-diognetus:a0a1cf9ce8325c0438a0" } },
+      "sourceIds": ["source:gutenberg:77576"],
+      "reviewStatus": "source-checked",
+      "authorship": "machine-assisted"
+    }
+  ],
+  "arguments": [],
+  "argumentRelations": [],
+  "lexemes": [],
+  "analyses": [
+    {
+      "id": "analysis:genesis-1-linguistic-entry",
+      "anchor": { "kind": "passage", "workId": "work:genesis", "versificationSchemeId": "scriptorium-bcv-1", "passage": { "workId": "work:genesis", "versificationSchemeId": "scriptorium-bcv-1", "bookId": "genesis", "chapter": 1, "verseStart": 1, "verseEnd": 31 } },
+      "lensId": "linguistic", "title": "Gênesis 1 — pontos de partida linguísticos", "summary": "Entrada de pesquisa ancorada no texto hebraico WLC/OSHB. O Reader fornece tokens, lemas e morfologia; interpretações sobre estrutura e criação permanecem separadas e requerem fontes adicionais.", "status": "draft", "reviewStatus": "source-checked", "interpretationKind": "textual-observation", "authorship": "machine-assisted", "authorNote": "A fonte textual foi conferida; isto não constitui revisão humana da interpretação.", "sourceIds": ["source:wlc-oshb:2.2-runtime"]
+    },
+    {
+      "id": "analysis:philippians-2-linguistic-entry",
+      "anchor": { "kind": "passage", "workId": "work:philippians", "versificationSchemeId": "scriptorium-bcv-1", "passage": { "workId": "work:philippians", "versificationSchemeId": "scriptorium-bcv-1", "bookId": "philippians", "chapter": 2, "verseStart": 5, "verseEnd": 11 } },
+      "lensId": "linguistic", "title": "Filipenses 2:5–11 — vocabulário grego", "summary": "Entrada de pesquisa para examinar μορφή e outros termos no SBLGNT/TAGNT. Conclusões cristológicas não são inferidas automaticamente da morfologia.", "status": "draft", "reviewStatus": "source-checked", "interpretationKind": "linguistic-observation", "authorship": "machine-assisted", "authorNote": "Somente a correspondência com o texto e os dados linguísticos foi conferida.", "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "analysis:romans-3-linguistic-entry",
+      "anchor": { "kind": "passage", "workId": "work:romans", "versificationSchemeId": "scriptorium-bcv-1", "passage": { "workId": "work:romans", "versificationSchemeId": "scriptorium-bcv-1", "bookId": "romans", "chapter": 3, "verseStart": 21, "verseEnd": 26 } },
+      "lensId": "linguistic", "title": "Romanos 3:21–26 — termos para pesquisa", "summary": "Entrada ancorada no texto grego para estudar δικαιοσύνη, πίστις e ἱλαστήριον. As diferentes teorias de justificação e expiação devem ser ligadas a fontes próprias, não tratadas como equivalentes ao dado lexical.", "status": "draft", "reviewStatus": "source-checked", "interpretationKind": "linguistic-observation", "authorship": "machine-assisted", "authorNote": "Não revisado por especialista humano.", "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "analysis:mark-1-narrative-entry",
+      "anchor": { "kind": "passage", "workId": "work:mark", "versificationSchemeId": "scriptorium-bcv-1", "passage": { "workId": "work:mark", "versificationSchemeId": "scriptorium-bcv-1", "bookId": "mark", "chapter": 1, "verseStart": 1, "verseEnd": 15 } },
+      "lensId": "literary", "title": "Marcos 1:1–15 — abertura narrativa", "summary": "Entrada para observar a abertura, o vocabulário de evangelho e o encadeamento narrativo. Questões textuais e relações veterotestamentárias exigem aparato e bibliografia próprios ainda não anexados.", "status": "draft", "reviewStatus": "source-checked", "interpretationKind": "literary-observation", "authorship": "machine-assisted", "authorNote": "Escopo deliberadamente limitado ao que o corpus instalado sustenta.", "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "analysis:psalm-22-hebrew-entry",
+      "anchor": { "kind": "passage", "workId": "work:psalms", "versificationSchemeId": "scriptorium-bcv-1", "passage": { "workId": "work:psalms", "versificationSchemeId": "scriptorium-bcv-1", "bookId": "psalms", "chapter": 22 } },
+      "lensId": "linguistic", "title": "Salmo 22 — texto hebraico e versificação", "summary": "Entrada de pesquisa no WLC/OSHB. A superscrição e a diferença entre numerações precisam permanecer scheme-aware; recepções judaicas e cristãs não foram tratadas como uma única leitura.", "status": "draft", "reviewStatus": "source-checked", "interpretationKind": "textual-observation", "authorship": "machine-assisted", "authorNote": "Não revisado por especialista humano.", "sourceIds": ["source:wlc-oshb:2.2-runtime"]
+    }
+  ]
+}

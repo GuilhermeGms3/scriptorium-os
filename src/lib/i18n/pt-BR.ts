@@ -71,7 +71,7 @@ export const ptBR = {
   "shell.noPassage": "Nenhuma passagem aberta",
   "shell.selected": "selecionado",
   "shell.localWorkspace": "Ambiente local",
-  "shell.offlineDemo": "Pronto para uso offline (dados demonstrativos)",
+  "shell.offlineDemo": "Corpora instalados disponíveis offline",
   "shell.productDescriptor": "sistema aberto de conhecimento bíblico",
 
   "home.metaTitle": "Scriptorium — Sistema Aberto de Conhecimento Bíblico",
@@ -90,23 +90,25 @@ export const ptBR = {
   "home.noNotes":
     "Ainda não há notas. Elas são armazenadas localmente neste navegador e podem ser vinculadas a passagens, palavras, recursos, conceitos e estudos.",
   "home.unlinked": "sem vínculo",
-  "home.wordOfDay": "Palavra do dia · demonstração",
+  "home.wordOfDay": "Identidade lexical em destaque",
   "home.lemma": "Lema",
   "home.wordClass": "Classe",
   "home.senses": "Sentidos",
   "home.exploreWord": "Explorar palavra",
-  "home.demoLexicon": "Conteúdo demonstrativo do léxico incluído no protótipo.",
+  "home.demoLexicon":
+    "Identidade lexical rastreável ao TAGNT. Definições lexicográficas ainda não foram importadas.",
+  "home.lexicalSensePending": "Definições lexicográficas ainda não importadas",
 
   "search.global": "Busca global",
   "search.workspace": "Buscar no ambiente",
   "search.description":
-    "Busca no corpus demonstrativo, léxico, metadados da biblioteca, entidades do grafo e títulos de notas locais.",
+    "Busca nos corpora instalados, índice linguístico, biblioteca acadêmica, conhecimento curado e workspace local.",
   "search.query": "Consulta de busca",
   "search.placeholder": "Passagem, lema, pessoa, lugar, conceito, fonte ou nota…",
   "search.palettePlaceholder": "Buscar Escrituras, palavras, biblioteca, pessoas e conceitos…",
   "search.typeHint":
     "Digite uma consulta ou pressione Ctrl/Cmd + K em qualquer tela para usar a paleta de comandos.",
-  "search.noResults": "Nenhum resultado nos dados demonstrativos.",
+  "search.noResults": "Nenhum resultado nos índices disponíveis.",
   "search.commands": "Comandos",
   "search.results": "Resultados",
   "search.dialog": "Busca global e comandos",
@@ -135,7 +137,7 @@ export const ptBR = {
   "scripture.section": "Escrituras",
   "scripture.reader": "Leitura",
   "scripture.indexDescription":
-    "A navegação apresenta a lista canônica; o texto aparece somente quando uma edição foi importada. Este protótipo inclui quatro capítulos demonstrativos em domínio público.",
+    "A navegação apresenta a lista canônica; o texto aparece quando uma edição instalada possui a passagem.",
   "scripture.available": "Disponível nesta versão",
   "scripture.hebrewBible": "Bíblia Hebraica / AT",
   "scripture.newTestament": "Novo Testamento",
@@ -144,7 +146,7 @@ export const ptBR = {
     "Entradas tracejadas ainda não possuem texto importado. Versificação, corpora e perfis de cânon fazem parte do domínio e orientarão esta lista em fases futuras.",
   "scripture.books": "Livros",
   "scripture.booksAria": "Livros bíblicos",
-  "scripture.noImportedText": "Nenhum texto importado nos dados demonstrativos",
+  "scripture.noImportedText": "Nenhum texto instalado para esta passagem",
   "scripture.toolbar": "Controles da leitura bíblica",
   "scripture.previousChapter": "Capítulo anterior",
   "scripture.nextChapter": "Próximo capítulo",
@@ -160,14 +162,20 @@ export const ptBR = {
   "scripture.unknownBook": "Livro desconhecido.",
   "scripture.notInDemo": "{passage} ainda não possui texto em um corpus local instalado.",
   "scripture.demoChapters":
-    "O SBLGNT 1.2 cobre todo o Novo Testamento em grego; os textos demonstrativos adicionais continuam limitados.",
+    "O SBLGNT 1.2 cobre o Novo Testamento em grego e a Bíblia Livre fornece a camada em português disponível.",
   "scripture.originalHint":
     "Selecione uma palavra para abrir o Estudo da Palavra. O SBLGNT preserva as palavras e marcas editoriais da fonte; dados lexicais exigem outro corpus.",
+  "scripture.originalHintHebrew":
+    "Selecione uma palavra para abrir o Estudo da Palavra. O WLC preserva o texto massorético; lemas e códigos morfológicos vêm da camada OSHB.",
   "scripture.interlinearHint":
-    "Estrutura palavra por palavra. Transliteração, glosa e morfologia aparecem somente quando fornecidas por recursos linguísticos vinculados.",
+    "Português e grego aparecem em paralelo. Lema, transliteração e morfologia vêm do TAGNT; ainda não há alinhamento palavra a palavra entre a tradução portuguesa e o grego.",
+  "scripture.interlinearHintHebrew":
+    "Português e hebraico aparecem em paralelo. Lemas e códigos morfológicos vêm do OSHB; ainda não há alinhamento palavra a palavra entre a tradução portuguesa e o hebraico.",
   "scripture.interlinearMissing":
-    "Os dados interlineares deste versículo ainda não foram importados (conjunto demonstrativo).",
+    "Os dados interlineares deste versículo ainda não foram importados para as edições instaladas.",
   "scripture.interlinearAria": "Interlinear de {passage}",
+  "scripture.portugueseParallel": "Português em paralelo · sem alinhamento lexical",
+  "scripture.viewUnavailable": "{view} indisponível para esta passagem",
   "scripture.analyzeWord": "Analisar {surface} ({lemma})",
   "scripture.demoFooter":
     "DADOS DEMONSTRATIVOS. Textos em inglês: World English Bible e American Standard Version (domínio público). Grego: Westcott & Hort 1881 (domínio público). Hebraico: texto massorético (domínio público). Nenhuma tradução protegida está incluída.",
@@ -202,7 +210,7 @@ export const ptBR = {
   "scripture.noNotesForPassage": "Ainda não há notas vinculadas a esta passagem.",
   "scripture.noNotesForWord": "Ainda não há notas vinculadas a esta palavra.",
   "scripture.noSources": "Nenhuma fonte vinculada.",
-  "scripture.bundleDemo": "Conjunto demonstrativo · estados de fonte explícitos",
+  "scripture.bundleDemo": "Conjunto de conhecimento · estados de fonte explícitos",
   "scripture.analysisCount": "{count} registro(s) de análise apoiado(s) por fonte.",
   "scripture.originalCount":
     "{count} ocorrência(s) rastreável(is); alterne para Texto original ou Interlinear para examiná-las.",
@@ -233,7 +241,7 @@ export const ptBR = {
   "scripture.morph.person": "Pessoa",
   "scripture.parsingCode": "Código de análise",
   "scripture.occurrenceMissing":
-    "O índice de ocorrências deste lema ainda não foi construído (dados demonstrativos).",
+    "O índice de ocorrências deste lema não está disponível nos recursos linguísticos instalados.",
   "scripture.lxxAwaiting":
     "O alinhamento com a Septuaginta aparecerá quando o corpus LXX for importado sob licença compatível.",
   "scripture.semanticAwaiting":
@@ -245,11 +253,21 @@ export const ptBR = {
   "scripture.interpretiveApparatus": "Aparato interpretativo",
   "scripture.studyThroughLenses": "Estude {passage} por lentes distintas",
   "scripture.structureOnly": "somente estrutura",
+  "scripture.sourcedContent": "conteúdo com fonte",
+  "scripture.analysisPendingTitle": "Análises de {passage} ainda não importadas",
+  "scripture.analysisPendingDescription":
+    "Esta área não contém explicações automáticas nem textos de preenchimento. Exegese, hermenêutica, história, filosofia e outras leituras só aparecerão quando houver registros vinculados a fontes e à passagem.",
+  "scripture.analysisPlannedLenses":
+    "Ver tipos de análise que o sistema está preparado para receber",
   "scripture.lensesDisclaimer":
     "Cada lente mantém visíveis seu método, evidências e fontes. Nenhuma interpretação acadêmica é incluída sem apoio de fonte licenciada ou fornecida pelo usuário.",
   "scripture.noAnalysis": "Nenhuma análise para esta lente.",
   "scripture.booksHint":
-    "Os números indicam capítulos locais. O Novo Testamento grego vem do SBLGNT 1.2; outros textos permanecem demonstrativos.",
+    "Os números indicam capítulos disponíveis localmente nas edições instaladas.",
+  "scripture.booksHintCompact":
+    "Selecione um livro; os capítulos disponíveis aparecem somente no livro aberto.",
+  "scripture.chapterCount": "{count} cap.",
+  "scripture.chaptersForBook": "Capítulos de {book}",
   "scripture.translationMissing": "[Esta edição não possui texto para o versículo.]",
   "scripture.originalMissing": "O texto original deste versículo ainda não foi importado.",
 
@@ -259,7 +277,7 @@ export const ptBR = {
   "knowledge.section": "Conhecimento",
   "knowledge.explorer": "Explorador do grafo",
   "knowledge.description":
-    "Um pequeno grafo demonstrativo. Entidades são tipadas e relações carregam descrição, classificação da evidência, suporte e revisão.",
+    "Grafo SQLite curado: entidades são tipadas e relações preservam fonte, suporte e revisão.",
   "knowledge.entity": "Entidade",
   "knowledge.claims": "Afirmações relacionadas a este grafo",
   "knowledge.sourceFragments": "trecho(s) de fonte",
@@ -344,6 +362,8 @@ export const ptBR = {
   "source.secondary": "Secundária",
 
   "status.available": "Disponível",
+  "status.unavailable": "Indisponível",
+  "status.ambiguous": "Ambíguo",
   "status.empty": "Sem conteúdo",
   "status.not-imported": "Ainda não importado",
   "status.not-indexed": "Ainda não indexado",

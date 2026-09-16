@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
+import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { bookLabel, t } from "../../lib/i18n";
 
@@ -24,8 +24,10 @@ function ScriptureIndex() {
   const { setPassageContext } = useWorkbench();
   useEffect(() => setPassageContext(null), [setPassageContext]);
 
-  const books = ScriptureRepository.listBooks();
-  const withText = books.filter((b) => ScriptureRepository.availableChapters(b.id).length > 0);
+  const books = ScriptureKnowledgeEngine.listBooks();
+  const withText = books.filter(
+    (book) => ScriptureKnowledgeEngine.availableChapters(book.id).length > 0,
+  );
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 md:px-8">
@@ -51,11 +53,11 @@ function ScriptureIndex() {
                     ? t("scripture.hebrewBible")
                     : t("scripture.newTestament")}{" "}
                   · {t("common.chapter").toLowerCase()}{" "}
-                  {ScriptureRepository.availableChapters(book.id).join(", ")}
+                  {ScriptureKnowledgeEngine.availableChapters(book.id).join(", ")}
                 </p>
               </div>
               <div className="flex gap-1.5">
-                {ScriptureRepository.availableChapters(book.id).map((c) => (
+                {ScriptureKnowledgeEngine.availableChapters(book.id).map((c) => (
                   <Link
                     key={c}
                     to="/scripture/$book/$chapter"
@@ -75,7 +77,7 @@ function ScriptureIndex() {
         <h2 className="meta-label">{t("scripture.fullNavigation")}</h2>
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {books.map((b) => {
-            const chapters = ScriptureRepository.availableChapters(b.id);
+            const chapters = ScriptureKnowledgeEngine.availableChapters(b.id);
             return chapters.length > 0 ? (
               <Link
                 key={b.id}

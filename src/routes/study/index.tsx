@@ -1,8 +1,9 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Plus } from "lucide-react";
+import { ArrowRight, Download, Plus, Upload } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { formatNumber, t } from "../../lib/i18n";
+import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
 
 export const Route = createFileRoute("/study/")({
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
@@ -10,17 +11,18 @@ export const Route = createFileRoute("/study/")({
 });
 
 function StudyIndex() {
-  const { studies, createStudy, setPassageContext } = useWorkbench();
+  const { studies, createStudy, refreshUserData, setPassageContext } = useWorkbench();
   const navigate = useNavigate();
   const [title, setTitle] = useState("");
+  const [backupStatus, setBackupStatus] = useState<string>();
   useEffect(() => setPassageContext(null), [setPassageContext]);
 
-  const submit = (event: FormEvent) => {
+  const submit = async (event: FormEvent) => {
     event.preventDefault();
     const clean = title.trim();
     if (!clean) return;
-    const study = createStudy(clean);
-    navigate({ to: "/study/$slug", params: { slug: study.slug } });
+    const study = await createStudy(clean);
+    await navigate({ to: "/study/$slug", params: { slug: study.slug } });
   };
 
   return (
@@ -31,7 +33,56 @@ function StudyIndex() {
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{t("study.description")}</p>
       </header>
 
-      <form onSubmit={submit} className="mt-5 flex max-w-xl gap-2">
+      <div className="mt-4 flex flex-wrap gap-2">
+        <button
+          type="button"
+          onClick={() =>
+            void ResearchWorkspaceService.exportJson().then((content) => {
+              const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
+              const anchor = document.createElement("a");
+              anchor.href = url;
+              anchor.download = `scriptorium-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+              anchor.click();
+              URL.revokeObjectURL(url);
+              setBackupStatus("Workspace exportado.");
+            })
+          }
+          className="inline-flex h-8 items-center gap-1.5 rounded border border-input px-2.5 text-xs"
+        >
+          <Download className="size-3.5" /> Exportar workspace
+        </button>
+        <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded border border-input px-2.5 text-xs">
+          <Upload className="size-3.5" /> Importar backup
+          <input
+            type="file"
+            accept="application/json,.json"
+            className="sr-only"
+            onChange={(event) => {
+              const file = event.target.files?.[0];
+              if (!file) return;
+              void file
+                .text()
+                .then(ResearchWorkspaceService.importJson)
+                .then(async (result) => {
+                  await refreshUserData();
+                  setBackupStatus(
+                    `${result.studies} estudos, ${result.notes} notas e ${result.researchQuestions} perguntas processados.`,
+                  );
+                })
+                .catch((error: unknown) =>
+                  setBackupStatus(error instanceof Error ? error.message : String(error)),
+                );
+            }}
+          />
+        </label>
+        {backupStatus && (
+          <p role="status" className="self-center text-xs text-muted-foreground">
+            {backupStatus}
+          </p>
+        )}
+      </div>
+
+      <form onSubmit={(event) => void submit(event)} className="mt-5 flex max-w-xl gap-2">
         <label className="min-w-0 flex-1">
           <span className="sr-only">{t("study.newTitle")}</span>
           <input

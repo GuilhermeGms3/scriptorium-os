@@ -1,7 +1,7 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
 import { copyFile, mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
-import { basename, dirname, relative, resolve, sep } from "node:path";
+import { basename, dirname, extname, relative, resolve, sep } from "node:path";
 import { z } from "zod";
 import {
   CorpusRightsGate,
@@ -14,17 +14,23 @@ import type {
   GeneratedCorpusBookIndex,
   GeneratedCorpusManifest,
 } from "../../src/lib/domain/generated-corpus";
-import { corpusRegistry } from "../../src/lib/repositories/corpus-registry";
+import { CORPUS_PACKAGE_CANDIDATES } from "../../src/lib/fixtures/corpus-registry.fixture";
 import type { CorpusAdapter, DiscoveredCorpusArtifact } from "./adapter";
 import { emptyImportStatistics } from "./adapter";
 import { SblgntXmlAdapter } from "./adapters/sblgnt-xml-adapter";
+import { BibliaLivreAdapter } from "./adapters/biblia-livre-adapter";
+import { OshbOsisAdapter } from "./adapters/oshb-osis-adapter";
 import { compactChapter } from "../../src/lib/domain/compact-corpus";
 
 const PROJECT_ROOT = resolve(import.meta.dirname, "../..");
 const SOURCE_ROOT = resolve(PROJECT_ROOT, "corpora/source");
 const SOURCE_STAGING_ROOT = resolve(PROJECT_ROOT, "corpora/.staging");
 const GENERATED_ROOT = resolve(PROJECT_ROOT, "generated/corpora");
-const ADAPTERS: CorpusAdapter[] = [new SblgntXmlAdapter()];
+const ADAPTERS: CorpusAdapter[] = [
+  new SblgntXmlAdapter(),
+  new BibliaLivreAdapter(),
+  new OshbOsisAdapter(),
+];
 
 export const acquiredPackageSchema = z.object({
   schemaVersion: z.literal(1),
@@ -81,7 +87,11 @@ export function calculatePackageDigest(artifacts: SourceArtifact[]): string {
 }
 
 function packageFor(corpusId: string): CorpusPackageManifest {
-  const matches = corpusRegistry.listPackages(corpusId);
+  const matches = CORPUS_PACKAGE_CANDIDATES.filter(
+    (manifest) => manifest.corpusId === corpusId,
+  ).filter(
+    (manifest) => manifest.acquisitionPlan && CorpusRightsGate.evaluate(manifest.rights).eligible,
+  );
   if (matches.length !== 1) {
     throw new Error(`Expected exactly one registered package for corpus ${corpusId}.`);
   }
@@ -125,17 +135,29 @@ async function artifactFrom(
   retrievedAt: string,
 ): Promise<SourceArtifact> {
   const bytes = await readFile(discovered.absolutePath);
-  const stem = basename(discovered.fileName, ".xml").toLowerCase();
+  const extension = extname(discovered.fileName);
+  const stem = basename(discovered.fileName, extension)
+    .toLowerCase()
+    .replace(/[^a-z0-9-]+/g, "-");
+  const format =
+    discovered.classification === "book" && manifest.format !== "unknown"
+      ? manifest.format
+      : "unknown";
   return sourceArtifactSchema.parse({
-    id: `artifact:sblgnt:1.2:${stem}`,
+    id: `artifact:${manifest.id}:${stem}`,
     packageId: manifest.id,
     role: "source",
     repository: manifest.acquisitionPlan!.repository,
     sourcePath: discovered.sourcePath,
     sourceUrl: sourceUrlFor(manifest, discovered.sourcePath),
     fileName: discovered.fileName,
-    mediaType: "application/xml",
-    format: "xml",
+    mediaType:
+      extension === ".md"
+        ? "text/markdown"
+        : extension === ".xml"
+          ? "application/xml"
+          : "text/plain",
+    format,
     retrievedAt,
     sourceRevision: manifest.acquisitionPlan!.commitSha,
     checksum: { algorithm: "SHA-256", value: sha256(bytes) },
@@ -300,6 +322,7 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
   await mkdir(resolve(corpusOutputRoot, ".staging"), { recursive: true });
   const staging = await mkdtemp(resolve(corpusOutputRoot, ".staging", "import-"));
   const books: GeneratedCorpusBookIndex[] = [];
+  const versificationAnomalies: string[] = [];
   const bookArtifacts = discovered.filter((artifact) => artifact.classification === "book");
 
   try {
@@ -320,6 +343,13 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
         throw new Error(validationErrors.join("\n"));
       }
       statistics.warnings += normalized.warnings.length;
+      versificationAnomalies.push(...normalized.warnings);
+      statistics.headings =
+        (statistics.headings ?? 0) + (normalized.structuralCounts?.headings ?? 0);
+      statistics.notes = (statistics.notes ?? 0) + (normalized.structuralCounts?.notes ?? 0);
+      statistics.versificationAnomalies =
+        (statistics.versificationAnomalies ?? 0) + normalized.warnings.length;
+      statistics.missingCanonicalMappings ??= 0;
       statistics.books += 1;
       statistics.chapters += normalized.chapters.length;
       statistics.paragraphBoundaries += new Set(
@@ -375,8 +405,13 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       sourceArtifactIds: acquired.artifacts.map((artifact) => artifact.id),
       transformations: [
         {
-          id: `transformation:${manifest.corpusId}:${adapter.importerVersion}:parse-xml`,
-          type: "parse-xml",
+          id: `transformation:${manifest.corpusId}:${adapter.importerVersion}:parse-source`,
+          type:
+            adapter.id === "biblia-livre-f4"
+              ? "parse-f4"
+              : adapter.id === "oshb-osis"
+                ? "parse-osis"
+                : "parse-xml",
           inputArtifactIds: acquired.artifacts.map((artifact) => artifact.id),
           outputDatasetId: datasetId,
         },
@@ -390,14 +425,32 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       datasetId,
       books,
       statistics,
-      structuralDecisions: [
-        "Storage schema v2 omits only token editionId, textUnitId, ref and language inherited from chapter/verse; repository restores the v1 domain exactly. JSON whitespace is removed.",
-        "Each source <w> is preserved as one TokenOccurrence; no whitespace retokenization is performed.",
-        "Source <prefix> and <suffix> values are preserved on the adjacent token.",
-        "Source <p> boundaries are preserved as paragraph IDs and chapter-local boundary ranges.",
-        "Lexeme, gloss, morphology and Strong identifiers remain absent because the SBLGNT XML does not supply them.",
-        "Generated storage is partitioned by book and chapter; no per-verse files are created.",
-      ],
+      structuralDecisions:
+        adapter.id === "biblia-livre-f4"
+          ? [
+              "Official UTF-8 F4 files are parsed directly; no opaque conversion tool is used.",
+              "Footnotes and psalm titles are counted and excluded from the visible verse string; added text remains visible.",
+              "No paragraph markers exist in this N4 source revision, so no paragraphs are invented.",
+              "Canonical passage references are shared, but no Portuguese-to-Greek word alignment is created.",
+              "Generated storage is partitioned by book and chapter.",
+            ]
+          : adapter.id === "oshb-osis"
+            ? [
+                "Each OSIS <w> is preserved as a token; slash-delimited source segmentation is not fabricated into word alignments.",
+                "Hebrew surface text, niqqud and cantillation are preserved verbatim; normalization is search-only.",
+                "OSHB lemma and morphology codes are retained verbatim and decoded fields are additive.",
+                "WLC text is public domain; OSHB lemma and morphology data are attributed under CC BY 4.0.",
+                "Generated storage is partitioned by book and chapter.",
+              ]
+            : [
+                "Storage schema v2 omits only token editionId, textUnitId, ref and language inherited from chapter/verse; repository restores the v1 domain exactly. JSON whitespace is removed.",
+                "Each source <w> is preserved as one TokenOccurrence; no whitespace retokenization is performed.",
+                "Source <prefix> and <suffix> values are preserved on the adjacent token.",
+                "Source <p> boundaries are preserved as paragraph IDs and chapter-local boundary ranges.",
+                "Lexeme, gloss, morphology and Strong identifiers remain absent because the SBLGNT XML does not supply them.",
+                "Generated storage is partitioned by book and chapter; no per-verse files are created.",
+              ],
+      versificationAnomalies,
     };
     await writeFile(
       resolve(staging, "manifest.json"),

@@ -1,0 +1,737 @@
+{
+  "id": "scriptorium-content-seed-v0.1",
+  "version": "0.1.0",
+  "importedAt": "2026-09-14T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "source:scriptorium:editorial-taxonomy:v0.1",
+      "sourceType": "editorial-dataset",
+      "title": "Scriptorium Editorial Taxonomy v0.1",
+      "locator": "content/scriptorium-content-seed-v0.1.json",
+      "metadata": {
+        "rights": { "license": "CC0-1.0", "redistribution": "allowed" },
+        "provenance": { "acquisition": "editorial", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "reviewed"
+      }
+    },
+    {
+      "id": "source:sblgnt:1.2",
+      "sourceType": "edition",
+      "title": "SBL Greek New Testament 1.2",
+      "locator": "https://sblgnt.com/",
+      "checksum": "9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d",
+      "metadata": {
+        "publisher": "Society of Biblical Literature",
+        "editor": "Michael W. Holmes",
+        "revision": "736fdc76158950c3d04b949b7e013ca14305145a",
+        "rights": {
+          "license": "CC-BY-4.0",
+          "redistribution": "allowed",
+          "attribution": "SBL Greek New Testament, edited by Michael W. Holmes."
+        },
+        "provenance": { "acquisition": "bundled", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "verified"
+      }
+    },
+    {
+      "id": "source:stepbible:tagnt:efe428a",
+      "sourceType": "linguistic-dataset",
+      "title": "STEPBible TAGNT/TEGMC",
+      "locator": "https://github.com/STEPBible/STEPBible-Data",
+      "checksum": "cf25559458fc739b475234ecea7396ebcebaba67ec5cfc1a17615e44a7c596a9",
+      "metadata": {
+        "publisher": "STEP Bible / Tyndale House",
+        "revision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+        "rights": {
+          "license": "CC-BY-4.0",
+          "redistribution": "allowed",
+          "attribution": "STEP Bible data, Tyndale House, Cambridge."
+        },
+        "provenance": {
+          "acquisition": "bundled",
+          "creationMethod": "machine-assisted",
+          "isDemo": false
+        },
+        "reviewStatus": "verified"
+      }
+    },
+    {
+      "id": "source:openscriptures:oshb",
+      "sourceType": "dataset-candidate",
+      "title": "Open Scriptures Hebrew Bible",
+      "locator": "https://github.com/openscriptures/morphhb",
+      "metadata": {
+        "rights": {
+          "textLicense": "Public Domain",
+          "morphologyLicense": "CC-BY-4.0",
+          "redistribution": "allowed-with-attribution"
+        },
+        "provenance": {
+          "acquisition": "reference-only",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "candidate-not-imported"
+      }
+    },
+    {
+      "id": "source:streeter:four-gospels:1924",
+      "sourceType": "book",
+      "title": "The Four Gospels: A Study of Origins",
+      "locator": "Streeter, Burnett Hillman. London: Macmillan, 1924.",
+      "metadata": {
+        "author": "Burnett Hillman Streeter",
+        "year": 1924,
+        "rights": { "redistribution": "metadata-only" },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "imported"
+      }
+    },
+    {
+      "id": "source:farrer:dispensing-with-q:1955",
+      "sourceType": "book-chapter",
+      "title": "On Dispensing with Q",
+      "locator": "Farrer, Austin M. In Studies in the Gospels, 1955.",
+      "metadata": {
+        "author": "Austin M. Farrer",
+        "year": 1955,
+        "rights": { "redistribution": "metadata-only" },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "imported"
+      }
+    },
+    {
+      "id": "source:farmer:synoptic-problem:1964",
+      "sourceType": "book",
+      "title": "The Synoptic Problem: A Critical Analysis",
+      "locator": "Farmer, William R. Macmillan, 1964.",
+      "metadata": {
+        "author": "William R. Farmer",
+        "year": 1964,
+        "rights": { "redistribution": "metadata-only" },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "imported"
+      }
+    },
+    {
+      "id": "source:historical-documents:metadata:v0.1",
+      "sourceType": "editorial-catalog",
+      "title": "Historical Creeds, Confessions and Early Christianity Catalog v0.1",
+      "locator": "content/scriptorium-content-seed-v0.1.json",
+      "metadata": {
+        "scope": "Metadata only; no modern translation text redistributed.",
+        "rights": { "license": "CC0-1.0", "redistribution": "metadata-only" },
+        "provenance": { "acquisition": "editorial", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "reviewed"
+      }
+    }
+  ],
+  "knowledgeEntities": [
+    {
+      "id": "entity:work:gospel-of-john",
+      "type": "work",
+      "name": "Gospel according to John",
+      "description": "Canonical identity for the work, independent of any edition.",
+      "sourceIds": ["source:sblgnt:1.2"]
+    },
+    {
+      "id": "entity:concept:logos",
+      "type": "concept",
+      "name": "Logos",
+      "originalForm": "λόγος",
+      "description": "Lexical and conceptual node linked to occurrences of λόγος; it does not encode a single interpretation.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "entity:concept:incarnation-language",
+      "type": "concept",
+      "name": "Incarnation language",
+      "description": "Research grouping for claims related to John 1:14; not itself a doctrinal conclusion.",
+      "sourceIds": ["source:sblgnt:1.2"]
+    },
+    {
+      "id": "entity:person:michael-w-holmes",
+      "type": "person",
+      "name": "Michael W. Holmes",
+      "description": "Editor identity linked to the SBLGNT edition record.",
+      "sourceIds": ["source:sblgnt:1.2"]
+    },
+    {
+      "id": "entity:historical:apostles-creed",
+      "type": "historical-source",
+      "name": "Apostles' Creed",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:nicene-constantinopolitan-creed",
+      "type": "historical-source",
+      "name": "Nicene-Constantinopolitan Creed",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:chalcedon",
+      "type": "historical-source",
+      "name": "Definition of Chalcedon",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:athanasian-creed",
+      "type": "historical-source",
+      "name": "Athanasian Creed",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:augsburg-confession",
+      "type": "historical-source",
+      "name": "Augsburg Confession",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:thirty-nine-articles",
+      "type": "historical-source",
+      "name": "Thirty-nine Articles",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:westminster-confession",
+      "type": "historical-source",
+      "name": "Westminster Confession of Faith",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:canons-of-dort",
+      "type": "historical-source",
+      "name": "Canons of Dort",
+      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:didache",
+      "type": "historical-source",
+      "name": "Didache",
+      "description": "Early-Christian primary-work record. Seed v0.1 includes metadata only pending an edition-specific rights review.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:historical:first-clement",
+      "type": "historical-source",
+      "name": "1 Clement",
+      "description": "Early-Christian primary-work record. Seed v0.1 includes metadata only pending an edition-specific rights review.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    }
+  ],
+  "ontology": [
+    { "id": "topic:bibliology", "kind": "theological-topic", "name": "Bibliology" },
+    { "id": "topic:theology-proper", "kind": "theological-topic", "name": "Theology Proper" },
+    { "id": "topic:christology", "kind": "theological-topic", "name": "Christology" },
+    { "id": "topic:pneumatology", "kind": "theological-topic", "name": "Pneumatology" },
+    { "id": "topic:anthropology", "kind": "theological-topic", "name": "Theological Anthropology" },
+    { "id": "topic:hamartiology", "kind": "theological-topic", "name": "Hamartiology" },
+    { "id": "topic:soteriology", "kind": "theological-topic", "name": "Soteriology" },
+    { "id": "topic:ecclesiology", "kind": "theological-topic", "name": "Ecclesiology" },
+    { "id": "topic:sacramentology", "kind": "theological-topic", "name": "Sacramentology" },
+    { "id": "topic:eschatology", "kind": "theological-topic", "name": "Eschatology" },
+    {
+      "id": "topic:atonement",
+      "kind": "theological-topic",
+      "name": "Atonement",
+      "parentTopicId": "topic:soteriology"
+    },
+    {
+      "id": "topic:justification",
+      "kind": "theological-topic",
+      "name": "Justification",
+      "parentTopicId": "topic:soteriology"
+    },
+    {
+      "id": "topic:sanctification",
+      "kind": "theological-topic",
+      "name": "Sanctification",
+      "parentTopicId": "topic:soteriology"
+    },
+    {
+      "id": "doctrine:trinity",
+      "kind": "doctrine",
+      "name": "Trinity",
+      "topicIds": ["topic:theology-proper"]
+    },
+    {
+      "id": "doctrine:incarnation",
+      "kind": "doctrine",
+      "name": "Incarnation",
+      "topicIds": ["topic:christology"]
+    },
+    {
+      "id": "doctrine:two-natures",
+      "kind": "doctrine",
+      "name": "Two Natures of Christ",
+      "topicIds": ["topic:christology"]
+    },
+    {
+      "id": "doctrine:resurrection",
+      "kind": "doctrine",
+      "name": "Resurrection",
+      "topicIds": ["topic:christology"]
+    },
+    {
+      "id": "doctrine:atonement",
+      "kind": "doctrine",
+      "name": "Atonement",
+      "topicIds": ["topic:atonement"]
+    },
+    {
+      "id": "doctrine:original-sin",
+      "kind": "doctrine",
+      "name": "Original Sin",
+      "topicIds": ["topic:hamartiology"]
+    },
+    {
+      "id": "doctrine:justification",
+      "kind": "doctrine",
+      "name": "Justification",
+      "topicIds": ["topic:justification"]
+    },
+    {
+      "id": "doctrine:sanctification",
+      "kind": "doctrine",
+      "name": "Sanctification",
+      "topicIds": ["topic:sanctification"]
+    },
+    {
+      "id": "doctrine:election",
+      "kind": "doctrine",
+      "name": "Election / Predestination",
+      "topicIds": ["topic:soteriology"]
+    },
+    {
+      "id": "doctrine:baptism",
+      "kind": "doctrine",
+      "name": "Baptism",
+      "topicIds": ["topic:sacramentology"]
+    },
+    {
+      "id": "doctrine:eucharist",
+      "kind": "doctrine",
+      "name": "Eucharist / Lord's Supper",
+      "topicIds": ["topic:sacramentology"]
+    },
+    {
+      "id": "doctrine:scriptural-inspiration",
+      "kind": "doctrine",
+      "name": "Scriptural Inspiration",
+      "topicIds": ["topic:bibliology"]
+    },
+    {
+      "id": "doctrine:canon",
+      "kind": "doctrine",
+      "name": "Canon",
+      "topicIds": ["topic:bibliology"]
+    },
+    {
+      "id": "doctrine:church-authority",
+      "kind": "doctrine",
+      "name": "Church Authority",
+      "topicIds": ["topic:ecclesiology"]
+    },
+    {
+      "id": "doctrine:resurrection-dead",
+      "kind": "doctrine",
+      "name": "Resurrection of the Dead",
+      "topicIds": ["topic:eschatology"]
+    },
+    {
+      "id": "doctrine:final-judgment",
+      "kind": "doctrine",
+      "name": "Final Judgment",
+      "topicIds": ["topic:eschatology"]
+    },
+    { "id": "method:textual-criticism", "kind": "method", "name": "Textual Criticism" },
+    { "id": "method:historical-critical", "kind": "method", "name": "Historical-Critical Method" },
+    {
+      "id": "method:historical-grammatical",
+      "kind": "method",
+      "name": "Historical-Grammatical Method"
+    },
+    { "id": "method:source-criticism", "kind": "method", "name": "Source Criticism" },
+    { "id": "method:form-criticism", "kind": "method", "name": "Form Criticism" },
+    { "id": "method:redaction-criticism", "kind": "method", "name": "Redaction Criticism" },
+    { "id": "method:narrative-criticism", "kind": "method", "name": "Narrative Criticism" },
+    { "id": "method:canonical-criticism", "kind": "method", "name": "Canonical Criticism" },
+    { "id": "method:social-scientific", "kind": "method", "name": "Social-Scientific Criticism" },
+    { "id": "method:reception-history", "kind": "method", "name": "Reception History" },
+    {
+      "id": "method:theological-interpretation",
+      "kind": "method",
+      "name": "Theological Interpretation of Scripture"
+    },
+    { "id": "method:literary-criticism", "kind": "method", "name": "Literary Criticism" },
+    { "id": "tradition:roman-catholic", "kind": "tradition", "name": "Roman Catholic" },
+    { "id": "tradition:eastern-orthodox", "kind": "tradition", "name": "Eastern Orthodox" },
+    { "id": "tradition:oriental-orthodox", "kind": "tradition", "name": "Oriental Orthodox" },
+    { "id": "tradition:church-of-east", "kind": "tradition", "name": "Church of the East" },
+    { "id": "tradition:lutheran", "kind": "tradition", "name": "Lutheran" },
+    { "id": "tradition:reformed", "kind": "tradition", "name": "Reformed" },
+    { "id": "tradition:anglican", "kind": "tradition", "name": "Anglican" },
+    { "id": "tradition:anabaptist", "kind": "tradition", "name": "Anabaptist" },
+    { "id": "tradition:baptist", "kind": "tradition", "name": "Baptist" },
+    { "id": "tradition:wesleyan-methodist", "kind": "tradition", "name": "Wesleyan / Methodist" },
+    { "id": "tradition:pentecostal", "kind": "tradition", "name": "Pentecostal" },
+    { "id": "tradition:restorationist", "kind": "tradition", "name": "Restorationist" },
+    { "id": "school:thomism", "kind": "school", "name": "Thomism" },
+    {
+      "id": "framework:covenant-theology",
+      "kind": "interpretive-framework",
+      "name": "Covenant Theology"
+    },
+    { "id": "position:christus-victor", "kind": "position", "name": "Christus Victor" },
+    { "id": "position:penal-substitution", "kind": "position", "name": "Penal Substitution" },
+    { "id": "position:moral-influence", "kind": "position", "name": "Moral Influence" },
+    { "id": "stance:confessional", "kind": "epistemic-stance", "name": "Confessional" },
+    { "id": "stance:non-confessional", "kind": "epistemic-stance", "name": "Non-confessional" },
+    {
+      "id": "stance:methodological-naturalism",
+      "kind": "epistemic-stance",
+      "name": "Methodological Naturalism"
+    },
+    {
+      "id": "theory:two-source",
+      "kind": "theory",
+      "name": "Two-Source Hypothesis",
+      "componentClaimIds": ["claim:markan-priority", "claim:q-source"]
+    },
+    {
+      "id": "theory:farrer",
+      "kind": "theory",
+      "name": "Farrer Hypothesis",
+      "componentClaimIds": ["claim:markan-priority", "claim:luke-used-matthew"]
+    },
+    {
+      "id": "theory:griesbach",
+      "kind": "theory",
+      "name": "Griesbach Hypothesis",
+      "componentClaimIds": ["claim:matthean-priority"]
+    }
+  ],
+  "ontologyRelations": [
+    {
+      "id": "ontology:atonement-topic",
+      "from": "doctrine:atonement",
+      "to": "topic:atonement",
+      "type": "belongs-to-topic"
+    },
+    {
+      "id": "ontology:two-source-farrer",
+      "from": "theory:two-source",
+      "to": "theory:farrer",
+      "type": "competes-with",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"]
+    },
+    {
+      "id": "ontology:two-source-griesbach",
+      "from": "theory:two-source",
+      "to": "theory:griesbach",
+      "type": "competes-with",
+      "sourceIds": ["source:farmer:synoptic-problem:1964"]
+    }
+  ],
+  "perspectives": [
+    {
+      "id": "perspective:reformed-hg-covenant",
+      "label": "Reformed · historical-grammatical · covenant",
+      "methodIds": ["method:historical-grammatical"],
+      "stanceIds": ["stance:confessional"],
+      "traditionIds": ["tradition:reformed"],
+      "frameworkIds": ["framework:covenant-theology"]
+    },
+    {
+      "id": "perspective:textual-nonconfessional",
+      "label": "Textual criticism · non-confessional",
+      "methodIds": ["method:textual-criticism"],
+      "stanceIds": ["stance:non-confessional"]
+    },
+    {
+      "id": "perspective:historical-critical-nonconfessional",
+      "label": "Historical-critical · non-confessional",
+      "methodIds": ["method:historical-critical"],
+      "stanceIds": ["stance:non-confessional"]
+    }
+  ],
+  "claims": [
+    {
+      "id": "claim:john-1-1-logos-occurrence",
+      "proposition": "The Greek text of John 1:1 contains the form λόγος.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-1-theos-anarthrous",
+      "proposition": "In John 1:1c, θεός appears without the article while the preceding θεόν is articular.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-14-sarx-occurrence",
+      "proposition": "The Greek text of John 1:14 states that the λόγος became σάρξ.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 14,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:markan-priority",
+      "proposition": "Mark was composed before Matthew and Luke.",
+      "kind": "academic-hypothesis",
+      "sourceIds": ["source:streeter:four-gospels:1924", "source:farrer:dispensing-with-q:1955"],
+      "supportLevel": "moderate",
+      "reviewStatus": "imported"
+    },
+    {
+      "id": "claim:q-source",
+      "proposition": "Matthew and Luke independently used a hypothetical sayings source conventionally called Q.",
+      "kind": "academic-hypothesis",
+      "sourceIds": ["source:streeter:four-gospels:1924"],
+      "supportLevel": "disputed",
+      "reviewStatus": "imported"
+    },
+    {
+      "id": "claim:luke-used-matthew",
+      "proposition": "Luke used Matthew directly, so a separate Q source is unnecessary.",
+      "kind": "academic-hypothesis",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"],
+      "supportLevel": "disputed",
+      "reviewStatus": "imported"
+    },
+    {
+      "id": "claim:matthean-priority",
+      "proposition": "Matthew was composed before Mark.",
+      "kind": "academic-hypothesis",
+      "sourceIds": ["source:farmer:synoptic-problem:1964"],
+      "supportLevel": "disputed",
+      "reviewStatus": "imported"
+    }
+  ],
+  "knowledgeRelations": [
+    {
+      "id": "relation:john-1-1-logos",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:logos" },
+      "type": "contains-occurrence-of",
+      "description": "Direct lexical occurrence in the Greek text.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "relation:john-1-14-incarnation-language",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 14,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:incarnation-language" },
+      "type": "related-to",
+      "description": "Editorial research grouping anchored in the wording of John 1:14.",
+      "sourceIds": ["source:sblgnt:1.2"],
+      "reviewStatus": "reviewed"
+    }
+  ],
+  "evidence": [
+    {
+      "id": "evidence:john-1-1-sblgnt",
+      "label": "SBLGNT John 1:1 text unit",
+      "target": {
+        "kind": "text-anchor",
+        "anchor": {
+          "kind": "passage",
+          "workId": "work:john",
+          "versificationSchemeId": "scriptorium-bcv-1",
+          "passage": {
+            "workId": "work:john",
+            "versificationSchemeId": "scriptorium-bcv-1",
+            "bookId": "john",
+            "chapter": 1,
+            "verseStart": 1
+          }
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "reviewStatus": "verified",
+      "authorship": "human-reviewed"
+    }
+  ],
+  "arguments": [
+    {
+      "id": "argument:two-source",
+      "title": "Two-Source model",
+      "conclusionClaimId": "claim:q-source",
+      "premiseClaimIds": ["claim:markan-priority"],
+      "argumentType": "abductive",
+      "sourceIds": ["source:streeter:four-gospels:1924"],
+      "perspectiveIds": ["perspective:historical-critical-nonconfessional"]
+    },
+    {
+      "id": "argument:farrer-alternative",
+      "title": "Farrer alternative",
+      "conclusionClaimId": "claim:luke-used-matthew",
+      "premiseClaimIds": ["claim:markan-priority"],
+      "argumentType": "abductive",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"],
+      "perspectiveIds": ["perspective:historical-critical-nonconfessional"]
+    },
+    {
+      "id": "argument:griesbach-alternative",
+      "title": "Griesbach/Farmer alternative",
+      "conclusionClaimId": "claim:matthean-priority",
+      "premiseClaimIds": ["claim:matthean-priority"],
+      "argumentType": "abductive",
+      "sourceIds": ["source:farmer:synoptic-problem:1964"],
+      "perspectiveIds": ["perspective:historical-critical-nonconfessional"]
+    }
+  ],
+  "argumentRelations": [
+    {
+      "id": "argrel:two-source-support",
+      "fromKind": "argument",
+      "fromId": "argument:two-source",
+      "toKind": "claim",
+      "toId": "claim:q-source",
+      "type": "supports",
+      "sourceIds": ["source:streeter:four-gospels:1924"]
+    },
+    {
+      "id": "argrel:farrer-opposes-q",
+      "fromKind": "argument",
+      "fromId": "argument:farrer-alternative",
+      "toKind": "claim",
+      "toId": "claim:q-source",
+      "type": "opposes",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"]
+    },
+    {
+      "id": "argrel:theory-farrer-two-source",
+      "fromKind": "theory",
+      "fromId": "theory:farrer",
+      "toKind": "theory",
+      "toId": "theory:two-source",
+      "type": "alternative-to",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"]
+    },
+    {
+      "id": "argrel:theory-griesbach-two-source",
+      "fromKind": "theory",
+      "fromId": "theory:griesbach",
+      "toKind": "theory",
+      "toId": "theory:two-source",
+      "type": "competes-with",
+      "sourceIds": ["source:farmer:synoptic-problem:1964"]
+    },
+    {
+      "id": "argrel:farrer-two-source",
+      "fromKind": "argument",
+      "fromId": "argument:farrer-alternative",
+      "toKind": "argument",
+      "toId": "argument:two-source",
+      "type": "alternative-to",
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"]
+    },
+    {
+      "id": "argrel:griesbach-two-source",
+      "fromKind": "argument",
+      "fromId": "argument:griesbach-alternative",
+      "toKind": "argument",
+      "toId": "argument:two-source",
+      "type": "alternative-to",
+      "sourceIds": ["source:farmer:synoptic-problem:1964"]
+    }
+  ],
+  "lexemes": [
+    {
+      "id": "lexeme:grc:logos",
+      "language": "grc",
+      "lemma": "λόγος",
+      "transliteration": "logos",
+      "strongs": "G3056",
+      "sourceId": "source:stepbible:tagnt:efe428a",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "lexeme:grc:theos",
+      "language": "grc",
+      "lemma": "θεός",
+      "transliteration": "theos",
+      "strongs": "G2316",
+      "sourceId": "source:stepbible:tagnt:efe428a",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "lexeme:grc:sarx",
+      "language": "grc",
+      "lemma": "σάρξ",
+      "transliteration": "sarx",
+      "strongs": "G4561",
+      "sourceId": "source:stepbible:tagnt:efe428a",
+      "reviewStatus": "verified"
+    }
+  ]
+}

@@ -63,6 +63,7 @@ export type CorpusFormat =
   | "xml"
   | "json"
   | "tsv"
+  | "f4"
   | "zip"
   | "scriptorium-package"
   | "multiple"
@@ -102,6 +103,8 @@ export type TransformationType =
   | "map-versification"
   | "attach-morphology"
   | "parse-xml"
+  | "parse-osis"
+  | "parse-f4"
   | "build-chapter-shards";
 
 export interface CorpusTransformation {
@@ -234,6 +237,7 @@ export const sourceArtifactSchema = z
       "xml",
       "json",
       "tsv",
+      "f4",
       "zip",
       "scriptorium-package",
       "multiple",
@@ -354,6 +358,7 @@ export const corpusPackageManifestSchema = z.object({
     "json",
     "tsv",
     "zip",
+    "f4",
     "scriptorium-package",
     "multiple",
     "unknown",

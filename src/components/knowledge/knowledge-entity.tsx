@@ -15,7 +15,7 @@ import {
   User,
 } from "lucide-react";
 import { anchorKey, type EntityType, type KnowledgeEntity } from "../../lib/domain/knowledge";
-import { KnowledgeRepository } from "../../lib/repositories/knowledge-repository";
+import type { KnowledgeRelation } from "../../lib/domain/knowledge";
 import { cn } from "../../lib/utils";
 import {
   entityTypeLabel,
@@ -74,12 +74,15 @@ export function EntityChip({
 /** Tree view: entity with its typed relations, as in the brief's ASCII sketch. */
 export function EntityTree({
   entity,
+  relations = [],
+  relatedEntities = [],
   onSelect,
 }: {
   entity: KnowledgeEntity;
+  relations?: KnowledgeRelation[];
+  relatedEntities?: KnowledgeEntity[];
   onSelect: (id: string) => void;
 }) {
-  const relations = KnowledgeRepository.relationsOf(entity.id);
   const Icon = ENTITY_ICONS[entity.type];
 
   return (
@@ -113,7 +116,7 @@ export function EntityTree({
           const otherAnchor = fromSelected ? rel.to : rel.from;
           const other =
             otherAnchor.type === "entity"
-              ? KnowledgeRepository.getEntity(otherAnchor.entityId)
+              ? (relatedEntities.find((candidate) => candidate.id === otherAnchor.entityId) ?? null)
               : null;
           const last = i === relations.length - 1;
           return (

@@ -1,6 +1,7 @@
 /** Evidence-aware knowledge contracts. Structured observations stay in scripture models. */
 
-import type { PassageRef } from "./scripture";
+import { passageRefKey, type PassageRef } from "./scripture";
+import { textAnchorKey, type TextAnchor as CanonicalTextAnchor } from "./text-identity";
 import type { Provenance } from "./source";
 
 export type EntityType =
@@ -24,6 +25,7 @@ export interface KnowledgeEntity {
 }
 
 export type TextAnchor =
+  | { type: "canonical-text"; anchor: CanonicalTextAnchor }
   | { type: "passage"; ref: PassageRef }
   | { type: "text-unit"; textUnitId: string }
   | { type: "token"; tokenId: string }
@@ -33,8 +35,10 @@ export type TextAnchor =
 
 export function anchorKey(anchor: TextAnchor): string {
   switch (anchor.type) {
+    case "canonical-text":
+      return textAnchorKey(anchor.anchor);
     case "passage":
-      return `passage:${anchor.ref.bookId}.${anchor.ref.chapter}.${anchor.ref.verseStart ?? "*"}-${anchor.ref.verseEnd ?? anchor.ref.verseStart ?? "*"}`;
+      return `passage:${passageRefKey(anchor.ref)}`;
     case "text-unit":
       return `text-unit:${anchor.textUnitId}`;
     case "token":
@@ -119,7 +123,9 @@ export interface KnowledgeClaim {
   sourceFragmentIds: string[];
   origin: KnowledgeOrigin;
   reviewStatus: ReviewStatus;
+  /** @deprecated Use perspectiveProfileIds with explicit association kinds. */
   perspectiveId?: string;
+  perspectiveProfileIds?: string[];
   supportLevel: SupportLevel;
   assessmentNote?: string;
   /** @deprecated Numeric confidence implies false precision; do not use for new records. */

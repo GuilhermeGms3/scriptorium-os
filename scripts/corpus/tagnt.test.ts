@@ -292,13 +292,15 @@ describe("real NT linguistic layer", () => {
       }
     }
   });
-  it("keeps chapter and lexical data behind lazy imports", async () => {
+  it("keeps chapter and lexical data behind the lazy SQLite corpus boundary", async () => {
     const source = await readFile(
       resolve(PROJECT_ROOT, "src/lib/repositories/linguistic-repository.ts"),
       "utf8",
     );
-    expect(source).toContain("import.meta.glob");
-    expect(source).not.toContain("eager: true");
+    expect(source).toContain("corpusPackageRegistry.open");
+    expect(source).not.toContain("import.meta.glob");
+    expect(source).not.toContain("/books/**/*.json");
+    expect(source).not.toContain("/lexical/*.json");
     expect(source).not.toContain("audit/targets.json");
   });
 });

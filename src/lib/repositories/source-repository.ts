@@ -3,6 +3,7 @@ import { passageRefsOverlap } from "../domain/scripture";
 import type { SourceFragment, SourceReference } from "../domain/source";
 import { DEMO_SOURCE_FRAGMENTS, DEMO_SOURCE_REFERENCES } from "../fixtures/source.fixture";
 
+/** @deprecated Test-fixture adapter only. Production paths use KnowledgeRepository and LibraryRepository. */
 export const SourceRepository = {
   listReferences(): SourceReference[] {
     return DEMO_SOURCE_REFERENCES;

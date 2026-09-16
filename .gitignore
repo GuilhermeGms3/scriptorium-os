@@ -24,6 +24,11 @@ generated/corpora/stepbible-tagnt/.import-*/
 generated/corpora/stepbible-tagnt/.previous-*/
 generated/corpora/stepbible-tagnt/.import.lock
 
+# Reproducible runtime indexes (manifests remain tracked; rebuild with corpus:index)
+public/corpus-packages/*.sqlite3
+public/corpus-packages/**/*.sqlite3
+public/knowledge/*.sqlite3
+
 # Wrangler / Cloudflare
 .wrangler/
 .dev.vars

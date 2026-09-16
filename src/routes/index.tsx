@@ -1,11 +1,15 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { ArrowRight, BookOpen, FileText, Library, StickyNote } from "lucide-react";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { LibraryRepository } from "../lib/repositories/library-repository";
-import { ScriptureRepository } from "../lib/repositories/scripture-repository";
+import {
+  KnowledgeRepository,
+  type KnowledgeSearchHit,
+} from "../lib/repositories/knowledge-repository";
 import { ResearchAssistant } from "../components/common/research-assistant";
-import { bookLabel, formatNumber, morphologyLabel, statusLabel, t } from "../lib/i18n";
+import { bookLabel, formatNumber, morphologyLabel, t } from "../lib/i18n";
+import type { BibliographicSource } from "../lib/domain/bibliography";
 
 export const Route = createFileRoute("/")({
   head: () => {
@@ -25,11 +29,18 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const { setPassageContext, studies, notes } = useWorkbench();
+  const [recentResources, setRecentResources] = useState<BibliographicSource[]>([]);
+  const [wordOfDay, setWordOfDay] = useState<KnowledgeSearchHit | null>(null);
   useEffect(() => setPassageContext(null), [setPassageContext]);
-
-  const recentResources = LibraryRepository.listResources().slice(0, 4);
-  const demoStudy = studies[0];
-  const wordOfDay = ScriptureRepository.getLexiconEntry("λόγος");
+  useEffect(() => {
+    void LibraryRepository.listSources().then((sources) => setRecentResources(sources.slice(0, 4)));
+  }, []);
+  useEffect(() => {
+    void KnowledgeRepository.search("G3056", 10).then((hits) => {
+      setWordOfDay(hits.find((hit) => hit.kind === "lexeme") ?? null);
+    });
+  }, []);
+  const recentStudy = studies[0];
 
   return (
     <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
@@ -64,17 +75,17 @@ function Home() {
           {/* Continue studying */}
           <section>
             <SectionHeading icon={FileText} title={t("home.continueStudying")} />
-            {demoStudy ? (
+            {recentStudy ? (
               <Link
                 to="/study/$slug"
-                params={{ slug: demoStudy.slug }}
+                params={{ slug: recentStudy.slug }}
                 className="group mt-2 block border-l-2 border-border pl-3 transition-colors hover:border-primary/60"
               >
-                <p className="text-[15px] font-medium">{demoStudy.title}</p>
+                <p className="text-[15px] font-medium">{recentStudy.title}</p>
                 <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
-                  {formatNumber(demoStudy.items.filter((i) => i.kind === "resource").length)}{" "}
+                  {formatNumber(recentStudy.items.filter((i) => i.kind === "resource").length)}{" "}
                   {t("home.sourcesLinked")} · {formatNumber(notes.length)} {t("home.notes")} ·{" "}
-                  {formatNumber(demoStudy.items.filter((i) => i.kind === "passage").length)}{" "}
+                  {formatNumber(recentStudy.items.filter((i) => i.kind === "passage").length)}{" "}
                   {t("home.passages")}
                 </p>
               </Link>
@@ -87,11 +98,15 @@ function Home() {
             <ul className="mt-2 divide-y divide-border border-y border-border">
               {recentResources.map((r) => (
                 <li key={r.id} className="flex items-baseline justify-between gap-3 py-1.5">
-                  <Link to="/library" className="min-w-0 flex-1 text-[13px] hover:underline">
+                  <Link
+                    to="/library"
+                    search={{ source: r.id }}
+                    className="min-w-0 flex-1 text-[13px] hover:underline"
+                  >
                     {r.title}
                   </Link>
                   <span className="shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
-                    {statusLabel(r.availability)}
+                    {r.sourceType.replaceAll("-", " ")}
                   </span>
                 </li>
               ))}
@@ -122,31 +137,31 @@ function Home() {
           {/* Word of the day */}
           <section className="rounded-lg border border-border bg-card p-3.5">
             <p className="meta-label">{t("home.wordOfDay")}</p>
-            <p className="original-text mt-1.5 text-3xl leading-tight">{wordOfDay?.lemma}</p>
-            <p className="font-mono text-xs text-muted-foreground">{wordOfDay?.transliteration}</p>
+            <p className="original-text mt-1.5 text-3xl leading-tight">{wordOfDay?.label ?? "—"}</p>
+            <p className="font-mono text-xs text-muted-foreground">{wordOfDay?.detail}</p>
             <dl className="mt-3 space-y-1.5 text-[13px]">
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                   {t("home.lemma")}
                 </dt>
-                <dd className="original-text">{wordOfDay?.lemma}</dd>
+                <dd className="original-text">{wordOfDay?.label ?? "—"}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                   {t("home.wordClass")}
                 </dt>
-                <dd>{wordOfDay ? morphologyLabel(wordOfDay.partOfSpeech) : null}</dd>
+                <dd>{wordOfDay ? morphologyLabel("noun") : t("common.notAvailable")}</dd>
               </div>
               <div className="flex gap-2">
                 <dt className="w-16 shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
                   {t("home.senses")}
                 </dt>
-                <dd className="text-foreground/85">{wordOfDay?.glosses.slice(0, 3).join(", ")}</dd>
+                <dd className="text-foreground/85">{t("home.lexicalSensePending")}</dd>
               </div>
             </dl>
             <Link
               to="/knowledge"
-              search={{ entity: "ent-word-logos" }}
+              search={{ entity: "entity:concept:logos" }}
               className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
             >
               {t("home.exploreWord")} <ArrowRight className="size-3" />

@@ -41,8 +41,22 @@ export function ParallelVersions({
                   dir={ed.direction ?? textDirectionForLanguage(ed.language)}
                   className="reading-text px-3 py-2 text-[0.95em]"
                 >
-                  {v.translations[ed.id] ?? (
-                    <span className="font-sans text-xs text-muted-foreground italic">—</span>
+                  {v.translations[ed.id] ??
+                    (v.originalEditionId === ed.id
+                      ? v.original
+                          ?.map(
+                            (token) => `${token.prefix ?? ""}${token.surface}${token.suffix ?? ""}`,
+                          )
+                          .join("")
+                      : undefined) ?? (
+                      <span className="font-sans text-xs text-muted-foreground italic">
+                        Sem alinhamento explícito disponível
+                      </span>
+                    )}
+                  {v.alignmentStatusByEdition?.[ed.id] === "partial" && (
+                    <span className="mt-1 block font-sans text-[10px] uppercase tracking-wide text-muted-foreground">
+                      Correspondência parcial
+                    </span>
                   )}
                 </td>
               ))}

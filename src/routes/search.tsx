@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { Search as SearchIcon } from "lucide-react";
-import { searchWorkspace } from "../components/search/command-palette";
+import { searchWorkspace, type SearchHit } from "../lib/application/search-workspace";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
 
@@ -17,17 +17,33 @@ export const Route = createFileRoute("/search")({
 
 function SearchPage() {
   const { q = "" } = Route.useSearch();
-  const { notes, setPassageContext } = useWorkbench();
+  const { setPassageContext } = useWorkbench();
   const [query, setQuery] = useState(q);
+  const [hits, setHits] = useState<SearchHit[]>([]);
+  const [searching, setSearching] = useState(false);
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  const hits = useMemo(
-    () =>
-      searchWorkspace(
-        query,
-        notes.map((n) => n.title),
-      ),
-    [query, notes],
-  );
+  useEffect(() => {
+    if (!query.trim()) {
+      setHits([]);
+      setSearching(false);
+      return;
+    }
+    let active = true;
+    setSearching(true);
+    const timer = window.setTimeout(() => {
+      void searchWorkspace(query)
+        .then((results) => {
+          if (active) setHits(results);
+        })
+        .finally(() => {
+          if (active) setSearching(false);
+        });
+    }, 180);
+    return () => {
+      active = false;
+      window.clearTimeout(timer);
+    };
+  }, [query]);
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 md:px-8">
@@ -50,6 +66,8 @@ function SearchPage() {
       <div className="mt-5">
         {!query.trim() ? (
           <p className="text-sm italic text-muted-foreground">{t("search.typeHint")}</p>
+        ) : searching ? (
+          <p className="text-sm italic text-muted-foreground">Pesquisando no índice SQLite…</p>
         ) : hits.length === 0 ? (
           <p className="text-sm italic text-muted-foreground">{t("search.noResults")}</p>
         ) : (
@@ -63,7 +81,9 @@ function SearchPage() {
                   <span>
                     <span className="block text-[13px] font-medium">{hit.label}</span>
                     {hit.detail && (
-                      <span className="block text-xs text-muted-foreground">{hit.detail}</span>
+                      <span className="block text-xs text-muted-foreground">
+                        {hit.detail.replaceAll(/<\/?mark>/g, "")}
+                      </span>
                     )}
                   </span>
                 </Link>

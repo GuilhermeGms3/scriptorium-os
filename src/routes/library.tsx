@@ -1,146 +1,339 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
-import { FileUp, Search } from "lucide-react";
-import { LibraryRepository } from "../lib/repositories/library-repository";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { FileUp, RefreshCw, Search, X } from "lucide-react";
+import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
+import type { BibliographicSource } from "../lib/domain/bibliography";
+import {
+  SourceImportService,
+  type BibliographicImportFormat,
+  type ImportReport,
+} from "../lib/application/source-import-service";
 import { ResourceRow } from "../components/library/resource-row";
 import { ResourceDetails } from "../components/library/resource-details";
 import { useWorkbench } from "../lib/workbench/workbench-context";
-import { collectionLabel, discoverCategoryLabel, formatNumber, t } from "../lib/i18n";
+import { PrimarySourceRepository, type PrimarySourceWorkSummary } from "../lib/repositories/primary-source-repository";
 
 interface LibrarySearch {
-  tab?: "collections" | "discover";
+  source?: string;
 }
 export const Route = createFileRoute("/library")({
-  validateSearch: (search: Record<string, unknown>): LibrarySearch => ({
-    tab: search["tab"] === "discover" ? "discover" : "collections",
-  }),
-  head: () => ({ meta: [{ title: t("library.metaTitle") }] }),
+  validateSearch: (search: Record<string, unknown>): LibrarySearch =>
+    typeof search["source"] === "string" ? { source: search["source"] } : {},
+  head: () => ({ meta: [{ title: "Biblioteca acadêmica — Scriptorium" }] }),
   component: LibraryPage,
 });
 
 function LibraryPage() {
-  const { tab = "collections" } = Route.useSearch();
-  const { setPassageContext } = useWorkbench();
-  const [collection, setCollection] = useState("all");
+  const { source: sourceParam } = Route.useSearch();
+  const { setPassageContext, workspacePersistence } = useWorkbench();
+  const [sources, setSources] = useState<BibliographicSource[]>([]);
+  const [collections, setCollections] = useState<
+    Awaited<ReturnType<typeof LibraryRepository.listCollections>>
+  >([]);
+  const [collectionId, setCollectionId] = useState<string>();
+  const [selectedId, setSelectedId] = useState<string | undefined>(sourceParam);
+  const [details, setDetails] = useState<SourceDetails | null>(null);
   const [query, setQuery] = useState("");
-  const [selectedId, setSelectedId] = useState("res-web");
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string>();
+  const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
+  const [showImport, setShowImport] = useState(false);
+  const [newCollection, setNewCollection] = useState("");
+
+  const refresh = useCallback(async () => {
+    setLoading(true);
+    setError(undefined);
+    try {
+      const [nextSources, nextCollections] = await Promise.all([
+        LibraryRepository.listSources(collectionId ? { collectionId } : {}),
+        LibraryRepository.listCollections(),
+      ]);
+      setPrimaryWorks(await PrimarySourceRepository.listWorks());
+      setSources(nextSources);
+      setCollections(nextCollections);
+      setSelectedId((current) =>
+        current && nextSources.some((source) => source.id === current)
+          ? current
+          : nextSources[0]?.id,
+      );
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setLoading(false);
+    }
+  }, [collectionId]);
+
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  const resources = useMemo(
-    () =>
-      LibraryRepository.resourcesInCollection(collection).filter((r) =>
-        `${r.title} ${r.author ?? ""} ${r.tags.join(" ")}`
-          .toLowerCase()
-          .includes(query.toLowerCase()),
-      ),
-    [collection, query],
-  );
-  const selected = LibraryRepository.getResource(selectedId) ?? resources[0] ?? null;
+  useEffect(() => {
+    void refresh();
+  }, [refresh]);
+  useEffect(() => {
+    if (!selectedId) {
+      setDetails(null);
+      return;
+    }
+    let active = true;
+    void LibraryRepository.getSourceDetails(selectedId)
+      .then((value) => {
+        if (active) setDetails(value);
+      })
+      .catch((cause) => {
+        if (active) setError(cause instanceof Error ? cause.message : String(cause));
+      });
+    return () => {
+      active = false;
+    };
+  }, [selectedId]);
+  const refreshDetails = useCallback(async () => {
+    if (selectedId) setDetails(await LibraryRepository.getSourceDetails(selectedId));
+  }, [selectedId]);
+
+  const filtered = useMemo(() => {
+    const normalized = query.toLocaleLowerCase().trim();
+    return normalized
+      ? sources.filter((source) =>
+          `${source.title} ${source.sourceType} ${Object.values(source.identifiers).join(" ")}`
+            .toLocaleLowerCase()
+            .includes(normalized),
+        )
+      : sources;
+  }, [query, sources]);
+  const createCollection = async () => {
+    if (!newCollection.trim()) return;
+    const id = await LibraryRepository.createCollection(newCollection);
+    if (selectedId) await LibraryRepository.addSourceToCollection(selectedId, id);
+    setNewCollection("");
+    setCollectionId(id);
+    await refresh();
+  };
 
   return (
     <div className="flex h-full min-w-0 flex-col">
       <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4 md:px-6">
         <div>
-          <p className="meta-label">{t("library.section")}</p>
-          <h1 className="mt-1 font-serif text-2xl font-semibold">{t("library.resourcesTitle")}</h1>
+          <p className="meta-label">Biblioteca acadêmica</p>
+          <h1 className="mt-1 font-serif text-2xl font-semibold">Fontes, obras e citações</h1>
+          <p className="mt-1 text-xs text-muted-foreground">
+            SQLite{" "}
+            {workspacePersistence === "opfs"
+              ? "persistente em OPFS"
+              : workspacePersistence === "loading"
+                ? "inicializando…"
+                : "em modo degradado"}
+          </p>
         </div>
-        <button
-          type="button"
-          title={t("library.importPlanned")}
-          className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs text-muted-foreground"
-        >
-          <FileUp className="size-3.5" /> {t("library.import")}{" "}
-          <span className="font-mono text-[9px]">{t("common.planned")}</span>
-        </button>
+        <div className="flex gap-2">
+          <button
+            type="button"
+            onClick={() => void refresh()}
+            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs"
+          >
+            <RefreshCw className="size-3.5" /> Atualizar
+          </button>
+          <button
+            type="button"
+            onClick={() => setShowImport((value) => !value)}
+            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
+          >
+            <FileUp className="size-3.5" /> Importar
+          </button>
+        </div>
       </header>
-      <div className="flex border-b border-border px-5">
-        <a
-          href="/library?tab=collections"
-          className={`px-3 py-2 text-xs ${tab === "collections" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-        >
-          {t("library.collections")}
-        </a>
-        <a
-          href="/library?tab=discover"
-          className={`px-3 py-2 text-xs ${tab === "discover" ? "border-b-2 border-primary font-medium" : "text-muted-foreground"}`}
-        >
-          {t("library.discover")}
-        </a>
-      </div>
-      {tab === "discover" ? (
-        <Discover />
-      ) : (
-        <div className="grid min-h-0 flex-1 md:grid-cols-[180px_1fr] xl:grid-cols-[180px_1fr_320px]">
-          <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
-            <p className="meta-label px-2 py-1">{t("library.collections")}</p>
-            {LibraryRepository.listCollections().map((c) => (
-              <button
-                key={c.id}
-                onClick={() => setCollection(c.id)}
-                className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collection === c.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
-              >
-                {collectionLabel(c.id, c.name)}{" "}
-                <span className="float-right font-mono text-[9px]">
-                  {formatNumber(c.resourceIds.length)}
-                </span>
-              </button>
-            ))}
-          </aside>
-          <main className="min-w-0 overflow-y-auto border-r border-border">
-            <label className="flex h-10 items-center gap-2 border-b border-border px-3">
-              <Search className="size-3.5 text-muted-foreground" />
-              <span className="sr-only">{t("library.search")}</span>
-              <input
-                value={query}
-                onChange={(e) => setQuery(e.target.value)}
-                placeholder={t("library.filter")}
-                className="w-full bg-transparent text-xs outline-none"
-              />
+      {showImport && <ImportPanel onClose={() => setShowImport(false)} onImported={refresh} />}
+      <div className="grid min-h-0 flex-1 md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]">
+        <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
+          <p className="meta-label px-2 py-1">Coleções</p>
+          <button
+            onClick={() => setCollectionId(undefined)}
+            className={`block w-full rounded px-2 py-1.5 text-left text-xs ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
+          >
+            Todas <span className="float-right font-mono text-[9px]">{sources.length}</span>
+          </button>
+          {collections.map((collection) => (
+            <button
+              key={collection.id}
+              onClick={() => setCollectionId(collection.id)}
+              className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collectionId === collection.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
+            >
+              {collection.name}
+              <span className="float-right font-mono text-[9px]">{collection.itemCount}</span>
+            </button>
+          ))}
+          <div className="mt-3 border-t border-border pt-3">
+            <label className="meta-label px-2" htmlFor="new-library-collection">
+              Nova coleção
             </label>
-            {resources.map((r) => (
-              <ResourceRow
-                key={r.id}
-                resource={r}
-                active={r.id === selected?.id}
-                onSelect={() => setSelectedId(r.id)}
-              />
-            ))}
-            {resources.length === 0 && (
-              <p className="p-6 text-sm italic text-muted-foreground">{t("library.noResources")}</p>
-            )}
-            {selected && (
-              <div className="border-t border-border xl:hidden">
-                <ResourceDetails resource={selected} />
+            <input
+              id="new-library-collection"
+              value={newCollection}
+              onChange={(event) => setNewCollection(event.target.value)}
+              placeholder="Nome"
+              className="mt-1 h-8 w-full rounded border border-input bg-background px-2 text-xs"
+            />
+            <button
+              type="button"
+              onClick={() => void createCollection()}
+              disabled={!newCollection.trim()}
+              className="mt-1 h-8 w-full rounded bg-primary text-xs text-primary-foreground disabled:opacity-50"
+            >
+              Criar{selectedId ? " e adicionar" : ""}
+            </button>
+          </div>
+        </aside>
+        <main className="min-w-0 overflow-y-auto border-r border-border">
+          <label className="flex h-10 items-center gap-2 border-b border-border px-3">
+            <Search className="size-3.5 text-muted-foreground" />
+            <span className="sr-only">Pesquisar biblioteca</span>
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Título, tipo ou identificador…"
+              className="w-full bg-transparent text-xs outline-none"
+            />
+          </label>
+          {primaryWorks.length > 0 && !query.trim() && (
+            <section className="border-b border-border p-3">
+              <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
+              <div className="mt-2 grid gap-1 sm:grid-cols-2">
+                {primaryWorks.map((work) => (
+                  <a key={`${work.editionId}:${work.id}`} href={`/library/read/${encodeURIComponent(work.id)}`}
+                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50">
+                    <span className="block font-medium">{work.title}</span>
+                    <span className="mt-0.5 block font-mono text-[9px] text-muted-foreground">{work.editionId}</span>
+                  </a>
+                ))}
               </div>
-            )}
-          </main>
-          <aside className="hidden overflow-y-auto xl:block">
-            {selected && <ResourceDetails resource={selected} />}
-          </aside>
-        </div>
-      )}
+            </section>
+          )}
+          {loading ? (
+            <p className="p-6 text-sm italic text-muted-foreground">Abrindo índice local…</p>
+          ) : error ? (
+            <p role="alert" className="p-6 text-sm text-destructive">
+              {error}
+            </p>
+          ) : filtered.length ? (
+            filtered.map((source) => (
+              <ResourceRow
+                key={source.id}
+                source={source}
+                authorNames={
+                  details?.source.id === source.id
+                    ? details.authors.map((author) => author.canonicalName)
+                    : []
+                }
+                active={source.id === selectedId}
+                onSelect={() => setSelectedId(source.id)}
+              />
+            ))
+          ) : (
+            <p className="p-6 text-sm italic text-muted-foreground">Nenhuma fonte encontrada.</p>
+          )}
+          {details && (
+            <div className="border-t border-border xl:hidden">
+              <ResourceDetails details={details} onChanged={refreshDetails} />
+            </div>
+          )}
+        </main>
+        <aside className="hidden overflow-y-auto xl:block">
+          {details ? (
+            <ResourceDetails details={details} onChanged={refreshDetails} />
+          ) : (
+            <p className="p-5 text-xs italic text-muted-foreground">Selecione uma fonte.</p>
+          )}
+        </aside>
+      </div>
     </div>
   );
 }
 
-function Discover() {
+function ImportPanel({
+  onClose,
+  onImported,
+}: {
+  onClose: () => void;
+  onImported: () => Promise<void>;
+}) {
+  const [format, setFormat] = useState<BibliographicImportFormat>("csl-json");
+  const [input, setInput] = useState("");
+  const [report, setReport] = useState<ImportReport>();
+  const [busy, setBusy] = useState(false);
+  const preview = input.trim() ? SourceImportService.preview(format, input) : null;
+  const runImport = async () => {
+    setBusy(true);
+    try {
+      const next = await SourceImportService.import(format, input);
+      setReport(next);
+      if (next.imported) await onImported();
+    } finally {
+      setBusy(false);
+    }
+  };
   return (
-    <div className="mx-auto w-full max-w-4xl p-5 md:p-8">
-      <p className="rounded-md border border-border bg-muted/30 p-3 text-xs text-muted-foreground">
-        {t("library.licenseNotice")}
-      </p>
-      <div className="mt-5 grid border-y border-border sm:grid-cols-2">
-        {LibraryRepository.discoverCategories().map((c) => (
-          <div
-            key={c.id}
-            className="flex items-center justify-between border-b border-border p-3 sm:border-r"
-          >
-            <span className="text-sm">{discoverCategoryLabel(c.id, c.name)}</span>
-            <span className="font-mono text-[10px] text-muted-foreground">
-              {formatNumber(c.count)} {t("common.demo").toLowerCase()}
-            </span>
+    <section
+      aria-label="Importação bibliográfica"
+      className="border-b border-border bg-muted/20 px-5 py-4 md:px-6"
+    >
+      <div className="mx-auto max-w-4xl">
+        <div className="flex items-center justify-between">
+          <div>
+            <h2 className="text-sm font-medium">Importação bibliográfica</h2>
+            <p className="text-xs text-muted-foreground">
+              Validar → detectar duplicados → importar. Nenhum HTML é executado.
+            </p>
           </div>
+          <button
+            type="button"
+            onClick={onClose}
+            aria-label="Fechar importação"
+            className="rounded p-1 hover:bg-accent"
+          >
+            <X className="size-4" />
+          </button>
+        </div>
+        <div className="mt-3 grid gap-3 md:grid-cols-[160px_1fr_auto]">
+          <select
+            value={format}
+            onChange={(event) => setFormat(event.target.value as BibliographicImportFormat)}
+            className="h-9 rounded border border-input bg-background px-2 text-xs"
+          >
+            <option value="csl-json">CSL-JSON</option>
+            <option value="bibtex">BibTeX básico</option>
+            <option value="ris">RIS</option>
+          </select>
+          <textarea
+            value={input}
+            onChange={(event) => setInput(event.target.value)}
+            placeholder="Cole o registro bibliográfico…"
+            className="min-h-24 rounded border border-input bg-background p-2 font-mono text-xs"
+          />
+          <button
+            type="button"
+            disabled={
+              !input.trim() ||
+              busy ||
+              Boolean(preview?.issues.some((issue) => issue.severity === "error"))
+            }
+            onClick={() => void runImport()}
+            className="h-9 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
+          >
+            {busy ? "Importando…" : `Importar ${preview?.candidates.length ?? 0}`}
+          </button>
+        </div>
+        {preview?.issues.map((issue, index) => (
+          <p
+            key={`${issue.code}-${index}`}
+            className={`mt-2 text-xs ${issue.severity === "error" ? "text-destructive" : "text-muted-foreground"}`}
+          >
+            {issue.code}: {issue.message}
+          </p>
         ))}
+        {report && (
+          <p role="status" className="mt-2 text-xs">
+            {report.imported} importadas · {report.duplicates} duplicadas · {report.invalid}{" "}
+            inválidas.
+          </p>
+        )}
       </div>
-    </div>
+    </section>
   );
 }

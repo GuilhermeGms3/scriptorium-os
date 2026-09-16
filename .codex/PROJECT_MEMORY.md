@@ -1,5 +1,17 @@
 # Project Memory
 
+## Phase 9.5 (2026-09-14)
+
+- Canonical knowledge schema is version 9; knowledge, theology, perspectives and arguments share `public/knowledge/knowledge.sqlite3`.
+- Corpus schema is version 11; global FTS uses compact contentless search shards and indexed address joins, while Reader opens only the selected work shard.
+- Phase 10 imports WLC/OSHB v2.2 from pinned commit `6a5db284c715c18b239422e57bb89684e6a19f00`: 39 books, 929 chapters, 23,213 verses and 305,507 tokens. WLC text remains Public Domain and OSHB annotations CC BY 4.0.
+- TBESG is now an operational SQLite lexical package with 11,035 source records, normalized lexical references and lazy Word Inspector lookup; it is no longer merely a downloaded source artifact.
+- `content/packs/phase10-content-v0.2.json` adds source-backed John 1:1–18 observations, draft machine-assisted analyses, Apostolic Fathers metadata and council identities. Draft analyses are not human-reviewed.
+- Production fixture fallbacks for knowledge sources, `LibraryResource`, demo lexicon definitions and demo occurrences were removed from Reader/Search paths.
+- `Scriptorium Content Seed v0.1` lives in `content/scriptorium-content-seed-v0.1.json`; editorial taxonomy is explicitly separate from source-derived claims.
+- Workspace schema is version 8 and backup schema is v2. Migrations 6–7 remove both known legacy DEMO identities even from already-upgraded OPFS databases, migration 8 normalizes localized work titles, and the localStorage bridge will not reimport fixtures. Backup covers library and research metadata, excludes binary asset bytes, verifies SHA-256, restores transactionally and rebuilds FTS.
+- TBESG acquisition is pinned in `content/source-lock.json`; run `npm run content:fetch:lexicon` to fetch and verify it.
+
 ## Project identity
 
 - Purpose: Open, local-first Biblical Knowledge OS for reading, research, library, study and evidence-aware knowledge connections.
@@ -17,10 +29,10 @@
 
 ## Architecture map
 
-- Modules: file routes; feature components; domain types; fixture-backed repositories; workbench context.
-- Dependency direction: routes/components -> repositories/context -> domain/fixtures.
-- Important flows: reader token -> word inspector -> knowledge -> study -> note/resource link.
-- Persistence: user notes, studies, theme and reading preferences in browser localStorage.
+- Modules: file routes; feature components; domain types; SQLite-backed corpus, knowledge and personal workspace repositories; workbench context.
+- Dependency direction: passage routes/components -> Knowledge Engine -> repositories -> domain/corpora; general catalog views may use their own repositories.
+- Important flows: route -> PassageRef -> PassageKnowledgeBundle -> reader/inspectors; selected token -> WordKnowledgeBundle -> TAGNT lexeme/concordance; user notes remain in workbench/local storage.
+- Persistence: corpus packages are immutable work-sharded SQLite; curated knowledge is a separate read-only SQLite DB; sources and user research use a mutable Worker-owned SQLite database persisted through OPFS. Theme, reading preferences and package enablement remain localStorage preferences.
 - Auth/security boundaries: no authentication or remote backend in phase 1.
 
 ## Non-negotiable constraints
@@ -32,9 +44,9 @@
 
 ## Active scope
 
-- Requested outcome: Phase 5 Greek Linguistic Layer and full TAGNT alignment against SBLGNT.
-- In scope: rights-reviewed immutable TAGNT/TEGMC acquisition, separate annotations/alignment, lexical concordance, inspector provenance, exhaustive mismatch audit and lossless compact SBL storage.
-- Out of scope: invented analyses, glosses/full lexicons, other corpora, Hebrew/LXX, Portuguese translation, AI/RAG, remote search and database migration.
+- Requested outcome: Phase 10 content expansion over the Phase 9/9.5 runtime.
+- In scope: Greek lexicon, full Hebrew/WLC linguistic layer, John 1:1–18 pilot, patristic and historical-document catalogs, real Synoptic Problem content and focused Reader integration.
+- Out of scope: LXX, apparatus, Nag Hammadi, remote backend, IA/RAG, PDF/EPUB/OCR, automatic bibliographic merge and complete scholarly encyclopedic coverage.
 
 ## Decisions
 
@@ -61,18 +73,36 @@
 - 2026-08-27 — compact SBL chapter storage v2 by removing whitespace and four inherited fields only; reconstruct prior domain exactly; lazy linguistic chapters and 256 lexical buckets — preserve identity without loading the entire NT for concordance.
 - 2026-08-27 — TAGNT headers include CC BY 4.0/software permission and a redistribution-centralization request; retain both notices and document the operational interpretation. Exclude translations/glosses from runtime; raw source publication still needs review — no blanket STEPBible rights grant.
 - 2026-08-27 — generated TAGNT publication uses exclusive writer lock, identical-tree no-op, backup and rollback after a Windows/Vite rename failure — preserve the previous derived snapshot on failure.
+- 2026-09-06 — pin official Bíblia Livre N4 to `a315a15e9f4d01883b62206fe441d57762f126b3` and ingest 66 F4 files plus README/license directly — avoid eBible metadata mixing and opaque conversion.
+- 2026-09-06 — retain the generic conflicting-metadata candidate while bundling a distinct source-specific CC BY 3.0 BR package — rights evidence is package-scoped and historical evidence remains intact.
+- 2026-09-06 — use canonical PassageRefs to combine BLIVRE N4 and SBLGNT while keeping `PassageKnowledgeBundle.texts[]`, originals and TAGNT provenance independent — passage alignment is not word alignment.
+- 2026-09-06 — recognize F4 notes/titles/additions; exclude notes/titles from visible verse text, preserve added text, and never invent absent paragraph markers — source-faithful transformation.
+- 2026-09-08 — make `PassageKnowledgeBundle` the official composition unit for passage UI and add `WordKnowledgeBundle` for occurrence-level inspection — components no longer orchestrate textual and linguistic repositories.
+- 2026-09-08 — resolve corpus sources and fragments from package/artifact provenance in the engine; retain demo knowledge as `demo` and real TAGNT ambiguity as `ambiguous` — prevents empty/demo/real states from collapsing into one meaning.
+- 2026-09-10 — make stable `TextUnit.id` the textual identity and keep human addresses scheme-dependent; direct overlap requires the same versification and cross-scheme comparison requires an explicit N:M crosswalk — verse numbering is not universal identity.
+- 2026-09-10 — use per-edition SQLite/FTS5 packages behind `CorpusStorage`, with SHA-256 verification, schema migrations and lazy opening through SQLite WASM — large corpora no longer govern the Vite module graph.
+- 2026-09-10 — import TAGNT alignments, lemmata, morphology and provenance into the SBLGNT SQLite package; concordance queries use an indexed lexeme identity instead of generated JSON buckets — one effective corpus runtime.
+- 2026-09-10 — distinguish Topic, Doctrine, Tradition, School, Method, EpistemicStance, InterpretiveFramework, Position and Theory; compose them through multidimensional perspective profiles — avoids categorical conflation.
+- 2026-09-10 — retain claims as propositions and model premises, evidence, objections, responses and competing theories as a typed argument graph — no automated theological winner or truth score.
+- 2026-09-13 — shard corpus delivery by work; use a dedicated compact cross-work linguistic index for concordance while retaining the complete SQLite index only for global text search. Cache API installation and SHA-256 verification stay behind `CorpusPackageRegistry` — bounds Reader and lexical transfer without requiring a range server.
+- 2026-09-13 — persist user-owned sources, citations and research in a dedicated Worker-owned SQLite database using the OPFS SAH-pool VFS, with an honest in-memory degraded state — separates mutable private data from reproducible corpora and curated knowledge.
+- 2026-09-13 — model Author, Work, Edition and Source independently and store citations as structured locator/content/relation records — enables traceability without turning source presence into truth.
+- 2026-09-13 — import CSL-JSON, BibTeX and RIS through preview, normalization, validation, duplicate detection and report; conflicting duplicates are skipped rather than merged destructively.
 
 ## Current state
 
-- Completed: phases 1–4 and Phase 5 TAGNT acquisition/alignment, morphology, concordance, inspector and compact storage; existing architecture, academic UI and local notes preserved.
-- In progress: no active implementation item.
+- Completed: phases 1–8 plus the Phase 9 implementation foundation for delivery, source/citation/library and persistent research.
+- Completed: Phase 9 implementation and final validation, including OPFS reload/restart persistence, workspace export/wipe/import, idempotent bibliography, mutation refresh, measured delivery, compact concordance, client-only corpus runtime during SSR and separate Node/Cloudflare builds.
 - Data: 142,096 TAGNT records processed; 137,074/137,741 targets aligned (99.5158%): 82,918 exact, 53,740 normalized, 416 positional, 75 ambiguous, 592 unmatched. 5,621 lexical identities; 27 books/260 chapters. John 7:53–8:11 retains all 187 textual tokens with no accepted TAGNT link.
 - Storage: SBL generated 74,746,655 → 23,829,469 bytes (-68.12%); generated TAGNT 33,726,686 bytes. Exact metrics and timing in `docs/corpora/phase5-metrics.json`.
-- Known issues: repository-wide CRLF/Prettier debt remains. Other STEPBible subsets and Bíblia Livre remain rights-blocked. Translation samples/knowledge/interpretation fixtures remain DEMO; no Portuguese corpus, exegesis, Hebrew or LXX was imported. Largest lazy lexical bucket is 396,300 bytes; pagination is local within a loaded bucket. A crashed importer can leave a lock that requires inspection before removal.
-- Verification performed: two acquire/verify/import cycles with identical 520-file TAGNT tree hash `08e391c09172cc79c4f9d06b209cea0205af3acac700ba84a5f93d63ab03fbff`; 56 tests across 5 files; typecheck; focused ESLint; client/SSR/Nitro build; diff check. Browser QA on 2026-08-28: logos lemma/provenance, concordance pagination and passage navigation, unmatched passage, 390x844 mobile drawer, no captured warnings/errors. No physical-device/load testing, commit, push or deployment.
+- Bíblia Livre: 68 artifacts, 4,582,764 source bytes; 66 books, 1,189 chapters, 31,101 verses; 1,167 notes, 116 psalm titles, zero explicit paragraphs; 8,472,398 generated bytes. One explicit anomaly: Mark 5:19 omitted in N4.
+- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, interlinear, Hebrew or LXX. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. PDF/EPUB/OCR and safe manual merge remain future work.
+- Verification performed: Phase 9 passed 106 tests across 11 files, typecheck, focused lint, Node production build and Lovable sandbox Cloudflare build. Browser QA covered João 1, OPFS across reload/server restart, immediate source-list invalidation, duplicate import, λόγος with 328 paginated occurrences and a clean console. A byte-counting proxy observed 31,744,000 corpus bytes for João versus 358,256,640 monolithic bytes; concordance transferred only the 60,268,544-byte linguistic part. Direct SSR returned the client loading shell without SQLite/OPFS initialization. Repository-wide lint remains blocked by the pre-existing line-ending/Prettier debt snapshot.
 
 ## Next safe actions
 
-- Add the next corpus only through a new adapter and rights-reviewed package manifest; keep the generic pipeline unchanged unless the source format proves a missing abstraction.
-- Curate the 667 unresolved targets with explicit editorial evidence; do not silently borrow analyses from another edition or force coverage to 100%.
-- Review source-distribution policy before publishing raw artifacts; preserve separate provenance for future comparison datasets.
+- Add editorial rendering for F4 notes/titles and investigate Mark 5:19 against source evidence without renumbering.
+- If translation/original alignment is added later, use an explicit dataset and algorithm; never infer Portuguese↔Greek links by position.
+- Keep the 667 TAGNT residues unchanged unless explicit editorial evidence is introduced.
+- Build a compact cross-work search/lexeme index or range VFS before global operations span substantially larger corpora; preserve the `CorpusStorage` boundary.
+- Add desktop-native workspace/corpus adapters and PDF/EPUB extraction without weakening local-only privacy or provenance.

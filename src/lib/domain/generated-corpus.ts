@@ -20,6 +20,10 @@ export interface CorpusImportStatistics {
   bytesProcessed: number;
   errors: number;
   warnings: number;
+  headings?: number;
+  notes?: number;
+  missingCanonicalMappings?: number;
+  versificationAnomalies?: number;
 }
 
 export interface GeneratedCorpusManifest {
@@ -35,7 +39,7 @@ export interface GeneratedCorpusManifest {
   sourceArtifactIds: string[];
   transformations: {
     id: string;
-    type: "parse-xml" | "build-chapter-shards";
+    type: "parse-xml" | "parse-osis" | "parse-f4" | "build-chapter-shards";
     inputArtifactIds: string[];
     outputDatasetId: string;
   }[];
@@ -43,6 +47,7 @@ export interface GeneratedCorpusManifest {
   books: GeneratedCorpusBookIndex[];
   statistics: CorpusImportStatistics;
   structuralDecisions: string[];
+  versificationAnomalies?: string[];
 }
 
 export interface GeneratedChapterShard extends ChapterContent {

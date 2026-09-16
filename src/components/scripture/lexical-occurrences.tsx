@@ -1,19 +1,33 @@
 import { useEffect, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { LinguisticRepository } from "../../lib/repositories/linguistic-repository";
+import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { passageLabel } from "../../lib/i18n";
+import type { TokenOccurrence } from "../../lib/domain/scripture";
 
-export function LexicalOccurrences({ lexemeId }: { lexemeId: string }) {
+export function LexicalOccurrences({
+  lexemeId,
+  token,
+}: {
+  lexemeId: string;
+  token?: TokenOccurrence;
+}) {
   const [offset, setOffset] = useState(0);
   const [retry, setRetry] = useState(0);
   const [result, setResult] = useState<{
     offset: number;
-    data?: Awaited<ReturnType<typeof LinguisticRepository.getOccurrencesByLexeme>>;
+    data?: Awaited<ReturnType<typeof ScriptureKnowledgeEngine.getLexicalOccurrences>>;
     error?: string;
   } | null>(null);
   useEffect(() => {
     let active = true;
-    LinguisticRepository.getOccurrencesByLexeme(lexemeId, offset, 30).then(
+    const request = token
+      ? ScriptureKnowledgeEngine.getWordKnowledgeBundle(token, offset, 30).then((bundle) =>
+          bundle.concordance.status === "available"
+            ? bundle.concordance.data
+            : { total: 0, offset, items: [] },
+        )
+      : ScriptureKnowledgeEngine.getLexicalOccurrences(lexemeId, offset, 30);
+    request.then(
       (data) => {
         if (active) setResult({ offset, data });
       },
@@ -24,7 +38,7 @@ export function LexicalOccurrences({ lexemeId }: { lexemeId: string }) {
     return () => {
       active = false;
     };
-  }, [lexemeId, offset, retry]);
+  }, [lexemeId, offset, retry, token]);
   const page = result?.offset === offset ? result : null;
   if (!page)
     return (
@@ -51,11 +65,14 @@ export function LexicalOccurrences({ lexemeId }: { lexemeId: string }) {
   return (
     <div className="space-y-3">
       <p className="text-sm">
-        Ocorrências alinhadas no NT: <strong>{data.total.toLocaleString("pt-BR")}</strong>
+        {token ? "Ocorrências no corpus" : "Ocorrências alinhadas no NT"}:{" "}
+        <strong>{data.total.toLocaleString("pt-BR")}</strong>
       </p>
-      <p className="text-xs text-muted-foreground">
-        Somente vínculos aceitos TAGNT → SBLGNT. Lacunas de alinhamento não entram nesta contagem.
-      </p>
+      {!token && (
+        <p className="text-xs text-muted-foreground">
+          Somente vínculos aceitos TAGNT → SBLGNT. Lacunas de alinhamento não entram nesta contagem.
+        </p>
+      )}
       {data.total === 0 ? (
         <p className="text-sm text-muted-foreground">Nenhuma ocorrência alinhada.</p>
       ) : (

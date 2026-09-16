@@ -57,11 +57,15 @@ interface WorkbenchState {
   setReadingPrefs: (p: Partial<ReadingPreferences>) => void;
 
   notes: Note[];
-  addNote: (title: string, body: string, links: NoteLink[]) => Note;
+  addNote: (title: string, body: string, links: NoteLink[]) => Promise<Note>;
   studies: Study[];
-  createStudy: (title: string) => Study;
-  addToStudy: (studyId: string, item: Parameters<typeof StudyRepository.addStudyItem>[1]) => void;
-  refreshUserData: () => void;
+  createStudy: (title: string) => Promise<Study>;
+  addToStudy: (
+    studyId: string,
+    item: Parameters<typeof StudyRepository.addStudyItem>[1],
+  ) => Promise<void>;
+  refreshUserData: () => Promise<void>;
+  workspacePersistence: "loading" | "opfs" | "memory" | "unavailable";
 }
 
 const WorkbenchContext = createContext<WorkbenchState | null>(null);
@@ -96,14 +100,30 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   const [notes, setNotes] = useState<Note[]>([]);
   const [studies, setStudies] = useState<Study[]>([]);
+  const [workspacePersistence, setWorkspacePersistence] =
+    useState<WorkbenchState["workspacePersistence"]>("loading");
 
-  const refreshUserData = useCallback(() => {
+  const refreshUserData = useCallback(async () => {
+    await StudyRepository.refresh();
     setNotes(StudyRepository.listNotes());
     setStudies(StudyRepository.listStudies());
   }, []);
 
   useEffect(() => {
-    refreshUserData();
+    let active = true;
+    void StudyRepository.migrateLegacyLocalStorage()
+      .then(refreshUserData)
+      .then(async () => {
+        const { getWorkspaceDatabase } = await import("../workspace-runtime/workspace-database");
+        const database = await getWorkspaceDatabase();
+        if (active) setWorkspacePersistence(database.persistence);
+      })
+      .catch(() => {
+        if (active) setWorkspacePersistence("unavailable");
+      });
+    return () => {
+      active = false;
+    };
   }, [refreshUserData]);
 
   // Theme resolution
@@ -162,27 +182,27 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addNote = useCallback(
-    (title: string, body: string, links: NoteLink[]) => {
-      const note = StudyRepository.createNote({ title, body, links });
-      refreshUserData();
+    async (title: string, body: string, links: NoteLink[]) => {
+      const note = await StudyRepository.createNote({ title, body, links });
+      await refreshUserData();
       return note;
     },
     [refreshUserData],
   );
 
   const createStudy = useCallback(
-    (title: string) => {
-      const study = StudyRepository.createStudy(title);
-      refreshUserData();
+    async (title: string) => {
+      const study = await StudyRepository.createStudy(title);
+      await refreshUserData();
       return study;
     },
     [refreshUserData],
   );
 
   const addToStudy = useCallback(
-    (studyId: string, item: Parameters<typeof StudyRepository.addStudyItem>[1]) => {
-      StudyRepository.addStudyItem(studyId, item);
-      refreshUserData();
+    async (studyId: string, item: Parameters<typeof StudyRepository.addStudyItem>[1]) => {
+      await StudyRepository.addStudyItem(studyId, item);
+      await refreshUserData();
     },
     [refreshUserData],
   );
@@ -208,6 +228,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       createStudy,
       addToStudy,
       refreshUserData,
+      workspacePersistence,
     }),
     [
       theme,
@@ -227,6 +248,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       createStudy,
       addToStudy,
       refreshUserData,
+      workspacePersistence,
     ],
   );
 

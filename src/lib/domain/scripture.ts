@@ -68,27 +68,54 @@ export interface Book {
 
 /** Reference to a passage in a given versification scheme. */
 export interface PassageRef {
+  /** Stable work identity. Legacy callers may omit it while migrating. */
+  workId?: string;
   bookId: string;
   chapter: number;
   verseStart?: number;
   verseEnd?: number;
-  versification?: string; // future: "english", "lxx", "vulgate"...
+  subverseStart?: string;
+  subverseEnd?: string;
+  versificationSchemeId?: string;
+  /** @deprecated Use versificationSchemeId. */
+  versification?: string;
+}
+
+export const LEGACY_DEFAULT_VERSIFICATION = "scriptorium-bcv-1";
+
+export function passageRefScheme(ref: PassageRef): string {
+  return ref.versificationSchemeId ?? ref.versification ?? LEGACY_DEFAULT_VERSIFICATION;
 }
 
 export function passageRefKey(ref: PassageRef): string {
   const verse = ref.verseStart
     ? `.${ref.verseStart}${ref.verseEnd && ref.verseEnd !== ref.verseStart ? `-${ref.verseEnd}` : ""}`
     : "";
-  return `${ref.versification ?? "default"}:${ref.bookId}.${ref.chapter}${verse}`;
+  const subverse = ref.subverseStart
+    ? `:${ref.subverseStart}${ref.subverseEnd && ref.subverseEnd !== ref.subverseStart ? `-${ref.subverseEnd}` : ""}`
+    : "";
+  return `${passageRefScheme(ref)}:${ref.workId ?? `work:${ref.bookId}`}:${ref.bookId}.${ref.chapter}${verse}${subverse}`;
 }
 
 export function passageRefsOverlap(left: PassageRef, right: PassageRef): boolean {
-  if (left.bookId !== right.bookId || left.chapter !== right.chapter) return false;
+  if (
+    passageRefScheme(left) !== passageRefScheme(right) ||
+    (left.workId ?? `work:${left.bookId}`) !== (right.workId ?? `work:${right.bookId}`) ||
+    left.bookId !== right.bookId ||
+    left.chapter !== right.chapter
+  )
+    return false;
   const leftStart = left.verseStart ?? 1;
   const leftEnd = left.verseEnd ?? left.verseStart ?? Number.MAX_SAFE_INTEGER;
   const rightStart = right.verseStart ?? 1;
   const rightEnd = right.verseEnd ?? right.verseStart ?? Number.MAX_SAFE_INTEGER;
-  return leftStart <= rightEnd && rightStart <= leftEnd;
+  if (!(leftStart <= rightEnd && rightStart <= leftEnd)) return false;
+  if (left.subverseStart || right.subverseStart) {
+    return (
+      !left.subverseStart || !right.subverseStart || left.subverseStart === right.subverseStart
+    );
+  }
+  return true;
 }
 
 /** A unit of text as it appears in one edition (a verse in one translation). */
@@ -108,6 +135,14 @@ export type Morphology = {
   voice?: string;
   mood?: string;
   person?: string;
+  state?: string;
+  stem?: string;
+  aspect?: string;
+  subtype?: string;
+  language?: string;
+  prefixes?: string;
+  suffixDescription?: string;
+  status?: "parsed" | "unmapped";
   /** Compact code as used by morphological traditions, e.g. "N-NSM". */
   code?: string;
 };
@@ -155,6 +190,8 @@ export interface VerseContent {
   verse: number;
   /** editionId -> text */
   translations: Record<string, string>;
+  /** Explicit application-level alignment result for parallel rendering. */
+  alignmentStatusByEdition?: Record<string, "equivalent" | "partial" | "unavailable">;
   /** Original-language tokens, when imported. Absence means "not yet imported". */
   original?: TokenOccurrence[];
   originalEditionId?: string;
@@ -174,6 +211,8 @@ export interface ChapterContent {
     tokenStartPosition?: number;
     tokenEndPosition?: number;
   }[];
+  /** Runtime metadata survives route-loader serialization without becoming textual identity. */
+  provenanceByEdition?: Record<string, import("./source").Provenance>;
 }
 
 /** Critical-text apparatus scaffolding (not populated in this phase). */

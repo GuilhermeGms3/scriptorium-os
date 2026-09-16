@@ -1,8 +1,13 @@
 /** Passage inspector backed by the PassageKnowledgeBundle. */
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import type { TextAnchor } from "../../lib/domain/knowledge";
+import type { ResearchQuestion } from "../../lib/domain/research";
+import { passageRefsOverlap } from "../../lib/domain/scripture";
+import { StudyRepository } from "../../lib/repositories/study-repository";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
+import { hasAvailableData } from "../../lib/domain/availability";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { SourceReferenceCard } from "../common/source-reference";
 import {
@@ -22,6 +27,7 @@ const TABS = [
   { id: "literature", label: t("scripture.tab.literature") },
   { id: "notes", label: t("scripture.tab.notes") },
   { id: "sources", label: t("scripture.tab.sources") },
+  { id: "research", label: "Pesquisa" },
 ] as const;
 
 function passageAnchor(anchor: TextAnchor): Extract<TextAnchor, { type: "passage" }> | null {
@@ -30,6 +36,46 @@ function passageAnchor(anchor: TextAnchor): Extract<TextAnchor, { type: "passage
 
 export function PassageInspector() {
   const { passageContext } = useWorkbench();
+  const [researchQuestions, setResearchQuestions] = useState<ResearchQuestion[]>([]);
+  useEffect(() => {
+    let active = true;
+    if (!passageContext) {
+      setResearchQuestions([]);
+      return;
+    }
+    void StudyRepository.listResearchQuestions().then((questions) => {
+      if (!active) return;
+      setResearchQuestions(
+        questions.filter((question) =>
+          question.links.some(
+            (link) =>
+              link.targetKind === "passage" &&
+              link.anchor?.kind === "passage" &&
+              link.anchor.passage?.bookId !== undefined &&
+              link.anchor.passage.chapter !== undefined &&
+              passageRefsOverlap(
+                {
+                  workId: link.anchor.passage.workId,
+                  bookId: link.anchor.passage.bookId,
+                  chapter: link.anchor.passage.chapter,
+                  ...(link.anchor.passage.verseStart !== undefined
+                    ? { verseStart: link.anchor.passage.verseStart }
+                    : {}),
+                  ...(link.anchor.passage.verseEnd !== undefined
+                    ? { verseEnd: link.anchor.passage.verseEnd }
+                    : {}),
+                  versificationSchemeId: link.anchor.passage.versificationSchemeId,
+                },
+                passageContext.ref,
+              ),
+          ),
+        ),
+      );
+    });
+    return () => {
+      active = false;
+    };
+  }, [passageContext]);
   const bundle = passageContext
     ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref)
     : null;
@@ -68,7 +114,7 @@ export function PassageInspector() {
             <section>
               <h3 className="meta-label">{t("scripture.analysis")}</h3>
               <p className="mt-1 text-sm text-muted-foreground italic">
-                {bundle?.analyses.status === "available"
+                {bundle && hasAvailableData(bundle.analyses)
                   ? t("scripture.analysisCount", {
                       count: formatNumber(bundle.analyses.data.length),
                     })
@@ -78,14 +124,36 @@ export function PassageInspector() {
               </p>
             </section>
             <section>
+              <h3 className="meta-label">Afirmações ligadas à passagem</h3>
+              {bundle && hasAvailableData(bundle.claims) ? (
+                <ul className="mt-2 space-y-2">
+                  {bundle.claims.data.map((claim) => (
+                    <li key={claim.id} className="rounded-md border border-border p-2.5">
+                      <p className="text-sm leading-relaxed">{claim.proposition}</p>
+                      <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
+                        <span>{claim.kind}</span>
+                        <span>·</span>
+                        <span>{reviewStatusLabel(claim.reviewStatus)}</span>
+                        <span>·</span>
+                        <span>{claim.supportLevel}</span>
+                      </div>
+                    </li>
+                  ))}
+                </ul>
+              ) : (
+                <p className="mt-1 text-sm text-muted-foreground italic">
+                  {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
+                </p>
+              )}
+            </section>
+            <section>
               <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {bundle?.lemmas.status === "available" ? (
+                {bundle && hasAvailableData(bundle.lemmas) ? (
                   bundle.lemmas.data.map((lemma) => {
-                    const entity =
-                      bundle.entities.status === "available"
-                        ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
-                        : undefined;
+                    const entity = hasAvailableData(bundle.entities)
+                      ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
+                      : undefined;
                     return entity ? (
                       <Link
                         key={lemma.id}
@@ -114,7 +182,7 @@ export function PassageInspector() {
           </Tabs.Content>
 
           <Tabs.Content value="cross-references">
-            {bundle?.crossReferences.status === "available" ? (
+            {bundle && hasAvailableData(bundle.crossReferences) ? (
               <ul className="space-y-2 text-sm">
                 {bundle.crossReferences.data.map((relation) => {
                   const candidates = [
@@ -159,7 +227,7 @@ export function PassageInspector() {
 
           <Tabs.Content value="language">
             <p className="text-sm text-muted-foreground italic">
-              {bundle?.originals.status === "available"
+              {bundle && hasAvailableData(bundle.originals)
                 ? t("scripture.originalCount", {
                     count: formatNumber(bundle.originals.data.length),
                   })
@@ -171,7 +239,7 @@ export function PassageInspector() {
 
           <Tabs.Content value="history">
             <p className="text-sm text-muted-foreground italic">
-              {bundle?.analyses.status === "available"
+              {bundle && hasAvailableData(bundle.analyses)
                 ? t("scripture.historyAvailable")
                 : bundle
                   ? statusLabel(bundle.analyses.status)
@@ -181,9 +249,9 @@ export function PassageInspector() {
 
           <Tabs.Content value="literature">
             <p className="text-sm text-muted-foreground italic">
-              {bundle && bundle.sources.resources.length > 0
+              {bundle && bundle.sources.references.length > 0
                 ? t("scripture.literatureCount", {
-                    count: formatNumber(bundle.sources.resources.length),
+                    count: formatNumber(bundle.sources.references.length),
                   })
                 : t("scripture.literatureAwaiting")}
             </p>
@@ -214,21 +282,35 @@ export function PassageInspector() {
           <Tabs.Content value="sources" className="space-y-3">
             {bundle?.sources.references.map((source) => {
               const fragment = bundle.sources.fragments.find((item) => item.sourceId === source.id);
-              const resource = bundle.sources.resources.find(
-                (item) => item.id === source.resourceId,
-              );
-              return (
-                <SourceReferenceCard
-                  key={source.id}
-                  source={source}
-                  fragment={fragment}
-                  resource={resource}
-                />
-              );
+              return <SourceReferenceCard key={source.id} source={source} fragment={fragment} />;
             })}
             {bundle && bundle.sources.references.length === 0 && (
               <p className="text-sm text-muted-foreground italic">
                 {t("scripture.noSourceReferences")}
+              </p>
+            )}
+          </Tabs.Content>
+          <Tabs.Content value="research">
+            {researchQuestions.length ? (
+              <ul className="space-y-2">
+                {researchQuestions.map((question) => (
+                  <li key={question.id} className="rounded border border-border bg-muted/30 p-2.5">
+                    <p className="text-xs font-medium">{question.question}</p>
+                    <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                      {question.status}
+                    </p>
+                    <Link
+                      to="/study"
+                      className="mt-1 inline-block text-[10px] underline underline-offset-2"
+                    >
+                      Abrir workspace
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="text-sm italic text-muted-foreground">
+                Nenhuma pergunta de pesquisa ancorada nesta passagem.
               </p>
             )}
           </Tabs.Content>

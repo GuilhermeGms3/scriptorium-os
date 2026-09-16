@@ -1,0 +1,2 @@
+CREATE INDEX idx_text_addresses_unit_scheme
+ON text_addresses(text_unit_id, versification_scheme_id);

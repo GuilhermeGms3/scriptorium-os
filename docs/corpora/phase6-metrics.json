@@ -1,0 +1,26 @@
+{
+  "measuredAt": "2026-09-08T16:26:52.638Z",
+  "sourceBytes": 4582764,
+  "generatedBytes": 8472398,
+  "files": 1190,
+  "chapterShards": 1189,
+  "averageChapterShardBytes": 7060.67283431455,
+  "largestChapterShard": {
+    "path": "books\\psalms\\119.json",
+    "bytes": 36533,
+    "hash": "7513f3263b28aa3decfa0a314a1dc008cf18766cb110e2c4baee8ce3aab0b8e5"
+  },
+  "treeDigest": "b9c97e05c74f36fc817838339f1b5ca39ac6c1ed867bd93e8d38e495ea544ce9",
+  "runs": [
+    {
+      "number": 1,
+      "milliseconds": 946,
+      "digest": "b9c97e05c74f36fc817838339f1b5ca39ac6c1ed867bd93e8d38e495ea544ce9"
+    },
+    {
+      "number": 2,
+      "milliseconds": 888,
+      "digest": "b9c97e05c74f36fc817838339f1b5ca39ac6c1ed867bd93e8d38e495ea544ce9"
+    }
+  ]
+}

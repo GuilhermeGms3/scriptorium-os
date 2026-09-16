@@ -1,0 +1,714 @@
+{
+  "id": "scriptorium-phase10-content-v0.2",
+  "version": "0.2.0",
+  "importedAt": "2026-09-15T00:00:00.000Z",
+  "sources": [
+    {
+      "id": "source:stepbible:tbesg:efe428a",
+      "sourceType": "linguistic-dataset",
+      "title": "TBESG — Translators Brief lexicon of Extended Strong's for Greek",
+      "locator": "https://github.com/STEPBible/STEPBible-Data/blob/efe428a0047bf7b9c3ce2624f60c252c6e435945/Lexicons/TBESG%20-%20Translators%20Brief%20lexicon%20of%20Extended%20Strongs%20for%20Greek%20-%20STEPBible.org%20CC%20BY.txt",
+      "checksum": "312f723d7b8ef263bbdfb0451c9b8057125804dfff390b6f8544cff2a84b57f4",
+      "metadata": {
+        "publisher": "STEP Bible / Tyndale House, Cambridge",
+        "revision": "efe428a0047bf7b9c3ce2624f60c252c6e435945",
+        "rights": {
+          "license": "CC-BY-4.0",
+          "redistribution": "allowed",
+          "attribution": "STEP Bible data, Tyndale House, Cambridge."
+        },
+        "provenance": { "acquisition": "bundled", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "verified"
+      }
+    },
+    {
+      "id": "source:openscriptures:oshb:2.2",
+      "sourceType": "linguistic-dataset",
+      "title": "Westminster Leningrad Codex text with Open Scriptures Hebrew Bible morphology 2.2",
+      "locator": "https://github.com/openscriptures/morphhb/tree/v.2.2",
+      "checksum": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "metadata": {
+        "publisher": "Open Scriptures Hebrew Bible Project",
+        "revision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+        "rights": {
+          "license": "WLC-PD;OSHB-CC-BY-4.0",
+          "redistribution": "allowed-with-attribution",
+          "attribution": "Open Scriptures Hebrew Bible Project"
+        },
+        "provenance": { "acquisition": "bundled", "creationMethod": "human", "isDemo": false },
+        "reviewStatus": "verified"
+      }
+    },
+    {
+      "id": "source:roberts-donaldson:apostolic-fathers:1870",
+      "sourceType": "book",
+      "title": "The Writings of the Apostolic Fathers",
+      "locator": "https://www.gutenberg.org/ebooks/77576",
+      "metadata": {
+        "authors": ["Alexander Roberts", "James Donaldson", "F. Crombie"],
+        "year": 1870,
+        "editionNote": "Project Gutenberg eBook 77576; includes 1 Clement and other Apostolic Fathers, but not the Didache.",
+        "rights": { "license": "Public Domain in the USA", "redistribution": "allowed" },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "verified-metadata"
+      }
+    },
+    {
+      "id": "source:lightfoot:apostolic-fathers:1891",
+      "sourceType": "book",
+      "title": "The Apostolic Fathers",
+      "locator": "https://www.ccel.org/ccel/lightfoot/fathers.html",
+      "metadata": {
+        "author": "J. B. Lightfoot",
+        "year": 1891,
+        "scope": "Bibliographic record for the Didache and Apostolic Fathers; digital text is not redistributed by this pack.",
+        "rights": {
+          "license": "Public-domain underlying edition; digital redistribution not asserted",
+          "redistribution": "metadata-only"
+        },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "verified-metadata"
+      }
+    },
+    {
+      "id": "source:schaff:hcc1:1882",
+      "sourceType": "book",
+      "title": "History of the Christian Church, Volume I: Apostolic Christianity",
+      "locator": "https://ccel.org/ccel/schaff/hcc1",
+      "metadata": {
+        "author": "Philip Schaff",
+        "year": 1882,
+        "rights": { "license": "Public-domain underlying work", "redistribution": "metadata-only" },
+        "provenance": {
+          "acquisition": "bibliographic",
+          "creationMethod": "human",
+          "isDemo": false
+        },
+        "reviewStatus": "verified-metadata"
+      }
+    }
+  ],
+  "knowledgeEntities": [
+    {
+      "id": "entity:concept:life-john",
+      "type": "concept",
+      "name": "Life in the Johannine prologue",
+      "originalForm": "ζωή",
+      "description": "Concept node for ζωή in John 1:4; it does not prescribe a theological interpretation.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "entity:concept:light-john",
+      "type": "concept",
+      "name": "Light in the Johannine prologue",
+      "originalForm": "φῶς",
+      "description": "Concept node for the repeated light language in John 1:4–9.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "entity:concept:witness-john",
+      "type": "concept",
+      "name": "Witness in the Johannine prologue",
+      "originalForm": "μαρτυρία",
+      "description": "Concept node for witness language in John 1:6–8 and 1:15.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "entity:concept:grace-truth-john",
+      "type": "concept",
+      "name": "Grace and truth in John 1",
+      "originalForm": "χάρις καὶ ἀλήθεια",
+      "description": "Concept node for the paired terms in John 1:14 and 1:17.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "entity:historical:second-clement",
+      "type": "historical-source",
+      "name": "2 Clement",
+      "description": "Early Christian homiletic work transmitted under Clement's name; cataloged without claiming authorship.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:polycarp-philippians",
+      "type": "historical-source",
+      "name": "Polycarp to the Philippians",
+      "description": "Apostolic Fathers work record linked to a verified public-domain edition.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:martyrdom-polycarp",
+      "type": "historical-source",
+      "name": "Martyrdom of Polycarp",
+      "description": "Early Christian martyrdom narrative work record.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:ignatius-letters",
+      "type": "historical-source",
+      "name": "Letters of Ignatius",
+      "description": "Collection-level record; shorter and longer recensions must not be silently conflated.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:epistle-barnabas",
+      "type": "historical-source",
+      "name": "Epistle of Barnabas",
+      "description": "Apostolic Fathers work record, distinct from canonical works.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:shepherd-hermas",
+      "type": "historical-source",
+      "name": "Shepherd of Hermas",
+      "description": "Apostolic Fathers work record, distinct from canonical works.",
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"]
+    },
+    {
+      "id": "entity:historical:epistle-diognetus",
+      "type": "historical-source",
+      "name": "Epistle to Diognetus",
+      "description": "Early Christian apologetic work record.",
+      "sourceIds": ["source:lightfoot:apostolic-fathers:1891"]
+    },
+    {
+      "id": "entity:council:nicaea-325",
+      "type": "historical-source",
+      "name": "Council of Nicaea (325)",
+      "description": "Council-level record; not identical to a creed text or later reception.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:council:constantinople-381",
+      "type": "historical-source",
+      "name": "Council of Constantinople (381)",
+      "description": "Council-level record kept distinct from the Nicene-Constantinopolitan creed document.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:council:ephesus-431",
+      "type": "historical-source",
+      "name": "Council of Ephesus (431)",
+      "description": "Council-level historical record.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    },
+    {
+      "id": "entity:council:chalcedon-451",
+      "type": "historical-source",
+      "name": "Council of Chalcedon (451)",
+      "description": "Council-level record linked conceptually, but not collapsed into, the Definition of Chalcedon.",
+      "sourceIds": ["source:historical-documents:metadata:v0.1"]
+    }
+  ],
+  "ontology": [],
+  "ontologyRelations": [],
+  "perspectives": [],
+  "claims": [
+    {
+      "id": "claim:john-1-1-pros-ton-theon",
+      "proposition": "John 1:1 repeats λόγος and places the phrase πρὸς τὸν θεόν between its first and third clauses.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-3-panta",
+      "proposition": "John 1:3 begins with πάντα and twice uses a form of γίνομαι while describing what came into being.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 3,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-4-life-light",
+      "proposition": "John 1:4 coordinates ζωή and φῶς, stating that the life was the light of humanity.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 4,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-5-light-darkness",
+      "proposition": "John 1:5 contrasts τὸ φῶς with ἡ σκοτία and uses the present φαίνει for the light's action.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 5,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-6-sent-john",
+      "proposition": "John 1:6 introduces a man named John with the participle ἀπεσταλμένος and the phrase παρὰ θεοῦ.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 6,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-7-witness",
+      "proposition": "John 1:7 repeats the μαρτυρ- word family and states the purpose with two ἵνα clauses.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 7,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-8-not-light",
+      "proposition": "John 1:8 explicitly denies that John was the light and restates his witness function.",
+      "kind": "exegetical-interpretation",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 8,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-9-true-light",
+      "proposition": "John 1:9 calls the light τὸ ἀληθινόν and relates it to every person and to coming into the world; the participle's attachment requires syntactic interpretation.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 9,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "reviewed"
+    },
+    {
+      "id": "claim:john-1-10-kosmos",
+      "proposition": "John 1:10 uses κόσμος three times, assigning different syntactic roles within one verse.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 10,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-11-reception",
+      "proposition": "John 1:11 juxtaposes τὰ ἴδια and οἱ ἴδιοι and states that his own did not receive him.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 11,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-12-children",
+      "proposition": "John 1:12 relates receiving him and believing in his name to authority to become children of God.",
+      "kind": "exegetical-interpretation",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 12,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-13-birth",
+      "proposition": "John 1:13 contrasts three negated sources of birth with the final phrase ἐκ θεοῦ ἐγεννήθησαν.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 13,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-14-dwelt",
+      "proposition": "John 1:14 joins ὁ λόγος, σὰρξ ἐγένετο and ἐσκήνωσεν ἐν ἡμῖν in one sequence.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 14,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-15-witness",
+      "proposition": "John 1:15 returns to John's witness and presents direct speech about the one coming after him.",
+      "kind": "exegetical-interpretation",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 15,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-16-fullness",
+      "proposition": "John 1:16 speaks of receiving from his πλήρωμα and contains the compact expression χάριν ἀντὶ χάριτος.",
+      "kind": "linguistic-analysis",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 16,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-17-law-grace",
+      "proposition": "John 1:17 places the law given through Moses alongside grace and truth coming through Jesus Christ.",
+      "kind": "exegetical-interpretation",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 17,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:john-1-18-sbl-reading",
+      "proposition": "The SBLGNT 1.2 text of John 1:18 reads μονογενὴς θεός; this is an edition-specific textual observation, not a complete apparatus claim.",
+      "kind": "textual-critical-analysis",
+      "anchor": {
+        "type": "canonical-text",
+        "anchor": {
+          "kind": "passage",
+          "corpusId": "sblgnt",
+          "editionId": "sblgnt-1.2",
+          "workId": "work:john",
+          "versificationSchemeId": "scriptorium-bcv-1",
+          "passage": {
+            "workId": "work:john",
+            "versificationSchemeId": "scriptorium-bcv-1",
+            "bookId": "john",
+            "chapter": 1,
+            "verseStart": 18
+          }
+        }
+      },
+      "sourceIds": ["source:sblgnt:1.2"],
+      "supportLevel": "direct",
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "claim:first-clement-corinth",
+      "proposition": "The work known as 1 Clement presents itself as a communication from the church at Rome to the church at Corinth in response to conflict there.",
+      "kind": "historical-reconstruction",
+      "anchor": { "type": "entity", "entityId": "entity:historical:first-clement" },
+      "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"],
+      "supportLevel": "direct",
+      "reviewStatus": "imported"
+    }
+  ],
+  "knowledgeRelations": [
+    {
+      "id": "relation:john-1-4-life",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 4,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:life-john" },
+      "type": "mentions-concept",
+      "description": "Direct lexical occurrence of ζωή.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "relation:john-1-4-9-light",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 4,
+          "verseEnd": 9,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:light-john" },
+      "type": "develops-concept",
+      "description": "Repeated φῶς language across John 1:4–9.",
+      "sourceIds": ["source:sblgnt:1.2"],
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "relation:john-1-6-8-witness",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 6,
+          "verseEnd": 8,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:witness-john" },
+      "type": "develops-concept",
+      "description": "Witness terminology and purpose clauses.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "reviewStatus": "verified"
+    },
+    {
+      "id": "relation:john-1-14-17-grace-truth",
+      "from": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 14,
+          "verseEnd": 17,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "to": { "type": "entity", "entityId": "entity:concept:grace-truth-john" },
+      "type": "develops-concept",
+      "description": "The pair χάρις and ἀλήθεια occurs in verses 14 and 17.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "reviewStatus": "verified"
+    }
+  ],
+  "evidence": [],
+  "arguments": [],
+  "argumentRelations": [],
+  "lexemes": [],
+  "analyses": [
+    {
+      "id": "analysis:john-1-1-5:philological",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "verseEnd": 5,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "lensId": "philological",
+      "title": "Léxico e estrutura de João 1:1–5",
+      "summary": "A unidade repete λόγος, emprega formas de εἰμί e γίνομαι em funções distintas e desenvolve os pares vida/luz e luz/trevas. O resumo descreve os dados importados; não decide por si só entre leituras teológicas.",
+      "status": "draft",
+      "reviewStatus": "source-checked",
+      "interpretationKind": "linguistic-analysis",
+      "authorship": "machine-assisted",
+      "authorNote": "Auditoria 10.1: formas e lemas conferidos no SBLGNT/TAGNT/TBESG; permanece machine-assisted e requer revisão humana da síntese.",
+      "sourceIds": [
+        "source:sblgnt:1.2",
+        "source:stepbible:tagnt:efe428a",
+        "source:stepbible:tbesg:efe428a"
+      ]
+    },
+    {
+      "id": "analysis:john-1-6-13:exegetical",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 6,
+          "verseEnd": 13,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "lensId": "exegetical",
+      "title": "Testemunho, recepção e filiação",
+      "summary": "O fluxo textual distingue João da luz, apresenta sua função de testemunho, descreve recepção e rejeição e conclui com linguagem de nascimento de Deus. Esta é uma síntese literária do texto, não uma harmonização confessional.",
+      "status": "draft",
+      "reviewStatus": "source-checked",
+      "interpretationKind": "exegetical-interpretation",
+      "authorship": "machine-assisted",
+      "authorNote": "Auditoria 10.1: o encadeamento descrito corresponde a João 1:6–13 no SBLGNT; a síntese permanece machine-assisted e não human-reviewed.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "analysis:john-1-14-18:exegetical",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 14,
+          "verseEnd": 18,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "lensId": "exegetical",
+      "title": "Carne, habitação, graça e revelação",
+      "summary": "A seção conecta o tornar-se carne do Logos, sua habitação entre nós, o testemunho de João, a linguagem de plenitude e graça e a conclusão sobre tornar Deus conhecido. A observação da leitura de 1:18 vale especificamente para o SBLGNT.",
+      "status": "draft",
+      "reviewStatus": "source-checked",
+      "interpretationKind": "exegetical-interpretation",
+      "authorship": "machine-assisted",
+      "authorNote": "Auditoria 10.1: termos e leitura do SBLGNT conferidos; limitações de aparato e revisão humana permanecem explícitas.",
+      "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
+    },
+    {
+      "id": "analysis:john-1-1-18:hermeneutical",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "verseEnd": 18,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "lensId": "hermeneutical",
+      "title": "Níveis de afirmação no prólogo",
+      "summary": "Uma leitura responsável precisa distinguir observações lexicais e sintáticas, síntese literária, reconstrução histórica, recepção doutrinária e afirmações metafísicas. O texto alimenta essas discussões, mas a arquitetura não as trata como equivalentes.",
+      "status": "draft",
+      "reviewStatus": "draft",
+      "interpretationKind": "philosophical-analysis",
+      "authorship": "machine-assisted",
+      "authorNote": "Nota metodológica editorial, pendente de revisão humana.",
+      "sourceIds": ["source:sblgnt:1.2", "source:scriptorium:editorial-taxonomy:v0.1"]
+    },
+    {
+      "id": "analysis:john-1-1-18:reception",
+      "anchor": {
+        "type": "passage",
+        "ref": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "verseEnd": 18,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "lensId": "reception-history",
+      "title": "Recepção histórica: registro inicial",
+      "summary": "O prólogo aparece em discussões cristológicas antigas e posteriores. Este registro apenas abre o eixo de recepção e aponta para uma fonte histórica pública; ele não atribui automaticamente uma interpretação a toda tradição cristã.",
+      "status": "draft",
+      "reviewStatus": "draft",
+      "interpretationKind": "reception-history",
+      "authorship": "machine-assisted",
+      "authorNote": "Pacote piloto; precisa de fontes primárias patrísticas localizadas por seção.",
+      "sourceIds": ["source:schaff:hcc1:1882"]
+    }
+  ]
+}

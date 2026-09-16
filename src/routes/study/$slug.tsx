@@ -4,6 +4,8 @@ import { BookOpen, Library, Network, StickyNote } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../../lib/i18n";
+import { StudyRepository } from "../../lib/repositories/study-repository";
+import type { ResearchQuestion } from "../../lib/domain/research";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -24,13 +26,21 @@ const KIND_ICON = {
 
 function StudyWorkspace() {
   const { slug } = Route.useParams();
-  const { notes, studies, addNote, refreshUserData, setPassageContext } = useWorkbench();
+  const { notes, studies, addNote, refreshUserData, setPassageContext, workspacePersistence } =
+    useWorkbench();
   const study = studies.find((candidate) => candidate.slug === slug);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
+  const [question, setQuestion] = useState("");
+  const [questions, setQuestions] = useState<ResearchQuestion[]>([]);
   const lenses = AnalysisRepository.listLenses();
   useEffect(() => setPassageContext(null), [setPassageContext]);
+  useEffect(() => {
+    if (study) void StudyRepository.listResearchQuestions(study.id).then(setQuestions);
+  }, [study]);
 
+  if (!study && workspacePersistence === "loading")
+    return <p className="p-8 text-sm text-muted-foreground">Abrindo workspace local…</p>;
   if (!study)
     return (
       <div className="p-8">
@@ -44,15 +54,15 @@ function StudyWorkspace() {
     note.links.some((link) => link.kind === "study" && link.target === study.id),
   );
 
-  const saveNote = (event: FormEvent) => {
+  const saveNote = async (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim() && !body.trim()) return;
-    addNote(title.trim() || t("study.untitledDeduction"), body.trim(), [
+    await addNote(title.trim() || t("study.untitledDeduction"), body.trim(), [
       { kind: "study", target: study.id, label: study.title },
     ]);
     setTitle("");
     setBody("");
-    refreshUserData();
+    await refreshUserData();
   };
 
   return (
@@ -87,6 +97,57 @@ function StudyWorkspace() {
           </a>
         ))}
       </nav>
+
+      <section
+        className="mt-5 rounded-md border border-border bg-card p-3"
+        aria-labelledby="research-questions-heading"
+      >
+        <h2 id="research-questions-heading" className="meta-label">
+          Perguntas de pesquisa
+        </h2>
+        <form
+          className="mt-2 flex gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const clean = question.trim();
+            if (!clean) return;
+            void StudyRepository.createResearchQuestion({
+              question: clean,
+              studyId: study.id,
+            }).then(async () => {
+              setQuestion("");
+              setQuestions(await StudyRepository.listResearchQuestions(study.id));
+            });
+          }}
+        >
+          <label className="min-w-0 flex-1">
+            <span className="sr-only">Nova pergunta de pesquisa</span>
+            <input
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
+              placeholder="Que problema esta investigação precisa responder?"
+              className="h-9 w-full rounded border border-input bg-background px-3 text-sm"
+            />
+          </label>
+          <button
+            disabled={!question.trim()}
+            className="rounded bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+          >
+            Adicionar
+          </button>
+        </form>
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {questions.map((item) => (
+            <ResearchQuestionItem
+              key={item.id}
+              item={item}
+              onChanged={async () =>
+                setQuestions(await StudyRepository.listResearchQuestions(study.id))
+              }
+            />
+          ))}
+        </ul>
+      </section>
 
       <div className="mt-5 grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <div>
@@ -132,7 +193,7 @@ function StudyWorkspace() {
         <aside id="notes">
           <h2 className="meta-label">{t("study.notesDeductions")}</h2>
           <form
-            onSubmit={saveNote}
+            onSubmit={(event) => void saveNote(event)}
             className="mt-2 space-y-2 rounded-md border border-border bg-card p-3"
           >
             <input
@@ -169,5 +230,54 @@ function StudyWorkspace() {
         </aside>
       </div>
     </div>
+  );
+}
+
+function ResearchQuestionItem({
+  item,
+  onChanged,
+}: {
+  item: ResearchQuestion;
+  onChanged: () => Promise<void>;
+}) {
+  const [status, setStatus] = useState(item.status);
+  const [conclusion, setConclusion] = useState(item.provisionalConclusion ?? "");
+  return (
+    <li className="border-l-2 border-border pl-3">
+      <p className="text-xs font-medium">{item.question}</p>
+      <div className="mt-2 flex gap-1">
+        <select
+          aria-label="Status da pergunta"
+          value={status}
+          onChange={(event) => setStatus(event.target.value as ResearchQuestion["status"])}
+          className="h-7 min-w-0 flex-1 rounded border border-input bg-background px-1 text-[10px]"
+        >
+          <option value="open">Aberta</option>
+          <option value="investigating">Investigando</option>
+          <option value="provisional">Provisória</option>
+          <option value="answered">Respondida</option>
+          <option value="archived">Arquivada</option>
+        </select>
+        <button
+          type="button"
+          onClick={() =>
+            void StudyRepository.updateResearchQuestion(item.id, {
+              status,
+              ...(conclusion.trim() ? { provisionalConclusion: conclusion } : {}),
+            }).then(onChanged)
+          }
+          className="rounded border border-input px-2 text-[10px]"
+        >
+          Salvar
+        </button>
+      </div>
+      <textarea
+        aria-label="Conclusão provisória"
+        value={conclusion}
+        onChange={(event) => setConclusion(event.target.value)}
+        placeholder="Conclusão provisória pessoal"
+        className="mt-1 min-h-14 w-full rounded border border-input bg-background p-1.5 text-[10px]"
+      />
+    </li>
   );
 }

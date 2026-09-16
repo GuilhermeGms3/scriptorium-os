@@ -5,19 +5,29 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "npm run corpus:index",
     "build": "vite build",
     "build:dev": "vite build --mode development",
-    "preview": "vite preview",
+    "preview": "node .output/server/index.mjs",
     "corpus:acquire": "tsx scripts/corpus/cli.ts acquire",
     "corpus:verify": "tsx scripts/corpus/cli.ts verify",
     "corpus:import": "tsx scripts/corpus/cli.ts import",
     "corpus:build": "tsx scripts/corpus/cli.ts build",
+    "corpus:index": "tsx scripts/database/build-corpus-index.ts",
+    "content:fetch:lexicon": "tsx scripts/content/fetch-lexical-sources.ts",
+    "db:migrate": "npm run corpus:index",
+    "benchmark:corpus": "tsx scripts/database/benchmark-corpus-runtime.ts",
+    "benchmark:delivery": "tsx scripts/database/benchmark-corpus-delivery.ts",
+    "test:workspace": "vitest run src/lib/workspace-runtime/workspace-runtime.test.ts",
+    "pretest": "npm run corpus:index",
     "test": "vitest run",
+    "typecheck": "tsc --noEmit",
     "lint": "eslint .",
     "format": "prettier --write ."
   },
   "overrides": {
-    "rolldown": "1.2.1"
+    "rolldown": "1.2.1",
+    "js-yaml": "4.3.2"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
@@ -47,6 +57,7 @@
     "@radix-ui/react-toggle": "^1.1.10",
     "@radix-ui/react-toggle-group": "^1.1.11",
     "@radix-ui/react-tooltip": "^1.2.8",
+    "@sqlite.org/sqlite-wasm": "^3.53.0-build1",
     "@tailwindcss/vite": "^4.2.1",
     "@tanstack/react-query": "^5.101.1",
     "@tanstack/react-router": "1.170.18",

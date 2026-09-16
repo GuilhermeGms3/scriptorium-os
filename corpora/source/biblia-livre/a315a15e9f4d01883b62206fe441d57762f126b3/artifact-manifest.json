@@ -1,0 +1,1239 @@
+{
+  "schemaVersion": 1,
+  "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+  "corpusId": "biblia-livre",
+  "editionId": "biblia-livre-n4-2025.1.0",
+  "repository": "https://github.com/blivre/BibliaLivre.git",
+  "commitSha": "a315a15e9f4d01883b62206fe441d57762f126b3",
+  "retrievedAt": "2026-09-07T02:22:18.691Z",
+  "packageDigest": {
+    "algorithm": "SHA-256",
+    "value": "8ec95eabb3a03f017cec34eeb6571dab09893478027c5b46b1774fa5c7c6b94e"
+  },
+  "artifacts": [
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:licenca",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "LICENCA.md",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/LICENCA.md",
+      "fileName": "LICENCA.md",
+      "mediaType": "text/markdown",
+      "format": "unknown",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "215ef3cacc32a82f2d820166b648b0b551bbf87521c0df0d5f71ead882e8fe23"
+      },
+      "byteSize": 16723
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:readme",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "README.md",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/README.md",
+      "fileName": "README.md",
+      "mediaType": "text/markdown",
+      "format": "unknown",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "7a3417fddc37d03139ebcca8b77e09a997eabe24be6a9a8294973a89986df550"
+      },
+      "byteSize": 2613
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1cor",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1cor.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1cor.txt",
+      "fileName": "1cor.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2b40555b587f0bd17030a875123f7fa2824398419ee8defee0474bc4915bc9d0"
+      },
+      "byteSize": 60575
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1crn",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1crn.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1crn.txt",
+      "fileName": "1crn.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4c67a46c265963f2d78bf61cbfbe3e79f152e0abfc07f75b31c139aa70ce0df9"
+      },
+      "byteSize": 118779
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1joao",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1joao.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1joao.txt",
+      "fileName": "1joao.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "edb2deca14955caab905b8fb44ee03de8dcbabe23da765e7e97e1573bcf847de"
+      },
+      "byteSize": 14314
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1ped",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1ped.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1ped.txt",
+      "fileName": "1ped.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "d6b2adc191f51292029c720a2998e399e006836dd867e8dd1a2f54f0fe4f65cc"
+      },
+      "byteSize": 19077
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1rs",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1rs.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1rs.txt",
+      "fileName": "1rs.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "9a5be40770905d2700ab52b23471ae8d18326aca963ca4be3f8a20de6c6e23a7"
+      },
+      "byteSize": 129872
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1sa",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1sa.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1sa.txt",
+      "fileName": "1sa.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "445bdc4622d38364d41d1369b1fc10eac759ae3b67e1ae597094af5a8773add6"
+      },
+      "byteSize": 131135
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1tes",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1tes.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1tes.txt",
+      "fileName": "1tes.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "a7d691129ac49d1105d91906e8ea50a141422c51daf0677e1a6b15fa6a46465f"
+      },
+      "byteSize": 12765
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1tim",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/1tim.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/1tim.txt",
+      "fileName": "1tim.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "a7ae8096cf23e98205142db4baf60fac44a81572b726cf36b2f4d8d9b5eaf10d"
+      },
+      "byteSize": 16196
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2cor",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2cor.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2cor.txt",
+      "fileName": "2cor.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "afac0a97594c25b745b1169b41e8c92e98b1beab0bb5d556e28c608e3eecd69f"
+      },
+      "byteSize": 39592
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2crn",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2crn.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2crn.txt",
+      "fileName": "2crn.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "ffae22a331da325dd76afc7c0c1e4286a17dab8b326614c8345472406e3dd0d7"
+      },
+      "byteSize": 140617
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2joao",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2joao.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2joao.txt",
+      "fileName": "2joao.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "c4d54f697ff62612c7b0cb38aa0664031813b40f7e1c3f16a718d89ede0ee27e"
+      },
+      "byteSize": 1975
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2ped",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2ped.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2ped.txt",
+      "fileName": "2ped.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "0ad6edbbccda6cbb780195ae81d956a8a9858d367df0d8e9d898b2857efc6e1f"
+      },
+      "byteSize": 10364
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2rs",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2rs.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2rs.txt",
+      "fileName": "2rs.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "f2302e166d4c3c5c038dfe85eaac4c751b38d656836455536ece699da1dd07c7"
+      },
+      "byteSize": 120787
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2sa",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2sa.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2sa.txt",
+      "fileName": "2sa.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "82c370d81c0c00b6cf7851bb028fbed556647dcda20397002c13dae2acfd83ee"
+      },
+      "byteSize": 108564
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2tes",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2tes.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2tes.txt",
+      "fileName": "2tes.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "8327998a1106ce59c6c0b4b87ebb6127ca29d0f6db32127b7ea6b29f3ab52194"
+      },
+      "byteSize": 6921
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2tim",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/2tim.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/2tim.txt",
+      "fileName": "2tim.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "99f8f88121150f82e90071d195813b03fc7b0aef2cbc7c271463ee12942d3f1a"
+      },
+      "byteSize": 11236
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:3joao",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/3joao.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/3joao.txt",
+      "fileName": "3joao.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "cf8d4add93da9139bfbac1b3aa7380e032cdcf03000dd0671dca426def343729"
+      },
+      "byteSize": 2214
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ageu",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/ageu.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/ageu.txt",
+      "fileName": "ageu.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "76395a1aeb43c36b5acde0b49f7030e5d9e3550e3f8121b567ace31d456be0fa"
+      },
+      "byteSize": 6397
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:amos",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/amos.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/amos.txt",
+      "fileName": "amos.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "302031f893b3ac2124bdeba02aa2af01fa8d3e026238c1a61a4621f2d7ac2f4e"
+      },
+      "byteSize": 23709
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:apo",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/apo.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/apo.txt",
+      "fileName": "apo.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "a417476a15661c3d5ff0c648809744040803dbaa6c0ad92a5ede8123d4c125ea"
+      },
+      "byteSize": 71024
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:atos",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/atos.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/atos.txt",
+      "fileName": "atos.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "f42a880eb916e6beed0197c087a25ef5d00a3896c104c61662b3a8f05bc67603"
+      },
+      "byteSize": 154252
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:cant",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/cant.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/cant.txt",
+      "fileName": "cant.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "ea90816dace1b142801366d752514277d6c92be4e8e2be8b0edee0632e4c977e"
+      },
+      "byteSize": 18068
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:col",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/col.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/col.txt",
+      "fileName": "col.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "c21a39a36d93fd0dfc907b4948f1feb59c1312873c8452c392a972019f2590b6"
+      },
+      "byteSize": 14408
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:dan",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/dan.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/dan.txt",
+      "fileName": "dan.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "859548e16d66e8a4a9edd77d79cd209bfb09e3b525c3f9caba75c1465e2f44b7"
+      },
+      "byteSize": 66432
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:deut",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/deut.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/deut.txt",
+      "fileName": "deut.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "bdb4a1ed864d4fe368dc05248fc9addd0a2e8fe40f7504d3780ab5c341875fcd"
+      },
+      "byteSize": 144830
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ecl",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/ecl.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/ecl.txt",
+      "fileName": "ecl.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4edab7a5166f4b7c1ba368a96755548a7b66ea05bd1b66f2b477735f0bc95cd2"
+      },
+      "byteSize": 34457
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:efes",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/efes.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/efes.txt",
+      "fileName": "efes.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "d51c4cd9549e7240505f8a9152f6040160421906dc3849f524d4ed32fdb75a1a"
+      },
+      "byteSize": 20908
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:esd",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/esd.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/esd.txt",
+      "fileName": "esd.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4cae348735e996d2cf048bfa138c6ec3f29c62768eb4fa39b8a0be3707bc1f02"
+      },
+      "byteSize": 42798
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:est",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/est.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/est.txt",
+      "fileName": "est.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5c3624a71a7d338f346c4a51a025b4a3ada36aaf19885f94bc9346290ebfe102"
+      },
+      "byteSize": 32263
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:exod",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/exod.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/exod.txt",
+      "fileName": "exod.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "67a1d927ecde0f04ad72be7635fd9218b8a7822f5cabea49f8d326d7fd42f0d1"
+      },
+      "byteSize": 169064
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:eze",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/eze.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/eze.txt",
+      "fileName": "eze.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "ebe0403fdd7e46a829c5a600fe9af894cd1f17893ea97e3b05b29f2cf6d5cee4"
+      },
+      "byteSize": 221787
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:fil",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/fil.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/fil.txt",
+      "fileName": "fil.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "1eb70dcb745a96e49492e03ca1b10b680e5e36751bd6b01272f57d7b9872d755"
+      },
+      "byteSize": 14354
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:flm",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/flm.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/flm.txt",
+      "fileName": "flm.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "b78c10488fdb911c620b2218feb2c3cd5541ec505ff5719d4751dca9488d1375"
+      },
+      "byteSize": 3241
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:gal",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/gal.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/gal.txt",
+      "fileName": "gal.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "65b8de84551dd42764dd6e7c982c8c87252cdf0d7ad3f35ea94a8ea87c5137c0"
+      },
+      "byteSize": 21092
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:gen",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/gen.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/gen.txt",
+      "fileName": "gen.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "73872ed7d25744a7b51103e1d869387ae006a2cc6d6ebfe1cd969aa20a9e8a6a"
+      },
+      "byteSize": 202503
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:hab",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/hab.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/hab.txt",
+      "fileName": "hab.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3fc3a5edbb7acc6343fb7fdf391000c0d1702fc70356de2baed1a45aada957b2"
+      },
+      "byteSize": 8818
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:heb",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/heb.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/heb.txt",
+      "fileName": "heb.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2accff079c772abe95d7449d6c4ba50473797da4957429312e53713214da1d1d"
+      },
+      "byteSize": 50967
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:isa",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/isa.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/isa.txt",
+      "fileName": "isa.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "714b61131306a65ba32f672cdad8241d3061098751823ae63eb60774c58f3d9f"
+      },
+      "byteSize": 226575
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jer",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/jer.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/jer.txt",
+      "fileName": "jer.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4684c6ba7ae9258ab53cf732a2b0a8cf08d665a8ac4dba286f7a54bd1aadb223"
+      },
+      "byteSize": 245057
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jo",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/jo.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/jo.txt",
+      "fileName": "jo.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "59fcd5c28dc4415dbbfb7e25d5d3440f950ac8a527a6d1b74146167db471cb90"
+      },
+      "byteSize": 117937
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:joao",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/joao.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/joao.txt",
+      "fileName": "joao.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "1270b4166b1ace0d25cb1d4ced1f691b48c587867118b865add918280278f0b1"
+      },
+      "byteSize": 117596
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:joel",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/joel.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/joel.txt",
+      "fileName": "joel.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "0eb7c8e65d68e0c973d477989746b4401a6bbe089b75d38491a15f6f6d6cbc05"
+      },
+      "byteSize": 11262
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jon",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/jon.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/jon.txt",
+      "fileName": "jon.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "dd8160cc0ae33b46c486a3ecdc82622df8fd0654a338fd66dc1b596bd2ac3085"
+      },
+      "byteSize": 7587
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jos",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/jos.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/jos.txt",
+      "fileName": "jos.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5bb4c869b45803b985a507b5364872f7c77917fac8b8b7e66244492acfda5e50"
+      },
+      "byteSize": 99861
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jud",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/jud.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/jud.txt",
+      "fileName": "jud.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "89691bf26c6ae37bceff8dc361611608032fb1c564adf3525be60a007e0f43e5"
+      },
+      "byteSize": 4636
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:juiz",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/juiz.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/juiz.txt",
+      "fileName": "juiz.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "afd465573f2934b7b87dffa69b6a08e5e3d736c386d73f445e1e50284c001101"
+      },
+      "byteSize": 99503
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:lam",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/lam.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/lam.txt",
+      "fileName": "lam.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "daa51602c3b2259e245349cb6cccfefa38e367abf3490ec805f25f931f0d8e81"
+      },
+      "byteSize": 21427
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:lev",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/lev.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/lev.txt",
+      "fileName": "lev.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "f568633c00cd8c72c670a6ef4d1cc9c5bcb6c5b30b0d812ba52fa6797950805f"
+      },
+      "byteSize": 124669
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:luc",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/luc.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/luc.txt",
+      "fileName": "luc.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "d858ad023348e5f75d958658390d3560facc927d573bfcaa0ea1c8d4b4b7afef"
+      },
+      "byteSize": 160142
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mal",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/mal.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/mal.txt",
+      "fileName": "mal.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "95e9d580148b48e5938037e8e4bb88868883f95965508fd859bc17564166ed4b"
+      },
+      "byteSize": 10228
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mar",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/mar.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/mar.txt",
+      "fileName": "mar.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "e8a0602cddaf331808eeb0cc62fe843cb5f45bf13b5a5d34bd1a8a6161dfc280"
+      },
+      "byteSize": 89255
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mat",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/mat.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/mat.txt",
+      "fileName": "mat.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "16bf32c533dfdc156f0f0425a227cd6d5a5893dae72f36223a40258ae676e9c0"
+      },
+      "byteSize": 141719
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:miq",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/miq.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/miq.txt",
+      "fileName": "miq.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "29c95e1ee0b4fe65befc2037993ebc5a92ab69ab2c5f5478a1803217b542484b"
+      },
+      "byteSize": 18309
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:naum",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/naum.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/naum.txt",
+      "fileName": "naum.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5ba995cea8456cd7032e52bf4a0ac947cdb8124b4932d12a379591f96dfa1844"
+      },
+      "byteSize": 7811
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:nee",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/nee.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/nee.txt",
+      "fileName": "nee.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "8e838993c2dcef3ae8cfea63c12f502fab468b95abc312666e567e7dd266da49"
+      },
+      "byteSize": 60743
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:num",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/num.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/num.txt",
+      "fileName": "num.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "85c92b3da32909cd621bcb152d135f98f0e9df6dc971723e7ed2ee81b21be88a"
+      },
+      "byteSize": 172992
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:oba",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/oba.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/oba.txt",
+      "fileName": "oba.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "92478e48e61bcf4a2bbfdc02a411c7d43906173e2327f828ff647f47f8e11583"
+      },
+      "byteSize": 3974
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ose",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/ose.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/ose.txt",
+      "fileName": "ose.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3c7c694c9b2a476ab0d5dd1568df849fab8de4da841199494d20443342fb208d"
+      },
+      "byteSize": 31091
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:prov",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/prov.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/prov.txt",
+      "fileName": "prov.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "51d141792249f31e624ae63cc0b94a1f5bf1e8708901a1471d3f54a0b27863d9"
+      },
+      "byteSize": 102357
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:rom",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/rom.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/rom.txt",
+      "fileName": "rom.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "f3e603c7755423c33f7694199519b7823333fe3837d0409d099bb07ea3fc5f8c"
+      },
+      "byteSize": 64300
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:rute",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/rute.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/rute.txt",
+      "fileName": "rute.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "36028c117eaca4f297e41388a561e52e535919fe4feaefe94d50b9c47224a9fa"
+      },
+      "byteSize": 13185
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:sal",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/sal.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/sal.txt",
+      "fileName": "sal.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "9faf792f22095f28352f6fd24659971fbf09f295f4cdd1e876f66e1928a0dd57"
+      },
+      "byteSize": 278594
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:sof",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/sof.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/sof.txt",
+      "fileName": "sof.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "110002408963eb219f73ca83838061c02778432b54542031179c6e52882f5a6a"
+      },
+      "byteSize": 9488
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:tiag",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/tiag.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/tiag.txt",
+      "fileName": "tiag.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "e147f0e52eb0737aa59ffeb4e9f4f9cb6746af3369703a4dff9bb74a4c3baf9e"
+      },
+      "byteSize": 14945
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:tito",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/tito.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/tito.txt",
+      "fileName": "tito.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "5285a08288076a7e4d09f9826ce2b61560ab11fe11f6e0f72396fe8e62d77a30"
+      },
+      "byteSize": 6822
+    },
+    {
+      "id": "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:zac",
+      "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "role": "source",
+      "repository": "https://github.com/blivre/BibliaLivre.git",
+      "sourcePath": "textos/f4/n4/zac.txt",
+      "sourceUrl": "https://github.com/blivre/BibliaLivre/blob/a315a15e9f4d01883b62206fe441d57762f126b3/textos/f4/n4/zac.txt",
+      "fileName": "zac.txt",
+      "mediaType": "text/plain",
+      "format": "f4",
+      "retrievedAt": "2026-09-07T02:22:18.691Z",
+      "sourceRevision": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2009a9c406574b1cd636cf6e17e3f451e590f19cc716a784dd5187fb76e68a0e"
+      },
+      "byteSize": 35008
+    }
+  ]
+}

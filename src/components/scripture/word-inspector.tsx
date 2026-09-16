@@ -6,16 +6,13 @@
 
 import * as Tabs from "@radix-ui/react-tabs";
 import { useEffect, useState } from "react";
-import { ExternalLink, Plus, X } from "lucide-react";
-import { Link } from "@tanstack/react-router";
+import { Plus, X } from "lucide-react";
 import { useWorkbench, type WordSelection } from "../../lib/workbench/workbench-context";
-import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
 import { SourceReferenceCard } from "../common/source-reference";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { passageRefKey } from "../../lib/domain/scripture";
-import { localizePassageReference, morphologyLabel, t } from "../../lib/i18n";
-import { LinguisticRepository } from "../../lib/repositories/linguistic-repository";
-import type { LinguisticPassage } from "../../lib/domain/linguistic";
+import { morphologyLabel, t } from "../../lib/i18n";
+import type { WordKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import { LexicalOccurrences } from "./lexical-occurrences";
 
 const TABS = [
@@ -34,15 +31,14 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
   const [retry, setRetry] = useState(0);
   const [linguisticState, setLinguisticState] = useState<{
     tokenId: string;
-    passage?: LinguisticPassage | null;
+    bundle?: WordKnowledgeBundle;
     error?: string;
   } | null>(null);
   useEffect(() => {
-    if (token.editionId !== "sblgnt-1.2") return;
     let active = true;
-    ScriptureKnowledgeEngine.loadLinguisticPassage(token.ref).then(
-      (passage) => {
-        if (active) setLinguisticState({ tokenId: token.id, passage });
+    ScriptureKnowledgeEngine.getWordKnowledgeBundle(token).then(
+      (bundle) => {
+        if (active) setLinguisticState({ tokenId: token.id, bundle });
       },
       () => {
         if (active)
@@ -55,19 +51,16 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
     return () => {
       active = false;
     };
-  }, [token.id, token.editionId, token.ref, retry]);
+  }, [token, retry]);
   const state = linguisticState?.tokenId === token.id ? linguisticState : null;
-  const annotation = state?.passage?.annotations.find((item) => item.targetTokenId === token.id);
-  const alignment = state?.passage?.alignments.find((item) => item.targetTokenId === token.id);
-  const dataset = LinguisticRepository.getDataset();
-  const artifact = dataset.artifacts.find(
-    (item) => item.id === annotation?.provenance.sourceArtifactId,
-  );
+  const wordBundle = state?.bundle;
+  const annotation =
+    wordBundle?.annotation.status === "available" ? wordBundle.annotation.data : undefined;
+  const alignment =
+    wordBundle?.alignment.status === "available" ? wordBundle.alignment.data : undefined;
   const wordLabel = annotation?.normalized.lemmas.join(", ") ?? token.lemma ?? token.surface;
   const wordId = annotation?.normalized.lexemeId ?? token.lemmaId ?? token.id;
-  const entry = token.lemma ? ScriptureRepository.getLexiconEntry(token.lemma) : null;
-  const occurrences = token.lemma ? ScriptureRepository.getOccurrences(token.lemma) : [];
-  const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(token.ref);
+  const isTagnt = token.editionId === "sblgnt-1.2";
 
   const analyses =
     annotation?.normalized.morphology.map((item) => ({
@@ -86,6 +79,13 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
         [t("scripture.morph.voice"), morph.voice],
         [t("scripture.morph.mood"), morph.mood],
         [t("scripture.morph.person"), morph.person],
+        ["Estado", morph.state],
+        ["Conjugação", morph.stem],
+        ["Forma verbal", morph.aspect],
+        ["Subtipo", morph.subtype],
+        ["Prefixos", morph.prefixes],
+        ["Sufixo", morph.suffixDescription],
+        ["Estado da análise", morph.status],
       ] as [string, string | undefined][],
   );
 
@@ -101,7 +101,11 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
               token.transliteration ??
               token.lemma ??
               t("scripture.surfaceForm")}
-            {token.strongs && <span className="ml-2">Strong's {token.strongs}</span>}
+            {token.strongs && (
+              <span className="ml-2">
+                {isTagnt ? "Strong's" : "Referência OSHB"} {token.strongs}
+              </span>
+            )}
           </p>
         </div>
         <button
@@ -159,16 +163,42 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                         ambiguous: "ambíguo — sem análise atribuída",
                         unmatched: "sem correspondência — sem análise atribuída",
                       }[alignment.status]
-                    : "indisponível"}
+                    : (wordBundle?.alignment.reason ?? "indisponível")}
                 </p>
               )}
             </div>
           )}
           <Tabs.Content value="lexicon" className="space-y-4">
+            {wordBundle?.dictionary.status === "available" &&
+              wordBundle.dictionary.data.map((entry) => (
+                <article key={entry.id} className="space-y-2 rounded-md border border-border p-3">
+                  <div className="flex flex-wrap items-baseline gap-x-2">
+                    <h3 className="original-text text-lg">{entry.lemma}</h3>
+                    {entry.transliteration && (
+                      <span className="font-mono text-xs text-muted-foreground">
+                        {entry.transliteration}
+                      </span>
+                    )}
+                  </div>
+                  <p className="font-medium">{entry.gloss}</p>
+                  {entry.definition && (
+                    <p className="whitespace-pre-line text-sm leading-relaxed">
+                      {entry.definition}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground">
+                    {entry.language === "hbo"
+                      ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"
+                      : "TBESG · STEP Bible / Tyndale House Cambridge · CC BY 4.0"}
+                  </p>
+                </article>
+              ))}
             {annotation ? (
               <dl className="space-y-3 text-sm">
                 <div>
-                  <dt className="meta-label">Lema(s) fornecido(s) pelo TAGNT</dt>
+                  <dt className="meta-label">
+                    Lema(s) fornecido(s) pelo {isTagnt ? "TAGNT" : "corpus linguístico"}
+                  </dt>
                   <dd className="original-text mt-1 text-lg">{wordLabel}</dd>
                 </div>
                 <div>
@@ -195,55 +225,35 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                     </dd>
                   </div>
                 )}
-                <p className="text-xs text-muted-foreground">
-                  Glossas, definições e interpretações não foram importadas nesta camada.
-                </p>
+                {wordBundle?.dictionary.status !== "available" && (
+                  <p className="text-xs text-muted-foreground">
+                    Não há verbete TBESG resolvido para esta identificação lexical.
+                  </p>
+                )}
               </dl>
-            ) : entry ? (
-              <>
-                <dl className="space-y-2 text-sm">
-                  <div>
-                    <dt className="meta-label">{t("scripture.lemma")}</dt>
-                    <dd className="original-text mt-0.5 text-lg">{entry.lemma}</dd>
-                  </div>
-                  <div>
-                    <dt className="meta-label">{t("scripture.partOfSpeech")}</dt>
-                    <dd className="mt-0.5">{morphologyLabel(entry.partOfSpeech)}</dd>
-                  </div>
-                  <div>
-                    <dt className="meta-label">{t("scripture.possibleSenses")}</dt>
-                    <dd className="mt-0.5 flex flex-wrap gap-1">
-                      {entry.glosses.map((g) => (
-                        <span
-                          key={g}
-                          className="rounded border border-border bg-muted/50 px-1.5 py-0.5 text-xs"
-                        >
-                          {g}
-                        </span>
-                      ))}
-                    </dd>
-                  </div>
-                  {entry.lexicalSummary && (
-                    <div>
-                      <dt className="meta-label">{t("scripture.lexicalSummary")}</dt>
-                      <dd className="mt-0.5 text-[13px] leading-relaxed text-foreground/85">
-                        {entry.lexicalSummary}
-                      </dd>
-                    </div>
-                  )}
-                </dl>
-                <Link
-                  to="/knowledge"
-                  search={{ entity: token.lemma === "λόγος" ? "ent-word-logos" : undefined }}
-                  className="inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-accent"
-                >
-                  {t("scripture.exploreWord")} <ExternalLink className="size-3" />
-                </Link>
-              </>
             ) : (
-              <p className="text-sm text-muted-foreground italic">
-                {t("scripture.lexiconMissing", { lemma: wordLabel })}
-              </p>
+              <div className="space-y-2 text-sm">
+                {wordBundle?.lexeme.status === "available" ? (
+                  <>
+                    <p className="original-text text-lg">
+                      {wordBundle.lexeme.data.lemmas.join(", ")}
+                    </p>
+                    <p className="font-mono text-xs text-muted-foreground">
+                      {wordBundle.lexeme.data.lexicalReferences
+                        .map((reference) => reference.value)
+                        .join(" · ")}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      Identidade lexical fornecida pelo corpus; nenhuma definição de dicionário foi
+                      importada para este lema.
+                    </p>
+                  </>
+                ) : (
+                  <p className="text-muted-foreground italic">
+                    {t("scripture.lexiconMissing", { lemma: wordLabel })}
+                  </p>
+                )}
+              </div>
             )}
           </Tabs.Content>
 
@@ -292,17 +302,8 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
               <LexicalOccurrences
                 key={annotation.normalized.lexemeId}
                 lexemeId={annotation.normalized.lexemeId}
+                {...(!isTagnt ? { token } : {})}
               />
-            ) : occurrences.length > 0 ? (
-              <ul className="space-y-1">
-                {occurrences.map((occ) => (
-                  <li key={occ}>
-                    <span className="rounded bg-muted/60 px-1.5 py-0.5 font-mono text-xs">
-                      {localizePassageReference(occ)}
-                    </span>
-                  </li>
-                ))}
-              </ul>
             ) : (
               <p className="text-sm text-muted-foreground italic">
                 {t("scripture.occurrenceMissing")}
@@ -321,35 +322,38 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           </Tabs.Content>
 
           <Tabs.Content value="sources" className="space-y-3">
-            {annotation && artifact && (
+            {annotation && wordBundle && (
               <div className="space-y-2 rounded border border-border p-3 text-xs">
-                <p className="font-medium">Texto: SBLGNT · Análise linguística: TAGNT</p>
-                <a
-                  className="underline"
-                  href={`${artifact.repository}/blob/${dataset.sourceRevision}/${artifact.sourcePath.split("/").map(encodeURIComponent).join("/")}#L${annotation.provenance.sourceLine}`}
-                  target="_blank"
-                  rel="noreferrer"
-                >
-                  Registro original, linha {annotation.provenance.sourceLine}
-                </a>
-                <p>{dataset.attribution}</p>
+                <p className="font-medium">
+                  {isTagnt
+                    ? "Texto: SBLGNT · Análise linguística: TAGNT"
+                    : "Texto: WLC · Análise linguística: OSHB"}
+                </p>
                 <details>
                   <summary className="cursor-pointer">Rastreabilidade e valores originais</summary>
                   <dl className="mt-2 space-y-2 break-all">
-                    <dt>Token SBLGNT</dt>
+                    <dt>{isTagnt ? "Token SBLGNT" : "Token WLC/OSHB"}</dt>
                     <dd>{token.id}</dd>
-                    <dt>Registro TAGNT</dt>
+                    <dt>{isTagnt ? "Registro TAGNT" : "Registro OSHB"}</dt>
                     <dd>{annotation.sourceRecordId}</dd>
-                    <dt>Commit</dt>
-                    <dd>{dataset.sourceRevision}</dd>
-                    <dt>SHA-256 do arquivo</dt>
-                    <dd>{artifact.checksum.value}</dd>
-                    <dt>Forma original TAGNT</dt>
-                    <dd>{annotation.raw.greek}</dd>
-                    <dt>Gramática original</dt>
-                    <dd>{annotation.raw.lexicalGrammar}</dd>
-                    <dt>Edições</dt>
-                    <dd>{annotation.raw.editions}</dd>
+                    <dt>Artifact / linha</dt>
+                    <dd>
+                      {annotation.provenance.sourceArtifactId}:{annotation.provenance.sourceLine}
+                    </dd>
+                    <dt>Forma original</dt>
+                    <dd>{annotation.raw.greek ?? annotation.raw.surface}</dd>
+                    {annotation.raw.lexicalGrammar && (
+                      <>
+                        <dt>Gramática original</dt>
+                        <dd>{annotation.raw.lexicalGrammar}</dd>
+                      </>
+                    )}
+                    {annotation.raw.editions && (
+                      <>
+                        <dt>Edições</dt>
+                        <dd>{annotation.raw.editions}</dd>
+                      </>
+                    )}
                     <dt>Evidência do alinhamento</dt>
                     <dd>{annotation.alignment.evidence}</dd>
                   </dl>
@@ -362,26 +366,13 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                 {alignment.candidateSourceRecordIds.length}.
               </p>
             )}
-            {bundle?.sources.references.map((source) => {
-              const fragment = bundle.sources.fragments.find(
-                (item) =>
-                  item.sourceId === source.id &&
-                  (item.locator.includes(wordLabel) || item.passage !== undefined),
+            {wordBundle?.sources.references.map((source) => {
+              const fragment = wordBundle.sources.fragments.find(
+                (item) => item.sourceId === source.id,
               );
-              const resource = bundle.sources.resources.find(
-                (item) => item.id === source.resourceId,
-              );
-              if (!fragment) return null;
-              return (
-                <SourceReferenceCard
-                  key={`${source.id}:${fragment.id}`}
-                  source={source}
-                  fragment={fragment}
-                  resource={resource}
-                />
-              );
+              return <SourceReferenceCard key={source.id} source={source} fragment={fragment} />;
             })}
-            {(!bundle || bundle.sources.references.length === 0) && (
+            {(!wordBundle || wordBundle.sources.references.length === 0) && (
               <p className="text-sm text-muted-foreground italic">
                 {t("scripture.sourceFragmentMissing")}
               </p>
@@ -441,7 +432,7 @@ function WordNotes({
       ))}
       <button
         onClick={() =>
-          addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
+          void addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
             { kind: "word", target: wordId, label: wordLabel },
             {
               kind: "passage",
@@ -479,7 +470,7 @@ function AddToStudy({
         onChange={(e) => {
           const id = e.target.value;
           if (!id) return;
-          addToStudy(id, { kind: "word", refId: wordId, label: wordLabel });
+          void addToStudy(id, { kind: "word", refId: wordId, label: wordLabel });
           e.target.value = "";
         }}
         className="h-7 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground"

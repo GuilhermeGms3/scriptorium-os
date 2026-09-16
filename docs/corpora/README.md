@@ -21,4 +21,4 @@ nunca pode ser substituído por um derivado normalizado.
 - [STEPBible Data](./stepbible-data.md)
 - [STEPBible TAGNT — camada real, direitos e relatório da Fase 5](./stepbible-tagnt.md)
 - [Algoritmo e contratos de alinhamento](./linguistic-alignment.md)
-- [Bíblia Livre](./biblia-livre.md)
+- [Bíblia Livre N4 — corpus oficial importado e relatório da Fase 6](./biblia-livre.md)

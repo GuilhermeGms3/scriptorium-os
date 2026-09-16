@@ -1,4 +1,5 @@
 import type { LanguageCode, PassageRef } from "./scripture";
+import type { ResourceLicense } from "./library";
 
 export type ContentAcquisition =
   "bundled" | "imported" | "user-provided" | "editorial" | "generated";
@@ -29,6 +30,7 @@ export interface SourceReference {
   sourceType?: "edition" | "book" | "article" | "document" | "dataset";
   /** Language of the referenced document, independent from the application locale. */
   language?: LanguageCode;
+  license?: ResourceLicense;
   provenance: Provenance;
 }
 
@@ -36,7 +38,7 @@ export interface SourceReference {
 export interface SourceFragment {
   id: string;
   sourceId: string;
-  resourceId: string;
+  resourceId?: string;
   locator: string;
   page?: string;
   section?: string;
@@ -44,5 +46,9 @@ export interface SourceFragment {
   passage?: PassageRef;
   sourceType: "primary-text" | "secondary-work" | "editorial-note" | "user-document";
   epistemicRole: "primary" | "secondary";
+  /** Exact upstream artifact when the fragment comes from an imported corpus. */
+  artifactId?: string;
+  /** Optional quoted content; omission never means that the source has no text. */
+  fragment?: string;
   provenance: Provenance;
 }

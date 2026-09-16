@@ -11,6 +11,7 @@ import type {
   SourceArtifact,
   CorpusTransformation,
 } from "../domain/corpus";
+import { BIBLIA_LIVRE_EDITION, BIBLIA_LIVRE_PACKAGE } from "../corpus-config/biblia-livre";
 import type { CorpusIdentity } from "../domain/corpus";
 import type { GeneratedCorpusManifest } from "../domain/generated-corpus";
 
@@ -61,6 +62,48 @@ export const SBLGNT_EXPECTED_BOOK_IDS = [
   "revelation",
 ] as const;
 
+export const OSHB_EXPECTED_BOOK_IDS = [
+  "genesis",
+  "exodus",
+  "leviticus",
+  "numbers",
+  "deuteronomy",
+  "joshua",
+  "judges",
+  "ruth",
+  "1-samuel",
+  "2-samuel",
+  "1-kings",
+  "2-kings",
+  "1-chronicles",
+  "2-chronicles",
+  "ezra",
+  "nehemiah",
+  "esther",
+  "job",
+  "psalms",
+  "proverbs",
+  "ecclesiastes",
+  "song-of-songs",
+  "isaiah",
+  "jeremiah",
+  "lamentations",
+  "ezekiel",
+  "daniel",
+  "hosea",
+  "joel",
+  "amos",
+  "obadiah",
+  "jonah",
+  "micah",
+  "nahum",
+  "habakkuk",
+  "zephaniah",
+  "haggai",
+  "zechariah",
+  "malachi",
+] as const;
+
 export const CORPUS_CANDIDATES: CorpusIdentity[] = [
   {
     id: "sblgnt",
@@ -100,6 +143,7 @@ export const CORPUS_CANDIDATES: CorpusIdentity[] = [
 ];
 
 export const CORPUS_EDITIONS: CorpusEdition[] = [
+  BIBLIA_LIVRE_EDITION,
   {
     id: "sblgnt-1.2",
     corpusId: "sblgnt",
@@ -115,15 +159,15 @@ export const CORPUS_EDITIONS: CorpusEdition[] = [
     licenseId: "CC-BY-4.0",
   },
   {
-    id: "wlc-morphhb-candidate",
+    id: "wlc-oshb-2.2",
     corpusId: "wlc",
-    title: "WLC text distributed by Open Scriptures morphhb",
-    abbreviation: "WLC",
+    title: "Westminster Leningrad Codex with OSHB morphology 2.2",
+    abbreviation: "WLC/OSHB",
     language: "hbo",
     script: "Hebr",
     direction: "rtl",
     kind: "original-language",
-    licenseId: "public-domain",
+    licenseId: "public-domain-and-CC-BY-4.0",
   },
   {
     id: "oshb-morphology-candidate",
@@ -161,6 +205,7 @@ export const CORPUS_EDITIONS: CorpusEdition[] = [
 ];
 
 export const CORPUS_PACKAGE_CANDIDATES: CorpusPackageManifest[] = [
+  BIBLIA_LIVRE_PACKAGE,
   {
     id: "pkg-sblgnt-1.2-candidate",
     corpusId: "sblgnt",
@@ -248,52 +293,73 @@ export const CORPUS_PACKAGE_CANDIDATES: CorpusPackageManifest[] = [
     status: "bundled",
   },
   {
-    id: "pkg-wlc-morphhb-candidate",
+    id: "pkg-wlc-oshb-2.2",
     corpusId: "wlc",
-    editionId: "wlc-morphhb-candidate",
-    title: "WLC text from Open Scriptures morphhb",
-    shortName: "WLC text",
+    editionId: "wlc-oshb-2.2",
+    title: "Westminster Leningrad Codex with OSHB morphology 2.2",
+    shortName: "WLC/OSHB 2.2",
     language: "hbo",
     script: "Hebr",
     direction: "rtl",
     canonicalSource: "https://github.com/openscriptures/morphhb",
     sourceRepository: "https://github.com/openscriptures/morphhb",
+    version: "2.2",
+    revision: "6a5db284c715c18b239422e57bb89684e6a19f00",
+    acquisitionPlan: {
+      repository: "https://github.com/openscriptures/morphhb.git",
+      commitSha: "6a5db284c715c18b239422e57bb89684e6a19f00",
+      artifactRoot: "wlc",
+      artifactPattern: "*.xml",
+      expectedBookIds: [...OSHB_EXPECTED_BOOK_IDS],
+    },
     sourceArtifactIds: [],
     format: "osis",
-    versificationScheme: "unknown-pending-artifact-review",
+    versificationScheme: "oshb-wlc-2.2",
     rights: {
       id: "rights-wlc-morphhb",
       status: "verified",
       license: {
-        id: "public-domain",
-        name: "Public Domain declaration for WLC text",
-        status: "public-domain",
+        id: "public-domain-and-CC-BY-4.0",
+        name: "Public Domain WLC text with CC BY 4.0 OSHB annotations",
+        status: "open-license",
         redistributionAllowed: true,
         commercialUseAllowed: true,
-        attributionRequired: false,
+        attributionRequired: true,
         sourceUrl: "https://github.com/openscriptures/morphhb/blob/master/LICENSE.md",
         permissions: {
           redistribution: "yes",
           modification: "yes",
           commercialUse: "yes",
           shareAlike: "no",
-          attribution: "no",
+          attribution: "yes",
         },
       },
       declaredBy: "Open Scriptures Hebrew Bible Project",
       declaredAtSource: "https://github.com/openscriptures/morphhb/blob/master/LICENSE.md",
+      attribution: {
+        work: "Westminster Leningrad Codex text and Open Scriptures Hebrew Bible morphology",
+        authorsOrEditors: ["Open Scriptures Hebrew Bible Project"],
+        license: "WLC text: Public Domain; lemma and morphology: CC BY 4.0",
+        canonicalSource: "https://github.com/openscriptures/morphhb",
+        requiredText:
+          "Open Scriptures Hebrew Bible Project; WLC text is Public Domain and OSHB lemma/morphology data are CC BY 4.0.",
+      },
       evidence: [
         {
           id: "evidence-wlc-rights",
           sourceUrl: "https://github.com/openscriptures/morphhb/blob/master/LICENSE.md",
           sourceKind: "project-license",
           observedAt,
-          licenseId: "public-domain",
+          licenseId: "public-domain-and-CC-BY-4.0",
         },
       ],
     },
-    provenance: candidateProvenance,
-    contentCapabilities: ["verse-text", "tokens"],
+    provenance: {
+      acquisition: "bundled",
+      creationMethod: "machine-assisted",
+      note: "Generated reproducibly from the pinned morphhb v2.2 commit; source marks are preserved verbatim.",
+    },
+    contentCapabilities: ["verse-text", "tokens", "lemmas", "morphology", "strong-numbers"],
     integrity: pendingIntegrity,
     status: "candidate",
   },

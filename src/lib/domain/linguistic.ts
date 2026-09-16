@@ -8,10 +8,21 @@ export interface LexicalReference {
 }
 export interface Lexeme {
   id: string;
-  language: "grc";
+  language: "grc" | "hbo";
   lemmas: string[];
   lexicalReferences: LexicalReference[];
   sourceDatasetId: string;
+}
+export interface LexicalDictionaryEntry {
+  id: string;
+  language: string;
+  lemma: string;
+  transliteration?: string;
+  gloss: string;
+  definition?: string;
+  references: { system: string; value: string }[];
+  sourceId: string;
+  provenance: unknown;
 }
 export interface MorphologicalAnalysis {
   rawMorphologyCode: string;
@@ -34,12 +45,14 @@ export interface LinguisticAnnotation {
   sourceRecordId: string;
   targetTokenId: string;
   raw: {
-    greek: string;
-    lexicalGrammar: string;
-    lemma: string;
-    editions: string;
-    spelling: string;
-    strongInstance: string;
+    surface: string;
+    greek?: string;
+    lexicalGrammar?: string;
+    lemma?: string;
+    editions?: string;
+    spelling?: string;
+    strongInstance?: string;
+    morphology?: string;
   };
   normalized: {
     surface: string;

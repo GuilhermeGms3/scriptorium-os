@@ -1,0 +1,717 @@
+{
+  "schemaVersion": 1,
+  "packageId": "pkg-wlc-oshb-2.2",
+  "corpusId": "wlc",
+  "editionId": "wlc-oshb-2.2",
+  "repository": "https://github.com/openscriptures/morphhb.git",
+  "commitSha": "6a5db284c715c18b239422e57bb89684e6a19f00",
+  "retrievedAt": "2026-09-15T22:28:43.836Z",
+  "packageDigest": {
+    "algorithm": "SHA-256",
+    "value": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58"
+  },
+  "artifacts": [
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:1chr",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/1Chr.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/1Chr.xml",
+      "fileName": "1Chr.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "9e50336c089b93b6e94bd123c694b148bb239e1cd6fcad62d38cd9f3e17154c9"
+      },
+      "byteSize": 1026840
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:1kgs",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/1Kgs.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/1Kgs.xml",
+      "fileName": "1Kgs.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "69b006c141be62b4879c38a9df907028dea5ee1fa868418f0fc0906b9b2ea2d6"
+      },
+      "byteSize": 1203348
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:1sam",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/1Sam.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/1Sam.xml",
+      "fileName": "1Sam.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "457737cd25ebff3d94daa5c69739082d89c59dcbef9479e1a6dd382e4ea4b6a6"
+      },
+      "byteSize": 1220291
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:2chr",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/2Chr.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/2Chr.xml",
+      "fileName": "2Chr.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "abd82099ae68d73cc6423bad43c31d31889535ed121a30944e180009bfdfa4f8"
+      },
+      "byteSize": 1236409
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:2kgs",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/2Kgs.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/2Kgs.xml",
+      "fileName": "2Kgs.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "948078816e2b5d1284a29333bc74985b1e4f1564d965572a5623482bdb01a44b"
+      },
+      "byteSize": 1127860
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:2sam",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/2Sam.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/2Sam.xml",
+      "fileName": "2Sam.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "bf5f9cb431d83a32a3e74a3cfc0ea6ef1fc169979a3112d95402d659872424bf"
+      },
+      "byteSize": 1024881
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:amos",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Amos.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Amos.xml",
+      "fileName": "Amos.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "120d5985cae64cd1b3e3e72d8aa105a094b3118033e914458925535ebb3a13c1"
+      },
+      "byteSize": 204042
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:dan",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Dan.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Dan.xml",
+      "fileName": "Dan.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "a97d3e8714e249d5d596eefaa510c516148432e39a1e7cf5a1ed3fd42b52d66f"
+      },
+      "byteSize": 575742
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:deut",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Deut.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Deut.xml",
+      "fileName": "Deut.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "bfd3e792709e3f54e3029ff6adaff76ea469e40bca26c75e164a882ecc457daf"
+      },
+      "byteSize": 1330520
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:eccl",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Eccl.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Eccl.xml",
+      "fileName": "Eccl.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "28599b243d236813c5f4407ce477e9df1019cbbea88ba39ad4a95f1aec8ceccf"
+      },
+      "byteSize": 288538
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:esth",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Esth.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Esth.xml",
+      "fileName": "Esth.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "fe06c320b55a933535b2458d693d386c6521def9119dcab6e497c3f233f19669"
+      },
+      "byteSize": 295528
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:exod",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Exod.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Exod.xml",
+      "fileName": "Exod.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "7bf82d7f1e106a8e2ca5e7cf310f7883090b5974bb82cf0a314b79d1d6ef38e3"
+      },
+      "byteSize": 1541821
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:ezek",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Ezek.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Ezek.xml",
+      "fileName": "Ezek.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "aeea9e053fa00076ce1864e524d2f628fc26bbb9efaab7c32db2a65c134283e4"
+      },
+      "byteSize": 1744109
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:ezra",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Ezra.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Ezra.xml",
+      "fileName": "Ezra.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "9b440363686313b1fb2e678b01a73c402a386c27ff7c7fbd1645cb9aae608b61"
+      },
+      "byteSize": 374323
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:gen",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Gen.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Gen.xml",
+      "fileName": "Gen.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "87b6221b89ccd308a96b287efb4520397912a16fe0f8ce4f788a3b4c09d8f2a4"
+      },
+      "byteSize": 1881356
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:hab",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Hab.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Hab.xml",
+      "fileName": "Hab.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "c487d24435205956b447fcea9a4f8052e2611f5b005018ebbb4be173bb3a338b"
+      },
+      "byteSize": 80535
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:hag",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Hag.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Hag.xml",
+      "fileName": "Hag.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "cb059899e6d063b86cfc41f33fcd22acc3111ffe8e334aa050886f7f9290d517"
+      },
+      "byteSize": 72660
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:hos",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Hos.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Hos.xml",
+      "fileName": "Hos.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "c41dd88c81cdb4491642ea7857ba70a2e612dd123ca771dd2f933c16f15b30fb"
+      },
+      "byteSize": 239660
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:isa",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Isa.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Isa.xml",
+      "fileName": "Isa.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "7098b8e55846a0f11e77db727e318aa2c5518642e98510ef4eec78ce16080297"
+      },
+      "byteSize": 1567162
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:jer",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Jer.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Jer.xml",
+      "fileName": "Jer.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "38d3035b6caf08fc117488e6220377609c12c6097b07f9cae5a3109a041ee852"
+      },
+      "byteSize": 1999756
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:job",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Job.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Job.xml",
+      "fileName": "Job.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "67baadea46daf3437b35111cae1b0e16f23c7bdf171017e780d81ea5409bb41f"
+      },
+      "byteSize": 823550
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:joel",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Joel.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Joel.xml",
+      "fileName": "Joel.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "55a5c8be0d108f9defdbc7f0ad48e4501dda57817e3ac9a65e5e2113b05f06a7"
+      },
+      "byteSize": 106638
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:jonah",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Jonah.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Jonah.xml",
+      "fileName": "Jonah.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "80b5e7125619373bb2c14c604933c64fbb7f963f5c2c40917207a2564685f858"
+      },
+      "byteSize": 81563
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:josh",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Josh.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Josh.xml",
+      "fileName": "Josh.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "0746aec8a25028ae1351a0c067394a751b9f0bec697ee3753524a38dd74c8850"
+      },
+      "byteSize": 930206
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:judg",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Judg.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Judg.xml",
+      "fileName": "Judg.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "3776c56e26525c8ad3f010e04f5d820bd54f92f013489b45013da029d081c55f"
+      },
+      "byteSize": 914590
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:lam",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Lam.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Lam.xml",
+      "fileName": "Lam.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "b6ef04cb5f5a587322bfa096e76142f9f063cf6676d74a73a2fe29967149279f"
+      },
+      "byteSize": 169891
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:lev",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Lev.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Lev.xml",
+      "fileName": "Lev.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "4dcf89ef18a617f4d81c817ff50fbfe1278af8dede321f72ae87385c1acc1090"
+      },
+      "byteSize": 1097439
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:mal",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Mal.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Mal.xml",
+      "fileName": "Mal.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "c36e0ccf7a2e1a58d7316d0c84147e2aad5f54e29c5d5c471c9011e458a2840d"
+      },
+      "byteSize": 96961
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:mic",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Mic.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Mic.xml",
+      "fileName": "Mic.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "515ca759f7b1ec444c5c2ade2e5fc47703b4c27dcb5e7758b6883871c84617bf"
+      },
+      "byteSize": 147321
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:nah",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Nah.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Nah.xml",
+      "fileName": "Nah.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2a7d0984d0b341f02deac92fca62436d79a92363e6c2e732be7443253f3446ea"
+      },
+      "byteSize": 70778
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:neh",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Neh.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Neh.xml",
+      "fileName": "Neh.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "d185e842a9bb2f27476f492f707098f916a9dd5afb80fc80df6816851f661145"
+      },
+      "byteSize": 518888
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:num",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Num.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Num.xml",
+      "fileName": "Num.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "87d25127b76ce5ccf1bd3cb0f079a702ed400982081f8fc86e4d2a4cc53cf710"
+      },
+      "byteSize": 1514251
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:obad",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Obad.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Obad.xml",
+      "fileName": "Obad.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "b32a9a72cb954b11e398b1a590921310e6dafc2b3b36be8898fe8450e15440f4"
+      },
+      "byteSize": 45243
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:prov",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Prov.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Prov.xml",
+      "fileName": "Prov.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "17ae81143800fa85747a457836b05dee5bef290336a8050e04d5701e841a8c6c"
+      },
+      "byteSize": 687074
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:ps",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Ps.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Ps.xml",
+      "fileName": "Ps.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "6b4bc0eafff4787fc5dd10f5f3d4f753b132c71dc3d681818d8e73d95e74a6db"
+      },
+      "byteSize": 1949574
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:ruth",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Ruth.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Ruth.xml",
+      "fileName": "Ruth.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "198a5d07218940158b971802af88ff058e63f800aa6006f3ef4cb91717366b76"
+      },
+      "byteSize": 137834
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:song",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Song.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Song.xml",
+      "fileName": "Song.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "cf46cd98d03b7ecbe176ac767959eec20d134daa8e8956709f419c0537c88392"
+      },
+      "byteSize": 140340
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:zech",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Zech.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Zech.xml",
+      "fileName": "Zech.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "2ae177398c086398548e6453c959661f268b4f051890f6a5dbaaf58eba7de7a0"
+      },
+      "byteSize": 303791
+    },
+    {
+      "id": "artifact:pkg-wlc-oshb-2.2:zeph",
+      "packageId": "pkg-wlc-oshb-2.2",
+      "role": "source",
+      "repository": "https://github.com/openscriptures/morphhb.git",
+      "sourcePath": "wlc/Zeph.xml",
+      "sourceUrl": "https://github.com/openscriptures/morphhb/blob/6a5db284c715c18b239422e57bb89684e6a19f00/wlc/Zeph.xml",
+      "fileName": "Zeph.xml",
+      "mediaType": "application/xml",
+      "format": "osis",
+      "retrievedAt": "2026-09-15T22:28:43.836Z",
+      "sourceRevision": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "checksum": {
+        "algorithm": "SHA-256",
+        "value": "ad84ea11b6dc88b61a4c42d6a1fe5a1bae6236dd9cefc15e82987793b66f55ea"
+      },
+      "byteSize": 88424
+    }
+  ]
+}

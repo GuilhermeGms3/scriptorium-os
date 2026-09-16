@@ -17,6 +17,13 @@ import {
   tagntEdition,
   tagntImportedDataset,
 } from "./tagnt-registration";
+import { BIBLIA_LIVRE_PACKAGE_ID } from "../corpus-config/biblia-livre";
+import {
+  bibliaLivreArtifacts,
+  bibliaLivreImportedDataset,
+  bibliaLivreTransformations,
+  installedBibliaLivrePackage,
+} from "./biblia-livre-registration";
 import {
   CORPUS_CANDIDATES,
   CORPUS_EDITIONS,
@@ -203,6 +210,19 @@ export class CorpusRegistry {
     return this.#artifacts.get(id) ?? null;
   }
 
+  listArtifacts(packageId?: string): SourceArtifact[] {
+    const artifacts = [...this.#artifacts.values()];
+    return packageId ? artifacts.filter((artifact) => artifact.packageId === packageId) : artifacts;
+  }
+
+  getTransformation(id: string): CorpusTransformation | null {
+    return this.#transformations.get(id) ?? null;
+  }
+
+  getDataset(id: string): ImportedDatasetReference | null {
+    return this.#datasets.get(id) ?? null;
+  }
+
   getRightsStatus(packageId: string): RightsStatus | null {
     return this.#packages.get(packageId)?.rights.status ?? null;
   }
@@ -217,8 +237,16 @@ export class CorpusRegistry {
 export const corpusRegistry = new CorpusRegistry({
   corpora: [...CORPUS_CANDIDATES, tagntCorpus],
   editions: [...CORPUS_EDITIONS, tagntEdition],
-  packages: [...CORPUS_PACKAGE_CANDIDATES, installedTagntPackage],
-  artifacts: [...SOURCE_ARTIFACTS, ...tagntDataset.artifacts],
-  transformations: [...CORPUS_TRANSFORMATIONS, ...tagntDataset.transformations],
-  datasets: [...IMPORTED_DATASETS, tagntImportedDataset],
+  packages: [
+    ...CORPUS_PACKAGE_CANDIDATES.filter((p) => p.id !== BIBLIA_LIVRE_PACKAGE_ID),
+    installedBibliaLivrePackage,
+    installedTagntPackage,
+  ],
+  artifacts: [...SOURCE_ARTIFACTS, ...bibliaLivreArtifacts, ...tagntDataset.artifacts],
+  transformations: [
+    ...CORPUS_TRANSFORMATIONS,
+    ...bibliaLivreTransformations,
+    ...tagntDataset.transformations,
+  ],
+  datasets: [...IMPORTED_DATASETS, bibliaLivreImportedDataset, tagntImportedDataset],
 });

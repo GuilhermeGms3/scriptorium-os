@@ -5,18 +5,15 @@
  */
 
 import { ArrowUpRight, BookOpen } from "lucide-react";
-import type { LibraryResource } from "../../lib/domain/library";
 import type { SourceFragment, SourceReference } from "../../lib/domain/source";
 import { languageLabel, provenanceLabel, statusLabel, t } from "../../lib/i18n";
 
 export function SourceReferenceCard({
   source,
   fragment,
-  resource,
 }: {
   source: SourceReference;
   fragment?: SourceFragment | undefined;
-  resource?: LibraryResource | undefined;
 }) {
   return (
     <figure className="rounded-md border border-border bg-muted/30 p-3">
@@ -44,9 +41,9 @@ export function SourceReferenceCard({
             <span>· {provenanceLabel(source.provenance.creationMethod)}</span>
             <span>
               ·{" "}
-              {resource?.license?.status
-                ? statusLabel(resource.license.status)
-                : (resource?.license?.name ?? t("source.licenseUnknown"))}
+              {source.license?.status
+                ? statusLabel(source.license.status)
+                : (source.license?.name ?? t("source.licenseUnknown"))}
             </span>
           </p>
           {source.url && (

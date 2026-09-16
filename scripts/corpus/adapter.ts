@@ -19,6 +19,7 @@ export interface NormalizedCorpusBook {
   sourcePath: string;
   chapters: GeneratedChapterShard[];
   warnings: string[];
+  structuralCounts?: { paragraphs: number; headings: number; notes: number };
 }
 
 export interface CorpusAdapter {

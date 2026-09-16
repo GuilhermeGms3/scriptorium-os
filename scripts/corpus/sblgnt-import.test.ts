@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import acquired from "../../corpora/source/sblgnt/736fdc76158950c3d04b949b7e013ca14305145a/artifact-manifest.json";
 import generated from "../../generated/corpora/sblgnt/1.2/manifest.json";
+import generatedMatthew from "../../generated/corpora/sblgnt/1.2/books/matthew/01.json";
 import type { GeneratedCorpusManifest } from "../../src/lib/domain/generated-corpus";
 import { ScriptureKnowledgeEngine } from "../../src/lib/knowledge-engine/scripture-knowledge-engine";
 import { corpusRegistry } from "../../src/lib/repositories/corpus-registry";
@@ -70,7 +71,7 @@ describe("full SBLGNT 1.2 import", () => {
       chapter: 1,
       verseStart: 1,
       verseEnd: 5,
-      versification: "sblgnt-1.2",
+      versificationSchemeId: "scriptorium-bcv-1",
     })!;
 
     expect(bundle.passage.verses).toHaveLength(5);
@@ -86,7 +87,9 @@ describe("full SBLGNT 1.2 import", () => {
       editionId: "sblgnt-1.2",
       position: 1,
     });
-    expect(bundle.provenance).toMatchObject({
+    expect(
+      bundle.texts.find((layer) => layer.editionId === "sblgnt-1.2")?.provenance,
+    ).toMatchObject({
       packageId: manifest.packageId,
       datasetId: manifest.datasetId,
       sourceArtifactIds: ["artifact:sblgnt:1.2:john"],
@@ -94,9 +97,8 @@ describe("full SBLGNT 1.2 import", () => {
     expect(bundle.provenance.isDemo).not.toBe(true);
   });
 
-  it("keeps lexical and morphological claims absent when the XML does not supply them", async () => {
-    const chapter = await ScriptureRepository.loadChapter("matthew", 1);
-    const token = chapter!.verses[0]!.original![0]!;
+  it("keeps lexical and morphological claims out of the textual SBLGNT derivative", () => {
+    const token = generatedMatthew.verses[0]!.original![0]!;
     expect(token.surface).toBe("Βίβλος");
     expect(token).not.toHaveProperty("lemma");
     expect(token).not.toHaveProperty("gloss");

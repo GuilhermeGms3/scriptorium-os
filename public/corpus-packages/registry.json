@@ -1,0 +1,1702 @@
+{
+  "schemaVersion": 1,
+  "packages": [
+    {
+      "schemaVersion": 11,
+      "id": "runtime:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+      "corpusId": "biblia-livre",
+      "editionId": "biblia-livre-n4-2025.1.0",
+      "version": "a315a15e9f4d01883b62206fe441d57762f126b3",
+      "title": "Bíblia Livre N4 2025.1.0",
+      "abbreviation": "BLIVRE",
+      "works": [
+        "work:genesis",
+        "work:exodus",
+        "work:leviticus",
+        "work:numbers",
+        "work:deuteronomy",
+        "work:joshua",
+        "work:judges",
+        "work:ruth",
+        "work:1-samuel",
+        "work:2-samuel",
+        "work:1-kings",
+        "work:2-kings",
+        "work:1-chronicles",
+        "work:2-chronicles",
+        "work:ezra",
+        "work:nehemiah",
+        "work:esther",
+        "work:job",
+        "work:psalms",
+        "work:proverbs",
+        "work:ecclesiastes",
+        "work:song-of-songs",
+        "work:isaiah",
+        "work:jeremiah",
+        "work:lamentations",
+        "work:ezekiel",
+        "work:daniel",
+        "work:hosea",
+        "work:joel",
+        "work:amos",
+        "work:obadiah",
+        "work:jonah",
+        "work:micah",
+        "work:nahum",
+        "work:habakkuk",
+        "work:zephaniah",
+        "work:haggai",
+        "work:zechariah",
+        "work:malachi",
+        "work:matthew",
+        "work:mark",
+        "work:luke",
+        "work:john",
+        "work:acts",
+        "work:romans",
+        "work:1-corinthians",
+        "work:2-corinthians",
+        "work:galatians",
+        "work:ephesians",
+        "work:philippians",
+        "work:colossians",
+        "work:1-thessalonians",
+        "work:2-thessalonians",
+        "work:1-timothy",
+        "work:2-timothy",
+        "work:titus",
+        "work:philemon",
+        "work:hebrews",
+        "work:james",
+        "work:1-peter",
+        "work:2-peter",
+        "work:1-john",
+        "work:2-john",
+        "work:3-john",
+        "work:jude",
+        "work:revelation"
+      ],
+      "languages": [
+        "pt-BR"
+      ],
+      "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0.sqlite3",
+      "checksum": "240f46341ea49df473d61022b7afba5324dd6a010f3c0b75151064424abefbe4",
+      "sourceChecksum": "8ec95eabb3a03f017cec34eeb6571dab09893478027c5b46b1774fa5c7c6b94e",
+      "sizeBytes": 119304192,
+      "downloadSizeBytes": 194273280,
+      "storageSizeBytes": 194273280,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/biblia-livre-n4-2025.1.0.sqlite3",
+      "dependencies": [],
+      "parts": [
+        {
+          "id": "biblia-livre-n4-2025.1.0:genesis",
+          "workId": "work:genesis",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/genesis.sqlite3",
+          "checksum": "0867ffacdec34b72a2761511078b3e30233215680fb5c1c0379b22589657fc2b",
+          "sizeBytes": 5939200
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:exodus",
+          "workId": "work:exodus",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/exodus.sqlite3",
+          "checksum": "a76c494124524becca72a6ce8d215da58b737c145bcf188e367b7cfb648f135a",
+          "sizeBytes": 4849664
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:leviticus",
+          "workId": "work:leviticus",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/leviticus.sqlite3",
+          "checksum": "5ad7870c03000c0bc1d3623d803d6889d84d7177f4a7331e96b30cf0fc5b2075",
+          "sizeBytes": 3674112
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:numbers",
+          "workId": "work:numbers",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/numbers.sqlite3",
+          "checksum": "bd5b33664809f3548f4e569f4f5e87ea8c6fa571ac1a4e5279457e509f8d86e4",
+          "sizeBytes": 5079040
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:deuteronomy",
+          "workId": "work:deuteronomy",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/deuteronomy.sqlite3",
+          "checksum": "ccc5eff51c494471bb2abab8b00ebe65ffbc9a030910315444c8ee5aa0476c0b",
+          "sizeBytes": 4124672
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:joshua",
+          "workId": "work:joshua",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/joshua.sqlite3",
+          "checksum": "844a83d4045da850031865b2d9c5356d988e193215298a2c279bb44f547e26af",
+          "sizeBytes": 2916352
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:judges",
+          "workId": "work:judges",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/judges.sqlite3",
+          "checksum": "3227f751e5012466c7558041439dcdd89b3de4a5c107cf1db68b3b3e0bce7557",
+          "sizeBytes": 2822144
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:ruth",
+          "workId": "work:ruth",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/ruth.sqlite3",
+          "checksum": "1b798d8398a4af334c10dbacf5132b4292777e43e53ef718bf91bc8ba9135aca",
+          "sizeBytes": 827392
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-samuel",
+          "workId": "work:1-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-samuel.sqlite3",
+          "checksum": "f0f702bd15c7aed05af5e7e18d42444ed8e722867fcdb5e397168cd4a0ba6393",
+          "sizeBytes": 3563520
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-samuel",
+          "workId": "work:2-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-samuel.sqlite3",
+          "checksum": "2394218eac61f3f8496d33fbb88b7da0ff6884db21c27d037e45ccf499f88092",
+          "sizeBytes": 3096576
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-kings",
+          "workId": "work:1-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-kings.sqlite3",
+          "checksum": "a58bd8b05a813ec4629cdfee24b02e6b06cf220d2f87d2972f59d91451549e1a",
+          "sizeBytes": 3563520
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-kings",
+          "workId": "work:2-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-kings.sqlite3",
+          "checksum": "287c91e4a89898f9d2614538f45c5bf4196aa74d63ca4b884c63030142f831ce",
+          "sizeBytes": 3231744
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-chronicles",
+          "workId": "work:1-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-chronicles.sqlite3",
+          "checksum": "394f538e6e9f101111500c31dc82b91d59832a46ce1df2d7f208e95d28b03f2b",
+          "sizeBytes": 3923968
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-chronicles",
+          "workId": "work:2-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-chronicles.sqlite3",
+          "checksum": "7d1ab3fe23220c251b38e169004cbaa29714178c5025529e50857aa18ba02c6d",
+          "sizeBytes": 3719168
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:ezra",
+          "workId": "work:ezra",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/ezra.sqlite3",
+          "checksum": "4b4b12612ec998d12b49d86257dd9d10e4f809d23df8d48b0143246aa193ea39",
+          "sizeBytes": 1523712
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:nehemiah",
+          "workId": "work:nehemiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/nehemiah.sqlite3",
+          "checksum": "b65ec93d7b33ee9014d3f13b8296d341d0daca3cdae2269fa9ac20aeb0ab0c20",
+          "sizeBytes": 2007040
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:esther",
+          "workId": "work:esther",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/esther.sqlite3",
+          "checksum": "772fc9f127fad609da9da1baddad4eb8d4f3d890b3bf964a43ebcefdfcb26890",
+          "sizeBytes": 1171456
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:job",
+          "workId": "work:job",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/job.sqlite3",
+          "checksum": "2cf8925aed881072229fd7ae959980b50c80010464e5b106d8f897f04740d60d",
+          "sizeBytes": 3936256
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:psalms",
+          "workId": "work:psalms",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/psalms.sqlite3",
+          "checksum": "3f91825003a98d66a8a9ee2b431a2e5060b051ea02cf12e088f4016353416cea",
+          "sizeBytes": 8708096
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:proverbs",
+          "workId": "work:proverbs",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/proverbs.sqlite3",
+          "checksum": "ca4423650af0098ad086521b99fb89450951e8de9cb4907a9d0cda079943c462",
+          "sizeBytes": 3600384
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:ecclesiastes",
+          "workId": "work:ecclesiastes",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/ecclesiastes.sqlite3",
+          "checksum": "042d575cd7e02db87cfba60787704cf0bc876f0f3a4554f231b1a459def115bb",
+          "sizeBytes": 1355776
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:song-of-songs",
+          "workId": "work:song-of-songs",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/song-of-songs.sqlite3",
+          "checksum": "fad0cba9f6117a953cb9656fd82ff83af6bfdafb9eb3af1bb6837b85a41929a3",
+          "sizeBytes": 966656
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:isaiah",
+          "workId": "work:isaiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/isaiah.sqlite3",
+          "checksum": "55fc6e432b2a27de939fc8e0bb0e9a363cb15d58583ff72e48a69356e85850c9",
+          "sizeBytes": 5296128
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:jeremiah",
+          "workId": "work:jeremiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/jeremiah.sqlite3",
+          "checksum": "93d0d7d4a7bcc9de0426b820b1b1f31504f51822bfeb1975195d972353e28ae2",
+          "sizeBytes": 5689344
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:lamentations",
+          "workId": "work:lamentations",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/lamentations.sqlite3",
+          "checksum": "d2a70b056cf7d4d4511fc0b4f47d99848d41785764472fd47529bbb5f0d6da8c",
+          "sizeBytes": 1093632
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:ezekiel",
+          "workId": "work:ezekiel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/ezekiel.sqlite3",
+          "checksum": "c50d0dd20652cbeb84a7031bc92e10d0aedf401a0cc6e063bbc6e33b75a8b431",
+          "sizeBytes": 5271552
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:daniel",
+          "workId": "work:daniel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/daniel.sqlite3",
+          "checksum": "5ab101ff21bcf2f1861aa105f19ecd10e30fc12b6f1f998fa51915abb76fd609",
+          "sizeBytes": 1871872
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:hosea",
+          "workId": "work:hosea",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/hosea.sqlite3",
+          "checksum": "66f5fcf763299f2e09593c3558201eea664889b426762255fc00ab0079043991",
+          "sizeBytes": 1236992
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:joel",
+          "workId": "work:joel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/joel.sqlite3",
+          "checksum": "6c4f489be8510ae93ef7caed865465e7337ea0b14f103c9c6671760f1adc8353",
+          "sizeBytes": 770048
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:amos",
+          "workId": "work:amos",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/amos.sqlite3",
+          "checksum": "cb7d788c9b8107295ac1df5b55d4c07551ae347428fb9346cfa5590149551754",
+          "sizeBytes": 1048576
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:obadiah",
+          "workId": "work:obadiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/obadiah.sqlite3",
+          "checksum": "6af741687026e08fe222a70a3dea1c01ab48df5c03ada1532423620d5124238b",
+          "sizeBytes": 589824
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:jonah",
+          "workId": "work:jonah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/jonah.sqlite3",
+          "checksum": "6595c48556bbd98d1f14860bc0c45087c7c9821fe22937cfcfb0c022840eae7c",
+          "sizeBytes": 684032
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:micah",
+          "workId": "work:micah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/micah.sqlite3",
+          "checksum": "817867347123a1eedfa3ed5d96392323d9d3d2ecf3a78aaf7e9385338390ecc9",
+          "sizeBytes": 921600
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:nahum",
+          "workId": "work:nahum",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/nahum.sqlite3",
+          "checksum": "1884da13f968a4a72d2fec5cbd92011d98cc57a3a7721fe0bbc8c027297e790f",
+          "sizeBytes": 692224
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:habakkuk",
+          "workId": "work:habakkuk",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/habakkuk.sqlite3",
+          "checksum": "ade4602579bb931dde4943d6fdad0422ac9938f6fb2601bc75e99c21c1ae6ec1",
+          "sizeBytes": 720896
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:zephaniah",
+          "workId": "work:zephaniah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/zephaniah.sqlite3",
+          "checksum": "981f8a45f51f78cc5e7c7d5bc33337b5eface31121af3e464e27b7a454639429",
+          "sizeBytes": 716800
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:haggai",
+          "workId": "work:haggai",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/haggai.sqlite3",
+          "checksum": "a8832270e950447e8f50aa0902f2f2b131ae69dfa3c41bcab6284d4f024bba82",
+          "sizeBytes": 647168
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:zechariah",
+          "workId": "work:zechariah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/zechariah.sqlite3",
+          "checksum": "bc3f2dede1780d033fd4b0a67b8584d86d0d0d91b5f77b07961c2dd680efb7ee",
+          "sizeBytes": 1327104
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:malachi",
+          "workId": "work:malachi",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/malachi.sqlite3",
+          "checksum": "3de055c019c9e1e672f51fc1c37b5854f45383bdd7360b658ea2460b94417282",
+          "sizeBytes": 720896
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:matthew",
+          "workId": "work:matthew",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/matthew.sqlite3",
+          "checksum": "42be3d1b446119500797af5627a4e3444c6d8ee16757bd99e6e3a15366c576f7",
+          "sizeBytes": 4243456
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:mark",
+          "workId": "work:mark",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/mark.sqlite3",
+          "checksum": "ff3480122fbd6c4c29b8cfb09072a84a0b6ad4afa89e2bed0cb7030bca50ccda",
+          "sizeBytes": 2826240
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:luke",
+          "workId": "work:luke",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/luke.sqlite3",
+          "checksum": "8ce7d622477181a6bdbd3c7304a2c60015355e435a5c70cf58d2d2b456bb7340",
+          "sizeBytes": 4448256
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:john",
+          "workId": "work:john",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/john.sqlite3",
+          "checksum": "a29b8fa55e3a5d0ed54869f3615010b05b65a04f890eeb7255b551c6197465c4",
+          "sizeBytes": 3510272
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:acts",
+          "workId": "work:acts",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/acts.sqlite3",
+          "checksum": "786862940c2c2cb64e159bcb8b13ddf28bf348b37c4e06b6fca28fde5d18ae17",
+          "sizeBytes": 4075520
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:romans",
+          "workId": "work:romans",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/romans.sqlite3",
+          "checksum": "30d942681e75014059897bfd82af24c9275f39d66e05d5ae023efee9cab5b18f",
+          "sizeBytes": 2043904
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-corinthians",
+          "workId": "work:1-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-corinthians.sqlite3",
+          "checksum": "78e8950e79dab2dab7b375cfb27a3baf909b405b6a48893b39b21524cc3a8a75",
+          "sizeBytes": 2138112
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-corinthians",
+          "workId": "work:2-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-corinthians.sqlite3",
+          "checksum": "c1c54f3d7b84f26e5d5d6852eef567febc3f1d467c6749c2837974afe6dd6096",
+          "sizeBytes": 1503232
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:galatians",
+          "workId": "work:galatians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/galatians.sqlite3",
+          "checksum": "3e7810ce46665d58fc5993e7ecb21c41c5006e680e0803f2ee9982e075f1eb7e",
+          "sizeBytes": 1060864
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:ephesians",
+          "workId": "work:ephesians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/ephesians.sqlite3",
+          "checksum": "2981d38dd1c9906fd2025a651d396370aebf0caec5f2171034ad86f428f91cee",
+          "sizeBytes": 1069056
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:philippians",
+          "workId": "work:philippians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/philippians.sqlite3",
+          "checksum": "fd746e8e36156bbed2aca4a90a5336a5bf3c957a10956901645ed3d86fe62c28",
+          "sizeBytes": 909312
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:colossians",
+          "workId": "work:colossians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/colossians.sqlite3",
+          "checksum": "46f592ac2e310fe0f64266ad19abb59a2684eae0f078a02b3a9a34eb25e30428",
+          "sizeBytes": 880640
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-thessalonians",
+          "workId": "work:1-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-thessalonians.sqlite3",
+          "checksum": "16e395ed938442470956d716049f05ea53bcd0bad8377776f2f24903235f17f7",
+          "sizeBytes": 872448
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-thessalonians",
+          "workId": "work:2-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-thessalonians.sqlite3",
+          "checksum": "cd62672546345d7a486cd059663d8fe674e10b8245eca90198efde57d4e2f81f",
+          "sizeBytes": 688128
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-timothy",
+          "workId": "work:1-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-timothy.sqlite3",
+          "checksum": "fc288eda2a6523719681a7235e14dc1e0eb8d103c06199d0d85295c2faab8cdc",
+          "sizeBytes": 933888
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-timothy",
+          "workId": "work:2-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-timothy.sqlite3",
+          "checksum": "cfb513ad92e451cf7a90f2c779b8887e31eec151657be022b0fc2f6244645bd5",
+          "sizeBytes": 815104
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:titus",
+          "workId": "work:titus",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/titus.sqlite3",
+          "checksum": "2edd8c13f1ae0df9ba19cb39fc3561c70d7c1a4927db1cdf53327ee69abca226",
+          "sizeBytes": 684032
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:philemon",
+          "workId": "work:philemon",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/philemon.sqlite3",
+          "checksum": "6f37c044ff1aa8e05445a35fbad8384e1b60e7dc22daa822d62a9f9863e24692",
+          "sizeBytes": 593920
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:hebrews",
+          "workId": "work:hebrews",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/hebrews.sqlite3",
+          "checksum": "7f9f944ff61f554fd74a5a1de27f6281da51853624a71a3e12fe8e87a043006d",
+          "sizeBytes": 1622016
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:james",
+          "workId": "work:james",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/james.sqlite3",
+          "checksum": "699fc7c7659e8c572a6258abc71ef768abab1ed4fa9925fce99a828a18ba7f86",
+          "sizeBytes": 913408
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-peter",
+          "workId": "work:1-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-peter.sqlite3",
+          "checksum": "32ff2c16b07428c890aabeb58aa235e4e60bd238bbff3002036277a7e270286f",
+          "sizeBytes": 913408
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-peter",
+          "workId": "work:2-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-peter.sqlite3",
+          "checksum": "ec9706e2a52d5d5dc79bbfa0e19725611f744dc15936d323f5a415080fd1b8aa",
+          "sizeBytes": 745472
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:1-john",
+          "workId": "work:1-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/1-john.sqlite3",
+          "checksum": "1c023ec81f2cd7f3c92dbbbb09f8ffc320a94c706900ef7365552f6986b7fab4",
+          "sizeBytes": 897024
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:2-john",
+          "workId": "work:2-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/2-john.sqlite3",
+          "checksum": "e5bc53ef4fd3fe26c2e93d726622976fed43e83ed0dcb584bfec4cd41682b936",
+          "sizeBytes": 536576
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:3-john",
+          "workId": "work:3-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/3-john.sqlite3",
+          "checksum": "aedcda301132eb65c8ab1ef4d94db273dda91623e96bd5ac66ab50742e764d5a",
+          "sizeBytes": 540672
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:jude",
+          "workId": "work:jude",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/jude.sqlite3",
+          "checksum": "f643cbac034f7e250b903e128ef07fa01f145c7a595b77fafd2d6a9226583734",
+          "sizeBytes": 598016
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:revelation",
+          "workId": "work:revelation",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/revelation.sqlite3",
+          "checksum": "202a9909a461f317d303f66f312a49b26b8e8a6cce21539304a242e53f0322b2",
+          "sizeBytes": 2064384
+        },
+        {
+          "id": "biblia-livre-n4-2025.1.0:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0/search.sqlite3",
+          "checksum": "bf5ef239bd7c86e4ff54052e4af46d94643db9f2c35fa598b0d57153c944688d",
+          "sizeBytes": 48246784
+        }
+      ],
+      "versificationSchemeId": "biblia-livre-f4-canonical-audit",
+      "rights": {
+        "license": "CC-BY-3.0-BR",
+        "redistribution": "allowed",
+        "attribution": "Todas as Escrituras em português citadas são da Bíblia Livre (BLIVRE), Copyright © Diego Santos, Mario Sérgio, e Marco Teles, http://sites.google.com/site/biblialivre/ — versão 2025.1.0. Licença Creative Commons Atribuição 3.0 Brasil (http://creativecommons.org/licenses/by/3.0/br/). Reprodução permitida desde que devidamente mencionados fonte e autores. Scriptorium: conversão técnica F4 para shards JSON; o texto não foi traduzido nem alinhado por palavras."
+      },
+      "provenance": {
+        "packageId": "biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3",
+        "datasetId": "dataset:biblia-livre:2025.1.0:8ec95eabb3a03f017cec34eeb6571dab09893478027c5b46b1774fa5c7c6b94e",
+        "sourceArtifactIds": [
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:licenca",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:readme",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1cor",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1crn",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1joao",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1ped",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1rs",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1sa",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1tes",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:1tim",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2cor",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2crn",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2joao",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2ped",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2rs",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2sa",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2tes",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:2tim",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:3joao",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ageu",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:amos",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:apo",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:atos",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:cant",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:col",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:dan",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:deut",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ecl",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:efes",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:esd",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:est",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:exod",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:eze",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:fil",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:flm",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:gal",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:gen",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:hab",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:heb",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:isa",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jer",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jo",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:joao",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:joel",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jon",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jos",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:jud",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:juiz",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:lam",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:lev",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:luc",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mal",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mar",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:mat",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:miq",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:naum",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:nee",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:num",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:oba",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:ose",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:prov",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:rom",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:rute",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:sal",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:sof",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:tiag",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:tito",
+          "artifact:biblia-livre-official-a315a15e9f4d01883b62206fe441d57762f126b3:zac"
+        ],
+        "transformationIds": [
+          "transformation:biblia-livre:1.0.0:parse-source",
+          "transformation:biblia-livre:1.0.0:chapter-shards"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:pkg-sblgnt-1.2-candidate",
+      "corpusId": "sblgnt",
+      "editionId": "sblgnt-1.2",
+      "version": "736fdc76158950c3d04b949b7e013ca14305145a",
+      "title": "SBL Greek New Testament 1.2",
+      "abbreviation": "SBLGNT",
+      "works": [
+        "work:matthew",
+        "work:mark",
+        "work:luke",
+        "work:john",
+        "work:acts",
+        "work:romans",
+        "work:1-corinthians",
+        "work:2-corinthians",
+        "work:galatians",
+        "work:ephesians",
+        "work:philippians",
+        "work:colossians",
+        "work:1-thessalonians",
+        "work:2-thessalonians",
+        "work:1-timothy",
+        "work:2-timothy",
+        "work:titus",
+        "work:philemon",
+        "work:hebrews",
+        "work:james",
+        "work:1-peter",
+        "work:2-peter",
+        "work:1-john",
+        "work:2-john",
+        "work:3-john",
+        "work:jude",
+        "work:revelation"
+      ],
+      "languages": [
+        "grc"
+      ],
+      "databasePath": "/corpus-packages/sblgnt-1.2.sqlite3",
+      "checksum": "bcda2b582788a5e50967e789c95cb21c125d1557ea72e616c63f53e1025be7a5",
+      "sourceChecksum": "9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d",
+      "sizeBytes": 267145216,
+      "downloadSizeBytes": 355893248,
+      "storageSizeBytes": 355893248,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/sblgnt-1.2.sqlite3",
+      "dependencies": [],
+      "parts": [
+        {
+          "id": "sblgnt-1.2:matthew",
+          "workId": "work:matthew",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/matthew.sqlite3",
+          "checksum": "4965f17f5c681a928c0f81328ad0179cd60d8ee47e0eb47738bf63d77452ec22",
+          "sizeBytes": 34500608
+        },
+        {
+          "id": "sblgnt-1.2:mark",
+          "workId": "work:mark",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/mark.sqlite3",
+          "checksum": "e153a079b55ed3791666702ccd47659170b4f024b0e0b6d034758f5d4b8135c7",
+          "sizeBytes": 21127168
+        },
+        {
+          "id": "sblgnt-1.2:luke",
+          "workId": "work:luke",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/luke.sqlite3",
+          "checksum": "ecf9fa1e1df1fded6e898e542feaffe0c2efe55b23b9930746aebe0a64fe04ca",
+          "sizeBytes": 36192256
+        },
+        {
+          "id": "sblgnt-1.2:john",
+          "workId": "work:john",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/john.sqlite3",
+          "checksum": "fa40b444bb8b897e897a0d33f1d432167dd9370428d6e08565bbed863130ee3b",
+          "sizeBytes": 28803072
+        },
+        {
+          "id": "sblgnt-1.2:acts",
+          "workId": "work:acts",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/acts.sqlite3",
+          "checksum": "d522f3a72e3816c325a0703f5e71f1106fa7d0ab37566d79bf3dd889215c2425",
+          "sizeBytes": 34316288
+        },
+        {
+          "id": "sblgnt-1.2:romans",
+          "workId": "work:romans",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/romans.sqlite3",
+          "checksum": "078b88eb4bab89fe42132c6ae9c503fb095a6dd623e08b96ac8e9c1c194ffd9b",
+          "sizeBytes": 13557760
+        },
+        {
+          "id": "sblgnt-1.2:1-corinthians",
+          "workId": "work:1-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/1-corinthians.sqlite3",
+          "checksum": "d7c945ba4ce70a4a46489d67dde1515f0be6a3c71c2ae14458edc52c699916fb",
+          "sizeBytes": 13438976
+        },
+        {
+          "id": "sblgnt-1.2:2-corinthians",
+          "workId": "work:2-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/2-corinthians.sqlite3",
+          "checksum": "439997b64d2e908962bd5fd478979caf9d0a59bfc73827bca15888b4b75ce980",
+          "sizeBytes": 8990720
+        },
+        {
+          "id": "sblgnt-1.2:galatians",
+          "workId": "work:galatians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/galatians.sqlite3",
+          "checksum": "620272509461139d7069c3d94fe2d88a5a7ad8351f477bfa17b6f8ce3e076834",
+          "sizeBytes": 4710400
+        },
+        {
+          "id": "sblgnt-1.2:ephesians",
+          "workId": "work:ephesians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/ephesians.sqlite3",
+          "checksum": "c157cc27be5401f1a8db508e6dc149d3df5036be83c66fcf393cc621ad962cd7",
+          "sizeBytes": 5050368
+        },
+        {
+          "id": "sblgnt-1.2:philippians",
+          "workId": "work:philippians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/philippians.sqlite3",
+          "checksum": "677f0f37435a0c1320099c8996dc1874fa6cd209da0f3fad3f8171948d45758d",
+          "sizeBytes": 3584000
+        },
+        {
+          "id": "sblgnt-1.2:colossians",
+          "workId": "work:colossians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/colossians.sqlite3",
+          "checksum": "3d5c555a9acb2c06a64776fefae4bb96645574d5ce2d5050d57312f5d300e705",
+          "sizeBytes": 3481600
+        },
+        {
+          "id": "sblgnt-1.2:1-thessalonians",
+          "workId": "work:1-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/1-thessalonians.sqlite3",
+          "checksum": "362eeb3c99e7bce34b78e15417b573bcf903ef80881b71a870555195bef47edd",
+          "sizeBytes": 3334144
+        },
+        {
+          "id": "sblgnt-1.2:2-thessalonians",
+          "workId": "work:2-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/2-thessalonians.sqlite3",
+          "checksum": "fa67ab15e5320894e33055be14ec3cedda11303e0db90ac45f4018f672129cf1",
+          "sizeBytes": 2072576
+        },
+        {
+          "id": "sblgnt-1.2:1-timothy",
+          "workId": "work:1-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/1-timothy.sqlite3",
+          "checksum": "7390c141abe74970e20a78930ff982be92abf50f4fdc3e2e149812cd5208cb39",
+          "sizeBytes": 3538944
+        },
+        {
+          "id": "sblgnt-1.2:2-timothy",
+          "workId": "work:2-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/2-timothy.sqlite3",
+          "checksum": "f280d7a95f5ad6eda0885d035b62876f1bd022193b4f8ac2e5143e1c54642f23",
+          "sizeBytes": 2863104
+        },
+        {
+          "id": "sblgnt-1.2:titus",
+          "workId": "work:titus",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/titus.sqlite3",
+          "checksum": "cfb0bfd96c8f9782aee7dfa1c1432ec603060b27431edaa327ed4f667d7bbfd2",
+          "sizeBytes": 1753088
+        },
+        {
+          "id": "sblgnt-1.2:philemon",
+          "workId": "work:philemon",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/philemon.sqlite3",
+          "checksum": "792b6f2742ea75d03e1e830202d585df0145c378f38a347333b68818d551028d",
+          "sizeBytes": 1138688
+        },
+        {
+          "id": "sblgnt-1.2:hebrews",
+          "workId": "work:hebrews",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/hebrews.sqlite3",
+          "checksum": "a79921226ccd0861ca71a57ffbed1aa617f4cccf5079df9a66f36a7f05c7dc48",
+          "sizeBytes": 9764864
+        },
+        {
+          "id": "sblgnt-1.2:james",
+          "workId": "work:james",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/james.sqlite3",
+          "checksum": "711e36654dbcb248e8b627930f9c2c9e91bb95b2d63f1dd92e4de191d1f0c66b",
+          "sizeBytes": 3727360
+        },
+        {
+          "id": "sblgnt-1.2:1-peter",
+          "workId": "work:1-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/1-peter.sqlite3",
+          "checksum": "d2e832cdf9dc0959ca6b39a81d919b0c23f7b13126720a195dfa912e98e04cc5",
+          "sizeBytes": 3678208
+        },
+        {
+          "id": "sblgnt-1.2:2-peter",
+          "workId": "work:2-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/2-peter.sqlite3",
+          "checksum": "348eedbbc6c6654a5a6765f4c664ac25be5f8a30d9517c3de3564b3e7417eba0",
+          "sizeBytes": 2568192
+        },
+        {
+          "id": "sblgnt-1.2:1-john",
+          "workId": "work:1-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/1-john.sqlite3",
+          "checksum": "7f581f8499569e298d5111469ed47b75515845257741f9e818ce7b5636aaa134",
+          "sizeBytes": 4399104
+        },
+        {
+          "id": "sblgnt-1.2:2-john",
+          "workId": "work:2-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/2-john.sqlite3",
+          "checksum": "74f72e92a1e265361b17537c23ac9309938d4a77ba5bf8cc316e39b6ef4a84fe",
+          "sizeBytes": 954368
+        },
+        {
+          "id": "sblgnt-1.2:3-john",
+          "workId": "work:3-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/3-john.sqlite3",
+          "checksum": "476b37a8b81fc42c28fecba696630b66a433ab27cf28171369a04ea3cf9eec3c",
+          "sizeBytes": 925696
+        },
+        {
+          "id": "sblgnt-1.2:jude",
+          "workId": "work:jude",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/jude.sqlite3",
+          "checksum": "646f6da48e0dfb45ab28cb4ada9d81dd6a019a53b5fe8de43a3a9aa6f386c899",
+          "sizeBytes": 1351680
+        },
+        {
+          "id": "sblgnt-1.2:revelation",
+          "workId": "work:revelation",
+          "role": "content",
+          "databasePath": "/corpus-packages/sblgnt-1.2/revelation.sqlite3",
+          "checksum": "544afc311a225dd8400d18ca617c946db8460d2e08bd955c258f3f5d163e38cd",
+          "sizeBytes": 18530304
+        },
+        {
+          "id": "sblgnt-1.2:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/sblgnt-1.2/search.sqlite3",
+          "checksum": "9799687cca22f28ef73d0b6920ab93e453f67fa8d0acf3eba55efb00426fe906",
+          "sizeBytes": 14700544
+        },
+        {
+          "id": "sblgnt-1.2:linguistic",
+          "role": "linguistic",
+          "databasePath": "/corpus-packages/sblgnt-1.2/linguistic.sqlite3",
+          "checksum": "63ee14e124cf59be9ebcddfff549ea7aaaff0d5b27fc79bd9117c95168ee5f32",
+          "sizeBytes": 72839168
+        }
+      ],
+      "versificationSchemeId": "sblgnt-1.2",
+      "rights": {
+        "license": "CC-BY-4.0",
+        "redistribution": "allowed",
+        "attribution": "SBL Greek New Testament, edited by Michael W. Holmes."
+      },
+      "provenance": {
+        "packageId": "pkg-sblgnt-1.2-candidate",
+        "datasetId": "dataset:sblgnt:1.2:9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d",
+        "sourceArtifactIds": [
+          "artifact:sblgnt:1.2:1cor",
+          "artifact:sblgnt:1.2:1john",
+          "artifact:sblgnt:1.2:1pet",
+          "artifact:sblgnt:1.2:1thess",
+          "artifact:sblgnt:1.2:1tim",
+          "artifact:sblgnt:1.2:2cor",
+          "artifact:sblgnt:1.2:2john",
+          "artifact:sblgnt:1.2:2pet",
+          "artifact:sblgnt:1.2:2thess",
+          "artifact:sblgnt:1.2:2tim",
+          "artifact:sblgnt:1.2:3john",
+          "artifact:sblgnt:1.2:acts",
+          "artifact:sblgnt:1.2:col",
+          "artifact:sblgnt:1.2:eph",
+          "artifact:sblgnt:1.2:gal",
+          "artifact:sblgnt:1.2:heb",
+          "artifact:sblgnt:1.2:jas",
+          "artifact:sblgnt:1.2:john",
+          "artifact:sblgnt:1.2:jude",
+          "artifact:sblgnt:1.2:luke",
+          "artifact:sblgnt:1.2:mark",
+          "artifact:sblgnt:1.2:matt",
+          "artifact:sblgnt:1.2:phil",
+          "artifact:sblgnt:1.2:phlm",
+          "artifact:sblgnt:1.2:rev",
+          "artifact:sblgnt:1.2:rom",
+          "artifact:sblgnt:1.2:sblgnt",
+          "artifact:sblgnt:1.2:titus"
+        ],
+        "transformationIds": [
+          "transformation:sblgnt:1.0.0:parse-xml",
+          "transformation:sblgnt:1.0.0:chapter-shards"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:pkg-wlc-oshb-2.2",
+      "corpusId": "wlc",
+      "editionId": "wlc-oshb-2.2",
+      "version": "6a5db284c715c18b239422e57bb89684e6a19f00",
+      "title": "Westminster Leningrad Codex with OSHB morphology 2.2",
+      "abbreviation": "WLC/OSHB",
+      "works": [
+        "work:genesis",
+        "work:exodus",
+        "work:leviticus",
+        "work:numbers",
+        "work:deuteronomy",
+        "work:joshua",
+        "work:judges",
+        "work:ruth",
+        "work:1-samuel",
+        "work:2-samuel",
+        "work:1-kings",
+        "work:2-kings",
+        "work:1-chronicles",
+        "work:2-chronicles",
+        "work:ezra",
+        "work:nehemiah",
+        "work:esther",
+        "work:job",
+        "work:psalms",
+        "work:proverbs",
+        "work:ecclesiastes",
+        "work:song-of-songs",
+        "work:isaiah",
+        "work:jeremiah",
+        "work:lamentations",
+        "work:ezekiel",
+        "work:daniel",
+        "work:hosea",
+        "work:joel",
+        "work:amos",
+        "work:obadiah",
+        "work:jonah",
+        "work:micah",
+        "work:nahum",
+        "work:habakkuk",
+        "work:zephaniah",
+        "work:haggai",
+        "work:zechariah",
+        "work:malachi"
+      ],
+      "languages": [
+        "hbo"
+      ],
+      "databasePath": "/corpus-packages/wlc-oshb-2.2.sqlite3",
+      "checksum": "320a5b2963d22229d7ca784cac3cac5caa56146062bb7dc6fd4555ce34a83cc8",
+      "sourceChecksum": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
+      "sizeBytes": 326402048,
+      "downloadSizeBytes": 504053760,
+      "storageSizeBytes": 504053760,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/wlc-oshb-2.2.sqlite3",
+      "dependencies": [],
+      "parts": [
+        {
+          "id": "wlc-oshb-2.2:genesis",
+          "workId": "work:genesis",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/genesis.sqlite3",
+          "checksum": "060fa27f381b5b855b06f94422b356131f2139869960d76d4720c7101f6208f2",
+          "sizeBytes": 21966848
+        },
+        {
+          "id": "wlc-oshb-2.2:exodus",
+          "workId": "work:exodus",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/exodus.sqlite3",
+          "checksum": "0f8000f411208c595c558fe597cd2837c04e0d7ba03803f6985f14eb50c73e97",
+          "sizeBytes": 17805312
+        },
+        {
+          "id": "wlc-oshb-2.2:leviticus",
+          "workId": "work:leviticus",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/leviticus.sqlite3",
+          "checksum": "35038547e34caad9db8cfc06d12ac7d87569a2f0bcbb645cb777cdb56b84844b",
+          "sizeBytes": 12963840
+        },
+        {
+          "id": "wlc-oshb-2.2:numbers",
+          "workId": "work:numbers",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/numbers.sqlite3",
+          "checksum": "4700d48eb600fa55c3b2b657c774859d65392f4e47e3c3b26cd761b7cece9bbf",
+          "sizeBytes": 17784832
+        },
+        {
+          "id": "wlc-oshb-2.2:deuteronomy",
+          "workId": "work:deuteronomy",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/deuteronomy.sqlite3",
+          "checksum": "3cd9dd1d47ead70b9ee65c84aa300bf1b5801bdacd165ce8328bb97c58c31b37",
+          "sizeBytes": 15527936
+        },
+        {
+          "id": "wlc-oshb-2.2:joshua",
+          "workId": "work:joshua",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/joshua.sqlite3",
+          "checksum": "8e1dc23912e4d9af3fe2be93a8b07568a60f86032f254f235632400df1893392",
+          "sizeBytes": 10817536
+        },
+        {
+          "id": "wlc-oshb-2.2:judges",
+          "workId": "work:judges",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/judges.sqlite3",
+          "checksum": "f6aab6652d0278a7191ac6c9b1d9c7b2e2e90eec46d9a81f4c58ccfa9c13d79d",
+          "sizeBytes": 10604544
+        },
+        {
+          "id": "wlc-oshb-2.2:ruth",
+          "workId": "work:ruth",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/ruth.sqlite3",
+          "checksum": "e00383b8c04279da92ae189bb958a3ea4d96427b6787a7a24633e889e1cbe387",
+          "sizeBytes": 1818624
+        },
+        {
+          "id": "wlc-oshb-2.2:1-samuel",
+          "workId": "work:1-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/1-samuel.sqlite3",
+          "checksum": "89b2f2726cba4a346c2f2d536c8a3e4f1a41bbd1fb05c5baae09a0d04e042690",
+          "sizeBytes": 14061568
+        },
+        {
+          "id": "wlc-oshb-2.2:2-samuel",
+          "workId": "work:2-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/2-samuel.sqlite3",
+          "checksum": "0500fea45cc298bd01a59c380e747adb554d47dbda55cd1b2dae10bf47e13c2f",
+          "sizeBytes": 11804672
+        },
+        {
+          "id": "wlc-oshb-2.2:1-kings",
+          "workId": "work:1-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/1-kings.sqlite3",
+          "checksum": "912bcf2f6a923c5c4f5e92a41177ea872d186742c1ab1f77125b3d0ee003b76c",
+          "sizeBytes": 13910016
+        },
+        {
+          "id": "wlc-oshb-2.2:2-kings",
+          "workId": "work:2-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/2-kings.sqlite3",
+          "checksum": "9128dfbc854646657f1324cd11afa77bed8280780d4958b0a7e6bd4a12ff1778",
+          "sizeBytes": 12972032
+        },
+        {
+          "id": "wlc-oshb-2.2:1-chronicles",
+          "workId": "work:1-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/1-chronicles.sqlite3",
+          "checksum": "ce467e428f9799d8b017632cacdc5463bb97d2a5af679433bedeaa3c6a2b011e",
+          "sizeBytes": 12431360
+        },
+        {
+          "id": "wlc-oshb-2.2:2-chronicles",
+          "workId": "work:2-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/2-chronicles.sqlite3",
+          "checksum": "4744557d353273dd18ff7838ce69ea4d7d5ec4f8659db3ed4d52edf7db31841c",
+          "sizeBytes": 14544896
+        },
+        {
+          "id": "wlc-oshb-2.2:ezra",
+          "workId": "work:ezra",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/ezra.sqlite3",
+          "checksum": "8d2fb75a8a7342af6edd0def0f94f8a5793b255aad387de34d7fe4295ef769e3",
+          "sizeBytes": 4440064
+        },
+        {
+          "id": "wlc-oshb-2.2:nehemiah",
+          "workId": "work:nehemiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/nehemiah.sqlite3",
+          "checksum": "178f18c5a269bb6510a8fe7d301f584ad4534bf2870e3dd4a4439232813e9396",
+          "sizeBytes": 6201344
+        },
+        {
+          "id": "wlc-oshb-2.2:esther",
+          "workId": "work:esther",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/esther.sqlite3",
+          "checksum": "b212df52a25bc152d9f02fa113c37e0470802f42b99495ef240e743e70e14cb8",
+          "sizeBytes": 3567616
+        },
+        {
+          "id": "wlc-oshb-2.2:job",
+          "workId": "work:job",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/job.sqlite3",
+          "checksum": "443b6fdf4fa4daff7c01c592c46ea1521cc4d44710dd1542de5f2089379e717e",
+          "sizeBytes": 9977856
+        },
+        {
+          "id": "wlc-oshb-2.2:psalms",
+          "workId": "work:psalms",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/psalms.sqlite3",
+          "checksum": "96ba9aa917ba67745d4938ca10ec300ccf41726fcdb051330587444e3c758e0e",
+          "sizeBytes": 23240704
+        },
+        {
+          "id": "wlc-oshb-2.2:proverbs",
+          "workId": "work:proverbs",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/proverbs.sqlite3",
+          "checksum": "d4cadbe0d30315109967e0661f150498a867ad4e53c2bd3fa2eb4a33b5ff6ec1",
+          "sizeBytes": 8630272
+        },
+        {
+          "id": "wlc-oshb-2.2:ecclesiastes",
+          "workId": "work:ecclesiastes",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/ecclesiastes.sqlite3",
+          "checksum": "6d894125e88291023e8607daaae331889f593dac84d5a0048f1916b7028fbcf7",
+          "sizeBytes": 3710976
+        },
+        {
+          "id": "wlc-oshb-2.2:song-of-songs",
+          "workId": "work:song-of-songs",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/song-of-songs.sqlite3",
+          "checksum": "5bd74ea3502ecb4f3172a55708fbd3073de4c0ea922c66f66185d4b19e8e2fa6",
+          "sizeBytes": 1961984
+        },
+        {
+          "id": "wlc-oshb-2.2:isaiah",
+          "workId": "work:isaiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/isaiah.sqlite3",
+          "checksum": "6c835c249fe649b13af9f6150aaa4a54d014f02d798089aa372b74a7d3f74c1e",
+          "sizeBytes": 18247680
+        },
+        {
+          "id": "wlc-oshb-2.2:jeremiah",
+          "workId": "work:jeremiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/jeremiah.sqlite3",
+          "checksum": "7f4307678689d038707c6f5822ab5bc146bddf4a76cad9f196e04e69999ccbae",
+          "sizeBytes": 22810624
+        },
+        {
+          "id": "wlc-oshb-2.2:lamentations",
+          "workId": "work:lamentations",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/lamentations.sqlite3",
+          "checksum": "2488d09f3cf3e7d021ed01496fb91583e96a003a03032700545c86ff12c523d0",
+          "sizeBytes": 2277376
+        },
+        {
+          "id": "wlc-oshb-2.2:ezekiel",
+          "workId": "work:ezekiel",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/ezekiel.sqlite3",
+          "checksum": "2d521fdc8ad886612cf1aace4620c0bb582df26f3027222943d85f3704f0ee71",
+          "sizeBytes": 19935232
+        },
+        {
+          "id": "wlc-oshb-2.2:daniel",
+          "workId": "work:daniel",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/daniel.sqlite3",
+          "checksum": "d77aabaecabca1db9a273801ec0886bbefc7324857790125caa7819f07ea1726",
+          "sizeBytes": 6561792
+        },
+        {
+          "id": "wlc-oshb-2.2:hosea",
+          "workId": "work:hosea",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/hosea.sqlite3",
+          "checksum": "fe5a9a319bdc13f0b1d6a53fe5d015840c2878bf02a970dfa635fb13cf618fdd",
+          "sizeBytes": 3026944
+        },
+        {
+          "id": "wlc-oshb-2.2:joel",
+          "workId": "work:joel",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/joel.sqlite3",
+          "checksum": "552f896d5e857b3457f91232a476c6c16420745ba90bbde42bc9a0e756c3c46f",
+          "sizeBytes": 1495040
+        },
+        {
+          "id": "wlc-oshb-2.2:amos",
+          "workId": "work:amos",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/amos.sqlite3",
+          "checksum": "03f79283e358c41700b1ebc771facbce7ac924a24f7904161b05e3a551d16d56",
+          "sizeBytes": 2617344
+        },
+        {
+          "id": "wlc-oshb-2.2:obadiah",
+          "workId": "work:obadiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/obadiah.sqlite3",
+          "checksum": "42975c8dfffb3c264b86e78e6629973186f13834e5cf13970ac3590ebf672b8d",
+          "sizeBytes": 815104
+        },
+        {
+          "id": "wlc-oshb-2.2:jonah",
+          "workId": "work:jonah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/jonah.sqlite3",
+          "checksum": "74d711f247daf3b46b6cea235184c6d45ce8603771920051cf40cfb9d77ca143",
+          "sizeBytes": 1216512
+        },
+        {
+          "id": "wlc-oshb-2.2:micah",
+          "workId": "work:micah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/micah.sqlite3",
+          "checksum": "e33db6c6c618e9ed04e014d72c20a507632c11ee4feea3521e9cff1a0598a3c1",
+          "sizeBytes": 1966080
+        },
+        {
+          "id": "wlc-oshb-2.2:nahum",
+          "workId": "work:nahum",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/nahum.sqlite3",
+          "checksum": "fae3435e2214d209058e52f92b7540813cd0a7f5260017bcb41b71d24c881fab",
+          "sizeBytes": 1097728
+        },
+        {
+          "id": "wlc-oshb-2.2:habakkuk",
+          "workId": "work:habakkuk",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/habakkuk.sqlite3",
+          "checksum": "70a665fddfe7077d171699f9ed3d3d5dd2ad59b2e670d2197017dd4bf0c8b78b",
+          "sizeBytes": 1236992
+        },
+        {
+          "id": "wlc-oshb-2.2:zephaniah",
+          "workId": "work:zephaniah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/zephaniah.sqlite3",
+          "checksum": "88699db4e59d5a9af701fc156b13681140469743afa89be9723eb129126727b2",
+          "sizeBytes": 1323008
+        },
+        {
+          "id": "wlc-oshb-2.2:haggai",
+          "workId": "work:haggai",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/haggai.sqlite3",
+          "checksum": "39f2a3d1cf39461b006111d2026e3102ee56a064ad9b2306c0dd511fb8c3043e",
+          "sizeBytes": 1118208
+        },
+        {
+          "id": "wlc-oshb-2.2:zechariah",
+          "workId": "work:zechariah",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/zechariah.sqlite3",
+          "checksum": "ed9013b9b49c87544d14e6446985c62ab3b330a19de9cb7e3c837972c3d59c9b",
+          "sizeBytes": 3768320
+        },
+        {
+          "id": "wlc-oshb-2.2:malachi",
+          "workId": "work:malachi",
+          "role": "content",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/malachi.sqlite3",
+          "checksum": "02085d75baec817e92654a03b2fe7f98cf2fe549a606d99d208442b24ff5c3c6",
+          "sizeBytes": 1404928
+        },
+        {
+          "id": "wlc-oshb-2.2:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/search.sqlite3",
+          "checksum": "784227e04702452af92af44a2edb22a2d2f792878e56903e94ba4075d913a7c8",
+          "sizeBytes": 37801984
+        },
+        {
+          "id": "wlc-oshb-2.2:linguistic",
+          "role": "linguistic",
+          "databasePath": "/corpus-packages/wlc-oshb-2.2/linguistic.sqlite3",
+          "checksum": "ef2b414c77ecb66b80e62436b56f5852d47585e97268755ae06c0a6dfe028df1",
+          "sizeBytes": 124588032
+        }
+      ],
+      "versificationSchemeId": "oshb-wlc-2.2",
+      "rights": {
+        "license": "WLC-PD;OSHB-CC-BY-4.0",
+        "redistribution": "allowed",
+        "attribution": "Open Scriptures Hebrew Bible Project; WLC text is Public Domain and OSHB lemma/morphology data are CC BY 4.0."
+      },
+      "provenance": {
+        "packageId": "pkg-wlc-oshb-2.2",
+        "datasetId": "dataset:wlc:2.2:0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
+        "sourceArtifactIds": [
+          "artifact:pkg-wlc-oshb-2.2:1chr",
+          "artifact:pkg-wlc-oshb-2.2:1kgs",
+          "artifact:pkg-wlc-oshb-2.2:1sam",
+          "artifact:pkg-wlc-oshb-2.2:2chr",
+          "artifact:pkg-wlc-oshb-2.2:2kgs",
+          "artifact:pkg-wlc-oshb-2.2:2sam",
+          "artifact:pkg-wlc-oshb-2.2:amos",
+          "artifact:pkg-wlc-oshb-2.2:dan",
+          "artifact:pkg-wlc-oshb-2.2:deut",
+          "artifact:pkg-wlc-oshb-2.2:eccl",
+          "artifact:pkg-wlc-oshb-2.2:esth",
+          "artifact:pkg-wlc-oshb-2.2:exod",
+          "artifact:pkg-wlc-oshb-2.2:ezek",
+          "artifact:pkg-wlc-oshb-2.2:ezra",
+          "artifact:pkg-wlc-oshb-2.2:gen",
+          "artifact:pkg-wlc-oshb-2.2:hab",
+          "artifact:pkg-wlc-oshb-2.2:hag",
+          "artifact:pkg-wlc-oshb-2.2:hos",
+          "artifact:pkg-wlc-oshb-2.2:isa",
+          "artifact:pkg-wlc-oshb-2.2:jer",
+          "artifact:pkg-wlc-oshb-2.2:job",
+          "artifact:pkg-wlc-oshb-2.2:joel",
+          "artifact:pkg-wlc-oshb-2.2:jonah",
+          "artifact:pkg-wlc-oshb-2.2:josh",
+          "artifact:pkg-wlc-oshb-2.2:judg",
+          "artifact:pkg-wlc-oshb-2.2:lam",
+          "artifact:pkg-wlc-oshb-2.2:lev",
+          "artifact:pkg-wlc-oshb-2.2:mal",
+          "artifact:pkg-wlc-oshb-2.2:mic",
+          "artifact:pkg-wlc-oshb-2.2:nah",
+          "artifact:pkg-wlc-oshb-2.2:neh",
+          "artifact:pkg-wlc-oshb-2.2:num",
+          "artifact:pkg-wlc-oshb-2.2:obad",
+          "artifact:pkg-wlc-oshb-2.2:prov",
+          "artifact:pkg-wlc-oshb-2.2:ps",
+          "artifact:pkg-wlc-oshb-2.2:ruth",
+          "artifact:pkg-wlc-oshb-2.2:song",
+          "artifact:pkg-wlc-oshb-2.2:zech",
+          "artifact:pkg-wlc-oshb-2.2:zeph"
+        ],
+        "transformationIds": [
+          "transformation:wlc:1.0.0:parse-source",
+          "transformation:wlc:1.0.0:chapter-shards"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:apostolic-fathers-pd-en-1",
+      "corpusId": "apostolic-fathers-public-domain",
+      "editionId": "apostolic-fathers-pd-en-1",
+      "version": "1870+1884-r1",
+      "title": "Apostolic Fathers — public-domain English editions",
+      "abbreviation": "AF-PD-EN",
+      "works": [
+        "work:didache",
+        "work:first-clement",
+        "work:second-clement",
+        "work:polycarp-philippians",
+        "work:martyrdom-polycarp",
+        "work:epistle-barnabas",
+        "work:epistle-diognetus"
+      ],
+      "languages": [
+        "en"
+      ],
+      "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
+      "checksum": "dbbfc451bd985ff8cb456d4ea6c90b7ed2663eaa1c314d1dda66719ba35b1233",
+      "sourceChecksum": "9805e6f89c2602083933d6ba7bf529e2233f0348d656f3efaf08e4393221186e",
+      "sizeBytes": 2121728,
+      "downloadSizeBytes": 7221248,
+      "storageSizeBytes": 7221248,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.0.0",
+        "source:gutenberg:42053",
+        "source:gutenberg:77576"
+      ],
+      "parts": [
+        {
+          "id": "apostolic-fathers-pd-en-1:work:didache",
+          "workId": "work:didache",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/didache.sqlite3",
+          "checksum": "f73b10c69cc7eb6ac720bf0873eea9239befa629f32ae73b58db5583a991aa22",
+          "sizeBytes": 626688
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:first-clement",
+          "workId": "work:first-clement",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/first-clement.sqlite3",
+          "checksum": "cb719ada880c442dee5c37b62bef03ee12ce4eef47888c837a8f49acfe5eee87",
+          "sizeBytes": 1081344
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:second-clement",
+          "workId": "work:second-clement",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/second-clement.sqlite3",
+          "checksum": "65f883b9e7802f67901dda78702601dd7a5ce49ee83b99ff199e8851bad82943",
+          "sizeBytes": 618496
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:polycarp-philippians",
+          "workId": "work:polycarp-philippians",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/polycarp-philippians.sqlite3",
+          "checksum": "e8670aff0df65ea9a9fdfdf36ee0c8c2c299f032e283510750bdb8cb3ee0cd65",
+          "sizeBytes": 610304
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:martyrdom-polycarp",
+          "workId": "work:martyrdom-polycarp",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/martyrdom-polycarp.sqlite3",
+          "checksum": "5b375d61d8d546998977ccb21453de38ef9b7bc8263a514c3a7431458d5870d4",
+          "sizeBytes": 667648
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:epistle-barnabas",
+          "workId": "work:epistle-barnabas",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/epistle-barnabas.sqlite3",
+          "checksum": "2d0059488945780322bb5b737e4e62c82c76d92b9f0777072fc7442b00ccb73b",
+          "sizeBytes": 835584
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:work:epistle-diognetus",
+          "workId": "work:epistle-diognetus",
+          "role": "content",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/epistle-diognetus.sqlite3",
+          "checksum": "c62027d66be4e72232a4281b4fd837da0cc31428eadc9f9d0491a8a48c5d02f6",
+          "sizeBytes": 659456
+        },
+        {
+          "id": "apostolic-fathers-pd-en-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/search.sqlite3",
+          "checksum": "c2da186ace7c02bebcf96bd6783d86eca148577008d02337c3d3c1c6365fb798",
+          "sizeBytes": 2121728
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "Public domain source editions",
+        "redistribution": "allowed",
+        "attribution": "Project Gutenberg eBook 42053; Brown and Hitchcock edition (1884). Project Gutenberg eBook 77576; Roberts, Donaldson, and Crombie translation (1870)."
+      },
+      "provenance": {
+        "packageId": "package:apostolic-fathers-pd-en-1",
+        "datasetId": "dataset:apostolic-fathers-pd-en-1",
+        "sourceArtifactIds": [
+          "source:gutenberg:42053",
+          "source:gutenberg:77576"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:historic-creeds-pd-en-1",
+      "corpusId": "historic-creeds-public-domain",
+      "editionId": "historic-creeds-pd-en-1",
+      "version": "1881+1913-r1",
+      "title": "Historic Creeds and Conciliar Documents — public-domain English editions",
+      "abbreviation": "CREEDS-PD-EN",
+      "works": [
+        "work:apostles-creed",
+        "work:athanasian-creed",
+        "work:nicene-creed-325",
+        "work:nicene-constantinopolitan-western",
+        "work:chalcedonian-definition"
+      ],
+      "languages": [
+        "en"
+      ],
+      "databasePath": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
+      "checksum": "24ad4b55bd9fda16542aa7c5e6f8c1a88d6b9b60afb165ea610127fd52da7845",
+      "sourceChecksum": "1cb7136801e4dd4f8f834dd75fb8b6e1c70409d1c77c424e5c575e5616dee974",
+      "sizeBytes": 688128,
+      "downloadSizeBytes": 3334144,
+      "storageSizeBytes": 3334144,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.0.0",
+        "source:gutenberg:30323",
+        "source:gutenberg:24979"
+      ],
+      "parts": [
+        {
+          "id": "historic-creeds-pd-en-1:work:apostles-creed",
+          "workId": "work:apostles-creed",
+          "role": "content",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/apostles-creed.sqlite3",
+          "checksum": "225132f28c0d892a6c8a8fc9b2cc7ea1ffa9dba080d6bc0835d86b686d0b9aab",
+          "sizeBytes": 499712
+        },
+        {
+          "id": "historic-creeds-pd-en-1:work:athanasian-creed",
+          "workId": "work:athanasian-creed",
+          "role": "content",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/athanasian-creed.sqlite3",
+          "checksum": "1948486d9317a7d00a17e91f63571e99b682486c641785c977d627bc20412de4",
+          "sizeBytes": 585728
+        },
+        {
+          "id": "historic-creeds-pd-en-1:work:nicene-creed-325",
+          "workId": "work:nicene-creed-325",
+          "role": "content",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-creed-325.sqlite3",
+          "checksum": "7bf39100edfd05061a3a4ee3860c8ab20f223e5689ef0d7f9707d692ea2c61fc",
+          "sizeBytes": 499712
+        },
+        {
+          "id": "historic-creeds-pd-en-1:work:nicene-constantinopolitan-western",
+          "workId": "work:nicene-constantinopolitan-western",
+          "role": "content",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-constantinopolitan-western.sqlite3",
+          "checksum": "5b7321d5c5655639b13f0b27dab04da53802f11b896607e34b31a7558e232870",
+          "sizeBytes": 499712
+        },
+        {
+          "id": "historic-creeds-pd-en-1:work:chalcedonian-definition",
+          "workId": "work:chalcedonian-definition",
+          "role": "content",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/chalcedonian-definition.sqlite3",
+          "checksum": "b849bf1c0b2bf957477449764daf2b8b597512984a3de5f18a35298d7772d378",
+          "sizeBytes": 561152
+        },
+        {
+          "id": "historic-creeds-pd-en-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/historic-creeds-pd-en-1/search.sqlite3",
+          "checksum": "8e244dec8f0d1436e6e9c128de2603d9db1b1dad98778274c9af877bd90498d0",
+          "sizeBytes": 688128
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "Public domain source editions",
+        "redistribution": "allowed",
+        "attribution": "Project Gutenberg eBook 30323; historical 1881 source edition. Project Gutenberg eBook 24979; Ayer source book (1913)."
+      },
+      "provenance": {
+        "packageId": "package:historic-creeds-pd-en-1",
+        "datasetId": "dataset:historic-creeds-pd-en-1",
+        "sourceArtifactIds": [
+          "source:gutenberg:30323",
+          "source:gutenberg:24979"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    }
+  ]
+}

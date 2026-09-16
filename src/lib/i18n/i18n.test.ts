@@ -43,10 +43,12 @@ describe("localização pt-BR", () => {
     expect(john?.name).toBe("John");
   });
 
-  it("não altera conteúdo documental por causa do locale da interface", () => {
-    const sourceText = ScriptureRepository.getChapter("john", 1)?.verses[0]?.translations["web"];
+  it("não altera conteúdo documental por causa do locale da interface", async () => {
+    const sourceText = (await ScriptureRepository.loadChapter("john", 1))?.verses[0]?.translations[
+      "biblia-livre-n4-2025.1.0"
+    ];
     expect(sourceText).toBe(
-      "In the beginning was the Word, and the Word was with God, and the Word was God.",
+      "No princípio era a Palavra, e a Palavra estava com Deus, e a Palavra era Deus.",
     );
     expect(DEFAULT_LOCALE).toBe("pt-BR");
     expect(SourceRepository.getReference("src-wh-john-1-1")?.language).toBe("grc");
@@ -54,11 +56,11 @@ describe("localização pt-BR", () => {
 
   it("mantém idioma e direção das edições independentes da UI", () => {
     const editions = ScriptureRepository.listEditions();
-    const greek = editions.find((edition) => edition.id === "wh1881");
-    const hebrew = editions.find((edition) => edition.id === "hebrew-demo");
+    const greek = editions.find((edition) => edition.id === "sblgnt-1.2");
+    const hebrew = editions.find((edition) => edition.language === "hbo");
 
     expect(greek).toMatchObject({ language: "grc", direction: "ltr" });
-    expect(hebrew).toMatchObject({ language: "hbo", direction: "rtl" });
+    expect(hebrew).toMatchObject({ language: "hbo", direction: "rtl", script: "Hebr" });
     expect(textDirectionForLanguage("arc")).toBe("rtl");
     expect(textDirectionForLanguage("pt-BR")).toBe("ltr");
   });

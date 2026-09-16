@@ -54,3 +54,9 @@ succeeds. On failed rollback, the error gives the preserved recovery path. No co
 import writers are allowed: an exclusive `.import.lock` fails closed. After a killed process,
 verify no importer is running before manually removing its stale lock.
 See [alignment](./linguistic-alignment.md) for data formats.
+
+## Phase 6: Bíblia Livre F4
+
+`biblia-livre-f4` é o segundo adapter textual do mesmo pipeline. Ele descobre automaticamente os 66 arquivos oficiais `textos/f4/n4/*.txt` no commit fixado, reconhece marcadores F4 e produz shards por capítulo. O pacote inclui README/licença na custódia, mas esses artifacts não viram livros. O parser não usa o conversor upstream, não inventa parágrafos e não tokeniza o português.
+
+O candidato genérico de direitos permanece bloqueado; apenas o pacote oficial específico passa no RightsGate. A auditoria de versificação fica no manifest gerado. O Reader carrega a tradução e o SBLGNT como edições independentes e jamais transforma passage alignment em word alignment.

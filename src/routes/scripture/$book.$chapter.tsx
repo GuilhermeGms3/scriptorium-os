@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { ScriptureToolbar } from "../../components/scripture/scripture-toolbar";
 import { BooksPanel } from "../../components/scripture/books-panel";
@@ -10,19 +9,26 @@ import { InterlinearView } from "../../components/scripture/interlinear-view";
 import { AnalysisLenses } from "../../components/scripture/analysis-lenses";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
+import { hasAvailableData } from "../../lib/domain/availability";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
+  // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
+  // loader from initializing WASM or attempting OPFS access during SSR.
+  ssr: false,
   loader: async ({ params }) => {
     const chapter = Number(params.chapter);
     if (Number.isInteger(chapter) && chapter > 0) {
-      return ScriptureRepository.loadChapter(params.book, chapter);
+      return ScriptureKnowledgeEngine.loadPassageKnowledgeBundle({
+        bookId: params.book,
+        chapter,
+      });
     }
     return null;
   },
   pendingComponent: () => <EmptyReader message={t("scripture.loadingCorpusChapter")} />,
   errorComponent: () => <EmptyReader message={t("scripture.corpusChapterError")} />,
   head: ({ params }) => {
-    const book = ScriptureRepository.listBooks().find((b) => b.id === params.book);
+    const book = ScriptureKnowledgeEngine.getBook(params.book);
     const localizedBook = book ? bookLabel(book.id, book.name) : t("navigation.scripture");
     const title = `${localizedBook} ${params.chapter} — ${t("scripture.reader")} Scriptorium`;
     const description = t("scripture.metaDescription");
@@ -40,18 +46,18 @@ export const Route = createFileRoute("/scripture/$book/$chapter")({
 
 function ChapterReader() {
   const { book: bookId, chapter: chapterParam } = Route.useParams();
-  const loadedChapter = Route.useLoaderData();
+  const loadedBundle = Route.useLoaderData();
   const chapter = Number(chapterParam);
   const { setPassageContext, selectWord, readingPrefs } = useWorkbench();
 
-  ScriptureRepository.primeChapter(loadedChapter);
+  ScriptureKnowledgeEngine.primePassageKnowledgeBundle(loadedBundle);
 
   const [editionId, setEditionId] = useState(() =>
-    ScriptureRepository.defaultEditionId(bookId, chapter),
+    ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
   );
   const [view, setView] = useState<ReaderView>("single");
 
-  const book = ScriptureRepository.listBooks().find((b) => b.id === bookId);
+  const book = ScriptureKnowledgeEngine.getBook(bookId);
   const activeRef = useMemo(
     () => ({
       bookId,
@@ -59,15 +65,32 @@ function ChapterReader() {
     }),
     [bookId, chapter],
   );
-  const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef);
-  const editions = bundle?.passage.editions ?? ScriptureRepository.listEditions();
+  const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef) ?? loadedBundle;
+  const editions = bundle?.passage.editions ?? ScriptureKnowledgeEngine.listEditions();
   const effectiveEditionId = editions.some((edition) => edition.id === editionId)
     ? editionId
-    : ScriptureRepository.defaultEditionId(bookId, chapter);
+    : ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter);
   const displayedEdition =
     view === "original" || view === "interlinear"
       ? editions.find((edition) => edition.kind === "original-language")
       : editions.find((edition) => edition.id === effectiveEditionId);
+  const hasOriginal = Boolean(bundle?.passage.verses.some((verse) => verse.original?.length));
+  const hasInterlinear = Boolean(
+    hasOriginal && bundle && hasAvailableData(bundle.linguisticAnnotations),
+  );
+  const availableViews = useMemo<Record<ReaderView, boolean>>(
+    () => ({
+      single: true,
+      parallel: editions.length > 1,
+      original: hasOriginal,
+      interlinear: hasInterlinear,
+    }),
+    [editions.length, hasInterlinear, hasOriginal],
+  );
+
+  useEffect(() => {
+    if (!availableViews[view]) setView("single");
+  }, [availableViews, view]);
 
   useEffect(() => {
     setPassageContext(book ? { ref: activeRef, label: passageLabel(activeRef) } : null);
@@ -95,6 +118,7 @@ function ChapterReader() {
           onViewChange={setView}
           hasPrev={chapter > 1}
           hasNext={chapter < book.chapters}
+          availableViews={availableViews}
         />
 
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -134,14 +158,20 @@ function ChapterReader() {
               {view === "parallel" && (
                 <ParallelVersions
                   verses={bundle.passage.verses}
-                  editions={editions.filter((e) => e.kind === "translation")}
+                  editions={editions.filter(
+                    (e) => e.kind === "translation" || e.kind === "original-language",
+                  )}
                 />
               )}
 
               {view === "original" && (
                 <div>
                   <p className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                    {t("scripture.originalHint")}
+                    {t(
+                      bundle.passage.verses[0]?.original?.[0]?.language === "hbo"
+                        ? "scripture.originalHintHebrew"
+                        : "scripture.originalHint",
+                    )}
                   </p>
                   {bundle.passage.verses.map((v) => (
                     <OriginalVerse
@@ -157,7 +187,11 @@ function ChapterReader() {
               {view === "interlinear" && (
                 <div>
                   <p className="mb-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-                    {t("scripture.interlinearHint")}
+                    {t(
+                      bundle.passage.verses[0]?.original?.[0]?.language === "hbo"
+                        ? "scripture.interlinearHintHebrew"
+                        : "scripture.interlinearHint",
+                    )}
                   </p>
                   {bundle.passage.verses.map((v) => (
                     <InterlinearView
@@ -165,6 +199,13 @@ function ChapterReader() {
                       verse={v}
                       bookName={bookLabel(book.id, book.name)}
                       chapter={chapter}
+                      annotations={
+                        hasAvailableData(bundle.linguisticAnnotations)
+                          ? bundle.linguisticAnnotations.data.filter((annotation) =>
+                              v.original?.some((token) => token.id === annotation.targetTokenId),
+                            )
+                          : []
+                      }
                     />
                   ))}
                 </div>
@@ -179,7 +220,21 @@ function ChapterReader() {
               </div>
 
               <footer className="mt-8 border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
-                {bundle.provenance.attribution ?? t("scripture.demoFooter")}
+                <details>
+                  <summary className="cursor-pointer">
+                    {displayedEdition?.title ?? "Fontes desta passagem"}
+                  </summary>
+                  <div className="mt-2 space-y-2">
+                    {bundle.texts.map((layer) => (
+                      <p key={layer.edition.id}>
+                        <strong>{layer.edition.title}</strong> · {layer.edition.language} ·{" "}
+                        {layer.edition.licenseId}
+                        <br />
+                        {layer.provenance.attribution}
+                      </p>
+                    ))}
+                  </div>
+                </details>
               </footer>
             </article>
           )}

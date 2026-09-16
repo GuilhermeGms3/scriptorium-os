@@ -7,6 +7,13 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
+  // Local/open-source builds target a native Node server. Lovable's own build
+  // environment still pins its Cloudflare preset as documented by the wrapper.
+  nitro: { preset: "node-server" },
+  vite: {
+    // SQLite's worker/WASM assets are resolved by the package at runtime.
+    optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
+  },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
     // nitro/vite builds from this

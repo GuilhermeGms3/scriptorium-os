@@ -59,6 +59,7 @@ export type ResourceAvailability = "local" | "remote" | "not-downloaded";
 
 export type IndexingStatus = "indexed" | "pending" | "not-indexed";
 
+/** @deprecated Phase 1-7 fixture view model. Use BibliographicSource in production flows. */
 export interface LibraryResource {
   id: string;
   /** Canonical corpus package when this catalog row represents registered corpus data. */
