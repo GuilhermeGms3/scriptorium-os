@@ -51,7 +51,7 @@ export const ptBR = {
   "error.tryAgain": "Tentar novamente",
 
   "navigation.primary": "Navegação principal",
-  "navigation.workspace": "Ambiente de trabalho",
+  "navigation.workspace": "Pesquisa pessoal",
   "navigation.home": "Início",
   "navigation.scripture": "Escrituras",
   "navigation.study": "Estudo",
@@ -289,18 +289,19 @@ export const ptBR = {
   "knowledge.bridgeDisclaimer":
     "Nenhuma relação é promovida a conhecimento acadêmico verificado sem um trecho de fonte resolvível.",
 
-  "study.metaTitle": "Ambientes de Estudo — Scriptorium",
+  "study.metaTitle": "Meus estudos — Scriptorium",
   "study.section": "Estudo",
-  "study.workspaces": "Ambientes de pesquisa",
+  "study.workspaces": "Meus estudos",
   "study.description":
     "Reúna passagens, palavras, conceitos, fontes e suas deduções sem reduzi-los a um único documento.",
   "study.newTitle": "Título do novo estudo",
   "study.newPlaceholder": "Título do novo estudo…",
-  "study.localDescription": "Um ambiente local criado por você.",
+  "study.localDescription": "Reúna passagens, fontes, perguntas e anotações sobre um tema.",
   "study.notFound": "Estudo não encontrado.",
   "study.back": "Voltar aos estudos",
-  "study.workspace": "Ambiente de estudo · local",
-  "study.privateDescription": "Seu ambiente privado de estudo, armazenado neste navegador.",
+  "study.workspace": "Estudo pessoal · salvo localmente",
+  "study.privateDescription":
+    "Organize sua pergunta, o material reunido e suas conclusões pessoais.",
   "study.sections": "Seções do estudo",
   "study.tab.overview": "Visão geral",
   "study.tab.passages": "Passagens",
@@ -310,7 +311,7 @@ export const ptBR = {
   "study.tab.lenses": "Lentes",
   "study.tab.timeline": "Linha do tempo",
   "study.collected": "Material reunido",
-  "study.lenses": "Lentes metodológicas",
+  "study.lenses": "Roteiros para aprofundar a leitura",
   "study.lensesDescription":
     "Use várias lentes em um estudo preservando seus diferentes métodos e critérios de evidência.",
   "study.notesDeductions": "Notas e deduções",

@@ -2,7 +2,10 @@ import { createHash } from "node:crypto";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
-import { CorpusPackageManifestSchema, type CorpusPackageManifest } from "../../src/lib/corpus-runtime/contracts";
+import {
+  CorpusPackageManifestSchema,
+  type CorpusPackageManifest,
+} from "../../src/lib/corpus-runtime/contracts";
 import { buildSearchNormalization } from "../../src/lib/corpus-runtime/search-normalization";
 import { applyMigrations, DATABASE_SCHEMA_VERSION } from "./migrate";
 import {
@@ -67,7 +70,8 @@ const sources: SourceDefinition[] = [
     retrievalDate: "2026-09-16",
     license: "Public domain in the United States; source edition translators died before 1956",
     redistributionStatus: "allowed",
-    attribution: "Project Gutenberg eBook 77576; Roberts, Donaldson, and Crombie translation (1870).",
+    attribution:
+      "Project Gutenberg eBook 77576; Roberts, Donaldson, and Crombie translation (1870).",
   },
   {
     id: "source:gutenberg:30323",
@@ -111,7 +115,11 @@ function verifiedSource(source: SourceDefinition): string {
   return bytes.toString("utf8");
 }
 
-function buildShard(sourcePath: string, editionId: string, workId?: string): CorpusPackageManifest["parts"][number] {
+function buildShard(
+  sourcePath: string,
+  editionId: string,
+  workId?: string,
+): CorpusPackageManifest["parts"][number] {
   const fileName = workId ? `${workId.replace(/^work:/, "")}.sqlite3` : "search.sqlite3";
   const directory = join(outputDirectory, editionId);
   const path = join(directory, fileName);
@@ -131,9 +139,17 @@ function buildShard(sourcePath: string, editionId: string, workId?: string): Cor
     `);
     if (workId) {
       database.prepare("INSERT INTO works SELECT * FROM source_db.works WHERE id=?").run(workId);
-      database.prepare("INSERT INTO text_units SELECT * FROM source_db.text_units WHERE work_id=?").run(workId);
-      database.exec("INSERT INTO text_addresses SELECT a.* FROM source_db.text_addresses a JOIN text_units u ON u.id=a.text_unit_id;");
-      database.prepare("INSERT INTO text_units_fts SELECT * FROM source_db.text_units_fts WHERE work_id=?").run(workId);
+      database
+        .prepare("INSERT INTO text_units SELECT * FROM source_db.text_units WHERE work_id=?")
+        .run(workId);
+      database.exec(
+        "INSERT INTO text_addresses SELECT a.* FROM source_db.text_addresses a JOIN text_units u ON u.id=a.text_unit_id;",
+      );
+      database
+        .prepare(
+          "INSERT INTO text_units_fts SELECT * FROM source_db.text_units_fts WHERE work_id=?",
+        )
+        .run(workId);
     } else {
       database.exec(`
         INSERT INTO works SELECT * FROM source_db.works;
@@ -150,7 +166,8 @@ function buildShard(sourcePath: string, editionId: string, workId?: string): Cor
     throw error;
   }
   const violations = database.prepare("PRAGMA foreign_key_check").all();
-  if (violations.length) throw new Error(`${fileName} contains ${violations.length} FK violations.`);
+  if (violations.length)
+    throw new Error(`${fileName} contains ${violations.length} FK violations.`);
   database.exec("INSERT INTO text_units_fts(text_units_fts) VALUES('optimize'); VACUUM;");
   database.close();
   const bytes = readFileSync(path);
@@ -164,76 +181,109 @@ function buildShard(sourcePath: string, editionId: string, workId?: string): Cor
   };
 }
 
-function buildPackage(input: {
-  corpusId: string;
-  editionId: string;
-  title: string;
-  abbreviation: string;
-  version: string;
-  works: ParsedPrimaryWork[];
-  sourceIds: string[];
-}, buildFingerprint: string): CorpusPackageManifest {
+function buildPackage(
+  input: {
+    corpusId: string;
+    editionId: string;
+    title: string;
+    abbreviation: string;
+    version: string;
+    works: ParsedPrimaryWork[];
+    sourceIds: string[];
+  },
+  buildFingerprint: string,
+): CorpusPackageManifest {
   const outputPath = join(outputDirectory, `${input.editionId}.sqlite3`);
   mkdirSync(outputDirectory, { recursive: true });
   if (existsSync(outputPath)) rmSync(outputPath);
   const database = new DatabaseSync(outputPath);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
-  const sourceChecksum = sha256(input.sourceIds.map((id) => sources.find((source) => source.id === id)!.checksum).join(":"));
+  const sourceChecksum = sha256(
+    input.sourceIds.map((id) => sources.find((source) => source.id === id)!.checksum).join(":"),
+  );
   database.exec("BEGIN IMMEDIATE");
   try {
-    database.prepare("INSERT INTO corpora(id,name,kind,rights_json,provenance_json) VALUES(?,?,?,?,?)").run(
-      input.corpusId,
-      input.title,
-      "primary-source-collection",
-      JSON.stringify({ license: "Public domain source editions", redistribution: "allowed" }),
-      JSON.stringify({ sourceIds: input.sourceIds, reviewStatus: "source-imported" }),
-    );
-    database.prepare("INSERT INTO corpus_editions(id,corpus_id,title,abbreviation,language,script,direction,edition_kind,version,package_id,package_checksum) VALUES(?,?,?,?,?,?,?,?,?,?,?)").run(
-      input.editionId,
-      input.corpusId,
-      input.title,
-      input.abbreviation,
-      "en",
-      "Latn",
-      "ltr",
-      "historical-translation",
-      input.version,
-      `package:${input.editionId}`,
-      sourceChecksum,
-    );
-    database.prepare("INSERT INTO versification_schemes(id,name,description,version) VALUES(?,?,?,?)").run(
-      schemeId,
-      "Scriptorium document locator",
-      "Work/section locator for non-biblical documents; not a biblical versification.",
-      "1",
-    );
+    database
+      .prepare("INSERT INTO corpora(id,name,kind,rights_json,provenance_json) VALUES(?,?,?,?,?)")
+      .run(
+        input.corpusId,
+        input.title,
+        "primary-source-collection",
+        JSON.stringify({ license: "Public domain source editions", redistribution: "allowed" }),
+        JSON.stringify({ sourceIds: input.sourceIds, reviewStatus: "source-imported" }),
+      );
+    database
+      .prepare(
+        "INSERT INTO corpus_editions(id,corpus_id,title,abbreviation,language,script,direction,edition_kind,version,package_id,package_checksum) VALUES(?,?,?,?,?,?,?,?,?,?,?)",
+      )
+      .run(
+        input.editionId,
+        input.corpusId,
+        input.title,
+        input.abbreviation,
+        "en",
+        "Latn",
+        "ltr",
+        "historical-translation",
+        input.version,
+        `package:${input.editionId}`,
+        sourceChecksum,
+      );
+    database
+      .prepare("INSERT INTO versification_schemes(id,name,description,version) VALUES(?,?,?,?)")
+      .run(
+        schemeId,
+        "Scriptorium document locator",
+        "Work/section locator for non-biblical documents; not a biblical versification.",
+        "1",
+      );
     for (const sourceId of input.sourceIds) {
       const source = sources.find((candidate) => candidate.id === sourceId)!;
-      database.prepare("INSERT INTO sources(id,source_type,title,locator,checksum,metadata_json) VALUES(?,?,?,?,?,?)").run(
-        source.id,
-        "primary-source-edition",
-        source.title,
-        source.url,
-        source.checksum,
-        JSON.stringify({
-          edition: source.edition,
-          editor: source.editor,
-          translators: source.translators,
-          language: source.language,
-          retrievalDate: source.retrievalDate,
-          license: source.license,
-          redistributionStatus: source.redistributionStatus,
-          attribution: source.attribution,
-          transformationHistory: ["verify-sha256", "extract-work-boundaries", "normalize-nfc", "split-structural-units", "index-fts5"],
-          reviewStatus: "source-imported",
-        }),
-      );
-      database.prepare("INSERT INTO corpus_sources(corpus_id,source_id,role) VALUES(?,?,?)").run(input.corpusId, source.id, "text-source");
+      database
+        .prepare(
+          "INSERT INTO sources(id,source_type,title,locator,checksum,metadata_json) VALUES(?,?,?,?,?,?)",
+        )
+        .run(
+          source.id,
+          "primary-source-edition",
+          source.title,
+          source.url,
+          source.checksum,
+          JSON.stringify({
+            edition: source.edition,
+            editor: source.editor,
+            translators: source.translators,
+            language: source.language,
+            retrievalDate: source.retrievalDate,
+            license: source.license,
+            redistributionStatus: source.redistributionStatus,
+            attribution: source.attribution,
+            transformationHistory: [
+              "verify-sha256",
+              "extract-work-boundaries",
+              "normalize-nfc",
+              "split-structural-units",
+              "index-fts5",
+            ],
+            reviewStatus: "source-imported",
+          }),
+        );
+      database
+        .prepare("INSERT INTO corpus_sources(corpus_id,source_id,role) VALUES(?,?,?)")
+        .run(input.corpusId, source.id, "text-source");
     }
-    const insertWork = database.prepare("INSERT INTO works(id,corpus_id,title,work_kind,sequence) VALUES(?,?,?,?,?)");
-    const insertUnit = database.prepare("INSERT INTO text_units(id,corpus_id,edition_id,work_id,versification_scheme_id,sequence,unit_type,surface_text,normalized_search_text,provenance_json) VALUES(?,?,?,?,?,?,?,?,?,?)");
-    const insertAddress = database.prepare("INSERT INTO text_addresses(text_unit_id,versification_scheme_id,section_label,display_address) VALUES(?,?,?,?)");
-    const insertFts = database.prepare("INSERT INTO text_units_fts(text_unit_id,edition_id,work_id,language,title,surface_text,normalized_search_text,lemma_text,morphology_text) VALUES(?,?,?,?,?,?,?,?,?)");
+    const insertWork = database.prepare(
+      "INSERT INTO works(id,corpus_id,title,work_kind,sequence) VALUES(?,?,?,?,?)",
+    );
+    const insertUnit = database.prepare(
+      "INSERT INTO text_units(id,corpus_id,edition_id,work_id,versification_scheme_id,sequence,unit_type,surface_text,normalized_search_text,provenance_json) VALUES(?,?,?,?,?,?,?,?,?,?)",
+    );
+    const insertAddress = database.prepare(
+      "INSERT INTO text_addresses(text_unit_id,versification_scheme_id,section_label,display_address) VALUES(?,?,?,?)",
+    );
+    const insertFts = database.prepare(
+      "INSERT INTO text_units_fts(text_unit_id,edition_id,work_id,language,title,surface_text,normalized_search_text,lemma_text,morphology_text) VALUES(?,?,?,?,?,?,?,?,?)",
+    );
     input.works.forEach((work, workIndex) => {
       insertWork.run(work.id, input.corpusId, work.title, "ancient-document", workIndex + 1);
       work.units.forEach((unit) => {
@@ -246,9 +296,30 @@ function buildPackage(input: {
           reviewStatus: "source-imported",
         });
         const normalized = buildSearchNormalization(unit.text, work.language);
-        insertUnit.run(unit.id, input.corpusId, input.editionId, work.id, schemeId, unit.sequence, "section", unit.text, normalized, provenance);
+        insertUnit.run(
+          unit.id,
+          input.corpusId,
+          input.editionId,
+          work.id,
+          schemeId,
+          unit.sequence,
+          "section",
+          unit.text,
+          normalized,
+          provenance,
+        );
         insertAddress.run(unit.id, schemeId, unit.section, display);
-        insertFts.run(unit.id, input.editionId, work.id, work.language, [work.title, ...work.aliases, unit.title ?? ""].join(" "), unit.text, normalized, "", "");
+        insertFts.run(
+          unit.id,
+          input.editionId,
+          work.id,
+          work.language,
+          [work.title, ...work.aliases, unit.title ?? ""].join(" "),
+          unit.text,
+          normalized,
+          "",
+          "",
+        );
       });
     });
     database.exec("COMMIT");
@@ -257,11 +328,14 @@ function buildPackage(input: {
     database.close();
     throw error;
   }
-  database.exec("INSERT INTO search_documents(rowid,text_unit_id) SELECT rowid,text_unit_id FROM text_units_fts; INSERT INTO text_units_fts(text_units_fts) VALUES('optimize'); VACUUM;");
+  database.exec(
+    "INSERT INTO search_documents(rowid,text_unit_id) SELECT rowid,text_unit_id FROM text_units_fts; INSERT INTO text_units_fts(text_units_fts) VALUES('optimize'); VACUUM;",
+  );
   const violations = database.prepare("PRAGMA foreign_key_check").all();
   const quick = database.prepare("PRAGMA quick_check").get() as Record<string, unknown>;
   database.close();
-  if (violations.length || Object.values(quick)[0] !== "ok") throw new Error(`Invalid primary-source database ${input.editionId}.`);
+  if (violations.length || Object.values(quick)[0] !== "ok")
+    throw new Error(`Invalid primary-source database ${input.editionId}.`);
   const bytes = readFileSync(outputPath);
   const parts = input.works.map((work) => buildShard(outputPath, input.editionId, work.id));
   parts.push(buildShard(outputPath, input.editionId));
@@ -284,13 +358,19 @@ function buildPackage(input: {
     storageSizeBytes: parts.reduce((total, part) => total + part.sizeBytes, 0),
     deliveryMode: "work-shards",
     sourceLocation: `/corpus-packages/${input.editionId}.sqlite3`,
-    dependencies: [`schema:${DATABASE_SCHEMA_VERSION}`, "parser:primary-sources:1.0.0", ...input.sourceIds],
+    dependencies: [
+      `schema:${DATABASE_SCHEMA_VERSION}`,
+      "parser:primary-sources:1.0.0",
+      ...input.sourceIds,
+    ],
     parts,
     versificationSchemeId: schemeId,
     rights: {
       license: "Public domain source editions",
       redistribution: "allowed",
-      attribution: input.sourceIds.map((id) => sources.find((source) => source.id === id)!.attribution).join(" "),
+      attribution: input.sourceIds
+        .map((id) => sources.find((source) => source.id === id)!.attribution)
+        .join(" "),
     },
     provenance: {
       packageId: `package:${input.editionId}`,
@@ -302,7 +382,10 @@ function buildPackage(input: {
 }
 
 function cachedPackageValid(manifest: CorpusPackageManifest, fingerprint: string): boolean {
-  if (manifest.buildFingerprint !== fingerprint || manifest.schemaVersion !== DATABASE_SCHEMA_VERSION)
+  if (
+    (manifest.buildFingerprint ? manifest.buildFingerprint !== fingerprint : false) ||
+    manifest.schemaVersion !== DATABASE_SCHEMA_VERSION
+  )
     return false;
   return [
     { path: manifest.databasePath, checksum: manifest.checksum },
@@ -344,17 +427,27 @@ export function buildPrimarySourcePackages(
     },
   ];
   return definitions.map((definition) => {
-    const fingerprint = sha256(JSON.stringify({
-      schemaVersion: DATABASE_SCHEMA_VERSION,
-      parserVersion: "primary-sources-1.0.0",
-      editionId: definition.editionId,
-      sourceChecksums: definition.sourceIds.map((id) => sources.find((source) => source.id === id)!.checksum),
-      workShape: definition.works.map((work) => [work.id, work.units.length, sha256(work.units.map((unit) => unit.text).join("\n"))]),
-    }));
-    const previous = previousPackages.find((manifest) => manifest.editionId === definition.editionId);
+    const fingerprint = sha256(
+      JSON.stringify({
+        schemaVersion: DATABASE_SCHEMA_VERSION,
+        parserVersion: "primary-sources-1.0.0",
+        editionId: definition.editionId,
+        sourceChecksums: definition.sourceIds.map(
+          (id) => sources.find((source) => source.id === id)!.checksum,
+        ),
+        workShape: definition.works.map((work) => [
+          work.id,
+          work.units.length,
+          sha256(work.units.map((unit) => unit.text).join("\n")),
+        ]),
+      }),
+    );
+    const previous = previousPackages.find(
+      (manifest) => manifest.editionId === definition.editionId,
+    );
     if (previous && cachedPackageValid(previous, fingerprint)) {
       report.push({ editionId: definition.editionId, action: "reused" });
-      return CorpusPackageManifestSchema.parse(previous);
+      return CorpusPackageManifestSchema.parse({ ...previous, buildFingerprint: fingerprint });
     }
     report.push({ editionId: definition.editionId, action: "rebuilt" });
     return buildPackage(definition, fingerprint);

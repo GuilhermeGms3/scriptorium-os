@@ -1,5 +1,15 @@
 # Project Memory
 
+## Phase 10.1 (2026-09-16)
+
+- Primary-source runtime now packages seven Apostolic Fathers works and five historic creeds/conciliar documents from pinned public-domain Project Gutenberg artifacts into work-sharded SQLite plus FTS5 search shards.
+- Primary-source titles have a Portuguese presentation label while preserving the canonical English source title; source text is never translated silently. The `/library` route is now a proper layout with `/library/` index and `/library/read/$workId` child, so the actual reader renders instead of the parent catalog swallowing the child route.
+- WLC/OSHB morphology now has a positional decoder; TBESH contributes Hebrew identifiers, lemma, transliteration, morphology and short glosses only. Long TBESH definitions remain excluded because the source header requires separate permission.
+- Corpus builds use package fingerprints and verified artifact reuse. A clean no-change corpus index completed in about 2.4 seconds and reported all five editions as reused; changing the Hebrew lexical input rebuilt only WLC.
+- Study UI is organized as a three-step personal flow (question, gathered material, notes). Backup and methodological prompts use progressive disclosure, and the prompts explicitly state that they are not academic content.
+- PDF/EPUB/OCR ingestion remains unimplemented. The intended private, local-only, page-preserving pipeline and rights/security boundary are documented in `docs/architecture/private-document-ingestion.md`.
+- Phase 10.1 verification snapshot: 122 tests across 16 files passed; typecheck, production Node build and focused lint passed. Repository-wide lint is still blocked by pre-existing CRLF/Prettier debt. Browser QA passed desktop Study, Study detail interaction, Didaquê reader routing/localization and 390x844 mobile Study with no console warnings/errors.
+
 ## Phase 9.5 (2026-09-14)
 
 - Canonical knowledge schema is version 9; knowledge, theology, perspectives and arguments share `public/knowledge/knowledge.sqlite3`.

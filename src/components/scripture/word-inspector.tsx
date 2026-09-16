@@ -336,7 +336,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                     <dd>{token.id}</dd>
                     <dt>{isTagnt ? "Registro TAGNT" : "Registro OSHB"}</dt>
                     <dd>{annotation.sourceRecordId}</dd>
-                    <dt>Artifact / linha</dt>
+                    <dt>Artefato-fonte / linha</dt>
                     <dd>
                       {annotation.provenance.sourceArtifactId}:{annotation.provenance.sourceLine}
                     </dd>

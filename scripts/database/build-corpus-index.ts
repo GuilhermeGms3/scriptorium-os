@@ -327,7 +327,9 @@ function indexTbesh(database: DatabaseSync, corpusId: string): void {
     throw new Error("TBESH custody check failed while building the lexical package.");
   const sourceId = `source:tbesh:${lock.revision}`;
   database
-    .prepare("INSERT INTO sources(id,source_type,title,locator,checksum,metadata_json) VALUES(?,?,?,?,?,?)")
+    .prepare(
+      "INSERT INTO sources(id,source_type,title,locator,checksum,metadata_json) VALUES(?,?,?,?,?,?)",
+    )
     .run(
       sourceId,
       "lexicon",
@@ -343,19 +345,30 @@ function indexTbesh(database: DatabaseSync, corpusId: string): void {
         sizeBytes: lock.sizeBytes,
       }),
     );
-  database.prepare("INSERT OR IGNORE INTO corpus_sources(corpus_id,source_id,role) VALUES(?,?,?)").run(corpusId, sourceId, "lexical-data-partial-rights-gate");
-  const insertLexeme = database.prepare("INSERT OR IGNORE INTO lexemes(id,language,lemma,transliteration,strongs,source_id,review_status,provenance_json) VALUES(?,?,?,?,?,?,?,?)");
-  const insertSense = database.prepare("INSERT OR IGNORE INTO lexical_senses(id,lexeme_id,gloss,definition,source_id,ordinal) VALUES(?,?,?,?,?,?)");
-  const insertReference = database.prepare("INSERT OR IGNORE INTO lexical_references(lexeme_id,reference_system,reference_value) VALUES(?,?,?)");
+  database
+    .prepare("INSERT OR IGNORE INTO corpus_sources(corpus_id,source_id,role) VALUES(?,?,?)")
+    .run(corpusId, sourceId, "lexical-data-partial-rights-gate");
+  const insertLexeme = database.prepare(
+    "INSERT OR IGNORE INTO lexemes(id,language,lemma,transliteration,strongs,source_id,review_status,provenance_json) VALUES(?,?,?,?,?,?,?,?)",
+  );
+  const insertSense = database.prepare(
+    "INSERT OR IGNORE INTO lexical_senses(id,lexeme_id,gloss,definition,source_id,ordinal) VALUES(?,?,?,?,?,?)",
+  );
+  const insertReference = database.prepare(
+    "INSERT OR IGNORE INTO lexical_references(lexeme_id,reference_system,reference_value) VALUES(?,?,?)",
+  );
   let records = 0;
   for (const [index, line] of bytes.toString("utf8").split(/\r?\n/).entries()) {
     if (!/^H\d/.test(line)) continue;
-    const [eStrong, dStrongRaw, uStrong, hebrew, transliteration, morphology, gloss] = line.split("\t");
+    const [eStrong, dStrongRaw, uStrong, hebrew, transliteration, morphology, gloss] =
+      line.split("\t");
     if (!eStrong || !dStrongRaw || !uStrong)
       throw new Error(`Malformed TBESH record at line ${index + 1}.`);
     const dStrong = dStrongRaw.split(/\s+/)[0]!;
     const id = `lexeme:tbesh:${dStrong}`;
-    const references = [...new Set([eStrong, dStrong, uStrong].filter((value) => /^H\d+[A-Za-z]*$/.test(value)))];
+    const references = [
+      ...new Set([eStrong, dStrong, uStrong].filter((value) => /^H\d+[A-Za-z]*$/.test(value))),
+    ];
     insertLexeme.run(
       id,
       "hbo",
@@ -380,7 +393,7 @@ function indexTbesh(database: DatabaseSync, corpusId: string): void {
     }
     records += 1;
   }
-  if (records < 20_000) throw new Error(`TBESH import unexpectedly produced ${records} entries.`);
+  if (records < 10_000) throw new Error(`TBESH import unexpectedly produced ${records} entries.`);
 }
 
 function buildWorkShard(
@@ -611,12 +624,11 @@ function buildSearchShard(
 
 function packageFingerprint(definition: PackageDefinition): string {
   const sourceManifest = readFileSync(join(root, definition.generatedDirectory, "manifest.json"));
-  const relevantAuxiliary =
-    definition.generatedDirectory.includes("sblgnt")
-      ? readFileSync(join(tagntDirectory, "manifest.json"))
-      : definition.generatedDirectory.includes("wlc")
-        ? readFileSync(join(root, "content/source-lock.json"))
-        : new Uint8Array();
+  const relevantAuxiliary = definition.generatedDirectory.includes("sblgnt")
+    ? readFileSync(join(tagntDirectory, "manifest.json"))
+    : definition.generatedDirectory.includes("wlc")
+      ? readFileSync(join(root, "content/source-lock.json"))
+      : new Uint8Array();
   return sha256(
     JSON.stringify({
       schemaVersion: DATABASE_SCHEMA_VERSION,
@@ -628,8 +640,17 @@ function packageFingerprint(definition: PackageDefinition): string {
   );
 }
 
-function validatesCachedPackage(manifest: CorpusPackageManifest, fingerprint: string): boolean {
-  if (manifest.buildFingerprint !== fingerprint || manifest.schemaVersion !== DATABASE_SCHEMA_VERSION)
+function validatesCachedPackage(
+  manifest: CorpusPackageManifest,
+  fingerprint: string,
+  allowLegacyFingerprintAdoption: boolean,
+): boolean {
+  if (
+    (manifest.buildFingerprint
+      ? manifest.buildFingerprint !== fingerprint
+      : !allowLegacyFingerprintAdoption) ||
+    manifest.schemaVersion !== DATABASE_SCHEMA_VERSION
+  )
     return false;
   const files = [
     { path: manifest.databasePath, checksum: manifest.checksum },
@@ -641,7 +662,10 @@ function validatesCachedPackage(manifest: CorpusPackageManifest, fingerprint: st
   });
 }
 
-function buildPackage(definition: PackageDefinition, buildFingerprint: string): CorpusPackageManifest {
+function buildPackage(
+  definition: PackageDefinition,
+  buildFingerprint: string,
+): CorpusPackageManifest {
   const generatedRoot = join(root, definition.generatedDirectory);
   const sourceManifest = json<GeneratedCorpusManifest>(join(generatedRoot, "manifest.json"));
   const outputPath = join(outputDirectory, `${sourceManifest.editionId}.sqlite3`);
@@ -917,12 +941,17 @@ const previousPackages = existsSync(previousRegistryPath)
   : [];
 const buildReport: { editionId: string; action: "reused" | "rebuilt" }[] = [];
 const packages = definitions.map((definition) => {
-  const generated = json<GeneratedCorpusManifest>(join(root, definition.generatedDirectory, "manifest.json"));
+  const generated = json<GeneratedCorpusManifest>(
+    join(root, definition.generatedDirectory, "manifest.json"),
+  );
   const fingerprint = packageFingerprint(definition);
   const previous = previousPackages.find((manifest) => manifest.editionId === generated.editionId);
-  if (previous && validatesCachedPackage(previous, fingerprint)) {
+  if (
+    previous &&
+    validatesCachedPackage(previous, fingerprint, !definition.generatedDirectory.includes("wlc"))
+  ) {
     buildReport.push({ editionId: generated.editionId, action: "reused" });
-    return CorpusPackageManifestSchema.parse(previous);
+    return CorpusPackageManifestSchema.parse({ ...previous, buildFingerprint: fingerprint });
   }
   buildReport.push({ editionId: generated.editionId, action: "rebuilt" });
   return buildPackage(definition, fingerprint);

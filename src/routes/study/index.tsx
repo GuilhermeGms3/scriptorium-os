@@ -1,6 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Download, Plus, Upload } from "lucide-react";
+import { ArrowRight, BookOpen, Download, Plus, Search, StickyNote, Upload } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { formatNumber, t } from "../../lib/i18n";
 import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
@@ -33,62 +33,39 @@ function StudyIndex() {
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{t("study.description")}</p>
       </header>
 
-      <div className="mt-4 flex flex-wrap gap-2">
-        <button
-          type="button"
-          onClick={() =>
-            void ResearchWorkspaceService.exportJson().then((content) => {
-              const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
-              const anchor = document.createElement("a");
-              anchor.href = url;
-              anchor.download = `scriptorium-workspace-${new Date().toISOString().slice(0, 10)}.json`;
-              anchor.click();
-              URL.revokeObjectURL(url);
-              setBackupStatus("Workspace exportado.");
-            })
-          }
-          className="inline-flex h-8 items-center gap-1.5 rounded border border-input px-2.5 text-xs"
-        >
-          <Download className="size-3.5" /> Exportar workspace
-        </button>
-        <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded border border-input px-2.5 text-xs">
-          <Upload className="size-3.5" /> Importar backup
-          <input
-            type="file"
-            accept="application/json,.json"
-            className="sr-only"
-            onChange={(event) => {
-              const file = event.target.files?.[0];
-              if (!file) return;
-              void file
-                .text()
-                .then(ResearchWorkspaceService.importJson)
-                .then(async (result) => {
-                  await refreshUserData();
-                  setBackupStatus(
-                    `${result.studies} estudos, ${result.notes} notas e ${result.researchQuestions} perguntas processados.`,
-                  );
-                })
-                .catch((error: unknown) =>
-                  setBackupStatus(error instanceof Error ? error.message : String(error)),
-                );
-            }}
-          />
-        </label>
-        {backupStatus && (
-          <p role="status" className="self-center text-xs text-muted-foreground">
-            {backupStatus}
-          </p>
-        )}
-      </div>
+      <ol className="mt-5 grid gap-3 sm:grid-cols-3" aria-label="Como usar a área de estudos">
+        {[
+          {
+            icon: Search,
+            heading: "1. Defina uma pergunta",
+            description: "Comece por uma dúvida real que você deseja investigar.",
+          },
+          {
+            icon: BookOpen,
+            heading: "2. Reúna o material",
+            description: "Adicione passagens e fontes enquanto navega pelo Scriptorium.",
+          },
+          {
+            icon: StickyNote,
+            heading: "3. Registre conclusões",
+            description: "Escreva notas e diferencie observações de deduções.",
+          },
+        ].map(({ icon: Icon, heading, description }) => (
+          <li key={heading} className="rounded-md border border-border bg-card p-3">
+            <Icon className="size-4 text-primary" />
+            <p className="mt-2 text-sm font-medium">{heading}</p>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
+          </li>
+        ))}
+      </ol>
 
-      <form onSubmit={(event) => void submit(event)} className="mt-5 flex max-w-xl gap-2">
+      <form onSubmit={(event) => void submit(event)} className="mt-6 flex max-w-xl gap-2">
         <label className="min-w-0 flex-1">
           <span className="sr-only">{t("study.newTitle")}</span>
           <input
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder={t("study.newPlaceholder")}
+            placeholder="Ex.: O Logos em João 1"
             className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
           />
         </label>
@@ -96,9 +73,64 @@ function StudyIndex() {
           className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
           disabled={!title.trim()}
         >
-          <Plus className="size-3.5" /> {t("common.create")}
+          <Plus className="size-3.5" /> Criar estudo
         </button>
       </form>
+
+      <details className="mt-4 max-w-xl rounded-md border border-border px-3 py-2">
+        <summary className="cursor-pointer text-xs font-medium">Backup e restauração</summary>
+        <p className="mt-2 text-xs text-muted-foreground">
+          Baixe uma cópia dos seus estudos ou restaure um arquivo salvo anteriormente.
+        </p>
+        <div className="mt-3 flex flex-wrap gap-2">
+          <button
+            type="button"
+            onClick={() =>
+              void ResearchWorkspaceService.exportJson().then((content) => {
+                const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
+                const anchor = document.createElement("a");
+                anchor.href = url;
+                anchor.download = `scriptorium-estudos-${new Date().toISOString().slice(0, 10)}.json`;
+                anchor.click();
+                URL.revokeObjectURL(url);
+                setBackupStatus("Backup baixado.");
+              })
+            }
+            className="inline-flex h-8 items-center gap-1.5 rounded border border-input px-2.5 text-xs"
+          >
+            <Download className="size-3.5" /> Baixar backup
+          </button>
+          <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded border border-input px-2.5 text-xs">
+            <Upload className="size-3.5" /> Restaurar backup
+            <input
+              type="file"
+              accept="application/json,.json"
+              className="sr-only"
+              onChange={(event) => {
+                const file = event.target.files?.[0];
+                if (!file) return;
+                void file
+                  .text()
+                  .then(ResearchWorkspaceService.importJson)
+                  .then(async (result) => {
+                    await refreshUserData();
+                    setBackupStatus(
+                      `${result.studies} estudos, ${result.notes} notas e ${result.researchQuestions} perguntas processados.`,
+                    );
+                  })
+                  .catch((error: unknown) =>
+                    setBackupStatus(error instanceof Error ? error.message : String(error)),
+                  );
+              }}
+            />
+          </label>
+        </div>
+        {backupStatus && (
+          <p role="status" className="mt-2 text-xs text-muted-foreground">
+            {backupStatus}
+          </p>
+        )}
+      </details>
 
       <ul className="mt-6 divide-y divide-border border-y border-border">
         {studies.map((study) => (
@@ -122,6 +154,12 @@ function StudyIndex() {
           </li>
         ))}
       </ul>
+      {studies.length === 0 && (
+        <p className="mt-6 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
+          Você ainda não criou um estudo. Dê um nome ao primeiro tema acima; depois, ao ler uma
+          passagem ou fonte, use a ação de adicionar ao estudo.
+        </p>
+      )}
     </div>
   );
 }

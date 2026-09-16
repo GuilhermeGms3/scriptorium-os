@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { FileUp, RefreshCw, Search, X } from "lucide-react";
 import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
@@ -11,7 +11,10 @@ import {
 import { ResourceRow } from "../components/library/resource-row";
 import { ResourceDetails } from "../components/library/resource-details";
 import { useWorkbench } from "../lib/workbench/workbench-context";
-import { PrimarySourceRepository, type PrimarySourceWorkSummary } from "../lib/repositories/primary-source-repository";
+import {
+  PrimarySourceRepository,
+  type PrimarySourceWorkSummary,
+} from "../lib/repositories/primary-source-repository";
 
 interface LibrarySearch {
   source?: string;
@@ -20,10 +23,10 @@ export const Route = createFileRoute("/library")({
   validateSearch: (search: Record<string, unknown>): LibrarySearch =>
     typeof search["source"] === "string" ? { source: search["source"] } : {},
   head: () => ({ meta: [{ title: "Biblioteca acadêmica — Scriptorium" }] }),
-  component: LibraryPage,
+  component: Outlet,
 });
 
-function LibraryPage() {
+export function LibraryPage() {
   const { source: sourceParam } = Route.useSearch();
   const { setPassageContext, workspacePersistence } = useWorkbench();
   const [sources, setSources] = useState<BibliographicSource[]>([]);
@@ -196,10 +199,15 @@ function LibraryPage() {
               <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
               <div className="mt-2 grid gap-1 sm:grid-cols-2">
                 {primaryWorks.map((work) => (
-                  <a key={`${work.editionId}:${work.id}`} href={`/library/read/${encodeURIComponent(work.id)}`}
-                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50">
+                  <a
+                    key={`${work.editionId}:${work.id}`}
+                    href={`/library/read/${encodeURIComponent(work.id)}`}
+                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50"
+                  >
                     <span className="block font-medium">{work.title}</span>
-                    <span className="mt-0.5 block font-mono text-[9px] text-muted-foreground">{work.editionId}</span>
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                      {work.editionTitle}
+                    </span>
                   </a>
                 ))}
               </div>

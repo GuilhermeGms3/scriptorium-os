@@ -15,6 +15,7 @@ import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as LibraryIndexRouteImport } from './routes/library/index'
 import { Route as ScriptureIndexRouteImport } from './routes/scripture/index'
 import { Route as StudyIndexRouteImport } from './routes/study/index'
 import { Route as StudySlugRouteImport } from './routes/study/$slug'
@@ -51,6 +52,11 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LibraryIndexRoute = LibraryIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => LibraryRoute,
+} as any)
 const ScriptureIndexRoute = ScriptureIndexRouteImport.update({
   id: '/scripture/',
   path: '/scripture/',
@@ -85,6 +91,7 @@ export interface FileRoutesByFullPath {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/study/$slug': typeof StudySlugRoute
+  '/library/': typeof LibraryIndexRoute
   '/scripture/': typeof ScriptureIndexRoute
   '/study/': typeof StudyIndexRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
@@ -94,10 +101,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/knowledge': typeof KnowledgeRoute
-  '/library': typeof LibraryRouteWithChildren
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/study/$slug': typeof StudySlugRoute
+  '/library': typeof LibraryIndexRoute
   '/scripture': typeof ScriptureIndexRoute
   '/study': typeof StudyIndexRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
@@ -112,6 +119,7 @@ export interface FileRoutesById {
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/study/$slug': typeof StudySlugRoute
+  '/library/': typeof LibraryIndexRoute
   '/scripture/': typeof ScriptureIndexRoute
   '/study/': typeof StudyIndexRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
@@ -127,6 +135,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/study/$slug'
+    | '/library/'
     | '/scripture/'
     | '/study/'
     | '/library/read/$workId'
@@ -136,10 +145,10 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/knowledge'
-    | '/library'
     | '/search'
     | '/settings'
     | '/study/$slug'
+    | '/library'
     | '/scripture'
     | '/study'
     | '/library/read/$workId'
@@ -153,6 +162,7 @@ export interface FileRouteTypes {
     | '/search'
     | '/settings'
     | '/study/$slug'
+    | '/library/'
     | '/scripture/'
     | '/study/'
     | '/library/read/$workId'
@@ -216,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/library/': {
+      id: '/library/'
+      path: '/'
+      fullPath: '/library/'
+      preLoaderRoute: typeof LibraryIndexRouteImport
+      parentRoute: typeof LibraryRoute
+    }
     '/scripture/': {
       id: '/scripture/'
       path: '/scripture'
@@ -255,10 +272,12 @@ declare module '@tanstack/react-router' {
 }
 
 interface LibraryRouteChildren {
+  LibraryIndexRoute: typeof LibraryIndexRoute
   LibraryReadWorkIdRoute: typeof LibraryReadWorkIdRoute
 }
 
 const LibraryRouteChildren: LibraryRouteChildren = {
+  LibraryIndexRoute: LibraryIndexRoute,
   LibraryReadWorkIdRoute: LibraryReadWorkIdRoute,
 }
 

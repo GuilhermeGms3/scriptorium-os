@@ -6,9 +6,35 @@ export const PRIMARY_SOURCE_EDITIONS = [
   "historic-creeds-pd-en-1",
 ] as const;
 
+const PORTUGUESE_WORK_TITLES: Readonly<Record<string, string>> = {
+  "work:didache": "Didaquê",
+  "work:first-clement": "Primeira Epístola de Clemente aos Coríntios",
+  "work:second-clement": "Segunda Epístola de Clemente",
+  "work:polycarp-philippians": "Epístola de Policarpo aos Filipenses",
+  "work:martyrdom-polycarp": "Martírio de Policarpo",
+  "work:epistle-barnabas": "Epístola de Barnabé",
+  "work:epistle-diognetus": "Epístola a Diogneto",
+  "work:apostles-creed": "Credo dos Apóstolos",
+  "work:athanasian-creed": "Credo Atanasiano",
+  "work:nicene-creed-325": "Credo de Niceia (325)",
+  "work:nicene-constantinopolitan-western": "Credo Niceno-Constantinopolitano — recensão ocidental",
+  "work:chalcedonian-definition": "Definição de Calcedônia (451)",
+};
+
+const PORTUGUESE_EDITION_TITLES: Readonly<Record<string, string>> = {
+  "apostolic-fathers-pd-en-1": "Pais Apostólicos · edição histórica em inglês",
+  "historic-creeds-pd-en-1": "Credos históricos · edição histórica em inglês",
+};
+
+function localizedWorkTitle(workId: string, canonicalTitle: string): string {
+  return PORTUGUESE_WORK_TITLES[workId] ?? canonicalTitle;
+}
+
 export interface PrimarySourceWorkSummary {
   id: string;
   title: string;
+  canonicalTitle: string;
+  editionTitle: string;
   editionId: string;
   corpusId: string;
   language: string;
@@ -33,7 +59,9 @@ export const PrimarySourceRepository = {
         if (!work) continue;
         result.push({
           id: work.id,
-          title: work.title,
+          title: localizedWorkTitle(work.id, work.title),
+          canonicalTitle: work.title,
+          editionTitle: PORTUGUESE_EDITION_TITLES[manifest.editionId] ?? manifest.title,
           editionId: manifest.editionId,
           corpusId: manifest.corpusId,
           language: manifest.languages[0] ?? "en",
@@ -60,7 +88,9 @@ export const PrimarySourceRepository = {
     );
     return {
       id: work.id,
-      title: work.title,
+      title: localizedWorkTitle(work.id, work.title),
+      canonicalTitle: work.title,
+      editionTitle: PORTUGUESE_EDITION_TITLES[manifest.editionId] ?? manifest.title,
       editionId: manifest.editionId,
       corpusId: manifest.corpusId,
       language: manifest.languages[0] ?? "en",
@@ -80,7 +110,9 @@ export const PrimarySourceRepository = {
         return storage.search({ text, editionIds: [manifest.editionId], limit });
       }),
     );
-    return groups.flat().sort((left, right) => right.rank - left.rank).slice(0, limit);
+    return groups
+      .flat()
+      .sort((left, right) => right.rank - left.rank)
+      .slice(0, limit);
   },
 };
-

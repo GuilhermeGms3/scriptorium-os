@@ -75,35 +75,17 @@ function StudyWorkspace() {
         </p>
       </header>
 
-      <nav
-        className="mt-3 flex gap-1 overflow-x-auto border-b border-border pb-2"
-        aria-label={t("study.sections")}
-      >
-        {[
-          ["overview", t("study.tab.overview")],
-          ["passages", t("study.tab.passages")],
-          ["sources", t("study.tab.sources")],
-          ["notes", t("study.tab.notes")],
-          ["concepts", t("study.tab.concepts")],
-          ["lenses", t("study.tab.lenses")],
-          ["timeline", t("study.tab.timeline")],
-        ].map(([id, label]) => (
-          <a
-            key={id}
-            href={`#${id}`}
-            className="shrink-0 rounded px-2 py-1 font-mono text-[10px] uppercase tracking-wider text-muted-foreground hover:bg-accent hover:text-foreground"
-          >
-            {label}
-          </a>
-        ))}
-      </nav>
+      <p className="mt-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+        Use este estudo como uma mesa de pesquisa: formule uma pergunta, reúna passagens e fontes
+        durante a leitura e registre abaixo o que você concluiu — inclusive suas dúvidas.
+      </p>
 
       <section
         className="mt-5 rounded-md border border-border bg-card p-3"
         aria-labelledby="research-questions-heading"
       >
         <h2 id="research-questions-heading" className="meta-label">
-          Perguntas de pesquisa
+          1. Pergunta central
         </h2>
         <form
           className="mt-2 flex gap-2"
@@ -152,7 +134,7 @@ function StudyWorkspace() {
       <div className="mt-5 grid gap-8 lg:grid-cols-[1.35fr_1fr]">
         <div>
           <section id="overview">
-            <h2 className="meta-label">{t("study.collected")}</h2>
+            <h2 className="meta-label">2. {t("study.collected")}</h2>
             <ul className="mt-2 divide-y divide-border border-y border-border">
               {study.items.map((item) => {
                 const Icon = KIND_ICON[item.kind];
@@ -169,12 +151,37 @@ function StudyWorkspace() {
                 );
               })}
             </ul>
+            {study.items.length === 0 && (
+              <div className="mt-2 rounded-md border border-dashed border-border p-4">
+                <p className="text-sm font-medium">Nenhum material reunido ainda</p>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Abra uma passagem bíblica ou uma fonte da Biblioteca e use a ação de adicionar ao
+                  estudo. O item aparecerá aqui com seu vínculo de origem.
+                </p>
+                <div className="mt-3 flex gap-2">
+                  <Link
+                    to="/scripture/$book/$chapter"
+                    params={{ book: "john", chapter: "1" }}
+                    className="rounded border border-input px-2.5 py-1.5 text-xs"
+                  >
+                    Abrir João 1
+                  </Link>
+                  <Link to="/library" className="rounded border border-input px-2.5 py-1.5 text-xs">
+                    Abrir Biblioteca
+                  </Link>
+                </div>
+              </div>
+            )}
           </section>
 
-          <section id="lenses" className="mt-7">
-            <h2 className="meta-label">{t("study.lenses")}</h2>
-            <p className="mt-1 text-xs text-muted-foreground">{t("study.lensesDescription")}</p>
-            <div className="mt-2 grid border-y border-border sm:grid-cols-2">
+          <details id="lenses" className="mt-7 rounded-md border border-border px-3 py-2">
+            <summary className="cursor-pointer text-xs font-medium">{t("study.lenses")}</summary>
+            <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
+              Abra esta lista quando precisar de perguntas-guia para examinar o texto por ângulos
+              como linguagem, história, arqueologia, geografia, exegese e hermenêutica. Ela não é
+              conteúdo pronto e não substitui fontes.
+            </p>
+            <div className="mt-3 grid border-y border-border sm:grid-cols-2">
               {lenses.map((lens) => {
                 const presentation = studyLensPresentation(lens);
                 return (
@@ -187,11 +194,11 @@ function StudyWorkspace() {
                 );
               })}
             </div>
-          </section>
+          </details>
         </div>
 
         <aside id="notes">
-          <h2 className="meta-label">{t("study.notesDeductions")}</h2>
+          <h2 className="meta-label">3. {t("study.notesDeductions")}</h2>
           <form
             onSubmit={(event) => void saveNote(event)}
             className="mt-2 space-y-2 rounded-md border border-border bg-card p-3"
