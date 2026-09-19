@@ -64,7 +64,13 @@ function romanToNumber(value: string): number {
 function bounded(raw: string, start: string, end: string): string {
   const normalized = normalizeLines(raw);
   const pattern = (marker: string) =>
-    new RegExp(marker.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&").replace(/\s+/g, "\\s+"), "i");
+    new RegExp(
+      marker
+        .trim()
+        .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
+        .replace(/\s+/g, "\\s+"),
+      "i",
+    );
   const startMatch = pattern(start).exec(normalized);
   if (!startMatch || startMatch.index === undefined)
     throw new Error(`Primary-source start marker not found: ${start}`);
@@ -105,7 +111,8 @@ export function parseDidache(raw: string): ParsedPrimaryWork {
   );
   const normalized = normalizeLines(english);
   const matches = [...normalized.matchAll(/^Chap\.?\s*([IVXLCDM]+):?\s*(\d+)?\s*[—-]\s*/gim)];
-  if (matches.length !== 16) throw new Error(`Didache expected 16 chapters; found ${matches.length}.`);
+  if (matches.length !== 16)
+    throw new Error(`Didache expected 16 chapters; found ${matches.length}.`);
   const units = matches.map((match, index) => {
     const section = String(romanToNumber(match[1]!));
     const start = (match.index ?? 0) + match[0].length;
@@ -196,7 +203,74 @@ function paragraphUnits(workId: string, text: string): ParsedPrimaryUnit[] {
   });
 }
 
-export function parseConfessionalDocuments(source30323: string, source24979: string): ParsedPrimaryWork[] {
+function origenBookUnits(workId: string, book: string, raw: string): ParsedPrimaryUnit[] {
+  const normalized = normalizeLines(raw)
+    .replace(/^\s*ORIGEN'S\s+COMMENTARY\s+ON\s+JOHN\.\s*$/gim, "")
+    .replace(/^\s*\d{3}\s*$/gm, "");
+  const matches = [...normalized.matchAll(/^\s*(I|\d+)\.\s+(?=\S)/gm)];
+  if (matches.length < 2) throw new Error(`No structural sections found for Origen book ${book}.`);
+  return matches.map((match, index) => {
+    const chapter = match[1] === "I" ? "1" : match[1]!;
+    const section = `${book}.${chapter}`;
+    const start = (match.index ?? 0) + match[0].length;
+    const end = matches[index + 1]?.index ?? normalized.length;
+    const text = cleanBody(normalized.slice(start, end));
+    if (!text) throw new Error(`Empty Origen section ${section}.`);
+    const firstSentence = text.match(/^(.{1,180}?)(?:\.\s|$)/)?.[1]?.trim();
+    return {
+      id: stableUnitId(workId, section),
+      sequence: index + 1,
+      section,
+      ...(firstSentence ? { title: firstSentence } : {}),
+      text,
+    };
+  });
+}
+
+export function parseOrigenCommentaryOnJohn(raw: string): ParsedPrimaryWork {
+  const normalized = normalizeLines(raw);
+  const commentaryStart = normalized.indexOf(
+    "ORIGEN'S  COMMENTARY  ON  THE  GOSPEL  OF  JOHN.",
+    20_000,
+  );
+  const bookTwoStart = normalized.indexOf("BOOK   II.", commentaryStart);
+  const fragmentsStart = normalized.indexOf("FRAGMENTS  OF  THE  FOURTH  BOOK.", bookTwoStart);
+  if (commentaryStart < 0 || bookTwoStart < 0 || fragmentsStart < 0)
+    throw new Error("Origen Commentary on John Books I-II boundaries were not found.");
+  const bookOneStart = normalized.indexOf("BOOK  I.", commentaryStart);
+  if (bookOneStart < 0 || bookOneStart >= bookTwoStart)
+    throw new Error("Origen Commentary on John Book I boundary was not found.");
+  const workId = "work:origen-commentary-john-books-1-2";
+  const units = [
+    ...origenBookUnits(
+      workId,
+      "I",
+      normalized.slice(bookOneStart + "BOOK  I.".length, bookTwoStart),
+    ),
+    ...origenBookUnits(
+      workId,
+      "II",
+      normalized.slice(bookTwoStart + "BOOK   II.".length, fragmentsStart),
+    ),
+  ].map((unit, index) => ({ ...unit, sequence: index + 1 }));
+  return {
+    id: workId,
+    title: "Origen's Commentary on the Gospel of John — Books I and II",
+    aliases: [
+      "Origen on John",
+      "Comentário de Orígenes sobre o Evangelho de João",
+      "Commentary on John Books I-II",
+    ],
+    language: "en",
+    sourceId: "source:internet-archive:cu31924029220535",
+    units,
+  };
+}
+
+export function parseConfessionalDocuments(
+  source30323: string,
+  source24979: string,
+): ParsedPrimaryWork[] {
   const documents = [
     {
       id: "work:apostles-creed",
@@ -217,21 +291,33 @@ export function parseConfessionalDocuments(source30323: string, source24979: str
       title: "Creed of Nicaea (325)",
       aliases: ["Credo Niceno", "Nicene Creed 325"],
       sourceId: "source:gutenberg:24979",
-      text: bounded(source24979, "We believe in one God, Father Almighty, maker of all things visible", "§ 64. The Beginnings"),
+      text: bounded(
+        source24979,
+        "We believe in one God, Father Almighty, maker of all things visible",
+        "§ 64. The Beginnings",
+      ),
     },
     {
       id: "work:nicene-constantinopolitan-western",
       title: "Nicene-Constantinopolitan Creed — Western recension with filioque",
       aliases: ["Credo Niceno-Constantinopolitano", "Nicene Creed"],
       sourceId: "source:gutenberg:30323",
-      text: bounded(source30323, "    Translation.\n\n", "This Creed was adopted at Constantinople"),
+      text: bounded(
+        source30323,
+        "    Translation.\n\n",
+        "This Creed was adopted at Constantinople",
+      ),
     },
     {
       id: "work:chalcedonian-definition",
       title: "Definition of Chalcedon (451)",
       aliases: ["Definição de Calcedônia", "Chalcedonian Definition"],
       sourceId: "source:gutenberg:24979",
-      text: bounded(source24979, "The holy, great, and ecumenical synod", "(_d_) Council of Chalcedon"),
+      text: bounded(
+        source24979,
+        "The holy, great, and ecumenical synod",
+        "(_d_) Council of Chalcedon",
+      ),
     },
   ];
   return documents.map((document) => ({

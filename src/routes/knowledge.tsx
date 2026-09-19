@@ -42,6 +42,20 @@ function entityKind(item: ExplorerEntity): string {
   return item.kind === "knowledge" ? item.entity.type : item.entity.kind;
 }
 
+const KIND_LABELS: Record<string, string> = {
+  person: "Pessoas", place: "Lugares", event: "Eventos", passage: "Passagens",
+  work: "Obras", concept: "Conceitos", word: "Palavras", manuscript: "Manuscritos",
+  "historical-source": "Fontes históricas", "theological-topic": "Áreas da teologia",
+  doctrine: "Doutrinas", tradition: "Tradições", school: "Escolas de pensamento",
+  method: "Métodos de estudo", "epistemic-stance": "Posturas de análise",
+  "interpretive-framework": "Sistemas de interpretação", position: "Posições teológicas",
+  theory: "Teorias e hipóteses",
+};
+
+function kindLabel(kind: string): string {
+  return KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
+}
+
 function KnowledgePage() {
   const { entity: requestedId, claim: requestedClaimId } = Route.useSearch();
   const navigate = useNavigate({ from: "/knowledge" });
@@ -111,7 +125,7 @@ function KnowledgePage() {
       >
         {grouped.map(([kind, items]) => (
           <div key={kind} className="mb-3 px-2">
-            <p className="meta-label px-1 py-1">{kind.replaceAll("-", " ")}</p>
+            <p className="meta-label px-1 py-1">{kindLabel(kind)}</p>
             {items.map((item) => (
               <button
                 key={entityId(item)}
@@ -132,8 +146,8 @@ function KnowledgePage() {
             {t("knowledge.explorer")}
           </h1>
           <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-            Entidades, argumentos e perspectivas são consultados por relação; selecionar um item não
-            carrega claims globais.
+            Explore temas, doutrinas, métodos, tradições e debates. Cada item reúne somente as
+            afirmações, fontes e argumentos realmente ligados a ele.
           </p>
         </header>
 
@@ -146,7 +160,7 @@ function KnowledgePage() {
           >
             {entities.map((item) => (
               <option key={entityId(item)} value={entityId(item)}>
-                {entityName(item)} — {entityKind(item)}
+                {entityName(item)} — {kindLabel(entityKind(item))}
               </option>
             ))}
           </select>
@@ -197,10 +211,13 @@ function ExplorerContent({
     <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <section>
         <div className="rounded-lg border border-border bg-card p-4">
-          <p className="meta-label">{entityKind(selected)}</p>
+          <p className="meta-label">{kindLabel(entityKind(selected))}</p>
           <h2 className="mt-1 font-serif text-xl font-semibold">{title}</h2>
           {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
-          <p className="mt-2 font-mono text-[10px] text-muted-foreground">{selected.entity.id}</p>
+          <details className="mt-2 text-[10px] text-muted-foreground">
+            <summary className="cursor-pointer">Detalhes técnicos</summary>
+            <p className="mt-1 font-mono">{selected.entity.id}</p>
+          </details>
         </div>
         <section className="mt-6">
           <h2 className="meta-label">{t("knowledge.claims")} relacionadas</h2>

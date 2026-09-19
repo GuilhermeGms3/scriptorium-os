@@ -12,6 +12,7 @@ import {
   parseApostolicFathers,
   parseConfessionalDocuments,
   parseDidache,
+  parseOrigenCommentaryOnJohn,
   type ParsedPrimaryWork,
 } from "../content/primary-source-parser";
 
@@ -104,6 +105,23 @@ const sources: SourceDefinition[] = [
     license: "Public domain in the United States",
     redistributionStatus: "allowed",
     attribution: "Project Gutenberg eBook 24979; Ayer source book (1913).",
+  },
+  {
+    id: "source:internet-archive:cu31924029220535",
+    title: "The Ante-Nicene Fathers, Volume IX",
+    path: "corpora/source/primary-sources/archive-cu31924029220535/cu31924029220535_djvu.txt",
+    url: "https://archive.org/details/cu31924029220535",
+    checksum: "e6fc779e5ab55b69b40dc312f92d46fa4d7b14cd00c946834700bc348bf19aaa",
+    sizeBytes: 2_702_174,
+    edition: "Buffalo: Christian Literature Publishing Co., 1885",
+    editor: "Allan Menzies",
+    translators: ["Allan Menzies"],
+    language: "en",
+    retrievalDate: "2026-09-16",
+    license: "Public domain; Wikimedia Commons Public Domain Mark 1.0",
+    redistributionStatus: "allowed",
+    attribution:
+      "Internet Archive scan cu31924029220535, digitized by Cornell University Library; Ante-Nicene Fathers, Volume IX (1885).",
   },
 ];
 
@@ -201,6 +219,9 @@ function buildPackage(
   const sourceChecksum = sha256(
     input.sourceIds.map((id) => sources.find((source) => source.id === id)!.checksum).join(":"),
   );
+  const packageLicense = [
+    ...new Set(input.sourceIds.map((id) => sources.find((source) => source.id === id)!.license)),
+  ].join("; ");
   database.exec("BEGIN IMMEDIATE");
   try {
     database
@@ -209,7 +230,7 @@ function buildPackage(
         input.corpusId,
         input.title,
         "primary-source-collection",
-        JSON.stringify({ license: "Public domain source editions", redistribution: "allowed" }),
+        JSON.stringify({ license: packageLicense, redistribution: "allowed" }),
         JSON.stringify({ sourceIds: input.sourceIds, reviewStatus: "source-imported" }),
       );
     database
@@ -360,13 +381,14 @@ function buildPackage(
     sourceLocation: `/corpus-packages/${input.editionId}.sqlite3`,
     dependencies: [
       `schema:${DATABASE_SCHEMA_VERSION}`,
-      "parser:primary-sources:1.0.0",
+      "parser:primary-sources:1.1.0",
+      "builder:primary-sources:1.1.0",
       ...input.sourceIds,
     ],
     parts,
     versificationSchemeId: schemeId,
     rights: {
-      license: "Public domain source editions",
+      license: packageLicense,
       redistribution: "allowed",
       attribution: input.sourceIds
         .map((id) => sources.find((source) => source.id === id)!.attribution)
@@ -404,8 +426,10 @@ export function buildPrimarySourcePackages(
   const source77576 = verifiedSource(sources[1]!);
   const source30323 = verifiedSource(sources[2]!);
   const source24979 = verifiedSource(sources[3]!);
+  const sourceOrigen = verifiedSource(sources[4]!);
   const apostolicWorks = [parseDidache(source42053), ...parseApostolicFathers(source77576)];
   const confessionalWorks = parseConfessionalDocuments(source30323, source24979);
+  const origenWorks = [parseOrigenCommentaryOnJohn(sourceOrigen)];
   const definitions = [
     {
       corpusId: "apostolic-fathers-public-domain",
@@ -425,12 +449,22 @@ export function buildPrimarySourcePackages(
       works: confessionalWorks,
       sourceIds: [sources[2]!.id, sources[3]!.id],
     },
+    {
+      corpusId: "ancient-john-reception-public-domain",
+      editionId: "ancient-john-reception-pd-en-1",
+      title: "Ancient Reception of John — public-domain English editions",
+      abbreviation: "JOHN-REC-PD-EN",
+      version: "1885-r1",
+      works: origenWorks,
+      sourceIds: [sources[4]!.id],
+    },
   ];
   return definitions.map((definition) => {
     const fingerprint = sha256(
       JSON.stringify({
         schemaVersion: DATABASE_SCHEMA_VERSION,
-        parserVersion: "primary-sources-1.0.0",
+        parserVersion: "primary-sources-1.1.0",
+        builderVersion: "primary-sources-1.1.0",
         editionId: definition.editionId,
         sourceChecksums: definition.sourceIds.map(
           (id) => sources.find((source) => source.id === id)!.checksum,

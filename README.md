@@ -45,7 +45,7 @@ npm run preview
 
 Fontes imutáveis ficam em `corpora/source/`; derivados normalizados, em `generated/corpora/`. O pipeline valida direitos, proveniência e SHA-256 antes da publicação. JSON continua sendo aceito como artefato de origem/intermediário, mas o runtime consulta SQLite.
 
-A Biblioteca também inclui pacotes SQLite/FTS legíveis de sete obras dos Pais Apostólicos e cinco credos/documentos conciliares históricos. Consulte [Pais Apostólicos](docs/content/apostolic-fathers.md), [credos](docs/content/creeds-confessions.md) e [cobertura de conteúdo](docs/content/content-coverage.md).
+A Biblioteca também inclui pacotes SQLite/FTS legíveis de sete obras dos Pais Apostólicos, cinco credos/documentos conciliares históricos e os livros I–II do comentário de Orígenes sobre João. Consulte [Pais Apostólicos](docs/content/apostolic-fathers.md), [credos](docs/content/creeds-confessions.md), [recepção de João 1](docs/content/john-reception.md) e [cobertura de conteúdo](docs/content/content-coverage.md).
 
 Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e geração, [docs/corpora/phase10-content.md](docs/corpora/phase10-content.md) para a expansão de conteúdo, [docs/architecture/text-identity.md](docs/architecture/text-identity.md) para a base arquitetural da Fase 8, [docs/architecture/phase9-5-consolidation.md](docs/architecture/phase9-5-consolidation.md) para o runtime canônico e [docs/architecture/private-document-ingestion.md](docs/architecture/private-document-ingestion.md) para o futuro pipeline local de PDFs e outros documentos privados.
 

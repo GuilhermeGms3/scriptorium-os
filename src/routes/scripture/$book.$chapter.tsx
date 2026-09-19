@@ -10,6 +10,7 @@ import { AnalysisLenses } from "../../components/scripture/analysis-lenses";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { hasAvailableData } from "../../lib/domain/availability";
+import { VerseExplanations } from "../../components/scripture/verse-explanations";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
@@ -56,6 +57,7 @@ function ChapterReader() {
     ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
   );
   const [view, setView] = useState<ReaderView>("single");
+  const [showExplanations, setShowExplanations] = useState(true);
 
   const book = ScriptureKnowledgeEngine.getBook(bookId);
   const activeRef = useMemo(
@@ -78,6 +80,9 @@ function ChapterReader() {
   const hasInterlinear = Boolean(
     hasOriginal && bundle && hasAvailableData(bundle.linguisticAnnotations),
   );
+  const availableAnalyses = bundle && hasAvailableData(bundle.analyses) ? bundle.analyses.data : [];
+  const availableClaims = bundle && hasAvailableData(bundle.claims) ? bundle.claims.data : [];
+  const explanationsAvailable = availableAnalyses.length > 0 || availableClaims.length > 0;
   const availableViews = useMemo<Record<ReaderView, boolean>>(
     () => ({
       single: true,
@@ -119,6 +124,9 @@ function ChapterReader() {
           hasPrev={chapter > 1}
           hasNext={chapter < book.chapters}
           availableViews={availableViews}
+          showExplanations={showExplanations}
+          onShowExplanationsChange={setShowExplanations}
+          explanationsAvailable={explanationsAvailable}
         />
 
         <div className="min-h-0 flex-1 overflow-y-auto">
@@ -143,14 +151,24 @@ function ChapterReader() {
               {view === "single" && (
                 <div className="reading-text">
                   {bundle.passage.verses.map((v) => (
-                    <Verse
-                      key={v.verse}
-                      verse={v}
-                      editionId={effectiveEditionId}
-                      bookName={bookLabel(book.id, book.name)}
-                      chapter={chapter}
-                      verseMode={readingPrefs.verseMode}
-                    />
+                    <div key={v.verse}>
+                      <Verse
+                        verse={v}
+                        editionId={effectiveEditionId}
+                        bookName={bookLabel(book.id, book.name)}
+                        chapter={chapter}
+                        verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
+                      />
+                      {showExplanations && (
+                        <VerseExplanations
+                          bookId={book.id}
+                          chapter={chapter}
+                          verse={v.verse}
+                          analyses={availableAnalyses}
+                          claims={availableClaims}
+                        />
+                      )}
+                    </div>
                   ))}
                 </div>
               )}

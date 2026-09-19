@@ -714,6 +714,650 @@
     },
     {
       "schemaVersion": 11,
+      "id": "runtime:pkg-traducao-brasileira-wikisource-1917",
+      "corpusId": "traducao-brasileira",
+      "editionId": "traducao-brasileira-1917",
+      "version": "wikisource-snapshot-2026-09-16",
+      "title": "Tradução Brasileira da Bíblia (1917)",
+      "abbreviation": "TBB 1917",
+      "works": [
+        "work:genesis",
+        "work:exodus",
+        "work:leviticus",
+        "work:numbers",
+        "work:deuteronomy",
+        "work:joshua",
+        "work:judges",
+        "work:ruth",
+        "work:1-samuel",
+        "work:2-samuel",
+        "work:1-kings",
+        "work:2-kings",
+        "work:1-chronicles",
+        "work:2-chronicles",
+        "work:ezra",
+        "work:nehemiah",
+        "work:esther",
+        "work:job",
+        "work:psalms",
+        "work:proverbs",
+        "work:ecclesiastes",
+        "work:song-of-songs",
+        "work:isaiah",
+        "work:jeremiah",
+        "work:lamentations",
+        "work:ezekiel",
+        "work:daniel",
+        "work:hosea",
+        "work:joel",
+        "work:amos",
+        "work:obadiah",
+        "work:jonah",
+        "work:micah",
+        "work:nahum",
+        "work:habakkuk",
+        "work:zephaniah",
+        "work:haggai",
+        "work:zechariah",
+        "work:malachi",
+        "work:matthew",
+        "work:mark",
+        "work:luke",
+        "work:john",
+        "work:acts",
+        "work:romans",
+        "work:1-corinthians",
+        "work:2-corinthians",
+        "work:galatians",
+        "work:ephesians",
+        "work:philippians",
+        "work:colossians",
+        "work:1-thessalonians",
+        "work:2-thessalonians",
+        "work:1-timothy",
+        "work:2-timothy",
+        "work:titus",
+        "work:philemon",
+        "work:hebrews",
+        "work:james",
+        "work:1-peter",
+        "work:2-peter",
+        "work:1-john",
+        "work:2-john",
+        "work:3-john",
+        "work:jude",
+        "work:revelation"
+      ],
+      "languages": [
+        "pt-BR"
+      ],
+      "databasePath": "/corpus-packages/traducao-brasileira-1917.sqlite3",
+      "checksum": "58b7b13027b1a178a8ab51f4f3f6a892c17cb10e1424d444ac0fe19218e559aa",
+      "sourceChecksum": "d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
+      "buildFingerprint": "292531b3196c80eed8e4241d3723536e78bc789df0f313be0876a54007ea55dd",
+      "sizeBytes": 120647680,
+      "downloadSizeBytes": 197435392,
+      "storageSizeBytes": 197435392,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/traducao-brasileira-1917.sqlite3",
+      "dependencies": [],
+      "parts": [
+        {
+          "id": "traducao-brasileira-1917:genesis",
+          "workId": "work:genesis",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/genesis.sqlite3",
+          "checksum": "041fe3444450ff44bb5c99036d33c015b5c17fa33107e8e0930fe0e64fb2f6c7",
+          "sizeBytes": 5898240
+        },
+        {
+          "id": "traducao-brasileira-1917:exodus",
+          "workId": "work:exodus",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/exodus.sqlite3",
+          "checksum": "8efdbcdeddd018f313fb01ad3f3041de56e7e2664c097fd5635031c983648560",
+          "sizeBytes": 4808704
+        },
+        {
+          "id": "traducao-brasileira-1917:leviticus",
+          "workId": "work:leviticus",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/leviticus.sqlite3",
+          "checksum": "0337acb28da2c0e69cf995dff30fd53bd81a7f80138f38894d66476351577525",
+          "sizeBytes": 3739648
+        },
+        {
+          "id": "traducao-brasileira-1917:numbers",
+          "workId": "work:numbers",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/numbers.sqlite3",
+          "checksum": "5833090008b2ea532a4057e99c097da594d56537c1755da54e46437bd427c3e5",
+          "sizeBytes": 5074944
+        },
+        {
+          "id": "traducao-brasileira-1917:deuteronomy",
+          "workId": "work:deuteronomy",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/deuteronomy.sqlite3",
+          "checksum": "b090ab797e0eedbb5efd594f8fb7f9804d2462fa3222e2d3ab84750cb22ea566",
+          "sizeBytes": 4202496
+        },
+        {
+          "id": "traducao-brasileira-1917:joshua",
+          "workId": "work:joshua",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/joshua.sqlite3",
+          "checksum": "5716b2734c027906dda694114b8de48d8a94e429b21f406bc9ce762d679ea7bb",
+          "sizeBytes": 2883584
+        },
+        {
+          "id": "traducao-brasileira-1917:judges",
+          "workId": "work:judges",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/judges.sqlite3",
+          "checksum": "b697d56c20171df0842a3c4b6bf63b1c4da9e04aebe4788736780c4e68a6a4fa",
+          "sizeBytes": 2781184
+        },
+        {
+          "id": "traducao-brasileira-1917:ruth",
+          "workId": "work:ruth",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/ruth.sqlite3",
+          "checksum": "b5c485d9c99bbf2d70ca42ab30c3a5378ce92ca5951dd18a74be17f10c30fbc0",
+          "sizeBytes": 819200
+        },
+        {
+          "id": "traducao-brasileira-1917:1-samuel",
+          "workId": "work:1-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-samuel.sqlite3",
+          "checksum": "485edabac2fe591247b5f6bdcf4079dad585c3cb077498ec2708450edc346e3e",
+          "sizeBytes": 3616768
+        },
+        {
+          "id": "traducao-brasileira-1917:2-samuel",
+          "workId": "work:2-samuel",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-samuel.sqlite3",
+          "checksum": "9b4573d5a20701e744f291efce7288563f8e9088c255403b6e5ac5aeaac6d84f",
+          "sizeBytes": 3158016
+        },
+        {
+          "id": "traducao-brasileira-1917:1-kings",
+          "workId": "work:1-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-kings.sqlite3",
+          "checksum": "c579e647c922e02f8a9d29f0e0b1ab7d320396c2ebd8fd05e32bbdb1a29b30a1",
+          "sizeBytes": 3510272
+        },
+        {
+          "id": "traducao-brasileira-1917:2-kings",
+          "workId": "work:2-kings",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-kings.sqlite3",
+          "checksum": "984281f931f71908eaaa1a35bf85304a77e33236c8b5c4bdac34b34b2c1f2bed",
+          "sizeBytes": 3211264
+        },
+        {
+          "id": "traducao-brasileira-1917:1-chronicles",
+          "workId": "work:1-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-chronicles.sqlite3",
+          "checksum": "d9d1e9dd4f04742f20cc2f7165a9b5a7c6e37d759590b11657aa41d806dffd67",
+          "sizeBytes": 3981312
+        },
+        {
+          "id": "traducao-brasileira-1917:2-chronicles",
+          "workId": "work:2-chronicles",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-chronicles.sqlite3",
+          "checksum": "8c73821a611120a28bf8e1c7c9d142aca4cc65e13fef33b22c9846578c199ba9",
+          "sizeBytes": 3788800
+        },
+        {
+          "id": "traducao-brasileira-1917:ezra",
+          "workId": "work:ezra",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/ezra.sqlite3",
+          "checksum": "d673f531ede734b862b79a3785a53956cf61d482ac295d6f512fa38f6b4286a6",
+          "sizeBytes": 1527808
+        },
+        {
+          "id": "traducao-brasileira-1917:nehemiah",
+          "workId": "work:nehemiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/nehemiah.sqlite3",
+          "checksum": "386bef7971b54bfc78bba7192ffb8fcbf6f7a6eac5986555b5b240ecfcd8810e",
+          "sizeBytes": 2039808
+        },
+        {
+          "id": "traducao-brasileira-1917:esther",
+          "workId": "work:esther",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/esther.sqlite3",
+          "checksum": "e58ee0095817567c461d1260e6e2dd15d268b0454de58025fda0833ef4ffa1f7",
+          "sizeBytes": 1171456
+        },
+        {
+          "id": "traducao-brasileira-1917:job",
+          "workId": "work:job",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/job.sqlite3",
+          "checksum": "b2b36c0f8c81e86942d60ca07a24606d7dfb87538617fb52335ea96c004627e6",
+          "sizeBytes": 3973120
+        },
+        {
+          "id": "traducao-brasileira-1917:psalms",
+          "workId": "work:psalms",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/psalms.sqlite3",
+          "checksum": "68951f11c01c1f3d095f62d402f7f2bc5fbd7195f9c73e8556ef53aea56589bd",
+          "sizeBytes": 8740864
+        },
+        {
+          "id": "traducao-brasileira-1917:proverbs",
+          "workId": "work:proverbs",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/proverbs.sqlite3",
+          "checksum": "5e3e245439872d23584d846f0baeb2820bccf271a725449773952b54664cc43f",
+          "sizeBytes": 3702784
+        },
+        {
+          "id": "traducao-brasileira-1917:ecclesiastes",
+          "workId": "work:ecclesiastes",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/ecclesiastes.sqlite3",
+          "checksum": "73820267c8634ef5b5d8ea328efb4b4bbbd37f6f4eb07e224ed84dba7101a66e",
+          "sizeBytes": 1359872
+        },
+        {
+          "id": "traducao-brasileira-1917:song-of-songs",
+          "workId": "work:song-of-songs",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/song-of-songs.sqlite3",
+          "checksum": "16e01fa977a1d84a26b00a5ef17e7d8f6b6707bfc854cc19b03fa2eae4e8cf8c",
+          "sizeBytes": 962560
+        },
+        {
+          "id": "traducao-brasileira-1917:isaiah",
+          "workId": "work:isaiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/isaiah.sqlite3",
+          "checksum": "641211cd52f77de30d5fef5cd39499ef4cac978a9a3b4eb0296a988d75e9dee8",
+          "sizeBytes": 5226496
+        },
+        {
+          "id": "traducao-brasileira-1917:jeremiah",
+          "workId": "work:jeremiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/jeremiah.sqlite3",
+          "checksum": "8db141aa2b8c125f69597889db719141e3c61d3091c9f0823d34bbc067c413de",
+          "sizeBytes": 5783552
+        },
+        {
+          "id": "traducao-brasileira-1917:lamentations",
+          "workId": "work:lamentations",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/lamentations.sqlite3",
+          "checksum": "9b9f1939a6a059e3b7df9bc8bcfb85467daab85abb446e209f5b19ef097facc4",
+          "sizeBytes": 1101824
+        },
+        {
+          "id": "traducao-brasileira-1917:ezekiel",
+          "workId": "work:ezekiel",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/ezekiel.sqlite3",
+          "checksum": "c72dfcc6261addf2bc37c6d40055f664ed12a81a2d4a7d48ce3abf5e5d44a308",
+          "sizeBytes": 5259264
+        },
+        {
+          "id": "traducao-brasileira-1917:daniel",
+          "workId": "work:daniel",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/daniel.sqlite3",
+          "checksum": "a34328794638b1b64b455f61bde5b6092d8e1aa2ac4ab0b94a889677ee021a63",
+          "sizeBytes": 1888256
+        },
+        {
+          "id": "traducao-brasileira-1917:hosea",
+          "workId": "work:hosea",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/hosea.sqlite3",
+          "checksum": "19acac8a9c8a7b04ce2aab56bd98bbedcd77338f05332e2c0a3720d2ee36e667",
+          "sizeBytes": 1224704
+        },
+        {
+          "id": "traducao-brasileira-1917:joel",
+          "workId": "work:joel",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/joel.sqlite3",
+          "checksum": "a174335d69a06775ab6a43f4dc2d28dcde24c3bf335fd22c7565790016458381",
+          "sizeBytes": 778240
+        },
+        {
+          "id": "traducao-brasileira-1917:amos",
+          "workId": "work:amos",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/amos.sqlite3",
+          "checksum": "0737db833917197f896e67541b1860bcaf053cd7ddc2da6996bc1e96aacfbe52",
+          "sizeBytes": 1048576
+        },
+        {
+          "id": "traducao-brasileira-1917:obadiah",
+          "workId": "work:obadiah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/obadiah.sqlite3",
+          "checksum": "97d2cc97a988f521616d073bae77c13cae8b12ffd6d740ca18981db76a2be1ff",
+          "sizeBytes": 581632
+        },
+        {
+          "id": "traducao-brasileira-1917:jonah",
+          "workId": "work:jonah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/jonah.sqlite3",
+          "checksum": "5c7bb5879434e80feafbc66702cc439c3781017802dfc21b651aeb1b0434bfa9",
+          "sizeBytes": 679936
+        },
+        {
+          "id": "traducao-brasileira-1917:micah",
+          "workId": "work:micah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/micah.sqlite3",
+          "checksum": "01575edaef14cf85cb96a3977d16e2f51c972ce4323e0d388f10bd4a9f335b8f",
+          "sizeBytes": 921600
+        },
+        {
+          "id": "traducao-brasileira-1917:nahum",
+          "workId": "work:nahum",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/nahum.sqlite3",
+          "checksum": "ce6467e292c3994ea7245ecd58ef02ebab546e7d15536b831ff866aef95c042a",
+          "sizeBytes": 679936
+        },
+        {
+          "id": "traducao-brasileira-1917:habakkuk",
+          "workId": "work:habakkuk",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/habakkuk.sqlite3",
+          "checksum": "cb861f770469cb84747640c7dfd6d2c637d48fde8eb39ecef7d86cb12d6368e4",
+          "sizeBytes": 720896
+        },
+        {
+          "id": "traducao-brasileira-1917:zephaniah",
+          "workId": "work:zephaniah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/zephaniah.sqlite3",
+          "checksum": "7e0105be1dc8903ad869210813626be40e06ac7c18149ce2d47abfae30e0e561",
+          "sizeBytes": 716800
+        },
+        {
+          "id": "traducao-brasileira-1917:haggai",
+          "workId": "work:haggai",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/haggai.sqlite3",
+          "checksum": "574647734e2e75517b7aaaa94ff0e28c625d34f8387e114077d5b7d36d486051",
+          "sizeBytes": 647168
+        },
+        {
+          "id": "traducao-brasileira-1917:zechariah",
+          "workId": "work:zechariah",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/zechariah.sqlite3",
+          "checksum": "436f3d7fbfccd5d48e9d1364e24415e9f2830e4c9d87ec84e9fcca1440e367ae",
+          "sizeBytes": 1331200
+        },
+        {
+          "id": "traducao-brasileira-1917:malachi",
+          "workId": "work:malachi",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/malachi.sqlite3",
+          "checksum": "1b38a9932c04e12f59733437f442517e0150bdfe9ba2f3bf5624af6e44b3162a",
+          "sizeBytes": 724992
+        },
+        {
+          "id": "traducao-brasileira-1917:matthew",
+          "workId": "work:matthew",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/matthew.sqlite3",
+          "checksum": "0be541a52423a4132b0af863593dea543da6714ee8600b87b010bd1a4d197141",
+          "sizeBytes": 4235264
+        },
+        {
+          "id": "traducao-brasileira-1917:mark",
+          "workId": "work:mark",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/mark.sqlite3",
+          "checksum": "4ef88fee676240aa6f7033237f3364439c14c25177f1f5219c7029cc5803e064",
+          "sizeBytes": 2830336
+        },
+        {
+          "id": "traducao-brasileira-1917:luke",
+          "workId": "work:luke",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/luke.sqlite3",
+          "checksum": "4a680f9ec19e3ac9f6ced8b1307bb9f1349339874b93a1f6faacdd916bfa8a87",
+          "sizeBytes": 4427776
+        },
+        {
+          "id": "traducao-brasileira-1917:john",
+          "workId": "work:john",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/john.sqlite3",
+          "checksum": "829ba9062014910e2cfe7e7eeef04f4e157efd94dd2ce203d2ff86cda6dbf186",
+          "sizeBytes": 3497984
+        },
+        {
+          "id": "traducao-brasileira-1917:acts",
+          "workId": "work:acts",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/acts.sqlite3",
+          "checksum": "e5e2cb199ab0f9331e611defea6798f0e4b58743f47150c4a944f449d5917e3b",
+          "sizeBytes": 4022272
+        },
+        {
+          "id": "traducao-brasileira-1917:romans",
+          "workId": "work:romans",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/romans.sqlite3",
+          "checksum": "cff3041232f3e8c6c82fa6d31f5d840efa1e14d5d3ba7f59c5d755e9e4e349c3",
+          "sizeBytes": 2031616
+        },
+        {
+          "id": "traducao-brasileira-1917:1-corinthians",
+          "workId": "work:1-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-corinthians.sqlite3",
+          "checksum": "236176c2de28b71a37c77c96edd37672dda26762d1f95c893367376466efb8ae",
+          "sizeBytes": 2142208
+        },
+        {
+          "id": "traducao-brasileira-1917:2-corinthians",
+          "workId": "work:2-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-corinthians.sqlite3",
+          "checksum": "af648f98ea61791e706e43672bd07100ac346a69e471e3538014aa246bb28a67",
+          "sizeBytes": 1503232
+        },
+        {
+          "id": "traducao-brasileira-1917:galatians",
+          "workId": "work:galatians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/galatians.sqlite3",
+          "checksum": "cb9771a861b6b02539c5165958b5a7044796dd5438e081f12e7e4fe4de3cbb5a",
+          "sizeBytes": 1069056
+        },
+        {
+          "id": "traducao-brasileira-1917:ephesians",
+          "workId": "work:ephesians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/ephesians.sqlite3",
+          "checksum": "10806644719e2b0b9e44f5747788c8a311ec80320f4324f4c7e43b433de4dca4",
+          "sizeBytes": 1081344
+        },
+        {
+          "id": "traducao-brasileira-1917:philippians",
+          "workId": "work:philippians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/philippians.sqlite3",
+          "checksum": "a2fd02116556980a14bc7cfe8aaae80b9a449578cb8ac173d0ea634433ba1487",
+          "sizeBytes": 917504
+        },
+        {
+          "id": "traducao-brasileira-1917:colossians",
+          "workId": "work:colossians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/colossians.sqlite3",
+          "checksum": "bd85e22d8fd9abcaf06e301d2ffd6a3145307591c96d5bdedcca7c44abc0684d",
+          "sizeBytes": 888832
+        },
+        {
+          "id": "traducao-brasileira-1917:1-thessalonians",
+          "workId": "work:1-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-thessalonians.sqlite3",
+          "checksum": "2c6e07cfec7d19a149ee70ef05cc7e28054136885e5b30860b5c1830a5f04ffb",
+          "sizeBytes": 876544
+        },
+        {
+          "id": "traducao-brasileira-1917:2-thessalonians",
+          "workId": "work:2-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-thessalonians.sqlite3",
+          "checksum": "e2d686fd5b7b36fc6bfec2ddbc0c63470000c2dbce384a91bfdcc913123a75b2",
+          "sizeBytes": 692224
+        },
+        {
+          "id": "traducao-brasileira-1917:1-timothy",
+          "workId": "work:1-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-timothy.sqlite3",
+          "checksum": "205c94a8e9ec201c278d979a87d1bfa981f5be1851f401395537a337b87233c6",
+          "sizeBytes": 937984
+        },
+        {
+          "id": "traducao-brasileira-1917:2-timothy",
+          "workId": "work:2-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-timothy.sqlite3",
+          "checksum": "21c5ddb61c7aea71bb6d3654c6ad5d6194f0aa9b3b6d1c9ff6802bc0d82d3564",
+          "sizeBytes": 819200
+        },
+        {
+          "id": "traducao-brasileira-1917:titus",
+          "workId": "work:titus",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/titus.sqlite3",
+          "checksum": "6d6459ca353031c458de46ecd73e087cf604adebaab0c1693c7e0e0e39255b8c",
+          "sizeBytes": 675840
+        },
+        {
+          "id": "traducao-brasileira-1917:philemon",
+          "workId": "work:philemon",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/philemon.sqlite3",
+          "checksum": "5cfddc293fe6c6ec2e8bd7124ff98e6da1bca70367dd788fb648786ae94ac7b0",
+          "sizeBytes": 593920
+        },
+        {
+          "id": "traducao-brasileira-1917:hebrews",
+          "workId": "work:hebrews",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/hebrews.sqlite3",
+          "checksum": "af05ee24126b4ca44b03d9dc76f95c7fa689ec435045af676294faf0369a60f0",
+          "sizeBytes": 1617920
+        },
+        {
+          "id": "traducao-brasileira-1917:james",
+          "workId": "work:james",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/james.sqlite3",
+          "checksum": "e6d333954376d96b62e2966268883e0ac865d356d6c65a542af28aa490d47989",
+          "sizeBytes": 905216
+        },
+        {
+          "id": "traducao-brasileira-1917:1-peter",
+          "workId": "work:1-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-peter.sqlite3",
+          "checksum": "4880ad1f7844d94905cd2407ec3a56da1d952d22a5ac87e0902ce6cf6db75ea0",
+          "sizeBytes": 905216
+        },
+        {
+          "id": "traducao-brasileira-1917:2-peter",
+          "workId": "work:2-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-peter.sqlite3",
+          "checksum": "c3e0eed9889d1919e17518f0291637cc1ca3c3e06995b8f97b9a940b64115899",
+          "sizeBytes": 733184
+        },
+        {
+          "id": "traducao-brasileira-1917:1-john",
+          "workId": "work:1-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-john.sqlite3",
+          "checksum": "295e33dd9960f3658e447ef7b1491a35bf9426ce2e6b89a75c8b3683b32991f4",
+          "sizeBytes": 888832
+        },
+        {
+          "id": "traducao-brasileira-1917:2-john",
+          "workId": "work:2-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-john.sqlite3",
+          "checksum": "ae52d1f80307963909d6a70b6e280ef9fc2e1e8fa7d6e10f244a613731e52ba7",
+          "sizeBytes": 532480
+        },
+        {
+          "id": "traducao-brasileira-1917:3-john",
+          "workId": "work:3-john",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/3-john.sqlite3",
+          "checksum": "2fe597ce3ae63b4abb916c79cba18a60daa0a50fc6fb4643643ff6e94ed9e10e",
+          "sizeBytes": 540672
+        },
+        {
+          "id": "traducao-brasileira-1917:jude",
+          "workId": "work:jude",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/jude.sqlite3",
+          "checksum": "8193c2b9f8122d193c92fa2ff7d3d08029ce83fa54513967eab7c20236c4be3f",
+          "sizeBytes": 593920
+        },
+        {
+          "id": "traducao-brasileira-1917:revelation",
+          "workId": "work:revelation",
+          "role": "content",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/revelation.sqlite3",
+          "checksum": "a4866efde6454e723b8b72c57a88f4d3b24c182b98d20e090a85b68eff5a6c5f",
+          "sizeBytes": 2064384
+        },
+        {
+          "id": "traducao-brasileira-1917:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/traducao-brasileira-1917/search.sqlite3",
+          "checksum": "13d0c39f1865b70cd15d51aab3d0f3d966217f2ef01e702f7c2a5e9f24e6d3b4",
+          "sizeBytes": 51142656
+        }
+      ],
+      "versificationSchemeId": "traducao-brasileira-wikisource-1917",
+      "rights": {
+        "license": "Public-Domain; Wikisource-CC-BY-SA-4.0",
+        "redistribution": "allowed",
+        "attribution": "Tradução Brasileira da Bíblia (1917), texto em domínio público. Transcrição colaborativa do Wikisource em português, disponibilizada sob CC BY-SA 4.0; consulte os históricos de revisão registrados no artefato-fonte. O próprio catálogo alerta que se trata de transcrição de segunda mão."
+      },
+      "provenance": {
+        "packageId": "pkg-traducao-brasileira-wikisource-1917",
+        "datasetId": "dataset:traducao-brasileira:1917:d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
+        "sourceArtifactIds": [
+          "artifact:wikisource:tbb:pages"
+        ],
+        "transformationIds": [
+          "transformation:tbb:1.0.0:parse-wikitext",
+          "transformation:tbb:1.0.0:chapter-shards"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
       "id": "runtime:pkg-sblgnt-1.2-candidate",
       "corpusId": "sblgnt",
       "editionId": "sblgnt-1.2",
@@ -1094,7 +1738,7 @@
       "databasePath": "/corpus-packages/wlc-oshb-2.2.sqlite3",
       "checksum": "11307ebc41c2dd25b548f6248959a82ee128994b670d26c59fe306a400af8574",
       "sourceChecksum": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
-      "buildFingerprint": "3cf76507062eb9393ac5aa7c5f350f458659b45731e6aed90afde7f76d9a672d",
+      "buildFingerprint": "efaa6690c6090eaa64b52e065b802a97dc8afbe0d7371d1be31f578c9ca6771f",
       "sizeBytes": 340262912,
       "downloadSizeBytes": 517914624,
       "storageSizeBytes": 517914624,
@@ -1506,9 +2150,9 @@
         "en"
       ],
       "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
-      "checksum": "dbbfc451bd985ff8cb456d4ea6c90b7ed2663eaa1c314d1dda66719ba35b1233",
+      "checksum": "a9c7c62b80b62afa9200038275bfca0db9d3e5755d8a6db286e6686a203567df",
       "sourceChecksum": "9805e6f89c2602083933d6ba7bf529e2233f0348d656f3efaf08e4393221186e",
-      "buildFingerprint": "7ca57543c1bf8e6a13e77ed6d6cc9828fd56a520ac80c6587856cf8fa863875e",
+      "buildFingerprint": "51373c0eac30508d37d8df5679310c692052b790d1480b7634e42374e241bf50",
       "sizeBytes": 2121728,
       "downloadSizeBytes": 7221248,
       "storageSizeBytes": 7221248,
@@ -1516,7 +2160,8 @@
       "sourceLocation": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
       "dependencies": [
         "schema:11",
-        "parser:primary-sources:1.0.0",
+        "parser:primary-sources:1.1.0",
+        "builder:primary-sources:1.1.0",
         "source:gutenberg:42053",
         "source:gutenberg:77576"
       ],
@@ -1526,7 +2171,7 @@
           "workId": "work:didache",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/didache.sqlite3",
-          "checksum": "f73b10c69cc7eb6ac720bf0873eea9239befa629f32ae73b58db5583a991aa22",
+          "checksum": "15995fa02d6546819627d123784e0d163373fc137fd0d7f680fcd7411ba49dcb",
           "sizeBytes": 626688
         },
         {
@@ -1534,7 +2179,7 @@
           "workId": "work:first-clement",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/first-clement.sqlite3",
-          "checksum": "cb719ada880c442dee5c37b62bef03ee12ce4eef47888c837a8f49acfe5eee87",
+          "checksum": "376472d2d963da75c2d6ac2dd221eb904c97795da38b542459fe16b582d2e6b3",
           "sizeBytes": 1081344
         },
         {
@@ -1542,7 +2187,7 @@
           "workId": "work:second-clement",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/second-clement.sqlite3",
-          "checksum": "65f883b9e7802f67901dda78702601dd7a5ce49ee83b99ff199e8851bad82943",
+          "checksum": "44870c10d8e769b27c6506529bcf5e3651844fc936ef42e1f8d1c38abd44cd27",
           "sizeBytes": 618496
         },
         {
@@ -1550,7 +2195,7 @@
           "workId": "work:polycarp-philippians",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/polycarp-philippians.sqlite3",
-          "checksum": "e8670aff0df65ea9a9fdfdf36ee0c8c2c299f032e283510750bdb8cb3ee0cd65",
+          "checksum": "bbddeeac6bfb80dc7b3207ed2519380e00b6f3fc6dc978fab6a6e39f2379f965",
           "sizeBytes": 610304
         },
         {
@@ -1558,7 +2203,7 @@
           "workId": "work:martyrdom-polycarp",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/martyrdom-polycarp.sqlite3",
-          "checksum": "5b375d61d8d546998977ccb21453de38ef9b7bc8263a514c3a7431458d5870d4",
+          "checksum": "b38b76b47aa7b52dc66d970ec659963c60087304d775861271f4506dcf1e9d39",
           "sizeBytes": 667648
         },
         {
@@ -1566,7 +2211,7 @@
           "workId": "work:epistle-barnabas",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/epistle-barnabas.sqlite3",
-          "checksum": "2d0059488945780322bb5b737e4e62c82c76d92b9f0777072fc7442b00ccb73b",
+          "checksum": "24b0348edfbfb0219fe67e8c4c7e5f27f3a0202d66b9f8608d74d99ac3b2cf4f",
           "sizeBytes": 835584
         },
         {
@@ -1574,20 +2219,20 @@
           "workId": "work:epistle-diognetus",
           "role": "content",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/epistle-diognetus.sqlite3",
-          "checksum": "c62027d66be4e72232a4281b4fd837da0cc31428eadc9f9d0491a8a48c5d02f6",
+          "checksum": "9fd3fc2acaab0e5eb3ae5109c15f780fd022f8e3c3d214bf9c1dad50d4f21119",
           "sizeBytes": 659456
         },
         {
           "id": "apostolic-fathers-pd-en-1:search",
           "role": "search",
           "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1/search.sqlite3",
-          "checksum": "c2da186ace7c02bebcf96bd6783d86eca148577008d02337c3d3c1c6365fb798",
+          "checksum": "9ca09640cf3cdc4d2c0001c47831d1e30cceee9f38b97f80bbc38eb09bc6be0d",
           "sizeBytes": 2121728
         }
       ],
       "versificationSchemeId": "scriptorium-document-locator-1",
       "rights": {
-        "license": "Public domain source editions",
+        "license": "Public domain in the United States; source edition authors died before 1956; Public domain in the United States; source edition translators died before 1956",
         "redistribution": "allowed",
         "attribution": "Project Gutenberg eBook 42053; Brown and Hitchcock edition (1884). Project Gutenberg eBook 77576; Roberts, Donaldson, and Crombie translation (1870)."
       },
@@ -1622,9 +2267,9 @@
         "en"
       ],
       "databasePath": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
-      "checksum": "24ad4b55bd9fda16542aa7c5e6f8c1a88d6b9b60afb165ea610127fd52da7845",
+      "checksum": "1c2309eb74dbc5d6c137b6ca1dd958814e1474074cd25b093980188dad7bf9e4",
       "sourceChecksum": "1cb7136801e4dd4f8f834dd75fb8b6e1c70409d1c77c424e5c575e5616dee974",
-      "buildFingerprint": "a15d121f6b1e54d14436536d3e83aa11d728b3a3ef5ca25e2a81d594112118c5",
+      "buildFingerprint": "76d7c18dbc471f6e3c2f12c4ed32999eaedcbf308e43f3d43202d4feb4a7b9b1",
       "sizeBytes": 688128,
       "downloadSizeBytes": 3334144,
       "storageSizeBytes": 3334144,
@@ -1632,7 +2277,8 @@
       "sourceLocation": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
       "dependencies": [
         "schema:11",
-        "parser:primary-sources:1.0.0",
+        "parser:primary-sources:1.1.0",
+        "builder:primary-sources:1.1.0",
         "source:gutenberg:30323",
         "source:gutenberg:24979"
       ],
@@ -1642,7 +2288,7 @@
           "workId": "work:apostles-creed",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/apostles-creed.sqlite3",
-          "checksum": "225132f28c0d892a6c8a8fc9b2cc7ea1ffa9dba080d6bc0835d86b686d0b9aab",
+          "checksum": "4479d7e25f81802c039183af6175329c08302c257650fa47049851c6c1bf7ea8",
           "sizeBytes": 499712
         },
         {
@@ -1650,7 +2296,7 @@
           "workId": "work:athanasian-creed",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/athanasian-creed.sqlite3",
-          "checksum": "1948486d9317a7d00a17e91f63571e99b682486c641785c977d627bc20412de4",
+          "checksum": "e2906782d9b6e4a27e95e9ef088e6c74dd857f6bfd235e7c2960c7553c9e7e61",
           "sizeBytes": 585728
         },
         {
@@ -1658,7 +2304,7 @@
           "workId": "work:nicene-creed-325",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-creed-325.sqlite3",
-          "checksum": "7bf39100edfd05061a3a4ee3860c8ab20f223e5689ef0d7f9707d692ea2c61fc",
+          "checksum": "a97f5479b4c82d9216d5726024645769a5f3d77b22db1a2c0c05a4331b307aa1",
           "sizeBytes": 499712
         },
         {
@@ -1666,7 +2312,7 @@
           "workId": "work:nicene-constantinopolitan-western",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-constantinopolitan-western.sqlite3",
-          "checksum": "5b7321d5c5655639b13f0b27dab04da53802f11b896607e34b31a7558e232870",
+          "checksum": "1a1e6a464576fe7990edd5aa7d2f6858e1e042cbc72dcd0af401bf263640737b",
           "sizeBytes": 499712
         },
         {
@@ -1674,20 +2320,20 @@
           "workId": "work:chalcedonian-definition",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/chalcedonian-definition.sqlite3",
-          "checksum": "b849bf1c0b2bf957477449764daf2b8b597512984a3de5f18a35298d7772d378",
+          "checksum": "aee7cb185d47339961792db0cd275c0ed8041c446ab5d7a8e12ddcc4347cb60e",
           "sizeBytes": 561152
         },
         {
           "id": "historic-creeds-pd-en-1:search",
           "role": "search",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/search.sqlite3",
-          "checksum": "8e244dec8f0d1436e6e9c128de2603d9db1b1dad98778274c9af877bd90498d0",
+          "checksum": "7c01a78bde8749e936d812215a8a46e99007cda83bcb296628e5ae09fa888cc1",
           "sizeBytes": 688128
         }
       ],
       "versificationSchemeId": "scriptorium-document-locator-1",
       "rights": {
-        "license": "Public domain source editions",
+        "license": "Public domain in the United States",
         "redistribution": "allowed",
         "attribution": "Project Gutenberg eBook 30323; historical 1881 source edition. Project Gutenberg eBook 24979; Ayer source book (1913)."
       },
@@ -1697,6 +2343,69 @@
         "sourceArtifactIds": [
           "source:gutenberg:30323",
           "source:gutenberg:24979"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:ancient-john-reception-pd-en-1",
+      "corpusId": "ancient-john-reception-public-domain",
+      "editionId": "ancient-john-reception-pd-en-1",
+      "version": "1885-r1",
+      "title": "Ancient Reception of John — public-domain English editions",
+      "abbreviation": "JOHN-REC-PD-EN",
+      "works": [
+        "work:origen-commentary-john-books-1-2"
+      ],
+      "languages": [
+        "en"
+      ],
+      "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1.sqlite3",
+      "checksum": "1951421a22d57ea1fbe59c7c60cebf6f0acaf17090eec911b51350ecf0518a97",
+      "sourceChecksum": "d94050371935dafb54c9a1534ca5d74b11b415a099ab07f825cbe138eda05796",
+      "buildFingerprint": "c40ad270de97b9639fb6a04510e7e222e0b082f9745164bce5f3bb7053d03af5",
+      "sizeBytes": 1908736,
+      "downloadSizeBytes": 3792896,
+      "storageSizeBytes": 3792896,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/ancient-john-reception-pd-en-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.1.0",
+        "builder:primary-sources:1.1.0",
+        "source:internet-archive:cu31924029220535"
+      ],
+      "parts": [
+        {
+          "id": "ancient-john-reception-pd-en-1:work:origen-commentary-john-books-1-2",
+          "workId": "work:origen-commentary-john-books-1-2",
+          "role": "content",
+          "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1/origen-commentary-john-books-1-2.sqlite3",
+          "checksum": "0073192924e9c8d26feee034272626bf043683f8968fcbbe3a88cb413655c297",
+          "sizeBytes": 1884160
+        },
+        {
+          "id": "ancient-john-reception-pd-en-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1/search.sqlite3",
+          "checksum": "c6fe98fe9f1377fa1a2fab4005b0182e5b9e3497c9d5f0cfa968a4b2a863903e",
+          "sizeBytes": 1908736
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "Public domain; Wikimedia Commons Public Domain Mark 1.0",
+        "redistribution": "allowed",
+        "attribution": "Internet Archive scan cu31924029220535, digitized by Cornell University Library; Ante-Nicene Fathers, Volume IX (1885)."
+      },
+      "provenance": {
+        "packageId": "package:ancient-john-reception-pd-en-1",
+        "datasetId": "dataset:ancient-john-reception-pd-en-1",
+        "sourceArtifactIds": [
+          "source:internet-archive:cu31924029220535"
         ],
         "transformationIds": [
           "transformation:primary-source-structural-import:1"

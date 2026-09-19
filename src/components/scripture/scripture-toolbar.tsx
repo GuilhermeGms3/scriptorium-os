@@ -5,7 +5,7 @@
  */
 
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Columns2, Rows3, WholeWord, BookOpenText } from "lucide-react";
+import { ChevronLeft, ChevronRight, Columns2, Rows3, WholeWord, BookOpenText, MessagesSquare } from "lucide-react";
 import type { Book, Edition } from "../../lib/domain/scripture";
 import type { ReaderView } from "./verse";
 import { cn } from "../../lib/utils";
@@ -29,6 +29,9 @@ export function ScriptureToolbar({
   hasPrev,
   hasNext,
   availableViews,
+  showExplanations,
+  onShowExplanationsChange,
+  explanationsAvailable,
 }: {
   book: Book;
   chapter: number;
@@ -40,6 +43,9 @@ export function ScriptureToolbar({
   hasPrev: boolean;
   hasNext: boolean;
   availableViews: Record<ReaderView, boolean>;
+  showExplanations: boolean;
+  onShowExplanationsChange: (value: boolean) => void;
+  explanationsAvailable: boolean;
 }) {
   const navigate = useNavigate();
   const selectableEditions = editions.filter(
@@ -106,6 +112,21 @@ export function ScriptureToolbar({
       </label>
 
       <div className="flex-1" />
+
+      <button
+        type="button"
+        onClick={() => onShowExplanationsChange(!showExplanations)}
+        disabled={!explanationsAvailable || view !== "single"}
+        aria-pressed={showExplanations}
+        title={explanationsAvailable ? "Mostrar ou ocultar explicações junto aos versículos" : "Ainda não há explicações indexadas para este capítulo"}
+        className={cn(
+          "flex h-7 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-35",
+          showExplanations && view === "single" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+        )}
+      >
+        <MessagesSquare className="size-3.5" />
+        <span className="hidden sm:inline">Explicações</span>
+      </button>
 
       {/* View mode */}
       <div

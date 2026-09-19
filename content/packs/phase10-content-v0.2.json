@@ -213,7 +213,7 @@
   "claims": [
     {
       "id": "claim:john-1-1-pros-ton-theon",
-      "proposition": "John 1:1 repeats λόγος and places the phrase πρὸς τὸν θεόν between its first and third clauses.",
+      "proposition": "João 1:1 repete λόγος e coloca a expressão πρὸς τὸν θεόν entre a primeira e a terceira oração.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -230,7 +230,7 @@
     },
     {
       "id": "claim:john-1-3-panta",
-      "proposition": "John 1:3 begins with πάντα and twice uses a form of γίνομαι while describing what came into being.",
+      "proposition": "João 1:3 começa com πάντα e emprega duas vezes uma forma de γίνομαι ao descrever o que veio a existir.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -247,7 +247,7 @@
     },
     {
       "id": "claim:john-1-4-life-light",
-      "proposition": "John 1:4 coordinates ζωή and φῶς, stating that the life was the light of humanity.",
+      "proposition": "João 1:4 coordena ζωή e φῶς e afirma que a vida era a luz da humanidade.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -264,7 +264,7 @@
     },
     {
       "id": "claim:john-1-5-light-darkness",
-      "proposition": "John 1:5 contrasts τὸ φῶς with ἡ σκοτία and uses the present φαίνει for the light's action.",
+      "proposition": "João 1:5 contrasta τὸ φῶς com ἡ σκοτία e usa o presente φαίνει para a ação da luz.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -281,7 +281,7 @@
     },
     {
       "id": "claim:john-1-6-sent-john",
-      "proposition": "John 1:6 introduces a man named John with the participle ἀπεσταλμένος and the phrase παρὰ θεοῦ.",
+      "proposition": "João 1:6 apresenta um homem chamado João com o particípio ἀπεσταλμένος e a expressão παρὰ θεοῦ.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -298,7 +298,7 @@
     },
     {
       "id": "claim:john-1-7-witness",
-      "proposition": "John 1:7 repeats the μαρτυρ- word family and states the purpose with two ἵνα clauses.",
+      "proposition": "João 1:7 repete a família lexical μαρτυρ- e expressa a finalidade com duas orações introduzidas por ἵνα.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -315,7 +315,7 @@
     },
     {
       "id": "claim:john-1-8-not-light",
-      "proposition": "John 1:8 explicitly denies that John was the light and restates his witness function.",
+      "proposition": "João 1:8 nega explicitamente que João fosse a luz e reafirma sua função de testemunha.",
       "kind": "exegetical-interpretation",
       "anchor": {
         "type": "passage",
@@ -332,7 +332,7 @@
     },
     {
       "id": "claim:john-1-9-true-light",
-      "proposition": "John 1:9 calls the light τὸ ἀληθινόν and relates it to every person and to coming into the world; the participle's attachment requires syntactic interpretation.",
+      "proposition": "João 1:9 chama a luz de τὸ ἀληθινόν e a relaciona a toda pessoa e à vinda ao mundo; a ligação do particípio exige interpretação sintática.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -349,7 +349,7 @@
     },
     {
       "id": "claim:john-1-10-kosmos",
-      "proposition": "John 1:10 uses κόσμος three times, assigning different syntactic roles within one verse.",
+      "proposition": "João 1:10 emprega κόσμος três vezes, com funções sintáticas distintas no mesmo versículo.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -366,7 +366,7 @@
     },
     {
       "id": "claim:john-1-11-reception",
-      "proposition": "John 1:11 juxtaposes τὰ ἴδια and οἱ ἴδιοι and states that his own did not receive him.",
+      "proposition": "João 1:11 justapõe τὰ ἴδια e οἱ ἴδιοι e afirma que os seus não o receberam.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -383,7 +383,7 @@
     },
     {
       "id": "claim:john-1-12-children",
-      "proposition": "John 1:12 relates receiving him and believing in his name to authority to become children of God.",
+      "proposition": "João 1:12 relaciona recebê-lo e crer em seu nome à autoridade de se tornarem filhos de Deus.",
       "kind": "exegetical-interpretation",
       "anchor": {
         "type": "passage",
@@ -400,7 +400,7 @@
     },
     {
       "id": "claim:john-1-13-birth",
-      "proposition": "John 1:13 contrasts three negated sources of birth with the final phrase ἐκ θεοῦ ἐγεννήθησαν.",
+      "proposition": "João 1:13 contrasta três origens de nascimento negadas com a expressão final ἐκ θεοῦ ἐγεννήθησαν.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -417,7 +417,7 @@
     },
     {
       "id": "claim:john-1-14-dwelt",
-      "proposition": "John 1:14 joins ὁ λόγος, σὰρξ ἐγένετο and ἐσκήνωσεν ἐν ἡμῖν in one sequence.",
+      "proposition": "João 1:14 reúne ὁ λόγος, σὰρξ ἐγένετο e ἐσκήνωσεν ἐν ἡμῖν em uma única sequência.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -434,7 +434,7 @@
     },
     {
       "id": "claim:john-1-15-witness",
-      "proposition": "John 1:15 returns to John's witness and presents direct speech about the one coming after him.",
+      "proposition": "João 1:15 retoma o testemunho de João e apresenta discurso direto sobre aquele que vem depois dele.",
       "kind": "exegetical-interpretation",
       "anchor": {
         "type": "passage",
@@ -451,7 +451,7 @@
     },
     {
       "id": "claim:john-1-16-fullness",
-      "proposition": "John 1:16 speaks of receiving from his πλήρωμα and contains the compact expression χάριν ἀντὶ χάριτος.",
+      "proposition": "João 1:16 fala de receber de seu πλήρωμα e contém a expressão concisa χάριν ἀντὶ χάριτος.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -468,7 +468,7 @@
     },
     {
       "id": "claim:john-1-17-law-grace",
-      "proposition": "John 1:17 places the law given through Moses alongside grace and truth coming through Jesus Christ.",
+      "proposition": "João 1:17 coloca a lei dada por meio de Moisés ao lado da graça e da verdade vindas por meio de Jesus Cristo.",
       "kind": "exegetical-interpretation",
       "anchor": {
         "type": "passage",
@@ -485,7 +485,7 @@
     },
     {
       "id": "claim:john-1-18-sbl-reading",
-      "proposition": "The SBLGNT 1.2 text of John 1:18 reads μονογενὴς θεός; this is an edition-specific textual observation, not a complete apparatus claim.",
+      "proposition": "O texto de João 1:18 no SBLGNT 1.2 lê μονογενὴς θεός; esta é uma observação específica da edição, não uma afirmação baseada em aparato crítico completo.",
       "kind": "textual-critical-analysis",
       "anchor": {
         "type": "canonical-text",
@@ -510,7 +510,7 @@
     },
     {
       "id": "claim:first-clement-corinth",
-      "proposition": "The work known as 1 Clement presents itself as a communication from the church at Rome to the church at Corinth in response to conflict there.",
+      "proposition": "A obra conhecida como 1 Clemente se apresenta como uma comunicação da igreja de Roma à igreja de Corinto em resposta a um conflito local.",
       "kind": "historical-reconstruction",
       "anchor": { "type": "entity", "entityId": "entity:historical:first-clement" },
       "sourceIds": ["source:roberts-donaldson:apostolic-fathers:1870"],

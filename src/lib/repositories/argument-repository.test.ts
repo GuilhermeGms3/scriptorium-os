@@ -9,12 +9,59 @@ import { KnowledgeRepository } from "./knowledge-repository";
 describe("canonical knowledge search", () => {
   it("finds ontology and source-backed claims through SQLite FTS", async () => {
     const ontologyHits = await KnowledgeRepository.search("Trinity");
-    const claimHits = await KnowledgeRepository.search("article θεός");
+    const claimHits = await KnowledgeRepository.search("artigo θεός");
     expect(ontologyHits).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "doctrine:trinity" })]),
     );
     expect(claimHits).toEqual(
       expect.arrayContaining([expect.objectContaining({ id: "claim:john-1-1-theos-anarthrous" })]),
+    );
+  });
+
+  it("preserves primary-source epistemic role for ancient reception evidence", async () => {
+    const relations = await KnowledgeRepository.relationsForPassage({
+      bookId: "john",
+      chapter: 1,
+      verseStart: 1,
+      versificationSchemeId: "scriptorium-bcv-1",
+    });
+    const relation = relations.find(
+      (candidate) => candidate.id === "relation:john-1-1-origen-commentary-ii-2",
+    );
+    expect(relation).toBeDefined();
+    const sources = await KnowledgeRepository.sourcesForRelations([relation!.id]);
+    expect(sources.fragments).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          sourceId: "source:internet-archive:cu31924029220535",
+          sourceType: "primary-text",
+          epistemicRole: "primary",
+        }),
+      ]),
+    );
+  });
+
+  it("loads Phase 10.1 analyses through canonical passage anchors and lens ids", async () => {
+    const john = await KnowledgeRepository.analysesForPassage({
+      bookId: "john",
+      chapter: 1,
+      verseStart: 1,
+      versificationSchemeId: "scriptorium-bcv-1",
+    });
+    const genesis = await KnowledgeRepository.analysesForPassage({
+      bookId: "genesis",
+      chapter: 1,
+      verseStart: 1,
+      versificationSchemeId: "scriptorium-bcv-1",
+    });
+    expect(john.map((analysis) => analysis.id)).toContain("analysis:john-1-origen-reception");
+    expect(genesis).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          id: "analysis:genesis-1-linguistic-entry",
+          lensId: "philological",
+        }),
+      ]),
     );
   });
 });

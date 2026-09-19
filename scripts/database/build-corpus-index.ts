@@ -171,6 +171,16 @@ const definitions: PackageDefinition[] = [
     license: "CC-BY-3.0-BR",
   },
   {
+    generatedDirectory: "generated/corpora/traducao-brasileira/1917",
+    title: "Tradução Brasileira da Bíblia (1917)",
+    abbreviation: "TBB 1917",
+    language: "pt-BR",
+    script: "Latn",
+    direction: "ltr",
+    kind: "translation",
+    license: "Public-Domain; Wikisource-CC-BY-SA-4.0",
+  },
+  {
     generatedDirectory: "generated/corpora/sblgnt/1.2",
     title: "SBL Greek New Testament 1.2",
     abbreviation: "SBLGNT",

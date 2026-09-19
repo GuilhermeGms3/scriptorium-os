@@ -20,28 +20,46 @@ function database(editionId: string): DatabaseSync {
 
 describe("primary-source runtime packages", () => {
   it("ships seven navigable Apostolic Fathers works with intact checksums", () => {
-    const manifest = packages.find((candidate) => candidate.editionId === "apostolic-fathers-pd-en-1")!;
+    const manifest = packages.find(
+      (candidate) => candidate.editionId === "apostolic-fathers-pd-en-1",
+    )!;
     expect(manifest.works).toHaveLength(7);
     expect(manifest.buildFingerprint).toMatch(/^[a-f0-9]{64}$/);
     const bytes = readFileSync(resolve(root, "public", manifest.databasePath.replace(/^\//, "")));
     expect(sha256(bytes)).toBe(manifest.checksum);
     const db = database(manifest.editionId);
-    expect((db.prepare("SELECT count(*) total FROM text_units WHERE work_id='work:didache'").get() as { total: number }).total).toBe(16);
-    expect((db.prepare("SELECT count(*) total FROM text_units WHERE work_id='work:first-clement'").get() as { total: number }).total).toBeGreaterThan(50);
+    expect(
+      (
+        db.prepare("SELECT count(*) total FROM text_units WHERE work_id='work:didache'").get() as {
+          total: number;
+        }
+      ).total,
+    ).toBe(16);
+    expect(
+      (
+        db
+          .prepare("SELECT count(*) total FROM text_units WHERE work_id='work:first-clement'")
+          .get() as { total: number }
+      ).total,
+    ).toBeGreaterThan(50);
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     db.close();
   });
 
   it("indexes actual patristic text in FTS5 and preserves section locators", () => {
     const db = database("apostolic-fathers-pd-en-1");
-    const hit = db.prepare(`
+    const hit = db
+      .prepare(
+        `
       SELECT f.work_id,a.section_label,u.surface_text
       FROM text_units_fts f
       JOIN text_units u ON u.id=f.text_unit_id
       JOIN text_addresses a ON a.text_unit_id=u.id
       WHERE text_units_fts MATCH 'baptism' AND f.work_id='work:didache'
       ORDER BY bm25(text_units_fts) LIMIT 1
-    `).get() as Record<string, unknown> | undefined;
+    `,
+      )
+      .get() as Record<string, unknown> | undefined;
     expect(hit?.["section_label"]).toBe("7");
     expect(String(hit?.["surface_text"])).toContain("bapt");
     db.close();
@@ -49,12 +67,45 @@ describe("primary-source runtime packages", () => {
 
   it("keeps five complete confessional documents distinct", () => {
     const db = database("historic-creeds-pd-en-1");
-    const works = db.prepare("SELECT id,title FROM works ORDER BY sequence").all() as Array<Record<string, unknown>>;
+    const works = db.prepare("SELECT id,title FROM works ORDER BY sequence").all() as Array<
+      Record<string, unknown>
+    >;
     expect(works).toHaveLength(5);
     expect(works.map((work) => work["id"])).toContain("work:nicene-creed-325");
     expect(works.map((work) => work["id"])).toContain("work:nicene-constantinopolitan-western");
-    expect((db.prepare("SELECT count(*) total FROM text_units").get() as { total: number }).total).toBeGreaterThan(10);
+    expect(
+      (db.prepare("SELECT count(*) total FROM text_units").get() as { total: number }).total,
+    ).toBeGreaterThan(10);
+    db.close();
+  });
+
+  it("ships Origen on John as a separately lazy-loadable, searchable work", () => {
+    const manifest = packages.find(
+      (candidate) => candidate.editionId === "ancient-john-reception-pd-en-1",
+    )!;
+    expect(manifest.works).toEqual(["work:origen-commentary-john-books-1-2"]);
+    expect(manifest.deliveryMode).toBe("work-shards");
+    const contentPart = manifest.parts.find((part) => part.role === "content");
+    expect(contentPart?.sizeBytes).toBeLessThan(manifest.sizeBytes);
+    const db = database(manifest.editionId);
+    expect(
+      (db.prepare("SELECT count(*) total FROM text_units").get() as { total: number }).total,
+    ).toBe(65);
+    const hit = db
+      .prepare(
+        `
+        SELECT a.section_label,u.surface_text
+        FROM text_units_fts f
+        JOIN text_units u ON u.id=f.text_unit_id
+        JOIN text_addresses a ON a.text_unit_id=u.id
+        WHERE text_units_fts MATCH 'article' AND f.work_id='work:origen-commentary-john-books-1-2'
+        ORDER BY bm25(text_units_fts) LIMIT 1
+      `,
+      )
+      .get() as Record<string, unknown> | undefined;
+    expect(hit?.["section_label"]).toBe("II.2");
+    expect(String(hit?.["surface_text"])).toContain("John's use of the article");
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     db.close();
   });
 });
-

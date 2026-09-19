@@ -15,6 +15,8 @@
     "corpus:build": "tsx scripts/corpus/cli.ts build",
     "corpus:index": "tsx scripts/database/build-corpus-index.ts",
     "content:fetch:lexicon": "tsx scripts/content/fetch-lexical-sources.ts",
+    "content:fetch:tbb": "tsx scripts/content/fetch-wikisource-tbb.ts",
+    "content:import:tbb": "tsx scripts/content/import-wikisource-tbb.ts",
     "db:migrate": "npm run corpus:index",
     "benchmark:corpus": "tsx scripts/database/benchmark-corpus-runtime.ts",
     "benchmark:delivery": "tsx scripts/database/benchmark-corpus-delivery.ts",

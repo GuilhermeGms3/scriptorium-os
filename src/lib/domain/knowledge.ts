@@ -75,7 +75,7 @@ export type KnowledgeOrigin =
   "source-derived" | "editorial" | "user" | "machine-assisted" | "ai-generated";
 
 export type ReviewStatus =
-  "imported" | "machine-linked" | "draft" | "reviewed" | "verified" | "disputed";
+  "imported" | "machine-linked" | "source-checked" | "draft" | "reviewed" | "verified" | "disputed";
 
 export type SupportLevel = "direct" | "strong" | "moderate" | "weak" | "disputed" | "unknown";
 

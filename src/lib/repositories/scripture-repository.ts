@@ -26,6 +26,7 @@ import {
 import sblgntManifestJson from "../../../generated/corpora/sblgnt/1.2/manifest.json";
 import bibliaLivreManifestJson from "../../../generated/corpora/biblia-livre/2025.1.0/manifest.json";
 import oshbManifestJson from "../../../generated/corpora/wlc/2.2/manifest.json";
+import traducaoBrasileiraManifestJson from "../../../generated/corpora/traducao-brasileira/1917/manifest.json";
 import { BIBLIA_LIVRE_EDITION, BIBLIA_LIVRE_EDITION_ID } from "../corpus-config/biblia-livre";
 
 export type EditionPassageQuery = {
@@ -39,6 +40,7 @@ export type EditionPassageQuery = {
 const SBLGNT_MANIFEST = sblgntManifestJson as GeneratedCorpusManifest;
 const BIBLIA_LIVRE_MANIFEST = bibliaLivreManifestJson as GeneratedCorpusManifest;
 const OSHB_MANIFEST = oshbManifestJson as GeneratedCorpusManifest;
+const TRADUCAO_BRASILEIRA_MANIFEST = traducaoBrasileiraManifestJson as GeneratedCorpusManifest;
 const BIBLIA_LIVRE_READER_EDITION: Edition = {
   id: BIBLIA_LIVRE_EDITION.id,
   corpusId: BIBLIA_LIVRE_EDITION.corpusId,
@@ -50,6 +52,18 @@ const BIBLIA_LIVRE_READER_EDITION: Edition = {
   kind: "translation",
   year: 2025,
   licenseId: "CC-BY-3.0-BR",
+};
+const TRADUCAO_BRASILEIRA_EDITION: Edition = {
+  id: TRADUCAO_BRASILEIRA_MANIFEST.editionId,
+  corpusId: TRADUCAO_BRASILEIRA_MANIFEST.corpusId,
+  title: "Tradução Brasileira da Bíblia (1917)",
+  abbreviation: "TBB 1917",
+  language: "pt-BR",
+  script: "Latn",
+  direction: "ltr",
+  kind: "translation",
+  year: 1917,
+  licenseId: "Public-Domain; Wikisource-CC-BY-SA-4.0",
 };
 const SBLGNT_EDITION: Edition = {
   id: SBLGNT_MANIFEST.editionId,
@@ -78,6 +92,7 @@ const MANIFEST_BY_EDITION = new Map<string, GeneratedCorpusManifest>([
   [BIBLIA_LIVRE_MANIFEST.editionId, BIBLIA_LIVRE_MANIFEST],
   [SBLGNT_MANIFEST.editionId, SBLGNT_MANIFEST],
   [OSHB_MANIFEST.editionId, OSHB_MANIFEST],
+  [TRADUCAO_BRASILEIRA_MANIFEST.editionId, TRADUCAO_BRASILEIRA_MANIFEST],
 ]);
 const GENERATED_BOOKS: Book[] = BIBLIA_LIVRE_MANIFEST.books.map((book) => ({
   id: book.id,
@@ -238,7 +253,7 @@ async function loadChapterFromPackages(
 
 export const ScriptureRepository = {
   listEditions(): Edition[] {
-    return [BIBLIA_LIVRE_READER_EDITION, SBLGNT_EDITION, OSHB_EDITION];
+    return [BIBLIA_LIVRE_READER_EDITION, TRADUCAO_BRASILEIRA_EDITION, SBLGNT_EDITION, OSHB_EDITION];
   },
   listBooks(): Book[] {
     return GENERATED_BOOKS;
@@ -320,6 +335,8 @@ export const ScriptureRepository = {
       result[SBLGNT_EDITION.id] = provenanceFor(SBLGNT_MANIFEST, ref.bookId);
     if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, OSHB_EDITION.id)))
       result[OSHB_EDITION.id] = provenanceFor(OSHB_MANIFEST, ref.bookId);
+    if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, TRADUCAO_BRASILEIRA_EDITION.id)))
+      result[TRADUCAO_BRASILEIRA_EDITION.id] = provenanceFor(TRADUCAO_BRASILEIRA_MANIFEST, ref.bookId);
     return result;
   },
   getPassage(query: PassageRef | EditionPassageQuery): VerseContent[] {

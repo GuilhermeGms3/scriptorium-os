@@ -1,4 +1,5 @@
 import type {
+  ClaimKind,
   EntityType,
   EvidenceKind,
   RelationKind,
@@ -239,6 +240,7 @@ const REVIEW_LABELS: Record<ReviewStatus, string> = {
   draft: "Rascunho",
   imported: "Importado",
   "machine-linked": "Vinculado por máquina",
+  "source-checked": "Fonte conferida",
   reviewed: "Revisado",
   verified: "Verificado",
   disputed: "Contestado",
@@ -246,6 +248,24 @@ const REVIEW_LABELS: Record<ReviewStatus, string> = {
 
 export function reviewStatusLabel(status: ReviewStatus): string {
   return REVIEW_LABELS[status];
+}
+
+const CLAIM_KIND_LABELS: Record<ClaimKind, string> = {
+  "linguistic-analysis": "Análise linguística",
+  "textual-critical-analysis": "Crítica textual",
+  "historical-reconstruction": "Reconstrução histórica",
+  "exegetical-interpretation": "Interpretação exegética",
+  "theological-interpretation": "Interpretação teológica",
+  "symbolic-interpretation": "Interpretação simbólica",
+  "mystical-tradition": "Tradição mística",
+  "philosophical-analysis": "Análise filosófica",
+  "reception-history": "História da recepção",
+  "academic-hypothesis": "Hipótese acadêmica",
+  speculation: "Especulação",
+};
+
+export function claimKindLabel(kind: ClaimKind): string {
+  return CLAIM_KIND_LABELS[kind];
 }
 
 const SUPPORT_LABELS: Record<SupportLevel, string> = {

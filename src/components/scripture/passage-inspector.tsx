@@ -12,10 +12,12 @@ import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { SourceReferenceCard } from "../common/source-reference";
 import {
   bookLabel,
+  claimKindLabel,
   formatNumber,
   passageLabel,
   reviewStatusLabel,
   statusLabel,
+  supportLevelLabel,
   t,
 } from "../../lib/i18n";
 
@@ -32,6 +34,18 @@ const TABS = [
 
 function passageAnchor(anchor: TextAnchor): Extract<TextAnchor, { type: "passage" }> | null {
   return anchor.type === "passage" ? anchor : null;
+}
+
+function primarySourceAnchor(anchor: TextAnchor):
+  | (Extract<TextAnchor, { type: "canonical-text" }> & {
+      anchor: Extract<TextAnchor, { type: "canonical-text" }>["anchor"] & { startUnitId: string };
+    })
+  | null {
+  if (anchor.type !== "canonical-text" || !anchor.anchor.startUnitId) return null;
+  return {
+    ...anchor,
+    anchor: { ...anchor.anchor, startUnitId: anchor.anchor.startUnitId },
+  };
 }
 
 export function PassageInspector() {
@@ -80,6 +94,21 @@ export function PassageInspector() {
     ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref)
     : null;
   const label = passageContext ? passageLabel(passageContext.ref) : t("shell.noPassage");
+  const historicalAnalyses =
+    bundle && hasAvailableData(bundle.analyses)
+      ? bundle.analyses.data.filter(
+          (analysis) => analysis.lensId === "historical" || analysis.lensId === "reception-history",
+        )
+      : [];
+  const primarySourceRelations =
+    bundle && hasAvailableData(bundle.relations)
+      ? bundle.relations.data.flatMap((relation) => {
+          const source = primarySourceAnchor(relation.from) ?? primarySourceAnchor(relation.to);
+          const isPassageRelation =
+            relation.from.type === "passage" || relation.to.type === "passage";
+          return source && isPassageRelation ? [{ relation, source }] : [];
+        })
+      : [];
 
   return (
     <div className="flex h-full flex-col">
@@ -131,11 +160,11 @@ export function PassageInspector() {
                     <li key={claim.id} className="rounded-md border border-border p-2.5">
                       <p className="text-sm leading-relaxed">{claim.proposition}</p>
                       <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
-                        <span>{claim.kind}</span>
+                        <span>{claimKindLabel(claim.kind)}</span>
                         <span>·</span>
                         <span>{reviewStatusLabel(claim.reviewStatus)}</span>
                         <span>·</span>
-                        <span>{claim.supportLevel}</span>
+                        <span>{supportLevelLabel(claim.supportLevel)}</span>
                       </div>
                     </li>
                   ))}
@@ -238,13 +267,47 @@ export function PassageInspector() {
           </Tabs.Content>
 
           <Tabs.Content value="history">
-            <p className="text-sm text-muted-foreground italic">
-              {bundle && hasAvailableData(bundle.analyses)
-                ? t("scripture.historyAvailable")
-                : bundle
-                  ? statusLabel(bundle.analyses.status)
-                  : t("scripture.noPassageSelected")}
-            </p>
+            {historicalAnalyses.length > 0 || primarySourceRelations.length > 0 ? (
+              <div className="space-y-4">
+                {historicalAnalyses.map((analysis) => (
+                  <article key={analysis.id} className="rounded-md border border-border p-3">
+                    <p className="meta-label">
+                      {analysis.lensId === "reception-history"
+                        ? "História da recepção"
+                        : "Contexto histórico"}
+                    </p>
+                    <h3 className="mt-1 font-serif text-base font-semibold">{analysis.title}</h3>
+                    <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+                      {analysis.summary}
+                    </p>
+                    <p className="mt-2 font-mono text-[9px] uppercase text-muted-foreground">
+                      {reviewStatusLabel(analysis.reviewStatus)} ·{" "}
+                      {claimKindLabel(analysis.interpretationKind)}
+                    </p>
+                  </article>
+                ))}
+                {primarySourceRelations.map(({ relation, source }) => (
+                  <article key={relation.id} className="border-l-2 border-primary/40 pl-3">
+                    <p className="meta-label">Fonte primária relacionada</p>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
+                      {relation.description}
+                    </p>
+                    <Link
+                      to="/library/read/$workId"
+                      params={{ workId: source.anchor.workId }}
+                      search={{ unit: source.anchor.startUnitId }}
+                      className="mt-2 inline-flex rounded border border-input px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
+                    >
+                      Abrir exatamente este trecho
+                    </Link>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground italic">
+                {bundle ? statusLabel(bundle.analyses.status) : t("scripture.noPassageSelected")}
+              </p>
+            )}
           </Tabs.Content>
 
           <Tabs.Content value="literature">

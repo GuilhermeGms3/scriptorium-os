@@ -4,6 +4,7 @@ import type { CorpusSearchHit, StoredTextUnit } from "../corpus-runtime/contract
 export const PRIMARY_SOURCE_EDITIONS = [
   "apostolic-fathers-pd-en-1",
   "historic-creeds-pd-en-1",
+  "ancient-john-reception-pd-en-1",
 ] as const;
 
 const PORTUGUESE_WORK_TITLES: Readonly<Record<string, string>> = {
@@ -19,11 +20,14 @@ const PORTUGUESE_WORK_TITLES: Readonly<Record<string, string>> = {
   "work:nicene-creed-325": "Credo de Niceia (325)",
   "work:nicene-constantinopolitan-western": "Credo Niceno-Constantinopolitano — recensão ocidental",
   "work:chalcedonian-definition": "Definição de Calcedônia (451)",
+  "work:origen-commentary-john-books-1-2":
+    "Comentário de Orígenes sobre o Evangelho de João — Livros I e II",
 };
 
 const PORTUGUESE_EDITION_TITLES: Readonly<Record<string, string>> = {
   "apostolic-fathers-pd-en-1": "Pais Apostólicos · edição histórica em inglês",
   "historic-creeds-pd-en-1": "Credos históricos · edição histórica em inglês",
+  "ancient-john-reception-pd-en-1": "Recepção antiga de João · edição histórica em inglês",
 };
 
 function localizedWorkTitle(workId: string, canonicalTitle: string): string {

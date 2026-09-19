@@ -17,5 +17,16 @@
     "redistributionStatus": "partial-only",
     "includedFields": ["extended-strong", "lemma", "transliteration", "morphology", "gloss"],
     "excludedFields": ["definition"]
+  },
+  "wikisourceTraducaoBrasileira": {
+    "snapshot": "2026-09-16",
+    "url": "https://pt.wikisource.org/wiki/Tradu%C3%A7%C3%A3o_Brasileira_da_B%C3%ADblia",
+    "api": "https://pt.wikisource.org/w/api.php",
+    "sha256": "d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
+    "sizeBytes": 4674524,
+    "pages": 1189,
+    "license": "Public domain source text; Wikisource transcription CC BY-SA 4.0",
+    "attribution": "Tradução Brasileira da Bíblia (1917), transcrição colaborativa do Wikisource em português.",
+    "warning": "Second-hand transcription according to the Wikisource catalog record."
   }
 }

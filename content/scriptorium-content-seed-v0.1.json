@@ -478,7 +478,7 @@
   "claims": [
     {
       "id": "claim:john-1-1-logos-occurrence",
-      "proposition": "The Greek text of John 1:1 contains the form λόγος.",
+      "proposition": "O texto grego de João 1:1 contém a forma λόγος.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -495,7 +495,7 @@
     },
     {
       "id": "claim:john-1-1-theos-anarthrous",
-      "proposition": "In John 1:1c, θεός appears without the article while the preceding θεόν is articular.",
+      "proposition": "Em João 1:1c, θεός aparece sem artigo, enquanto o θεόν anterior possui artigo.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -512,7 +512,7 @@
     },
     {
       "id": "claim:john-1-14-sarx-occurrence",
-      "proposition": "The Greek text of John 1:14 states that the λόγος became σάρξ.",
+      "proposition": "O texto grego de João 1:14 afirma que o λόγος se tornou σάρξ.",
       "kind": "linguistic-analysis",
       "anchor": {
         "type": "passage",
@@ -529,7 +529,7 @@
     },
     {
       "id": "claim:markan-priority",
-      "proposition": "Mark was composed before Matthew and Luke.",
+      "proposition": "Marcos foi composto antes de Mateus e Lucas.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:streeter:four-gospels:1924", "source:farrer:dispensing-with-q:1955"],
       "supportLevel": "moderate",
@@ -537,7 +537,7 @@
     },
     {
       "id": "claim:q-source",
-      "proposition": "Matthew and Luke independently used a hypothetical sayings source conventionally called Q.",
+      "proposition": "Mateus e Lucas utilizaram de modo independente uma fonte hipotética de ditos, convencionalmente chamada Q.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:streeter:four-gospels:1924"],
       "supportLevel": "disputed",
@@ -545,7 +545,7 @@
     },
     {
       "id": "claim:luke-used-matthew",
-      "proposition": "Luke used Matthew directly, so a separate Q source is unnecessary.",
+      "proposition": "Lucas utilizou Mateus diretamente; portanto, uma fonte Q separada não é necessária.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:farrer:dispensing-with-q:1955"],
       "supportLevel": "disputed",
@@ -553,7 +553,7 @@
     },
     {
       "id": "claim:matthean-priority",
-      "proposition": "Matthew was composed before Mark.",
+      "proposition": "Mateus foi composto antes de Marcos.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:farmer:synoptic-problem:1964"],
       "supportLevel": "disputed",

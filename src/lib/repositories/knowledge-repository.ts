@@ -126,6 +126,16 @@ function mapSource(row: KnowledgeRow): SourceReference {
   };
 }
 
+function fragmentSourceClassification(
+  row: KnowledgeRow,
+): Pick<SourceFragment, "sourceType" | "epistemicRole"> {
+  const sourceType = text(row, "source_type");
+  if (sourceType === "primary-source-edition" || sourceType === "scripture-edition") {
+    return { sourceType: "primary-text", epistemicRole: "primary" };
+  }
+  return { sourceType: "secondary-work", epistemicRole: "secondary" };
+}
+
 async function allRelations(): Promise<KnowledgeRelation[]> {
   const database = await getKnowledgeDatabase();
   return query(database, "SELECT * FROM knowledge_relations ORDER BY id").map((row) => {
@@ -274,8 +284,7 @@ export const KnowledgeRepository = {
         id: `fragment:knowledge:${text(row, "claim_id")}:${source.id}`,
         sourceId: source.id,
         locator: optional(row, "locator") ?? source.work,
-        sourceType: "secondary-work",
-        epistemicRole: "secondary",
+        ...fragmentSourceClassification(row),
         provenance: source.provenance,
       };
     });
@@ -306,8 +315,7 @@ export const KnowledgeRepository = {
         id: `fragment:knowledge:${text(row, "relation_id")}:${source.id}`,
         sourceId: source.id,
         locator: optional(row, "locator") ?? source.work,
-        sourceType: "secondary-work",
-        epistemicRole: "secondary",
+        ...fragmentSourceClassification(row),
         provenance: source.provenance,
       };
     });
@@ -338,8 +346,7 @@ export const KnowledgeRepository = {
         id: `fragment:analysis:${text(row, "analysis_id")}:${source.id}`,
         sourceId: source.id,
         locator: optional(row, "locator") ?? source.work,
-        sourceType: "secondary-work",
-        epistemicRole: "secondary",
+        ...fragmentSourceClassification(row),
         provenance: source.provenance,
       };
     });
