@@ -2,11 +2,17 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { compactChapter } from "../../src/lib/domain/compact-corpus";
-import type { GeneratedChapterShard, GeneratedCorpusManifest } from "../../src/lib/domain/generated-corpus";
+import type {
+  GeneratedChapterShard,
+  GeneratedCorpusManifest,
+} from "../../src/lib/domain/generated-corpus";
 import bibliaLivreManifest from "../../generated/corpora/biblia-livre/2025.1.0/manifest.json";
 
 const ROOT = resolve(import.meta.dirname, "../..");
-const SOURCE_PATH = resolve(ROOT, "corpora/source/traducao-brasileira-wikisource/2026-09-16/pages.json");
+const SOURCE_PATH = resolve(
+  ROOT,
+  "corpora/source/traducao-brasileira-wikisource/2026-09-16/pages.json",
+);
 const OUTPUT_ROOT = resolve(ROOT, "generated/corpora/traducao-brasileira/1917");
 const CORPUS_ID = "traducao-brasileira";
 const EDITION_ID = "traducao-brasileira-1917";
@@ -50,18 +56,14 @@ function stripWikitext(value: string): string {
 
 export function parseWikisourceChapter(content: string): string[] {
   const verses: string[] = [];
-  let current = "";
   for (const rawLine of content.replace(/^\uFEFF/, "").split(/\r?\n/)) {
     const start = /^#(?![#*:;])\s*(.*)$/.exec(rawLine);
     if (start) {
-      if (current) verses.push(stripWikitext(current));
-      current = start[1] ?? "";
-    } else if (current && rawLine.trim() && !/^\s*\{\{/.test(rawLine)) {
-      current += ` ${rawLine.trim()}`;
+      verses.push(stripWikitext(start[1] ?? ""));
     }
   }
-  if (current) verses.push(stripWikitext(current));
-  if (!verses.length || verses.some((verse) => !verse)) throw new Error("Chapter has empty or missing verse rows.");
+  if (!verses.length || verses.some((verse) => !verse))
+    throw new Error("Chapter has empty or missing verse rows.");
   return verses;
 }
 
@@ -80,7 +82,9 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   }
   const snapshot = JSON.parse(sourceBytes.toString("utf8")) as Snapshot;
   if (snapshot.schemaVersion !== 1) throw new Error("Unsupported Wikisource snapshot schema.");
-  const byLocation = new Map(snapshot.pages.map((page) => [`${page.canonicalBookId}/${page.chapter}`, page]));
+  const byLocation = new Map(
+    snapshot.pages.map((page) => [`${page.canonicalBookId}/${page.chapter}`, page]),
+  );
   const datasetId = `dataset:${CORPUS_ID}:1917:${digest}`;
   const books: GeneratedCorpusManifest["books"] = [];
   let verseCount = 0;
@@ -104,7 +108,12 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
         bookId: book.id,
         chapter: chapterNumber,
         verses: texts.map((text, index) => ({
-          ref: { bookId: book.id, chapter: chapterNumber, verseStart: index + 1, verseEnd: index + 1 },
+          ref: {
+            bookId: book.id,
+            chapter: chapterNumber,
+            verseStart: index + 1,
+            verseEnd: index + 1,
+          },
           verse: index + 1,
           translations: { [EDITION_ID]: text },
         })),
@@ -122,25 +131,47 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
   }
   const manifest: GeneratedCorpusManifest = {
     schemaVersion: 1,
-    importer: { name: "Scriptorium Wikisource Importer", version: "1.0.0", adapter: "wikisource-numbered-list" },
+    importer: {
+      name: "Scriptorium Wikisource Importer",
+      version: "1.0.0",
+      adapter: "wikisource-numbered-list",
+    },
     corpusId: CORPUS_ID,
     editionId: EDITION_ID,
     packageId: PACKAGE_ID,
     sourceRevision: `wikisource-snapshot-${snapshot.retrievedAt.slice(0, 10)}`,
     sourcePackageDigest: { algorithm: "SHA-256", value: digest },
-    attribution: "Tradução Brasileira da Bíblia (1917), texto em domínio público. Transcrição colaborativa do Wikisource em português, disponibilizada sob CC BY-SA 4.0; consulte os históricos de revisão registrados no artefato-fonte. O próprio catálogo alerta que se trata de transcrição de segunda mão.",
+    attribution:
+      "Tradução Brasileira da Bíblia, transcrição colaborativa do Wikisource. Corpus em quarentena: a disponibilidade nos EUA não comprova permissão de redistribuição no Brasil.",
     versificationScheme: SCHEME_ID,
     sourceArtifactIds: [ARTIFACT_ID],
     transformations: [
-      { id: "transformation:tbb:1.0.0:parse-wikitext", type: "parse-f4", inputArtifactIds: [ARTIFACT_ID], outputDatasetId: datasetId },
-      { id: "transformation:tbb:1.0.0:chapter-shards", type: "build-chapter-shards", inputArtifactIds: [ARTIFACT_ID], outputDatasetId: datasetId },
+      {
+        id: "transformation:tbb:1.0.0:parse-wikitext",
+        type: "parse-f4",
+        inputArtifactIds: [ARTIFACT_ID],
+        outputDatasetId: datasetId,
+      },
+      {
+        id: "transformation:tbb:1.0.0:chapter-shards",
+        type: "build-chapter-shards",
+        inputArtifactIds: [ARTIFACT_ID],
+        outputDatasetId: datasetId,
+      },
     ],
     datasetId,
     books,
     statistics: {
-      artifacts: 1, books: 66, chapters: 1189, verses: verseCount, textUnits: verseCount,
-      tokenOccurrences: 0, paragraphBoundaries: 0, bytesProcessed: sourceBytes.byteLength,
-      errors: 0, warnings: 1,
+      artifacts: 1,
+      books: 66,
+      chapters: 1189,
+      verses: verseCount,
+      textUnits: verseCount,
+      tokenOccurrences: 0,
+      paragraphBoundaries: 0,
+      bytesProcessed: sourceBytes.byteLength,
+      errors: 0,
+      warnings: 1,
     },
     structuralDecisions: [
       "Cada item numerado da transcrição Wikisource é preservado como uma unidade de versículo.",
@@ -148,9 +179,14 @@ if (process.argv[1] && resolve(process.argv[1]) === resolve(import.meta.filename
       "Revisões de cada página são registradas no snapshot para uma cadeia de custódia reproduzível.",
       "A edição recebe esquema próprio e crosswalk explícito para a navegação bíblica canônica do Scriptorium.",
       "Nenhum alinhamento palavra a palavra é inferido.",
+      "A saída não pode ser incluída em pacotes públicos enquanto a situação de direitos no Brasil não for esclarecida.",
     ],
   };
   await mkdir(OUTPUT_ROOT, { recursive: true });
-  await writeFile(resolve(OUTPUT_ROOT, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
+  await writeFile(
+    resolve(OUTPUT_ROOT, "manifest.json"),
+    `${JSON.stringify(manifest, null, 2)}\n`,
+    "utf8",
+  );
   process.stdout.write(`${JSON.stringify(manifest.statistics, null, 2)}\n`);
 }

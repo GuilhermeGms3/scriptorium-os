@@ -12,7 +12,10 @@ const OUTPUT = resolve(
 
 try {
   const existing = await readFile(OUTPUT);
-  const parsed = JSON.parse(existing.toString("utf8")) as { schemaVersion?: number; pages?: unknown[] };
+  const parsed = JSON.parse(existing.toString("utf8")) as {
+    schemaVersion?: number;
+    pages?: unknown[];
+  };
   if (parsed.schemaVersion === 1 && parsed.pages?.length === 1189) {
     process.stdout.write(
       `${JSON.stringify({ output: OUTPUT, pages: parsed.pages.length, bytes: existing.byteLength, sha256: createHash("sha256").update(existing).digest("hex"), reused: true }, null, 2)}\n`,
@@ -24,30 +27,85 @@ try {
 }
 
 const BOOK_TITLES: Record<string, string> = {
-  genesis: "Gênesis", exodus: "Êxodo", leviticus: "Levítico", numbers: "Números",
-  deuteronomy: "Deuteronômio", joshua: "Josué", judges: "Juízes", ruth: "Rute",
-  "1-samuel": "I Samuel", "2-samuel": "II Samuel", "1-kings": "I Reis",
-  "2-kings": "II Reis", "1-chronicles": "I Crônicas", "2-chronicles": "II Crônicas",
-  ezra: "Esdras", nehemiah: "Neemias", esther: "Ester", job: "Jó", psalms: "Salmos",
-  proverbs: "Provérbios", ecclesiastes: "Eclesiastes", "song-of-songs": "Cantares",
-  isaiah: "Isaías", jeremiah: "Jeremias", lamentations: "Lamentações", ezekiel: "Ezequiel",
-  daniel: "Daniel", hosea: "Oseias", joel: "Joel", amos: "Amós", obadiah: "Obadias",
-  jonah: "Jonas", micah: "Miqueias", nahum: "Naum", habakkuk: "Habacuque",
-  zephaniah: "Sofonias", haggai: "Ageu", zechariah: "Zacarias", malachi: "Malaquias",
-  matthew: "Mateus", mark: "Marcos", luke: "Lucas", john: "João", acts: "Atos",
-  romans: "Romanos", "1-corinthians": "I Coríntios", "2-corinthians": "II Coríntios",
-  galatians: "Gálatas", ephesians: "Efésios", philippians: "Filipenses",
-  colossians: "Colossenses", "1-thessalonians": "I Tessalonicenses",
-  "2-thessalonians": "II Tessalonicenses", "1-timothy": "I Timóteo",
-  "2-timothy": "II Timóteo", titus: "Tito", philemon: "Filemom", hebrews: "Hebreus",
-  james: "Tiago", "1-peter": "I Pedro", "2-peter": "II Pedro", "1-john": "I João",
-  "2-john": "II João", "3-john": "III João", jude: "Judas", revelation: "Apocalipse",
+  genesis: "Gênesis",
+  exodus: "Êxodo",
+  leviticus: "Levítico",
+  numbers: "Números",
+  deuteronomy: "Deuteronômio",
+  joshua: "Josué",
+  judges: "Juízes",
+  ruth: "Rute",
+  "1-samuel": "I Samuel",
+  "2-samuel": "II Samuel",
+  "1-kings": "I Reis",
+  "2-kings": "II Reis",
+  "1-chronicles": "I Crônicas",
+  "2-chronicles": "II Crônicas",
+  ezra: "Esdras",
+  nehemiah: "Neemias",
+  esther: "Ester",
+  job: "Jó",
+  psalms: "Salmos",
+  proverbs: "Provérbios",
+  ecclesiastes: "Eclesiastes",
+  "song-of-songs": "Cantares",
+  isaiah: "Isaías",
+  jeremiah: "Jeremias",
+  lamentations: "Lamentações",
+  ezekiel: "Ezequiel",
+  daniel: "Daniel",
+  hosea: "Oseias",
+  joel: "Joel",
+  amos: "Amós",
+  obadiah: "Obadias",
+  jonah: "Jonas",
+  micah: "Miqueias",
+  nahum: "Naum",
+  habakkuk: "Habacuque",
+  zephaniah: "Sofonias",
+  haggai: "Ageu",
+  zechariah: "Zacarias",
+  malachi: "Malaquias",
+  matthew: "Mateus",
+  mark: "Marcos",
+  luke: "Lucas",
+  john: "João",
+  acts: "Atos",
+  romans: "Romanos",
+  "1-corinthians": "I Coríntios",
+  "2-corinthians": "II Coríntios",
+  galatians: "Gálatas",
+  ephesians: "Efésios",
+  philippians: "Filipenses",
+  colossians: "Colossenses",
+  "1-thessalonians": "I Tessalonicenses",
+  "2-thessalonians": "II Tessalonicenses",
+  "1-timothy": "I Timóteo",
+  "2-timothy": "II Timóteo",
+  titus: "Tito",
+  philemon: "Filemom",
+  hebrews: "Hebreus",
+  james: "Tiago",
+  "1-peter": "I Pedro",
+  "2-peter": "II Pedro",
+  "1-john": "I João",
+  "2-john": "II João",
+  "3-john": "III João",
+  jude: "Judas",
+  revelation: "Apocalipse",
 };
 
 function roman(value: number): string {
   const numerals: [number, string][] = [
-    [100, "C"], [90, "XC"], [50, "L"], [40, "XL"], [10, "X"], [9, "IX"],
-    [5, "V"], [4, "IV"], [1, "I"],
+    [100, "C"],
+    [90, "XC"],
+    [50, "L"],
+    [40, "XL"],
+    [10, "X"],
+    [9, "IX"],
+    [5, "V"],
+    [4, "IV"],
+    [1, "I"],
   ];
   let rest = value;
   let result = "";
@@ -98,7 +156,8 @@ async function fetchBatch(batch: RequestedPage[], attempt = 0): Promise<Page[]> 
     }
     if (!response.ok) throw new Error(`Wikisource API returned HTTP ${response.status}.`);
     const payload = (await response.json()) as { query?: { pages?: Page[] }; error?: unknown };
-    if (!payload.query?.pages) throw new Error(`Unexpected Wikisource response: ${JSON.stringify(payload.error)}`);
+    if (!payload.query?.pages)
+      throw new Error(`Unexpected Wikisource response: ${JSON.stringify(payload.error)}`);
     return payload.query.pages;
   } finally {
     clearTimeout(timeout);
@@ -126,7 +185,9 @@ for (let offset = 0; offset < requested.length; offset += 40) {
   for (const page of await fetchBatch(requested.slice(offset, offset + 40))) {
     received.set(page.title, page);
   }
-  process.stdout.write(`\rWikisource: ${Math.min(offset + 40, requested.length)}/${requested.length}`);
+  process.stdout.write(
+    `\rWikisource: ${Math.min(offset + 40, requested.length)}/${requested.length}`,
+  );
   await new Promise((resolvePromise) => setTimeout(resolvePromise, 350));
 }
 process.stdout.write("\n");
@@ -155,8 +216,10 @@ const snapshot = {
     url: "https://pt.wikisource.org/wiki/Tradu%C3%A7%C3%A3o_Brasileira_da_B%C3%ADblia",
     api: API,
     originalPublicationYear: 1917,
-    rights: "Texto original em domínio público; transcrição do Wikisource sob CC BY-SA 4.0.",
-    warning: "O próprio catálogo descreve esta edição como transcrição de segunda mão.",
+    rights:
+      "Redistribuição bloqueada: a hospedagem do Wikisource segue a lei dos EUA e o status no Brasil não está esclarecido.",
+    warning:
+      "Corpus em quarentena técnica; não integrar a pacotes públicos sem revisão jurídica documentada.",
   },
   retrievedAt: new Date().toISOString(),
   pages,

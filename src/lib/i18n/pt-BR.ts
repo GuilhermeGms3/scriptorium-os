@@ -141,6 +141,7 @@ export const ptBR = {
   "scripture.available": "Disponível nesta versão",
   "scripture.hebrewBible": "Bíblia Hebraica / AT",
   "scripture.newTestament": "Novo Testamento",
+  "scripture.otherBooks": "Deuterocanônicos e outros textos",
   "scripture.fullNavigation": "Navegação canônica completa",
   "scripture.navigationHint":
     "Entradas tracejadas ainda não possuem texto importado. Versificação, corpora e perfis de cânon fazem parte do domínio e orientarão esta lista em fases futuras.",

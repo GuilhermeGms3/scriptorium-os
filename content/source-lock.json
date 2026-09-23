@@ -25,8 +25,21 @@
     "sha256": "d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
     "sizeBytes": 4674524,
     "pages": 1189,
-    "license": "Public domain source text; Wikisource transcription CC BY-SA 4.0",
+    "license": "Rights conflict: Wikisource hosting relies on United States law; Brazilian redistribution is not cleared",
     "attribution": "Tradução Brasileira da Bíblia (1917), transcrição colaborativa do Wikisource em português.",
-    "warning": "Second-hand transcription according to the Wikisource catalog record."
+    "redistributionStatus": "blocked-pending-rights-review",
+    "warning": "Quarantined from public runtime packages. The Wikisource discussion warns that the text may not be public domain in Brazil."
+  },
+  "eBibleBibliaPortuguesaMundial": {
+    "revision": "2026-08-19",
+    "url": "https://ebible.org/Scriptures/porbrbsl_usfm.zip",
+    "details": "https://ebible.org/details.php?id=porbrbsl",
+    "sha256": "52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd",
+    "sizeBytes": 1868556,
+    "works": 81,
+    "license": "Public Domain",
+    "attribution": "Bíblia Portuguesa Mundial, eBible.org.",
+    "editionStatus": "draft-in-active-revision",
+    "redistributionStatus": "redistributable"
   }
 }

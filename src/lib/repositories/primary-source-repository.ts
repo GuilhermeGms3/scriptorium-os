@@ -30,6 +30,18 @@ const PORTUGUESE_EDITION_TITLES: Readonly<Record<string, string>> = {
   "ancient-john-reception-pd-en-1": "Recepção antiga de João · edição histórica em inglês",
 };
 
+const EDITION_DISCIPLINES: Readonly<Record<string, { id: string; label: string }>> = {
+  "apostolic-fathers-pd-en-1": { id: "patristica", label: "Patrística e cristianismo antigo" },
+  "historic-creeds-pd-en-1": {
+    id: "teologia-historica",
+    label: "Teologia histórica e confessional",
+  },
+  "ancient-john-reception-pd-en-1": {
+    id: "exegese-recepcao",
+    label: "Exegese e história da recepção",
+  },
+};
+
 function localizedWorkTitle(workId: string, canonicalTitle: string): string {
   return PORTUGUESE_WORK_TITLES[workId] ?? canonicalTitle;
 }
@@ -44,6 +56,8 @@ export interface PrimarySourceWorkSummary {
   language: string;
   rights: string;
   attribution: string;
+  disciplineId: string;
+  disciplineLabel: string;
 }
 
 export interface PrimarySourceDocument extends PrimarySourceWorkSummary {
@@ -71,6 +85,8 @@ export const PrimarySourceRepository = {
           language: manifest.languages[0] ?? "en",
           rights: manifest.rights.license,
           attribution: manifest.rights.attribution,
+          disciplineId: EDITION_DISCIPLINES[manifest.editionId]?.id ?? "outras-fontes",
+          disciplineLabel: EDITION_DISCIPLINES[manifest.editionId]?.label ?? "Outras fontes",
         });
       }
     }
@@ -100,6 +116,8 @@ export const PrimarySourceRepository = {
       language: manifest.languages[0] ?? "en",
       rights: manifest.rights.license,
       attribution: manifest.rights.attribution,
+      disciplineId: EDITION_DISCIPLINES[manifest.editionId]?.id ?? "outras-fontes",
+      disciplineLabel: EDITION_DISCIPLINES[manifest.editionId]?.label ?? "Outras fontes",
       units,
     };
   },

@@ -180,12 +180,23 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                       </span>
                     )}
                   </div>
-                  <p className="font-medium">{entry.gloss}</p>
+                  <div>
+                    <p className="meta-label">Glosa breve da fonte (em inglês)</p>
+                    <p className="mt-1 font-medium">{entry.gloss}</p>
+                  </div>
                   {entry.definition && (
-                    <p className="whitespace-pre-line text-sm leading-relaxed">
-                      {entry.definition}
-                    </p>
+                    <div>
+                      <p className="meta-label">Definição da fonte (em inglês)</p>
+                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">
+                        {entry.definition}
+                      </p>
+                    </div>
                   )}
+                  <p className="rounded border border-dashed border-border bg-muted/20 p-2 text-xs text-muted-foreground">
+                    A tradução lexical revisada em português ainda não foi importada. A interface
+                    mantém o idioma original do dicionário para não apresentar tradução automática
+                    como conteúdo acadêmico.
+                  </p>
                   <p className="text-[11px] text-muted-foreground">
                     {entry.language === "hbo"
                       ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"

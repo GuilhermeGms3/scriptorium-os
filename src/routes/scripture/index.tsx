@@ -51,7 +51,9 @@ function ScriptureIndex() {
                 <p className="font-mono text-[11px] text-muted-foreground">
                   {book.testament === "ot"
                     ? t("scripture.hebrewBible")
-                    : t("scripture.newTestament")}{" "}
+                    : book.testament === "nt"
+                      ? t("scripture.newTestament")
+                      : t("scripture.otherBooks")}{" "}
                   · {book.chapters} capítulos
                 </p>
               </div>

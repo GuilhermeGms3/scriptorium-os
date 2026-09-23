@@ -101,6 +101,13 @@ export function LibraryPage() {
         )
       : sources;
   }, [query, sources]);
+  const primaryWorksByDiscipline = useMemo(() => {
+    const groups = new Map<string, PrimarySourceWorkSummary[]>();
+    for (const work of primaryWorks) {
+      groups.set(work.disciplineLabel, [...(groups.get(work.disciplineLabel) ?? []), work]);
+    }
+    return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "pt-BR"));
+  }, [primaryWorks]);
   const createCollection = async () => {
     if (!newCollection.trim()) return;
     const id = await LibraryRepository.createCollection(newCollection);
@@ -197,18 +204,31 @@ export function LibraryPage() {
           {primaryWorks.length > 0 && !query.trim() && (
             <section className="border-b border-border p-3">
               <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
-              <div className="mt-2 grid gap-1 sm:grid-cols-2">
-                {primaryWorks.map((work) => (
-                  <a
-                    key={`${work.editionId}:${work.id}`}
-                    href={`/library/read/${encodeURIComponent(work.id)}`}
-                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50"
-                  >
-                    <span className="block font-medium">{work.title}</span>
-                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
-                      {work.editionTitle}
-                    </span>
-                  </a>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Obras agrupadas pelo uso acadêmico principal; uma mesma obra poderá receber
+                múltiplos assuntos quando a taxonomia da biblioteca for ampliada.
+              </p>
+              <div className="mt-3 space-y-3">
+                {primaryWorksByDiscipline.map(([discipline, works]) => (
+                  <section key={discipline}>
+                    <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      {discipline}
+                    </h2>
+                    <div className="mt-1 grid gap-1 sm:grid-cols-2">
+                      {works.map((work) => (
+                        <a
+                          key={`${work.editionId}:${work.id}`}
+                          href={`/library/read/${encodeURIComponent(work.id)}`}
+                          className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50"
+                        >
+                          <span className="block font-medium">{work.title}</span>
+                          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                            {work.editionTitle}
+                          </span>
+                        </a>
+                      ))}
+                    </div>
+                  </section>
                 ))}
               </div>
             </section>

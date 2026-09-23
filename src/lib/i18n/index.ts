@@ -87,6 +87,21 @@ const BOOK_LABELS: Record<string, string> = {
   jude: "Judas",
   hebrews: "Hebreus",
   revelation: "Apocalipse",
+  tobit: "Tobias",
+  judith: "Judite",
+  "greek-esther": "Ester Grego",
+  wisdom: "Sabedoria",
+  sirach: "Eclesiástico",
+  baruch: "Baruque",
+  "1-maccabees": "1 Macabeus",
+  "2-maccabees": "2 Macabeus",
+  "1-esdras": "1 Esdras",
+  "prayer-of-manasseh": "Oração de Manassés",
+  "psalm-151": "Salmo 151",
+  "3-maccabees": "3 Macabeus",
+  "2-esdras": "2 Esdras",
+  "4-maccabees": "4 Macabeus",
+  "greek-daniel": "Daniel Grego",
 };
 
 export function bookLabel(bookId: string, fallback?: string): string {

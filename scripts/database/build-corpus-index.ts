@@ -171,14 +171,14 @@ const definitions: PackageDefinition[] = [
     license: "CC-BY-3.0-BR",
   },
   {
-    generatedDirectory: "generated/corpora/traducao-brasileira/1917",
-    title: "Tradução Brasileira da Bíblia (1917)",
-    abbreviation: "TBB 1917",
+    generatedDirectory: "generated/corpora/biblia-portuguesa-mundial/2026-08-19",
+    title: "Bíblia Portuguesa Mundial — rascunho em revisão (2026-08-19)",
+    abbreviation: "BPM rasc.",
     language: "pt-BR",
     script: "Latn",
     direction: "ltr",
     kind: "translation",
-    license: "Public-Domain; Wikisource-CC-BY-SA-4.0",
+    license: "Public-Domain",
   },
   {
     generatedDirectory: "generated/corpora/sblgnt/1.2",
@@ -633,7 +633,22 @@ function buildSearchShard(
 }
 
 function packageFingerprint(definition: PackageDefinition): string {
-  const sourceManifest = readFileSync(join(root, definition.generatedDirectory, "manifest.json"));
+  const manifestPath = join(root, definition.generatedDirectory, "manifest.json");
+  const sourceManifestBytes = readFileSync(manifestPath);
+  const sourceManifest = JSON.parse(
+    sourceManifestBytes.toString("utf8"),
+  ) as GeneratedCorpusManifest;
+  const generatedContentDigest = createHash("sha256");
+  for (const relativePath of sourceManifest.books
+    .flatMap((book) => Object.values(book.chapterFiles))
+    .sort()) {
+    generatedContentDigest.update(relativePath);
+    generatedContentDigest.update("\0");
+    generatedContentDigest.update(
+      readFileSync(join(root, definition.generatedDirectory, relativePath)),
+    );
+    generatedContentDigest.update("\n");
+  }
   const relevantAuxiliary = definition.generatedDirectory.includes("sblgnt")
     ? readFileSync(join(tagntDirectory, "manifest.json"))
     : definition.generatedDirectory.includes("wlc")
@@ -642,9 +657,10 @@ function packageFingerprint(definition: PackageDefinition): string {
   return sha256(
     JSON.stringify({
       schemaVersion: DATABASE_SCHEMA_VERSION,
-      builderVersion: "corpus-runtime-10.1.0",
+      builderVersion: "corpus-runtime-10.1.1",
       definition,
-      sourceManifest: sha256(sourceManifest),
+      sourceManifest: sha256(sourceManifestBytes),
+      generatedContent: generatedContentDigest.digest("hex"),
       relevantAuxiliary: sha256(relevantAuxiliary),
     }),
   );

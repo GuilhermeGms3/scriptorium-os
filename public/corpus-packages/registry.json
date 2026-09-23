@@ -83,7 +83,7 @@
       "databasePath": "/corpus-packages/biblia-livre-n4-2025.1.0.sqlite3",
       "checksum": "240f46341ea49df473d61022b7afba5324dd6a010f3c0b75151064424abefbe4",
       "sourceChecksum": "8ec95eabb3a03f017cec34eeb6571dab09893478027c5b46b1774fa5c7c6b94e",
-      "buildFingerprint": "0db9ec4655e7eb84835209d600ee4aa43b3c8918124395467c74ab9a5971bba4",
+      "buildFingerprint": "865bd38c52dc9124e49d8d72d3889e41c89434fc298c29c8455c05d31a7ee242",
       "sizeBytes": 119304192,
       "downloadSizeBytes": 194273280,
       "storageSizeBytes": 194273280,
@@ -714,12 +714,12 @@
     },
     {
       "schemaVersion": 11,
-      "id": "runtime:pkg-traducao-brasileira-wikisource-1917",
-      "corpusId": "traducao-brasileira",
-      "editionId": "traducao-brasileira-1917",
-      "version": "wikisource-snapshot-2026-09-16",
-      "title": "Tradução Brasileira da Bíblia (1917)",
-      "abbreviation": "TBB 1917",
+      "id": "runtime:pkg-ebible-bpm-2026-08-19",
+      "corpusId": "biblia-portuguesa-mundial",
+      "editionId": "biblia-portuguesa-mundial-2026-08-19",
+      "version": "ebible-porbrbsl-2026-08-19",
+      "title": "Bíblia Portuguesa Mundial — rascunho em revisão (2026-08-19)",
+      "abbreviation": "BPM rasc.",
       "works": [
         "work:genesis",
         "work:exodus",
@@ -760,6 +760,21 @@
         "work:haggai",
         "work:zechariah",
         "work:malachi",
+        "work:tobit",
+        "work:judith",
+        "work:greek-esther",
+        "work:wisdom",
+        "work:sirach",
+        "work:baruch",
+        "work:1-maccabees",
+        "work:2-maccabees",
+        "work:1-esdras",
+        "work:prayer-of-manasseh",
+        "work:psalm-151",
+        "work:3-maccabees",
+        "work:2-esdras",
+        "work:4-maccabees",
+        "work:greek-daniel",
         "work:matthew",
         "work:mark",
         "work:luke",
@@ -791,568 +806,688 @@
       "languages": [
         "pt-BR"
       ],
-      "databasePath": "/corpus-packages/traducao-brasileira-1917.sqlite3",
-      "checksum": "58b7b13027b1a178a8ab51f4f3f6a892c17cb10e1424d444ac0fe19218e559aa",
-      "sourceChecksum": "d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
-      "buildFingerprint": "292531b3196c80eed8e4241d3723536e78bc789df0f313be0876a54007ea55dd",
-      "sizeBytes": 120647680,
-      "downloadSizeBytes": 197435392,
-      "storageSizeBytes": 197435392,
+      "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19.sqlite3",
+      "checksum": "403a8d80f0dd687a69832d2d54fd2e7a70241e48ace0493daf61b3fa99c13421",
+      "sourceChecksum": "52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd",
+      "buildFingerprint": "1494be6a120efeb24f2910c94a6f9d784dbb55390f15fb9bb5b7cd7c440877dd",
+      "sizeBytes": 165249024,
+      "downloadSizeBytes": 264708096,
+      "storageSizeBytes": 264708096,
       "deliveryMode": "work-shards",
-      "sourceLocation": "/corpus-packages/traducao-brasileira-1917.sqlite3",
+      "sourceLocation": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19.sqlite3",
       "dependencies": [],
       "parts": [
         {
-          "id": "traducao-brasileira-1917:genesis",
+          "id": "biblia-portuguesa-mundial-2026-08-19:genesis",
           "workId": "work:genesis",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/genesis.sqlite3",
-          "checksum": "041fe3444450ff44bb5c99036d33c015b5c17fa33107e8e0930fe0e64fb2f6c7",
-          "sizeBytes": 5898240
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/genesis.sqlite3",
+          "checksum": "18a21629e3a23a6298e5add6bed48a0c5cc92b80a4b50285f6c968b5a8ebfd58",
+          "sizeBytes": 6602752
         },
         {
-          "id": "traducao-brasileira-1917:exodus",
+          "id": "biblia-portuguesa-mundial-2026-08-19:exodus",
           "workId": "work:exodus",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/exodus.sqlite3",
-          "checksum": "8efdbcdeddd018f313fb01ad3f3041de56e7e2664c097fd5635031c983648560",
-          "sizeBytes": 4808704
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/exodus.sqlite3",
+          "checksum": "2fa821c5ee327a31115ee3281166a9c738780ac6f5f7249c6b4682d295964c63",
+          "sizeBytes": 5365760
         },
         {
-          "id": "traducao-brasileira-1917:leviticus",
+          "id": "biblia-portuguesa-mundial-2026-08-19:leviticus",
           "workId": "work:leviticus",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/leviticus.sqlite3",
-          "checksum": "0337acb28da2c0e69cf995dff30fd53bd81a7f80138f38894d66476351577525",
-          "sizeBytes": 3739648
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/leviticus.sqlite3",
+          "checksum": "822b70d0f2fe7e497c8f812af1a9ae3a01dac19b9bdfce2b90e904ae14f7bae0",
+          "sizeBytes": 4050944
         },
         {
-          "id": "traducao-brasileira-1917:numbers",
+          "id": "biblia-portuguesa-mundial-2026-08-19:numbers",
           "workId": "work:numbers",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/numbers.sqlite3",
-          "checksum": "5833090008b2ea532a4057e99c097da594d56537c1755da54e46437bd427c3e5",
-          "sizeBytes": 5074944
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/numbers.sqlite3",
+          "checksum": "93ea0dbe7a38a68fdefb3bfa41b012575498f34c221e8dbeaa476adf79938b4c",
+          "sizeBytes": 5648384
         },
         {
-          "id": "traducao-brasileira-1917:deuteronomy",
+          "id": "biblia-portuguesa-mundial-2026-08-19:deuteronomy",
           "workId": "work:deuteronomy",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/deuteronomy.sqlite3",
-          "checksum": "b090ab797e0eedbb5efd594f8fb7f9804d2462fa3222e2d3ab84750cb22ea566",
-          "sizeBytes": 4202496
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/deuteronomy.sqlite3",
+          "checksum": "8a54f5ea0fb9b7d0be3f61ff006b3cce83932ae94e4696617d6fd0b55e2e2cb0",
+          "sizeBytes": 4558848
         },
         {
-          "id": "traducao-brasileira-1917:joshua",
+          "id": "biblia-portuguesa-mundial-2026-08-19:joshua",
           "workId": "work:joshua",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/joshua.sqlite3",
-          "checksum": "5716b2734c027906dda694114b8de48d8a94e429b21f406bc9ce762d679ea7bb",
-          "sizeBytes": 2883584
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/joshua.sqlite3",
+          "checksum": "e6ec37e9bcaaf9fe128eda549ba437bba165b08d478a5017902ec230b56a3643",
+          "sizeBytes": 3186688
         },
         {
-          "id": "traducao-brasileira-1917:judges",
+          "id": "biblia-portuguesa-mundial-2026-08-19:judges",
           "workId": "work:judges",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/judges.sqlite3",
-          "checksum": "b697d56c20171df0842a3c4b6bf63b1c4da9e04aebe4788736780c4e68a6a4fa",
-          "sizeBytes": 2781184
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/judges.sqlite3",
+          "checksum": "9817140c9c48a6cd392a7c8997d602830e69d758ed6e44ef4052f8452a2d896f",
+          "sizeBytes": 3080192
         },
         {
-          "id": "traducao-brasileira-1917:ruth",
+          "id": "biblia-portuguesa-mundial-2026-08-19:ruth",
           "workId": "work:ruth",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/ruth.sqlite3",
-          "checksum": "b5c485d9c99bbf2d70ca42ab30c3a5378ce92ca5951dd18a74be17f10c30fbc0",
-          "sizeBytes": 819200
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/ruth.sqlite3",
+          "checksum": "69bd9184dcd6bf62eddd475ac4e02cab62c030ca590d8441a4ed95d8aa525ed7",
+          "sizeBytes": 884736
         },
         {
-          "id": "traducao-brasileira-1917:1-samuel",
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-samuel",
           "workId": "work:1-samuel",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-samuel.sqlite3",
-          "checksum": "485edabac2fe591247b5f6bdcf4079dad585c3cb077498ec2708450edc346e3e",
-          "sizeBytes": 3616768
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-samuel.sqlite3",
+          "checksum": "4d65cfb76d273488e64c4696682af3e91f5ab5ba36325907b13bd60777a93cde",
+          "sizeBytes": 3919872
         },
         {
-          "id": "traducao-brasileira-1917:2-samuel",
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-samuel",
           "workId": "work:2-samuel",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-samuel.sqlite3",
-          "checksum": "9b4573d5a20701e744f291efce7288563f8e9088c255403b6e5ac5aeaac6d84f",
-          "sizeBytes": 3158016
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-samuel.sqlite3",
+          "checksum": "6271557527c539e6df20db70d3c98710648db3754f0bdad1469b9c11754c0f05",
+          "sizeBytes": 3416064
         },
         {
-          "id": "traducao-brasileira-1917:1-kings",
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-kings",
           "workId": "work:1-kings",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-kings.sqlite3",
-          "checksum": "c579e647c922e02f8a9d29f0e0b1ab7d320396c2ebd8fd05e32bbdb1a29b30a1",
-          "sizeBytes": 3510272
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-kings.sqlite3",
+          "checksum": "da59d23860b72f1af5ffa1d016934f52a05bde5304e2db01feb9a586b53e0679",
+          "sizeBytes": 3903488
         },
         {
-          "id": "traducao-brasileira-1917:2-kings",
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-kings",
           "workId": "work:2-kings",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-kings.sqlite3",
-          "checksum": "984281f931f71908eaaa1a35bf85304a77e33236c8b5c4bdac34b34b2c1f2bed",
-          "sizeBytes": 3211264
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-kings.sqlite3",
+          "checksum": "f15cafa3872a0b241200510e1f6c8d5323e736e9381ef02a43ddf8d3bdd1cf1c",
+          "sizeBytes": 3547136
         },
         {
-          "id": "traducao-brasileira-1917:1-chronicles",
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-chronicles",
           "workId": "work:1-chronicles",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-chronicles.sqlite3",
-          "checksum": "d9d1e9dd4f04742f20cc2f7165a9b5a7c6e37d759590b11657aa41d806dffd67",
-          "sizeBytes": 3981312
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-chronicles.sqlite3",
+          "checksum": "a27513619f6414f91dc2669536d04a84b0f2a7332b713317310080c6421ff320",
+          "sizeBytes": 4276224
         },
         {
-          "id": "traducao-brasileira-1917:2-chronicles",
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-chronicles",
           "workId": "work:2-chronicles",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-chronicles.sqlite3",
-          "checksum": "8c73821a611120a28bf8e1c7c9d142aca4cc65e13fef33b22c9846578c199ba9",
-          "sizeBytes": 3788800
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-chronicles.sqlite3",
+          "checksum": "6eba0f937f78fffdd6b908c5cf78461dcfb598eeebddcb429b3048f9462a3cc3",
+          "sizeBytes": 4079616
         },
         {
-          "id": "traducao-brasileira-1917:ezra",
+          "id": "biblia-portuguesa-mundial-2026-08-19:ezra",
           "workId": "work:ezra",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/ezra.sqlite3",
-          "checksum": "d673f531ede734b862b79a3785a53956cf61d482ac295d6f512fa38f6b4286a6",
-          "sizeBytes": 1527808
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/ezra.sqlite3",
+          "checksum": "45323b5328c8616db80289db94b8594f321af3162e474b825fc18cb6709c4d6a",
+          "sizeBytes": 1638400
         },
         {
-          "id": "traducao-brasileira-1917:nehemiah",
+          "id": "biblia-portuguesa-mundial-2026-08-19:nehemiah",
           "workId": "work:nehemiah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/nehemiah.sqlite3",
-          "checksum": "386bef7971b54bfc78bba7192ffb8fcbf6f7a6eac5986555b5b240ecfcd8810e",
-          "sizeBytes": 2039808
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/nehemiah.sqlite3",
+          "checksum": "1a83e26fb1d16d2830dda6266404cc8eaac9b3561723db23f9b50c26f8ce41ff",
+          "sizeBytes": 2174976
         },
         {
-          "id": "traducao-brasileira-1917:esther",
+          "id": "biblia-portuguesa-mundial-2026-08-19:esther",
           "workId": "work:esther",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/esther.sqlite3",
-          "checksum": "e58ee0095817567c461d1260e6e2dd15d268b0454de58025fda0833ef4ffa1f7",
-          "sizeBytes": 1171456
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/esther.sqlite3",
+          "checksum": "1465a6a9282b177d88959bb03d6d12ab1c6be4e9c377f7aea877aa290ecd37fd",
+          "sizeBytes": 1245184
         },
         {
-          "id": "traducao-brasileira-1917:job",
+          "id": "biblia-portuguesa-mundial-2026-08-19:job",
           "workId": "work:job",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/job.sqlite3",
-          "checksum": "b2b36c0f8c81e86942d60ca07a24606d7dfb87538617fb52335ea96c004627e6",
-          "sizeBytes": 3973120
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/job.sqlite3",
+          "checksum": "98f8aee2e8544b4906095b9cb38e339d43d8684c237cd235cf584f961a3a09c1",
+          "sizeBytes": 4345856
         },
         {
-          "id": "traducao-brasileira-1917:psalms",
+          "id": "biblia-portuguesa-mundial-2026-08-19:psalms",
           "workId": "work:psalms",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/psalms.sqlite3",
-          "checksum": "68951f11c01c1f3d095f62d402f7f2bc5fbd7195f9c73e8556ef53aea56589bd",
-          "sizeBytes": 8740864
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/psalms.sqlite3",
+          "checksum": "b2256169c5db7648a03696449659d07d55befda2cdcb96c21624e80c5b314bfb",
+          "sizeBytes": 9781248
         },
         {
-          "id": "traducao-brasileira-1917:proverbs",
+          "id": "biblia-portuguesa-mundial-2026-08-19:proverbs",
           "workId": "work:proverbs",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/proverbs.sqlite3",
-          "checksum": "5e3e245439872d23584d846f0baeb2820bccf271a725449773952b54664cc43f",
-          "sizeBytes": 3702784
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/proverbs.sqlite3",
+          "checksum": "3b93492acfdf2f7961f05c05abf966f0592452e1ee2639407ba5509d8e086a79",
+          "sizeBytes": 4009984
         },
         {
-          "id": "traducao-brasileira-1917:ecclesiastes",
+          "id": "biblia-portuguesa-mundial-2026-08-19:ecclesiastes",
           "workId": "work:ecclesiastes",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/ecclesiastes.sqlite3",
-          "checksum": "73820267c8634ef5b5d8ea328efb4b4bbbd37f6f4eb07e224ed84dba7101a66e",
-          "sizeBytes": 1359872
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/ecclesiastes.sqlite3",
+          "checksum": "34af69118e84ee49622962eed9a955a50e0dcd92157ca52fe4a8a1f76eb89229",
+          "sizeBytes": 1437696
         },
         {
-          "id": "traducao-brasileira-1917:song-of-songs",
+          "id": "biblia-portuguesa-mundial-2026-08-19:song-of-songs",
           "workId": "work:song-of-songs",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/song-of-songs.sqlite3",
-          "checksum": "16e01fa977a1d84a26b00a5ef17e7d8f6b6707bfc854cc19b03fa2eae4e8cf8c",
-          "sizeBytes": 962560
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/song-of-songs.sqlite3",
+          "checksum": "fd3a8f0850bf258119d3ae2671e7cb29d682c2141c738e1d4ffd102d96d2570f",
+          "sizeBytes": 1011712
         },
         {
-          "id": "traducao-brasileira-1917:isaiah",
+          "id": "biblia-portuguesa-mundial-2026-08-19:isaiah",
           "workId": "work:isaiah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/isaiah.sqlite3",
-          "checksum": "641211cd52f77de30d5fef5cd39499ef4cac978a9a3b4eb0296a988d75e9dee8",
-          "sizeBytes": 5226496
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/isaiah.sqlite3",
+          "checksum": "2711af352b1039a23608c285ec7decb33375f2191accaadddfbe0acde48fce9b",
+          "sizeBytes": 5808128
         },
         {
-          "id": "traducao-brasileira-1917:jeremiah",
+          "id": "biblia-portuguesa-mundial-2026-08-19:jeremiah",
           "workId": "work:jeremiah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/jeremiah.sqlite3",
-          "checksum": "8db141aa2b8c125f69597889db719141e3c61d3091c9f0823d34bbc067c413de",
-          "sizeBytes": 5783552
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/jeremiah.sqlite3",
+          "checksum": "56e5b7f5fe94ef4629cd90a0f6648953fb65d30eb9e0a81a787ebb9d78dbcbb6",
+          "sizeBytes": 6336512
         },
         {
-          "id": "traducao-brasileira-1917:lamentations",
+          "id": "biblia-portuguesa-mundial-2026-08-19:lamentations",
           "workId": "work:lamentations",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/lamentations.sqlite3",
-          "checksum": "9b9f1939a6a059e3b7df9bc8bcfb85467daab85abb446e209f5b19ef097facc4",
-          "sizeBytes": 1101824
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/lamentations.sqlite3",
+          "checksum": "d6b96315b45c31757f4b543fb1c8459d1d33d082a98642bed30c3726aa3da05e",
+          "sizeBytes": 1155072
         },
         {
-          "id": "traducao-brasileira-1917:ezekiel",
+          "id": "biblia-portuguesa-mundial-2026-08-19:ezekiel",
           "workId": "work:ezekiel",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/ezekiel.sqlite3",
-          "checksum": "c72dfcc6261addf2bc37c6d40055f664ed12a81a2d4a7d48ce3abf5e5d44a308",
-          "sizeBytes": 5259264
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/ezekiel.sqlite3",
+          "checksum": "f01da55b17b157d18accd6a107148a81eb70e23a099b71d05718c941dfb247ba",
+          "sizeBytes": 5849088
         },
         {
-          "id": "traducao-brasileira-1917:daniel",
+          "id": "biblia-portuguesa-mundial-2026-08-19:daniel",
           "workId": "work:daniel",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/daniel.sqlite3",
-          "checksum": "a34328794638b1b64b455f61bde5b6092d8e1aa2ac4ab0b94a889677ee021a63",
-          "sizeBytes": 1888256
-        },
-        {
-          "id": "traducao-brasileira-1917:hosea",
-          "workId": "work:hosea",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/hosea.sqlite3",
-          "checksum": "19acac8a9c8a7b04ce2aab56bd98bbedcd77338f05332e2c0a3720d2ee36e667",
-          "sizeBytes": 1224704
-        },
-        {
-          "id": "traducao-brasileira-1917:joel",
-          "workId": "work:joel",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/joel.sqlite3",
-          "checksum": "a174335d69a06775ab6a43f4dc2d28dcde24c3bf335fd22c7565790016458381",
-          "sizeBytes": 778240
-        },
-        {
-          "id": "traducao-brasileira-1917:amos",
-          "workId": "work:amos",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/amos.sqlite3",
-          "checksum": "0737db833917197f896e67541b1860bcaf053cd7ddc2da6996bc1e96aacfbe52",
-          "sizeBytes": 1048576
-        },
-        {
-          "id": "traducao-brasileira-1917:obadiah",
-          "workId": "work:obadiah",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/obadiah.sqlite3",
-          "checksum": "97d2cc97a988f521616d073bae77c13cae8b12ffd6d740ca18981db76a2be1ff",
-          "sizeBytes": 581632
-        },
-        {
-          "id": "traducao-brasileira-1917:jonah",
-          "workId": "work:jonah",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/jonah.sqlite3",
-          "checksum": "5c7bb5879434e80feafbc66702cc439c3781017802dfc21b651aeb1b0434bfa9",
-          "sizeBytes": 679936
-        },
-        {
-          "id": "traducao-brasileira-1917:micah",
-          "workId": "work:micah",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/micah.sqlite3",
-          "checksum": "01575edaef14cf85cb96a3977d16e2f51c972ce4323e0d388f10bd4a9f335b8f",
-          "sizeBytes": 921600
-        },
-        {
-          "id": "traducao-brasileira-1917:nahum",
-          "workId": "work:nahum",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/nahum.sqlite3",
-          "checksum": "ce6467e292c3994ea7245ecd58ef02ebab546e7d15536b831ff866aef95c042a",
-          "sizeBytes": 679936
-        },
-        {
-          "id": "traducao-brasileira-1917:habakkuk",
-          "workId": "work:habakkuk",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/habakkuk.sqlite3",
-          "checksum": "cb861f770469cb84747640c7dfd6d2c637d48fde8eb39ecef7d86cb12d6368e4",
-          "sizeBytes": 720896
-        },
-        {
-          "id": "traducao-brasileira-1917:zephaniah",
-          "workId": "work:zephaniah",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/zephaniah.sqlite3",
-          "checksum": "7e0105be1dc8903ad869210813626be40e06ac7c18149ce2d47abfae30e0e561",
-          "sizeBytes": 716800
-        },
-        {
-          "id": "traducao-brasileira-1917:haggai",
-          "workId": "work:haggai",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/haggai.sqlite3",
-          "checksum": "574647734e2e75517b7aaaa94ff0e28c625d34f8387e114077d5b7d36d486051",
-          "sizeBytes": 647168
-        },
-        {
-          "id": "traducao-brasileira-1917:zechariah",
-          "workId": "work:zechariah",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/zechariah.sqlite3",
-          "checksum": "436f3d7fbfccd5d48e9d1364e24415e9f2830e4c9d87ec84e9fcca1440e367ae",
-          "sizeBytes": 1331200
-        },
-        {
-          "id": "traducao-brasileira-1917:malachi",
-          "workId": "work:malachi",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/malachi.sqlite3",
-          "checksum": "1b38a9932c04e12f59733437f442517e0150bdfe9ba2f3bf5624af6e44b3162a",
-          "sizeBytes": 724992
-        },
-        {
-          "id": "traducao-brasileira-1917:matthew",
-          "workId": "work:matthew",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/matthew.sqlite3",
-          "checksum": "0be541a52423a4132b0af863593dea543da6714ee8600b87b010bd1a4d197141",
-          "sizeBytes": 4235264
-        },
-        {
-          "id": "traducao-brasileira-1917:mark",
-          "workId": "work:mark",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/mark.sqlite3",
-          "checksum": "4ef88fee676240aa6f7033237f3364439c14c25177f1f5219c7029cc5803e064",
-          "sizeBytes": 2830336
-        },
-        {
-          "id": "traducao-brasileira-1917:luke",
-          "workId": "work:luke",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/luke.sqlite3",
-          "checksum": "4a680f9ec19e3ac9f6ced8b1307bb9f1349339874b93a1f6faacdd916bfa8a87",
-          "sizeBytes": 4427776
-        },
-        {
-          "id": "traducao-brasileira-1917:john",
-          "workId": "work:john",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/john.sqlite3",
-          "checksum": "829ba9062014910e2cfe7e7eeef04f4e157efd94dd2ce203d2ff86cda6dbf186",
-          "sizeBytes": 3497984
-        },
-        {
-          "id": "traducao-brasileira-1917:acts",
-          "workId": "work:acts",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/acts.sqlite3",
-          "checksum": "e5e2cb199ab0f9331e611defea6798f0e4b58743f47150c4a944f449d5917e3b",
-          "sizeBytes": 4022272
-        },
-        {
-          "id": "traducao-brasileira-1917:romans",
-          "workId": "work:romans",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/romans.sqlite3",
-          "checksum": "cff3041232f3e8c6c82fa6d31f5d840efa1e14d5d3ba7f59c5d755e9e4e349c3",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/daniel.sqlite3",
+          "checksum": "b850764c93634eef0a98f327654cdc122c503fafdaa1cb632eaae4870373bf4d",
           "sizeBytes": 2031616
         },
         {
-          "id": "traducao-brasileira-1917:1-corinthians",
-          "workId": "work:1-corinthians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:hosea",
+          "workId": "work:hosea",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-corinthians.sqlite3",
-          "checksum": "236176c2de28b71a37c77c96edd37672dda26762d1f95c893367376466efb8ae",
-          "sizeBytes": 2142208
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/hosea.sqlite3",
+          "checksum": "682a28cf8a99e640590bcdf9554a5dd4865f1f55c24b994034582a9b1a2f97af",
+          "sizeBytes": 1314816
         },
         {
-          "id": "traducao-brasileira-1917:2-corinthians",
-          "workId": "work:2-corinthians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:joel",
+          "workId": "work:joel",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-corinthians.sqlite3",
-          "checksum": "af648f98ea61791e706e43672bd07100ac346a69e471e3538014aa246bb28a67",
-          "sizeBytes": 1503232
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/joel.sqlite3",
+          "checksum": "b03899820c40a6015f71c9740ff9cd298e0c17177af05a66167dae694c93122f",
+          "sizeBytes": 806912
         },
         {
-          "id": "traducao-brasileira-1917:galatians",
-          "workId": "work:galatians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:amos",
+          "workId": "work:amos",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/galatians.sqlite3",
-          "checksum": "cb9771a861b6b02539c5165958b5a7044796dd5438e081f12e7e4fe4de3cbb5a",
-          "sizeBytes": 1069056
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/amos.sqlite3",
+          "checksum": "539665cf3db9fd7aac45fdc556283fe946294f89e8452b32b35cd89f795793ca",
+          "sizeBytes": 1110016
         },
         {
-          "id": "traducao-brasileira-1917:ephesians",
-          "workId": "work:ephesians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:obadiah",
+          "workId": "work:obadiah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/ephesians.sqlite3",
-          "checksum": "10806644719e2b0b9e44f5747788c8a311ec80320f4324f4c7e43b433de4dca4",
-          "sizeBytes": 1081344
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/obadiah.sqlite3",
+          "checksum": "790b89f470ea145dabd4cddd2d7eee820b3bdc3e9e09e69fd105864164a9e351",
+          "sizeBytes": 598016
         },
         {
-          "id": "traducao-brasileira-1917:philippians",
-          "workId": "work:philippians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:jonah",
+          "workId": "work:jonah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/philippians.sqlite3",
-          "checksum": "a2fd02116556980a14bc7cfe8aaae80b9a449578cb8ac173d0ea634433ba1487",
-          "sizeBytes": 917504
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/jonah.sqlite3",
+          "checksum": "11395b63741a199a7c89f3373722f363afe747fb1261fb09ebf6c12ff04a4254",
+          "sizeBytes": 696320
         },
         {
-          "id": "traducao-brasileira-1917:colossians",
-          "workId": "work:colossians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:micah",
+          "workId": "work:micah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/colossians.sqlite3",
-          "checksum": "bd85e22d8fd9abcaf06e301d2ffd6a3145307591c96d5bdedcca7c44abc0684d",
-          "sizeBytes": 888832
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/micah.sqlite3",
+          "checksum": "194c3dbbd474126886e03862daa1615a0f96177666f7b5f739d62f6c2c6ba031",
+          "sizeBytes": 958464
         },
         {
-          "id": "traducao-brasileira-1917:1-thessalonians",
-          "workId": "work:1-thessalonians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:nahum",
+          "workId": "work:nahum",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-thessalonians.sqlite3",
-          "checksum": "2c6e07cfec7d19a149ee70ef05cc7e28054136885e5b30860b5c1830a5f04ffb",
-          "sizeBytes": 876544
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/nahum.sqlite3",
+          "checksum": "691dc8736b182845024ebbd32392b4137901b6321b11a07a6fbe422bb766bf8e",
+          "sizeBytes": 696320
         },
         {
-          "id": "traducao-brasileira-1917:2-thessalonians",
-          "workId": "work:2-thessalonians",
+          "id": "biblia-portuguesa-mundial-2026-08-19:habakkuk",
+          "workId": "work:habakkuk",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-thessalonians.sqlite3",
-          "checksum": "e2d686fd5b7b36fc6bfec2ddbc0c63470000c2dbce384a91bfdcc913123a75b2",
-          "sizeBytes": 692224
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/habakkuk.sqlite3",
+          "checksum": "974696c366398646c4a4006a3c915dd432ae19ba77a3f236812a5e58de2dd4a7",
+          "sizeBytes": 737280
         },
         {
-          "id": "traducao-brasileira-1917:1-timothy",
-          "workId": "work:1-timothy",
+          "id": "biblia-portuguesa-mundial-2026-08-19:zephaniah",
+          "workId": "work:zephaniah",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-timothy.sqlite3",
-          "checksum": "205c94a8e9ec201c278d979a87d1bfa981f5be1851f401395537a337b87233c6",
-          "sizeBytes": 937984
-        },
-        {
-          "id": "traducao-brasileira-1917:2-timothy",
-          "workId": "work:2-timothy",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-timothy.sqlite3",
-          "checksum": "21c5ddb61c7aea71bb6d3654c6ad5d6194f0aa9b3b6d1c9ff6802bc0d82d3564",
-          "sizeBytes": 819200
-        },
-        {
-          "id": "traducao-brasileira-1917:titus",
-          "workId": "work:titus",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/titus.sqlite3",
-          "checksum": "6d6459ca353031c458de46ecd73e087cf604adebaab0c1693c7e0e0e39255b8c",
-          "sizeBytes": 675840
-        },
-        {
-          "id": "traducao-brasileira-1917:philemon",
-          "workId": "work:philemon",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/philemon.sqlite3",
-          "checksum": "5cfddc293fe6c6ec2e8bd7124ff98e6da1bca70367dd788fb648786ae94ac7b0",
-          "sizeBytes": 593920
-        },
-        {
-          "id": "traducao-brasileira-1917:hebrews",
-          "workId": "work:hebrews",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/hebrews.sqlite3",
-          "checksum": "af05ee24126b4ca44b03d9dc76f95c7fa689ec435045af676294faf0369a60f0",
-          "sizeBytes": 1617920
-        },
-        {
-          "id": "traducao-brasileira-1917:james",
-          "workId": "work:james",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/james.sqlite3",
-          "checksum": "e6d333954376d96b62e2966268883e0ac865d356d6c65a542af28aa490d47989",
-          "sizeBytes": 905216
-        },
-        {
-          "id": "traducao-brasileira-1917:1-peter",
-          "workId": "work:1-peter",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-peter.sqlite3",
-          "checksum": "4880ad1f7844d94905cd2407ec3a56da1d952d22a5ac87e0902ce6cf6db75ea0",
-          "sizeBytes": 905216
-        },
-        {
-          "id": "traducao-brasileira-1917:2-peter",
-          "workId": "work:2-peter",
-          "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-peter.sqlite3",
-          "checksum": "c3e0eed9889d1919e17518f0291637cc1ca3c3e06995b8f97b9a940b64115899",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/zephaniah.sqlite3",
+          "checksum": "258f11632c6bb6bfd37186f51ddab18be706b7606afe16b710769f0876a535c1",
           "sizeBytes": 733184
         },
         {
-          "id": "traducao-brasileira-1917:1-john",
+          "id": "biblia-portuguesa-mundial-2026-08-19:haggai",
+          "workId": "work:haggai",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/haggai.sqlite3",
+          "checksum": "5e36c2caefdf5b6230108daa4e36a9d2758fea08c9f2bdb9168640c4ca33f01f",
+          "sizeBytes": 659456
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:zechariah",
+          "workId": "work:zechariah",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/zechariah.sqlite3",
+          "checksum": "9fca62bc4b64898d4d9c42b6def0ddbc706dc778c2bbe5702fbcb032ed70b8b8",
+          "sizeBytes": 1409024
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:malachi",
+          "workId": "work:malachi",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/malachi.sqlite3",
+          "checksum": "d7b60563c23e4a739f8ec2c4147efe349cb16c131a37df858d1f05c319d4510c",
+          "sizeBytes": 749568
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:tobit",
+          "workId": "work:tobit",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/tobit.sqlite3",
+          "checksum": "c861cb35e834a72d04a4ddd74f1c1abc0edb7a1bf554aa8ea08c96249fc98089",
+          "sizeBytes": 1507328
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:judith",
+          "workId": "work:judith",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/judith.sqlite3",
+          "checksum": "e1ee43f687e2ec9477a63b7c502ad41bea36defda3d97861c4cb19e547220237",
+          "sizeBytes": 1957888
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:greek-esther",
+          "workId": "work:greek-esther",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/greek-esther.sqlite3",
+          "checksum": "9e6747214159db8c629b2fab18975a5213ffa9ce394157040b6236e8ce1a734f",
+          "sizeBytes": 1449984
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:wisdom",
+          "workId": "work:wisdom",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/wisdom.sqlite3",
+          "checksum": "12e48c7ed5ad867c4be7bb0c76fe00d13eea361c3fec3d4542bdfd8f1fa64ab7",
+          "sizeBytes": 2277376
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:sirach",
+          "workId": "work:sirach",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/sirach.sqlite3",
+          "checksum": "ef353c378bd6af9c854f00f67950f12ce20c1fed8e4877a2490d3821f50bcd25",
+          "sizeBytes": 5742592
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:baruch",
+          "workId": "work:baruch",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/baruch.sqlite3",
+          "checksum": "a335deb2741d8c714459e2c1d37e12f73ee55b268b0e69ed8dc2432f89ee4f16",
+          "sizeBytes": 1368064
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-maccabees",
+          "workId": "work:1-maccabees",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-maccabees.sqlite3",
+          "checksum": "50029675dbaaa57acef3e34ac54099024426e44749f46685fff45834f4b66966",
+          "sizeBytes": 4259840
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-maccabees",
+          "workId": "work:2-maccabees",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-maccabees.sqlite3",
+          "checksum": "a394d5b0fb9dfd9b6f8773be94eae761ad2321fded4aa5d69d19dc3b596385d0",
+          "sizeBytes": 2920448
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-esdras",
+          "workId": "work:1-esdras",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-esdras.sqlite3",
+          "checksum": "d3daec11d37e526996035802e08b0e45790365cf76c9f8a8bc12bd70427c47ce",
+          "sizeBytes": 2351104
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:prayer-of-manasseh",
+          "workId": "work:prayer-of-manasseh",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/prayer-of-manasseh.sqlite3",
+          "checksum": "9b664c6d55726faa21dc9028e3d1234758390335a07f34c8f91bfcf95350f06a",
+          "sizeBytes": 573440
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:psalm-151",
+          "workId": "work:psalm-151",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/psalm-151.sqlite3",
+          "checksum": "77bcaea80eb2c548e6b5be87d48f5f5eed7e156afafb426b32056954c4b084d6",
+          "sizeBytes": 516096
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:3-maccabees",
+          "workId": "work:3-maccabees",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/3-maccabees.sqlite3",
+          "checksum": "5ed6c3f864faa2fce2b521293b5f0a0434c045fc176abdad3a1199a82b925d71",
+          "sizeBytes": 1507328
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-esdras",
+          "workId": "work:2-esdras",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-esdras.sqlite3",
+          "checksum": "04b4705933364b6d819a1bcc619805fd9e0faf167cb512d89f029b7c2043e25a",
+          "sizeBytes": 4243456
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:4-maccabees",
+          "workId": "work:4-maccabees",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/4-maccabees.sqlite3",
+          "checksum": "44c0edf0ac1af74b952e4008be782ab6f2ce8e0c2e88aeae7121de776726eb32",
+          "sizeBytes": 2486272
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:greek-daniel",
+          "workId": "work:greek-daniel",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/greek-daniel.sqlite3",
+          "checksum": "11505bb61554919b6abbd7f69c1219e35ea79e6a854fe9d38e8081c6a8daa738",
+          "sizeBytes": 2768896
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:matthew",
+          "workId": "work:matthew",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/matthew.sqlite3",
+          "checksum": "6367687f808b97a4a7fc9f2e1d678446292b0c2caa753145d910dc1306b4bffc",
+          "sizeBytes": 4689920
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:mark",
+          "workId": "work:mark",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/mark.sqlite3",
+          "checksum": "95760d06c175b5853e38f3fe8ff6242c2df4f31d862414ebaa2c855e6265320a",
+          "sizeBytes": 3112960
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:luke",
+          "workId": "work:luke",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/luke.sqlite3",
+          "checksum": "06c044606872f20929d3e775b008d00fa2cc3763f84b07f0deb304a2fac8c00b",
+          "sizeBytes": 4915200
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:john",
+          "workId": "work:john",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/john.sqlite3",
+          "checksum": "9fcda0d572405885417833f768b9f85c8c24411cd2c99e2e06cd026a04234b34",
+          "sizeBytes": 3862528
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:acts",
+          "workId": "work:acts",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/acts.sqlite3",
+          "checksum": "b83df94463072886c94ff6c714df1c7a58adbb1c42ff7514ba274a7b32ccfd2d",
+          "sizeBytes": 4415488
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:romans",
+          "workId": "work:romans",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/romans.sqlite3",
+          "checksum": "bcb17ab2f0efb05cc0e98a4fd7852de88d671795d9a8afc704a456716ca3e060",
+          "sizeBytes": 2220032
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-corinthians",
+          "workId": "work:1-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-corinthians.sqlite3",
+          "checksum": "78c82a998d6a5b98d2dc81be2290099d9d80c3a5f6fabafcc2c2d1240294d4dc",
+          "sizeBytes": 2289664
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-corinthians",
+          "workId": "work:2-corinthians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-corinthians.sqlite3",
+          "checksum": "d988ee083481a3312de77715b89023d58a2c0116ad8dcb99a72c346b45c0d5c3",
+          "sizeBytes": 1593344
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:galatians",
+          "workId": "work:galatians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/galatians.sqlite3",
+          "checksum": "db906e1e074d7f1d4285c3dac96dd809e230790703d25a444631d6e41deaafc3",
+          "sizeBytes": 1114112
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:ephesians",
+          "workId": "work:ephesians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/ephesians.sqlite3",
+          "checksum": "141a275d9c830057c74bf20f409add593c8016e09b964163ba8b4558076ade80",
+          "sizeBytes": 1126400
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:philippians",
+          "workId": "work:philippians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/philippians.sqlite3",
+          "checksum": "8a841141606a81ca76de3118bfe6e004832cd5fb0d4bbb45fee036c57c24fcf3",
+          "sizeBytes": 946176
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:colossians",
+          "workId": "work:colossians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/colossians.sqlite3",
+          "checksum": "6c385a2733de669ea52281833c643b994b57ec27f1e12ca2b300ee89eec15277",
+          "sizeBytes": 905216
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-thessalonians",
+          "workId": "work:1-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-thessalonians.sqlite3",
+          "checksum": "b39ae2a06029bb096c38f3ad50e8f844fab12540fa43bbaa30f5603867a619d8",
+          "sizeBytes": 901120
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-thessalonians",
+          "workId": "work:2-thessalonians",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-thessalonians.sqlite3",
+          "checksum": "179608eef54d63b497417d5e6a5cb8232e5077ba973ee1df5c16530bf9e48cec",
+          "sizeBytes": 704512
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-timothy",
+          "workId": "work:1-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-timothy.sqlite3",
+          "checksum": "b5ea63c8958e8ea017482a8408af5f907d6fcc3cbac33fd52eef1aa7ccf5dc5f",
+          "sizeBytes": 974848
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-timothy",
+          "workId": "work:2-timothy",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-timothy.sqlite3",
+          "checksum": "0d74a88ea7271caed18220f82af1039a2de54859ac81dd84b74e026a9e0dc57d",
+          "sizeBytes": 864256
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:titus",
+          "workId": "work:titus",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/titus.sqlite3",
+          "checksum": "027ea5c7d7ce852fabd9c816d30090e8cbcf78105f9d48efe188bdfc3b58eea2",
+          "sizeBytes": 684032
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:philemon",
+          "workId": "work:philemon",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/philemon.sqlite3",
+          "checksum": "6e3483466b9f912fc3106bfc922c680f8092e966a47a674d7631a285f0b3b8a9",
+          "sizeBytes": 602112
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:hebrews",
+          "workId": "work:hebrews",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/hebrews.sqlite3",
+          "checksum": "926e35e19a7bc31432bd31506ad9e07d018129a72f242c9071aa896e7b46b262",
+          "sizeBytes": 1732608
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:james",
+          "workId": "work:james",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/james.sqlite3",
+          "checksum": "4a6b15edd9c42442724332d1558919f09e2351c15dad34caf5861ee27d2c0f38",
+          "sizeBytes": 942080
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-peter",
+          "workId": "work:1-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-peter.sqlite3",
+          "checksum": "5e5be2e92b922dd3a8ba28aa5f24ceb7a1ffb17edf3500e6647bca33045ad430",
+          "sizeBytes": 950272
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-peter",
+          "workId": "work:2-peter",
+          "role": "content",
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-peter.sqlite3",
+          "checksum": "806828c7be1198811ff344accb37107949de782b767fd04b917b95d83eb782e5",
+          "sizeBytes": 770048
+        },
+        {
+          "id": "biblia-portuguesa-mundial-2026-08-19:1-john",
           "workId": "work:1-john",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/1-john.sqlite3",
-          "checksum": "295e33dd9960f3658e447ef7b1491a35bf9426ce2e6b89a75c8b3683b32991f4",
-          "sizeBytes": 888832
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/1-john.sqlite3",
+          "checksum": "511a50f8ea065d12087195936715a29c9f36e790bd44645ebe2bde0f19d213a0",
+          "sizeBytes": 929792
         },
         {
-          "id": "traducao-brasileira-1917:2-john",
+          "id": "biblia-portuguesa-mundial-2026-08-19:2-john",
           "workId": "work:2-john",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/2-john.sqlite3",
-          "checksum": "ae52d1f80307963909d6a70b6e280ef9fc2e1e8fa7d6e10f244a613731e52ba7",
-          "sizeBytes": 532480
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/2-john.sqlite3",
+          "checksum": "d0f5d9087607368f3470a64285f2b5afac81295799133cb36d63f163211f702f",
+          "sizeBytes": 544768
         },
         {
-          "id": "traducao-brasileira-1917:3-john",
+          "id": "biblia-portuguesa-mundial-2026-08-19:3-john",
           "workId": "work:3-john",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/3-john.sqlite3",
-          "checksum": "2fe597ce3ae63b4abb916c79cba18a60daa0a50fc6fb4643643ff6e94ed9e10e",
-          "sizeBytes": 540672
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/3-john.sqlite3",
+          "checksum": "6bde4a7a96151afb43ed432543961a591e082d2ac7633a44cbf4a0200399be0e",
+          "sizeBytes": 544768
         },
         {
-          "id": "traducao-brasileira-1917:jude",
+          "id": "biblia-portuguesa-mundial-2026-08-19:jude",
           "workId": "work:jude",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/jude.sqlite3",
-          "checksum": "8193c2b9f8122d193c92fa2ff7d3d08029ce83fa54513967eab7c20236c4be3f",
-          "sizeBytes": 593920
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/jude.sqlite3",
+          "checksum": "53694edb67e625492bef8c6966539ea120e3d00e67a26a187c1ff0f2f4c5b644",
+          "sizeBytes": 602112
         },
         {
-          "id": "traducao-brasileira-1917:revelation",
+          "id": "biblia-portuguesa-mundial-2026-08-19:revelation",
           "workId": "work:revelation",
           "role": "content",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/revelation.sqlite3",
-          "checksum": "a4866efde6454e723b8b72c57a88f4d3b24c182b98d20e090a85b68eff5a6c5f",
-          "sizeBytes": 2064384
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/revelation.sqlite3",
+          "checksum": "546bb876ed4d73479e487f71439227c6755d256c3137a4c0709bc16297967c54",
+          "sizeBytes": 2224128
         },
         {
-          "id": "traducao-brasileira-1917:search",
+          "id": "biblia-portuguesa-mundial-2026-08-19:search",
           "role": "search",
-          "databasePath": "/corpus-packages/traducao-brasileira-1917/search.sqlite3",
-          "checksum": "13d0c39f1865b70cd15d51aab3d0f3d966217f2ef01e702f7c2a5e9f24e6d3b4",
-          "sizeBytes": 51142656
+          "databasePath": "/corpus-packages/biblia-portuguesa-mundial-2026-08-19/search.sqlite3",
+          "checksum": "bcd462ad62512455b42d3b2d951dd6748540f51e64084fd4814eacaeaec8d67d",
+          "sizeBytes": 69799936
         }
       ],
-      "versificationSchemeId": "traducao-brasileira-wikisource-1917",
+      "versificationSchemeId": "ebible-porbrbsl-2026-08-19",
       "rights": {
-        "license": "Public-Domain; Wikisource-CC-BY-SA-4.0",
+        "license": "Public-Domain",
         "redistribution": "allowed",
-        "attribution": "Tradução Brasileira da Bíblia (1917), texto em domínio público. Transcrição colaborativa do Wikisource em português, disponibilizada sob CC BY-SA 4.0; consulte os históricos de revisão registrados no artefato-fonte. O próprio catálogo alerta que se trata de transcrição de segunda mão."
+        "attribution": "Bíblia Portuguesa Mundial, eBible.org. Domínio público. Edição-fonte marcada como DRAFT/em revisão em 19 de agosto de 2026."
       },
       "provenance": {
-        "packageId": "pkg-traducao-brasileira-wikisource-1917",
-        "datasetId": "dataset:traducao-brasileira:1917:d5807b0ac0d4a24083ad099056acc1baf525306abd4c116046815641639243e6",
+        "packageId": "pkg-ebible-bpm-2026-08-19",
+        "datasetId": "dataset:biblia-portuguesa-mundial:2026-08-19:52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd",
         "sourceArtifactIds": [
-          "artifact:wikisource:tbb:pages"
+          "artifact:ebible:porbrbsl:usfm:2026-08-19"
         ],
         "transformationIds": [
-          "transformation:tbb:1.0.0:parse-wikitext",
-          "transformation:tbb:1.0.0:chapter-shards"
+          "transformation:bpm:1.0.0:parse-usfm",
+          "transformation:bpm:1.0.0:chapter-shards"
         ]
       }
     },
@@ -1399,7 +1534,7 @@
       "databasePath": "/corpus-packages/sblgnt-1.2.sqlite3",
       "checksum": "bcda2b582788a5e50967e789c95cb21c125d1557ea72e616c63f53e1025be7a5",
       "sourceChecksum": "9512e634024ff7a9d1b0cc85f88a2081dcbcfe3a9f0971fea437039127f9885d",
-      "buildFingerprint": "8dddd2097688bceda4efce9c649b253e1b418665e22a33bcc64201a2c98b634c",
+      "buildFingerprint": "a569d071414ebf1a2275180c42414e8791a1860c99b9b6b80db5688afc8c93e2",
       "sizeBytes": 267145216,
       "downloadSizeBytes": 355893248,
       "storageSizeBytes": 355893248,
@@ -1738,7 +1873,7 @@
       "databasePath": "/corpus-packages/wlc-oshb-2.2.sqlite3",
       "checksum": "11307ebc41c2dd25b548f6248959a82ee128994b670d26c59fe306a400af8574",
       "sourceChecksum": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
-      "buildFingerprint": "efaa6690c6090eaa64b52e065b802a97dc8afbe0d7371d1be31f578c9ca6771f",
+      "buildFingerprint": "6c3d5927ddff93649d851a7ce5d6f6d0d3806fbe38b94baeb93c23e642135e8f",
       "sizeBytes": 340262912,
       "downloadSizeBytes": 517914624,
       "storageSizeBytes": 517914624,

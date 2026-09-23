@@ -112,8 +112,11 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let active = true;
     void StudyRepository.migrateLegacyLocalStorage()
-      .then(refreshUserData)
       .then(async () => {
+        await StudyRepository.refresh();
+        if (!active) return;
+        setNotes(StudyRepository.listNotes());
+        setStudies(StudyRepository.listStudies());
         const { getWorkspaceDatabase } = await import("../workspace-runtime/workspace-database");
         const database = await getWorkspaceDatabase();
         if (active) setWorkspacePersistence(database.persistence);

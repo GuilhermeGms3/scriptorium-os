@@ -25,6 +25,14 @@ import {
   installedBibliaLivrePackage,
 } from "./biblia-livre-registration";
 import {
+  bpmArtifact,
+  bpmCorpus,
+  bpmEdition,
+  bpmImportedDataset,
+  bpmTransformations,
+  installedBpmPackage,
+} from "./bpm-registration";
+import {
   CORPUS_CANDIDATES,
   CORPUS_EDITIONS,
   CORPUS_PACKAGE_CANDIDATES,
@@ -235,18 +243,25 @@ export class CorpusRegistry {
 }
 
 export const corpusRegistry = new CorpusRegistry({
-  corpora: [...CORPUS_CANDIDATES, tagntCorpus],
-  editions: [...CORPUS_EDITIONS, tagntEdition],
+  corpora: [...CORPUS_CANDIDATES, tagntCorpus, bpmCorpus],
+  editions: [...CORPUS_EDITIONS, tagntEdition, bpmEdition],
   packages: [
     ...CORPUS_PACKAGE_CANDIDATES.filter((p) => p.id !== BIBLIA_LIVRE_PACKAGE_ID),
     installedBibliaLivrePackage,
     installedTagntPackage,
+    installedBpmPackage,
   ],
-  artifacts: [...SOURCE_ARTIFACTS, ...bibliaLivreArtifacts, ...tagntDataset.artifacts],
+  artifacts: [...SOURCE_ARTIFACTS, ...bibliaLivreArtifacts, ...tagntDataset.artifacts, bpmArtifact],
   transformations: [
     ...CORPUS_TRANSFORMATIONS,
     ...bibliaLivreTransformations,
     ...tagntDataset.transformations,
+    ...bpmTransformations,
   ],
-  datasets: [...IMPORTED_DATASETS, bibliaLivreImportedDataset, tagntImportedDataset],
+  datasets: [
+    ...IMPORTED_DATASETS,
+    bibliaLivreImportedDataset,
+    tagntImportedDataset,
+    bpmImportedDataset,
+  ],
 });
