@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { BookMarked, ExternalLink, Plus, Quote } from "lucide-react";
+import { BookMarked, ExternalLink, FileText, Plus, Quote } from "lucide-react";
 import { CitationService } from "../../lib/application/citation-service";
 import type { Citation } from "../../lib/domain/bibliography";
 import type { SourceDetails } from "../../lib/repositories/library-repository";
@@ -12,7 +12,7 @@ export function ResourceDetails({
   details: SourceDetails;
   onChanged?: () => Promise<void>;
 }) {
-  const { source, authors, work, edition, citations, relatedClaimIds } = details;
+  const { source, authors, work, edition, citations, relatedClaimIds, privateDocument } = details;
   const [showCitation, setShowCitation] = useState(false);
   const [contentKind, setContentKind] = useState<Citation["contentKind"]>("exact-quote");
   const [page, setPage] = useState("");
@@ -69,6 +69,23 @@ export function ResourceDetails({
           {source.rights.license ?? (source.rights.localOnly ? "Somente local" : "Não informado")}
         </dd>
       </dl>
+      {privateDocument && (
+        <section className="mt-5 rounded border border-border bg-muted/20 p-3">
+          <h3 className="meta-label flex items-center gap-1.5">
+            <FileText className="size-3" /> Documento privado indexado
+          </h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            {privateDocument.textPageCount} de {privateDocument.pageCount} páginas pesquisáveis ·{" "}
+            somente neste dispositivo
+          </p>
+          <a
+            href={`/library/document/${encodeURIComponent(privateDocument.id)}`}
+            className="mt-3 inline-flex h-8 items-center rounded bg-primary px-3 text-xs text-primary-foreground"
+          >
+            Ler e pesquisar
+          </a>
+        </section>
+      )}
       {Object.keys(source.identifiers).length > 0 && (
         <section className="mt-5">
           <h3 className="meta-label">Identificadores</h3>

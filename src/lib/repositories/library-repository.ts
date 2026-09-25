@@ -11,7 +11,9 @@ import {
   type BibliographicWork,
 } from "../domain/bibliography";
 import { SourceNotFoundError } from "../domain/errors";
+import type { PrivateDocument } from "../domain/private-document";
 import { getWorkspaceDatabase, type WorkspaceRow } from "../workspace-runtime/workspace-database";
+import { PrivateDocumentRepository } from "./private-document-repository";
 
 function text(row: WorkspaceRow, key: string): string {
   const value = row[key];
@@ -130,6 +132,7 @@ export interface SourceDetails {
   edition: BibliographicEdition | null;
   citations: Citation[];
   relatedClaimIds: string[];
+  privateDocument: PrivateDocument | null;
 }
 export type CatalogSearchHit =
   | { kind: "author"; id: string; label: string; detail?: string }
@@ -235,6 +238,7 @@ export const LibraryRepository = {
         [id],
       )
     ).map((row) => text(row, "target_id"));
+    const privateDocument = await PrivateDocumentRepository.getDocumentForSource(id, db);
     const work = workRow
       ? WorkSchema.parse({
           id: text(workRow, "id"),
@@ -278,7 +282,7 @@ export const LibraryRepository = {
           ...(optionalText(editionRow, "url") ? { url: optionalText(editionRow, "url") } : {}),
         })
       : null;
-    return { source, authors, work, edition, citations, relatedClaimIds };
+    return { source, authors, work, edition, citations, relatedClaimIds, privateDocument };
   },
   async listCollections(): Promise<
     { id: string; name: string; description?: string; itemCount: number }[]

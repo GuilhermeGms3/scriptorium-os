@@ -1,6 +1,6 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileUp, RefreshCw, Search, X } from "lucide-react";
+import { FileText, FileUp, LockKeyhole, RefreshCw, Search, X } from "lucide-react";
 import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
 import type { BibliographicSource } from "../lib/domain/bibliography";
 import {
@@ -15,6 +15,11 @@ import {
   PrimarySourceRepository,
   type PrimarySourceWorkSummary,
 } from "../lib/repositories/primary-source-repository";
+import {
+  PrivateDocumentImportService,
+  type PrivateDocumentImportProgress,
+  type PrivateDocumentImportResult,
+} from "../lib/application/private-document-import-service";
 
 interface LibrarySearch {
   source?: string;
@@ -285,6 +290,10 @@ function ImportPanel({
   const [input, setInput] = useState("");
   const [report, setReport] = useState<ImportReport>();
   const [busy, setBusy] = useState(false);
+  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
+  const [pdfProgress, setPdfProgress] = useState<PrivateDocumentImportProgress>();
+  const [pdfResults, setPdfResults] = useState<PrivateDocumentImportResult[]>([]);
+  const [pdfError, setPdfError] = useState<string>();
   const preview = input.trim() ? SourceImportService.preview(format, input) : null;
   const runImport = async () => {
     setBusy(true);
@@ -292,6 +301,26 @@ function ImportPanel({
       const next = await SourceImportService.import(format, input);
       setReport(next);
       if (next.imported) await onImported();
+    } finally {
+      setBusy(false);
+    }
+  };
+  const importPdfs = async () => {
+    if (!pdfFiles.length) return;
+    setBusy(true);
+    setPdfError(undefined);
+    setPdfResults([]);
+    const imported: PrivateDocumentImportResult[] = [];
+    try {
+      for (const file of pdfFiles) {
+        setPdfProgress({ phase: "validating", message: `Preparando ${file.name}…` });
+        imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
+        setPdfResults([...imported]);
+      }
+      setPdfFiles([]);
+      await onImported();
+    } catch (cause) {
+      setPdfError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setBusy(false);
     }
@@ -304,9 +333,10 @@ function ImportPanel({
       <div className="mx-auto max-w-4xl">
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-sm font-medium">Importação bibliográfica</h2>
+            <h2 className="text-sm font-medium">Importar para a biblioteca</h2>
             <p className="text-xs text-muted-foreground">
-              Validar → detectar duplicados → importar. Nenhum HTML é executado.
+              Documentos privados permanecem neste dispositivo; registros bibliográficos guardam
+              somente metadados.
             </p>
           </div>
           <button
@@ -317,6 +347,70 @@ function ImportPanel({
           >
             <X className="size-4" />
           </button>
+        </div>
+        <section className="mt-4 rounded border border-border bg-background p-3">
+          <div className="flex items-start gap-2">
+            <LockKeyhole className="mt-0.5 size-4 text-muted-foreground" />
+            <div>
+              <h3 className="text-xs font-medium">PDF privado com texto pesquisável</h3>
+              <p className="mt-0.5 text-[11px] text-muted-foreground">
+                O arquivo original vai para o OPFS e o texto é indexado por página no workspace.
+                Nada é enviado a servidor nem incluído nos pacotes públicos.
+              </p>
+            </div>
+          </div>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded border border-input px-3 text-xs hover:bg-accent">
+              <FileText className="size-3.5" /> Selecionar PDFs
+              <input
+                type="file"
+                accept="application/pdf,.pdf"
+                multiple
+                disabled={busy}
+                onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
+                className="sr-only"
+              />
+            </label>
+            <button
+              type="button"
+              disabled={!pdfFiles.length || busy}
+              onClick={() => void importPdfs()}
+              className="h-9 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
+            >
+              {busy
+                ? "Processando…"
+                : `Indexar ${pdfFiles.length || ""} PDF${pdfFiles.length === 1 ? "" : "s"}`}
+            </button>
+            {pdfFiles.length > 0 && (
+              <span className="text-[11px] text-muted-foreground">
+                {pdfFiles.map((file) => file.name).join(" · ")}
+              </span>
+            )}
+          </div>
+          {pdfProgress && (
+            <p role="status" className="mt-2 text-xs text-muted-foreground">
+              {pdfProgress.message}
+            </p>
+          )}
+          {pdfError && (
+            <p role="alert" className="mt-2 text-xs text-destructive">
+              {pdfError}
+            </p>
+          )}
+          {pdfResults.length > 0 && (
+            <ul className="mt-2 space-y-1 text-xs">
+              {pdfResults.map((result) => (
+                <li key={result.documentId}>
+                  {result.title}: {result.textPageCount}/{result.pageCount} páginas{" "}
+                  {result.duplicate ? "já indexadas" : "indexadas"}.
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+        <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span className="h-px flex-1 bg-border" /> Metadados bibliográficos
+          <span className="h-px flex-1 bg-border" />
         </div>
         <div className="mt-3 grid gap-3 md:grid-cols-[160px_1fr_auto]">
           <select

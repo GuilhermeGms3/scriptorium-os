@@ -8,6 +8,7 @@ import migration5 from "./migrations/005_content_seed_v0_1.sql?raw";
 import migration6 from "./migrations/006_legacy_demo_cleanup.sql?raw";
 import migration7 from "./migrations/007_legacy_fixture_cleanup.sql?raw";
 import migration8 from "./migrations/008_localized_work_titles.sql?raw";
+import migration9 from "./migrations/009_private_documents.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -19,6 +20,7 @@ const migrations = [
   migration6,
   migration7,
   migration8,
+  migration9,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

@@ -7,6 +7,7 @@ import {
 import { SourceImportService } from "../application/source-import-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
+import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -56,6 +57,46 @@ afterEach(() => {
 });
 
 describe("Phase 9.5 workspace schema", () => {
+  it("indexes private PDF pages locally and keeps checksum imports idempotent", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const input = {
+      title: "Livro privado de teste",
+      language: "pt-BR",
+      originalName: "livro-privado.pdf",
+      mimeType: "application/pdf" as const,
+      sizeBytes: 128,
+      checksum: "a".repeat(64),
+      pageCount: 2,
+      textPageCount: 2,
+      extractionMethod: "pdf-text-layer" as const,
+      pages: [
+        { pageIndex: 0, pageLabel: "1", text: "Introdução à hermenêutica.", itemCount: 3 },
+        { pageIndex: 1, pageLabel: "2", text: "Exegese e contexto histórico.", itemCount: 4 },
+      ],
+    };
+    const first = await PrivateDocumentRepository.importDocument(
+      input,
+      "opfs:/test.pdf",
+      workspace,
+    );
+    const second = await PrivateDocumentRepository.importDocument(
+      input,
+      "opfs:/test.pdf",
+      workspace,
+    );
+    expect(first.duplicate).toBe(false);
+    expect(second.duplicate).toBe(true);
+    expect(first.document).toMatchObject({ pageCount: 2, textPageCount: 2 });
+    expect(
+      await PrivateDocumentRepository.search(
+        "hermeneutica",
+        { documentId: first.document.id },
+        workspace,
+      ),
+    ).toMatchObject([{ pageIndex: 0, pageLabel: "1" }]);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
   it("removes the known localStorage DEMO chain from an already-upgraded workspace", () => {
     const db = database();
     db.prepare("DELETE FROM workspace_migrations WHERE version=6").run();

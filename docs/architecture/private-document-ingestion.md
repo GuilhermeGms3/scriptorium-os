@@ -2,12 +2,13 @@
 
 ## Estado atual
 
-O Scriptorium ainda **não ingere o conteúdo de PDF, EPUB ou imagens**. A Biblioteca atual persiste
-metadados bibliográficos, citações e notas. Um arquivo adicionado como referência não é desmontado,
-indexado nem ligado automaticamente a passagens.
+O Scriptorium ingere **PDFs privados que possuam camada textual**. O arquivo original permanece no
+OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
+índice FTS5. A Biblioteca e a busca global conseguem localizar os trechos e abrir a página física
+correspondente.
 
-Este documento define o limite arquitetural do recurso futuro sem apresentar uma interface que
-sugira uma capacidade inexistente.
+EPUB, imagens e OCR ainda não foram implementados. Um PDF composto apenas por imagens é recusado
+com uma mensagem explícita, sem fingir que foi indexado.
 
 ## Objetivo
 
@@ -15,32 +16,36 @@ Permitir que o proprietário de um livro legalmente obtido construa, no próprio
 índice privado e citável para pesquisa pessoal. O arquivo e o texto extraído não devem ser enviados
 para um servidor nem incorporados aos pacotes redistribuíveis do projeto.
 
-## Pipeline proposto
+## Pipeline implementado
 
 ```text
 arquivo privado
   -> identificação de formato e checksum
   -> extração de texto por página
-  -> OCR somente nas páginas sem camada textual
+  -> identificação das páginas sem camada textual
   -> normalização sem apagar o original
   -> blocos citáveis (página, seção e offsets)
   -> índice FTS local
-  -> ligações humanas com passagens, entidades, claims e estudos
+  -> pesquisa no leitor privado e na busca global
+  -> ligações humanas futuras com passagens, entidades, claims e estudos
 ```
 
-Cada bloco precisa manter:
+Cada página mantém:
 
 - ID determinístico derivado do checksum do documento e da localização;
-- número físico e rótulo impresso da página, quando existirem;
-- offsets no texto extraído e referência ao artefato original;
-- idioma, método de extração e qualidade estimada do OCR;
-- distinção entre texto do autor, nota de rodapé, cabeçalho e metadado;
+- número físico e rótulo da página;
+- texto extraído e referência ao artefato original;
+- idioma, método de extração e contagem de itens textuais;
 - proveniência de qualquer resumo, claim ou ligação criada posteriormente.
+
+Os IDs são derivados do SHA-256 do arquivo e do índice da página. Reimportar o mesmo PDF é
+idempotente: o registro existente é reutilizado.
 
 ## Limites de direitos e segurança
 
 - Documento privado e derivados ficam separados dos corpora redistribuíveis.
-- Exportação do workspace não inclui automaticamente o texto integral protegido.
+- Exportação do workspace não inclui o arquivo nem o texto integral protegido. Depois de restaurar
+  um backup em outro navegador, documentos privados precisam ser reimportados a partir do original.
 - O usuário informa a base de uso e a permissão de redistribuição; o sistema não presume domínio
   público.
 - Parsers devem limitar tamanho, validar tipo real do arquivo e executar sem macros, JavaScript ou
@@ -59,11 +64,19 @@ O fluxo correto é:
 4. relacionar a citação a uma passagem, pergunta ou claim;
 5. registrar se a interpretação é humana, assistida por máquina ou revisada.
 
+## Persistência
+
+- `private_documents`: manifesto local, checksum, contagem de páginas e método de extração;
+- `private_document_pages`: texto citável por página;
+- `private_document_pages_fts`: índice FTS5 separado dos pacotes públicos;
+- `source_assets`: referência ao PDF armazenado no OPFS;
+- `bibliographic_sources`: registro visível na Biblioteca, marcado como privado e não
+  redistribuível.
+
 ## Entregas futuras
 
-1. armazenamento privado de artefatos e manifestos;
-2. extrator de PDF com páginas e offsets preservados;
-3. fila local de OCR recuperável;
-4. FTS privado separado dos pacotes públicos;
-5. leitor de documento com citação e ligação a estudos;
-6. importadores EPUB e imagem somente depois de validar o pipeline de PDF.
+1. fila local de OCR recuperável para páginas sem camada textual;
+2. seleção de trechos e criação direta de citações/links para estudos;
+3. identificação estrutural de cabeçalhos, notas e seções;
+4. exportação privada opcional e criptografada dos documentos;
+5. importadores EPUB e imagem depois da validação continuada do pipeline de PDF.

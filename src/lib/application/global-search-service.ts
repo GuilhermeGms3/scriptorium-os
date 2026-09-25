@@ -4,6 +4,7 @@ import { KnowledgeRepository } from "../repositories/knowledge-repository";
 import { LibraryRepository } from "../repositories/library-repository";
 import { bookLabel, entityTypeLabel } from "../i18n";
 import { PrimarySourceRepository } from "../repositories/primary-source-repository";
+import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 
 export interface GlobalSearchOptions {
   editionIds?: string[];
@@ -83,7 +84,9 @@ export const GlobalSearchService = {
     }
 
     for (const hit of await PrimarySourceRepository.search(q, limit)) {
-      const work = await (await import("../corpus-runtime/corpus-package-registry")).corpusPackageRegistry
+      const work = await (
+        await import("../corpus-runtime/corpus-package-registry")
+      ).corpusPackageRegistry
         .open(hit.textUnit.editionId, hit.textUnit.workId)
         .then((storage) => storage.getWork(hit.textUnit.workId));
       const locator = hit.textUnit.address?.section ?? hit.textUnit.displayAddress ?? "";
@@ -99,6 +102,18 @@ export const GlobalSearchService = {
         textUnitId: hit.textUnit.id,
         locator,
         to: `/library/read/${encodeURIComponent(hit.textUnit.workId)}?unit=${encodeURIComponent(hit.textUnit.id)}`,
+      });
+    }
+
+    for (const hit of await PrivateDocumentRepository.search(q, { limit })) {
+      results.push({
+        kind: "source",
+        id: `private-document:${hit.documentId}:${hit.pageIndex}`,
+        label: `${hit.title} — página ${hit.pageLabel}`,
+        detail: hit.snippet,
+        score: 850 - Math.min(Math.abs(hit.rank), 100),
+        sourceId: hit.sourceId,
+        to: `/library/document/${encodeURIComponent(hit.documentId)}?page=${hit.pageIndex + 1}`,
       });
     }
 
