@@ -20,6 +20,7 @@ import {
   type PrivateDocumentImportProgress,
   type PrivateDocumentImportResult,
 } from "../lib/application/private-document-import-service";
+import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
 
 interface LibrarySearch {
   source?: string;
@@ -113,6 +114,10 @@ export function LibraryPage() {
     }
     return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "pt-BR"));
   }, [primaryWorks]);
+  const installedPrimaryWorkIds = useMemo(
+    () => new Set(primaryWorks.map((work) => work.id)),
+    [primaryWorks],
+  );
   const createCollection = async () => {
     if (!newCollection.trim()) return;
     const id = await LibraryRepository.createCollection(newCollection);
@@ -236,6 +241,64 @@ export function LibraryPage() {
                   </section>
                 ))}
               </div>
+            </section>
+          )}
+          {!query.trim() && (
+            <section className="border-b border-border p-3">
+              <details>
+                <summary className="cursor-pointer list-none">
+                  <span className="meta-label">Catálogo documental · Nag Hammadi</span>
+                  <span className="mt-1 block text-xs text-muted-foreground">
+                    13 códices · 52 testemunhos textuais · 1 texto-fonte instalado
+                  </span>
+                </summary>
+                <p className="mt-2 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+                  {NAG_HAMMADI_RIGHTS_NOTE}
+                </p>
+                <div className="mt-3 grid gap-2 lg:grid-cols-2">
+                  {NAG_HAMMADI_CODICES.map(({ codex, tractates }) => (
+                    <section key={codex} className="rounded border border-border p-2.5">
+                      <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                        Códice {codex}
+                      </h2>
+                      <ol className="mt-1.5 space-y-1">
+                        {tractates.map((tractate) => {
+                          const installed = Boolean(
+                            tractate.installedWorkId &&
+                            installedPrimaryWorkIds.has(tractate.installedWorkId),
+                          );
+                          const content = (
+                            <>
+                              <span>
+                                {tractate.order}. {tractate.title}
+                              </span>
+                              <span className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+                                {installed ? "texto copta" : "catalogado"}
+                              </span>
+                            </>
+                          );
+                          return (
+                            <li key={tractate.id}>
+                              {installed && tractate.installedWorkId ? (
+                                <a
+                                  href={`/library/read/${encodeURIComponent(tractate.installedWorkId)}`}
+                                  className="flex items-baseline justify-between gap-2 text-xs text-primary hover:underline"
+                                >
+                                  {content}
+                                </a>
+                              ) : (
+                                <span className="flex items-baseline justify-between gap-2 text-xs">
+                                  {content}
+                                </span>
+                              )}
+                            </li>
+                          );
+                        })}
+                      </ol>
+                    </section>
+                  ))}
+                </div>
+              </details>
             </section>
           )}
           {loading ? (

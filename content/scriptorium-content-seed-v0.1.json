@@ -143,7 +143,7 @@
       "id": "entity:work:gospel-of-john",
       "type": "work",
       "name": "Gospel according to John",
-      "description": "Canonical identity for the work, independent of any edition.",
+      "description": "Identidade canônica da obra, independente de qualquer edição.",
       "sourceIds": ["source:sblgnt:1.2"]
     },
     {
@@ -151,91 +151,91 @@
       "type": "concept",
       "name": "Logos",
       "originalForm": "λόγος",
-      "description": "Lexical and conceptual node linked to occurrences of λόγος; it does not encode a single interpretation.",
+      "description": "Nó lexical e conceitual ligado a ocorrências de λόγος; ele não codifica uma interpretação única.",
       "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"]
     },
     {
       "id": "entity:concept:incarnation-language",
       "type": "concept",
       "name": "Incarnation language",
-      "description": "Research grouping for claims related to John 1:14; not itself a doctrinal conclusion.",
+      "description": "Agrupamento de pesquisa para afirmações ligadas a João 1:14; não constitui por si só uma conclusão doutrinária.",
       "sourceIds": ["source:sblgnt:1.2"]
     },
     {
       "id": "entity:person:michael-w-holmes",
       "type": "person",
       "name": "Michael W. Holmes",
-      "description": "Editor identity linked to the SBLGNT edition record.",
+      "description": "Identidade editorial ligada ao registro da edição SBLGNT.",
       "sourceIds": ["source:sblgnt:1.2"]
     },
     {
       "id": "entity:historical:apostles-creed",
       "type": "historical-source",
       "name": "Apostles' Creed",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:nicene-constantinopolitan-creed",
       "type": "historical-source",
       "name": "Nicene-Constantinopolitan Creed",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:chalcedon",
       "type": "historical-source",
       "name": "Definition of Chalcedon",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:athanasian-creed",
       "type": "historical-source",
       "name": "Athanasian Creed",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:augsburg-confession",
       "type": "historical-source",
       "name": "Augsburg Confession",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:thirty-nine-articles",
       "type": "historical-source",
       "name": "Thirty-nine Articles",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:westminster-confession",
       "type": "historical-source",
       "name": "Westminster Confession of Faith",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:canons-of-dort",
       "type": "historical-source",
       "name": "Canons of Dort",
-      "description": "Historical document record. Seed v0.1 includes metadata only.",
+      "description": "Registro de documento histórico. O índice de conhecimento preserva metadados; consulte a Biblioteca para verificar se existe texto instalado.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:didache",
       "type": "historical-source",
       "name": "Didache",
-      "description": "Early-Christian primary-work record. Seed v0.1 includes metadata only pending an edition-specific rights review.",
+      "description": "Obra cristã antiga com edição histórica inglesa em domínio público instalada na Biblioteca.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     },
     {
       "id": "entity:historical:first-clement",
       "type": "historical-source",
       "name": "1 Clement",
-      "description": "Early-Christian primary-work record. Seed v0.1 includes metadata only pending an edition-specific rights review.",
+      "description": "Obra cristã antiga com edição histórica inglesa em domínio público instalada na Biblioteca.",
       "sourceIds": ["source:historical-documents:metadata:v0.1"]
     }
   ],

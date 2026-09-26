@@ -25,6 +25,7 @@ npm run corpus:build
 npm run corpus:build -- wlc
 npm run corpus:index
 npm run content:fetch:lexicon
+npm run content:fetch:theology
 npm run dev
 ```
 
@@ -45,10 +46,10 @@ npm run preview
 
 Fontes imutáveis ficam em `corpora/source/`; derivados normalizados, em `generated/corpora/`. O pipeline valida direitos, proveniência e SHA-256 antes da publicação. JSON continua sendo aceito como artefato de origem/intermediário, mas o runtime consulta SQLite.
 
-A Biblioteca também inclui pacotes SQLite/FTS legíveis de sete obras dos Pais Apostólicos, cinco credos/documentos conciliares históricos e os livros I–II do comentário de Orígenes sobre João. Consulte [Pais Apostólicos](docs/content/apostolic-fathers.md), [credos](docs/content/creeds-confessions.md), [recepção de João 1](docs/content/john-reception.md) e [cobertura de conteúdo](docs/content/content-coverage.md).
+A Biblioteca também inclui pacotes SQLite/FTS legíveis de sete obras dos Pais Apostólicos, cinco credos/documentos conciliares históricos, os livros I–II do comentário de Orígenes sobre João, o Evangelho de Tomé em copta, as Confissões de Agostinho e as quatro partes da Suma Teológica em edições históricas inglesas. Consulte [Pais Apostólicos](docs/content/apostolic-fathers.md), [credos](docs/content/creeds-confessions.md), [recepção de João 1](docs/content/john-reception.md), [biblioteca teológica](docs/content/theological-library.md) e [cobertura de conteúdo](docs/content/content-coverage.md).
 
 Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e geração, [docs/corpora/phase10-content.md](docs/corpora/phase10-content.md) para a expansão de conteúdo, [docs/architecture/text-identity.md](docs/architecture/text-identity.md) para a base arquitetural da Fase 8, [docs/architecture/phase9-5-consolidation.md](docs/architecture/phase9-5-consolidation.md) para o runtime canônico e [docs/architecture/private-document-ingestion.md](docs/architecture/private-document-ingestion.md) para a ingestão local de PDFs privados.
 
 ## Limites atuais
 
-O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados localmente e não integram os pacotes redistribuíveis. O projeto ainda não inclui Septuaginta, aparato crítico, Nag Hammadi, IA/RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.
+O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados localmente e não integram os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, IA/RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.

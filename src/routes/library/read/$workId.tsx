@@ -22,6 +22,7 @@ function PrimarySourceReader() {
   const { unit: requestedUnit } = Route.useSearch();
   const [document, setDocument] = useState<PrimarySourceDocument | null>();
   const [selectedId, setSelectedId] = useState<string | undefined>(requestedUnit);
+  const [unitQuery, setUnitQuery] = useState("");
   const [copied, setCopied] = useState(false);
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
@@ -43,6 +44,22 @@ function PrimarySourceReader() {
     () => document?.units.find((unit) => unit.id === selectedId) ?? document?.units[0],
     [document, selectedId],
   );
+  const visibleUnits = useMemo(() => {
+    if (!document) return [];
+    const query = unitQuery.trim().toLocaleLowerCase();
+    const matches = query
+      ? document.units.filter((unit) =>
+          `${unit.address?.section ?? ""} ${unit.displayAddress ?? ""} ${unit.text}`
+            .toLocaleLowerCase()
+            .includes(query),
+        )
+      : document.units;
+    const limited = matches.slice(0, 140);
+    const selectedUnit = document.units.find((unit) => unit.id === selectedId);
+    return selectedUnit && !limited.some((unit) => unit.id === selectedUnit.id)
+      ? [selectedUnit, ...limited]
+      : limited;
+  }, [document, selectedId, unitQuery]);
   if (document === undefined)
     return <p className="p-6 text-sm text-muted-foreground">Abrindo corpus primário…</p>;
   if (!document)
@@ -55,6 +72,12 @@ function PrimarySourceReader() {
   const citation = selected
     ? `${document.title} [${document.canonicalTitle}], § ${selected.address?.section ?? selected.sequence} (${document.editionId}). ${document.attribution}`
     : "";
+  const languageNotice =
+    document.language === "cop"
+      ? "Esta edição contém o texto copta saídico e não inclui tradução. O Scriptorium não gera uma tradução silenciosa nem apresenta uma edição portuguesa moderna como domínio público."
+      : document.language === "en"
+        ? "Esta edição histórica está em inglês. Os controles do Scriptorium permanecem em português e o texto-fonte não é traduzido silenciosamente."
+        : `O texto-fonte está identificado como ${document.language}; a interface permanece em português.`;
   const saveNote = async () => {
     if (!selected || !noteBody.trim()) return;
     setNoteStatus("Salvando…");
@@ -94,8 +117,22 @@ function PrimarySourceReader() {
         <h1 className="mt-1 font-serif text-lg font-semibold">{document.title}</h1>
         <p className="mt-1 text-[11px] text-muted-foreground">{document.canonicalTitle}</p>
         <p className="mt-2 text-[10px] text-muted-foreground">{document.editionTitle}</p>
+        {document.units.length > 40 && (
+          <label className="mt-3 block">
+            <span className="sr-only">Filtrar seções da obra</span>
+            <input
+              value={unitQuery}
+              onChange={(event) => setUnitQuery(event.target.value)}
+              placeholder="Questão, artigo ou trecho…"
+              className="h-8 w-full rounded border border-input bg-background px-2 text-xs"
+            />
+            <span className="mt-1 block font-mono text-[9px] text-muted-foreground">
+              {visibleUnits.length} de {document.units.length} unidades exibidas
+            </span>
+          </label>
+        )}
         <nav className="mt-4 space-y-1" aria-label="Seções da obra">
-          {document.units.map((unit) => (
+          {visibleUnits.map((unit) => (
             <button
               key={unit.id}
               type="button"
@@ -105,6 +142,11 @@ function PrimarySourceReader() {
               Seção {unit.address?.section ?? unit.sequence}
             </button>
           ))}
+          {visibleUnits.length === 0 && (
+            <p className="px-2 py-3 text-xs italic text-muted-foreground">
+              Nenhuma seção corresponde ao filtro.
+            </p>
+          )}
         </nav>
       </aside>
       <main className="min-w-0 overflow-y-auto">
@@ -116,8 +158,7 @@ function PrimarySourceReader() {
             {document.title} · Seção {selected?.address?.section ?? selected?.sequence}
           </h2>
           <p className="mt-2 max-w-3xl rounded border border-border bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
-            Esta edição histórica está em inglês. Os controles do Scriptorium permanecem em
-            português e o texto-fonte não é traduzido silenciosamente.
+            {languageNotice}
           </p>
           <p className="mt-2 max-w-3xl text-[11px] text-muted-foreground">
             Direitos da edição:{" "}

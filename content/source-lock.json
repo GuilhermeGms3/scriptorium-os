@@ -41,5 +41,60 @@
     "attribution": "Bíblia Portuguesa Mundial, eBible.org.",
     "editionStatus": "draft-in-active-revision",
     "redistributionStatus": "redistributable"
+  },
+  "copticScriptoriumThomas": {
+    "revision": "3ac067f1709a0012daf39ea8da2fac79980176a5",
+    "url": "https://raw.githubusercontent.com/CopticScriptorium/corpora/3ac067f1709a0012daf39ea8da2fac79980176a5/thomas-gospel/thomas.gospel_TEI/thomas_gospel.xml",
+    "sha256": "1bf29e47f244d815ef97158d8caa3dc422df2861c07a73cc58ff1e0ab32e2149",
+    "sizeBytes": 387827,
+    "license": "CC BY 4.0",
+    "attribution": "Coptic SCRIPTORIUM; annotations by Paul Dilley, Lydia Bremer-McCollum, Caroline T. Schroeder and Amir Zeldes.",
+    "redistributionStatus": "redistributable",
+    "translationStatus": "no-translation-in-source"
+  },
+  "gutenbergAugustineConfessions": {
+    "revision": "ebook-3296",
+    "url": "https://www.gutenberg.org/cache/epub/3296/pg3296.txt",
+    "sha256": "ef3fa6267968c875def9091a1882d14b525a85bbf6996a3e2f130a775b2e22d2",
+    "sizeBytes": 632170,
+    "license": "Public domain in the United States",
+    "attribution": "Project Gutenberg eBook 3296; translation attributed to E. B. Pusey.",
+    "redistributionStatus": "redistributable"
+  },
+  "gutenbergAquinasSummaPrimaPars": {
+    "revision": "ebook-17611",
+    "url": "https://www.gutenberg.org/cache/epub/17611/pg17611.txt",
+    "sha256": "c9443221a31768991db4bbe37e6ed035b278143a6728af64dc8ba0cf8e79154d",
+    "sizeBytes": 2911941,
+    "license": "Public domain in the United States",
+    "attribution": "Project Gutenberg eBook 17611; English Dominican Province translation.",
+    "redistributionStatus": "redistributable"
+  },
+  "gutenbergAquinasSummaPrimaSecundae": {
+    "revision": "ebook-17897",
+    "url": "https://www.gutenberg.org/cache/epub/17897/pg17897.txt",
+    "sha256": "9722b299e1a91c43f989a282ebd857c92fdde442611035cba002f94b817c2be0",
+    "sizeBytes": 2903048,
+    "license": "Public domain in the United States",
+    "attribution": "Project Gutenberg eBook 17897; English Dominican Province translation.",
+    "redistributionStatus": "redistributable"
+  },
+  "gutenbergAquinasSummaSecundaSecundae": {
+    "revision": "ebook-18755",
+    "url": "https://www.gutenberg.org/cache/epub/18755/pg18755.txt",
+    "sha256": "eeea1030b31e6c5d4b6fb7522770f108902d704cb2eee56bae1b10b1afa57b6f",
+    "sizeBytes": 4214843,
+    "license": "Public domain in the United States",
+    "attribution": "Project Gutenberg eBook 18755; English Dominican Province translation.",
+    "redistributionStatus": "redistributable"
+  },
+  "gutenbergAquinasSummaTertiaPars": {
+    "revision": "ebook-19950",
+    "url": "https://www.gutenberg.org/cache/epub/19950/pg19950.txt",
+    "sha256": "4adb238f7c98be1c4c7d71275d29d479d923d2c447d16a692365c79ada81cdb5",
+    "sizeBytes": 2757535,
+    "license": "Public domain in the United States",
+    "attribution": "Project Gutenberg eBook 19950; English Dominican Province translation.",
+    "redistributionStatus": "redistributable"
   }
 }

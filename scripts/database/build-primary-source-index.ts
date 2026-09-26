@@ -10,6 +10,9 @@ import { buildSearchNormalization } from "../../src/lib/corpus-runtime/search-no
 import { applyMigrations, DATABASE_SCHEMA_VERSION } from "./migrate";
 import {
   parseApostolicFathers,
+  parseAquinasSummaPart,
+  parseAugustineConfessions,
+  parseCopticGospelOfThomas,
   parseConfessionalDocuments,
   parseDidache,
   parseOrigenCommentaryOnJohn,
@@ -123,6 +126,84 @@ const sources: SourceDefinition[] = [
     attribution:
       "Internet Archive scan cu31924029220535, digitized by Cornell University Library; Ante-Nicene Fathers, Volume IX (1885).",
   },
+  {
+    id: "source:coptic-scriptorium:thomas",
+    title: "Gospel of Thomas — Coptic SCRIPTORIUM TEI edition",
+    path: "corpora/source/primary-sources/coptic-scriptorium-thomas/thomas_gospel.xml",
+    url: "https://github.com/CopticScriptorium/corpora/tree/3ac067f1709a0012daf39ea8da2fac79980176a5/thomas-gospel",
+    checksum: "1bf29e47f244d815ef97158d8caa3dc422df2861c07a73cc58ff1e0ab32e2149",
+    sizeBytes: 387_827,
+    edition: "Coptic SCRIPTORIUM revision 6.2.0, pinned repository commit",
+    editor: "Coptic SCRIPTORIUM",
+    translators: [],
+    language: "cop",
+    retrievalDate: "2026-09-25",
+    license: "CC BY 4.0",
+    redistributionStatus: "allowed",
+    attribution:
+      "Coptic SCRIPTORIUM; annotations by Paul Dilley, Lydia Bremer-McCollum, Caroline T. Schroeder and Amir Zeldes.",
+  },
+  {
+    id: "source:gutenberg:3296",
+    title: "The Confessions of Saint Augustine",
+    path: "corpora/source/primary-sources/gutenberg-3296/pg3296.txt",
+    url: "https://www.gutenberg.org/ebooks/3296",
+    checksum: "ef3fa6267968c875def9091a1882d14b525a85bbf6996a3e2f130a775b2e22d2",
+    sizeBytes: 632_170,
+    edition: "Project Gutenberg eBook 3296",
+    translators: ["E. B. Pusey"],
+    language: "en",
+    retrievalDate: "2026-09-25",
+    license: "Public domain in the United States",
+    redistributionStatus: "allowed",
+    attribution: "Project Gutenberg eBook 3296; translation attributed to E. B. Pusey.",
+  },
+  ...(
+    [
+      [
+        "17611",
+        "Prima Pars",
+        "gutenberg-17611/pg17611.txt",
+        "c9443221a31768991db4bbe37e6ed035b278143a6728af64dc8ba0cf8e79154d",
+        2_911_941,
+      ],
+      [
+        "17897",
+        "Prima Secundae",
+        "gutenberg-17897/pg17897.txt",
+        "9722b299e1a91c43f989a282ebd857c92fdde442611035cba002f94b817c2be0",
+        2_903_048,
+      ],
+      [
+        "18755",
+        "Secunda Secundae",
+        "gutenberg-18755/pg18755.txt",
+        "eeea1030b31e6c5d4b6fb7522770f108902d704cb2eee56bae1b10b1afa57b6f",
+        4_214_843,
+      ],
+      [
+        "19950",
+        "Tertia Pars",
+        "gutenberg-19950/pg19950.txt",
+        "4adb238f7c98be1c4c7d71275d29d479d923d2c447d16a692365c79ada81cdb5",
+        2_757_535,
+      ],
+    ] as const
+  ).map(([id, part, path, checksum, sizeBytes]) => ({
+    id: `source:gutenberg:${id}`,
+    title: `Summa Theologica — ${part}`,
+    path: `corpora/source/primary-sources/${path}`,
+    url: `https://www.gutenberg.org/ebooks/${id}`,
+    checksum,
+    sizeBytes: Number(sizeBytes),
+    edition: `Project Gutenberg eBook ${id}; Benziger Brothers English edition`,
+    translators: ["Fathers of the English Dominican Province"],
+    language: "en",
+    retrievalDate: "2026-09-25",
+    license: "Public domain in the United States",
+    redistributionStatus: "allowed" as const,
+    attribution: `Project Gutenberg eBook ${id}; English Dominican Province translation.`,
+  })),
 ];
 
 function verifiedSource(source: SourceDefinition): string {
@@ -208,6 +289,11 @@ function buildPackage(
     version: string;
     works: ParsedPrimaryWork[];
     sourceIds: string[];
+    language: string;
+    script: string;
+    direction: "ltr" | "rtl";
+    editionKind: string;
+    workKind: string;
   },
   buildFingerprint: string,
 ): CorpusPackageManifest {
@@ -242,10 +328,10 @@ function buildPackage(
         input.corpusId,
         input.title,
         input.abbreviation,
-        "en",
-        "Latn",
-        "ltr",
-        "historical-translation",
+        input.language,
+        input.script,
+        input.direction,
+        input.editionKind,
         input.version,
         `package:${input.editionId}`,
         sourceChecksum,
@@ -306,7 +392,7 @@ function buildPackage(
       "INSERT INTO text_units_fts(text_unit_id,edition_id,work_id,language,title,surface_text,normalized_search_text,lemma_text,morphology_text) VALUES(?,?,?,?,?,?,?,?,?)",
     );
     input.works.forEach((work, workIndex) => {
-      insertWork.run(work.id, input.corpusId, work.title, "ancient-document", workIndex + 1);
+      insertWork.run(work.id, input.corpusId, work.title, input.workKind, workIndex + 1);
       work.units.forEach((unit) => {
         const display = `${work.title} ${unit.section}`;
         const provenance = JSON.stringify({
@@ -369,7 +455,7 @@ function buildPackage(
     title: input.title,
     abbreviation: input.abbreviation,
     works: input.works.map((work) => work.id),
-    languages: ["en"],
+    languages: [input.language],
     databasePath: `/corpus-packages/${input.editionId}.sqlite3`,
     checksum: sha256(bytes),
     sourceChecksum,
@@ -381,8 +467,8 @@ function buildPackage(
     sourceLocation: `/corpus-packages/${input.editionId}.sqlite3`,
     dependencies: [
       `schema:${DATABASE_SCHEMA_VERSION}`,
-      "parser:primary-sources:1.1.0",
-      "builder:primary-sources:1.1.0",
+      "parser:primary-sources:1.2.0",
+      "builder:primary-sources:1.2.0",
       ...input.sourceIds,
     ],
     parts,
@@ -427,9 +513,23 @@ export function buildPrimarySourcePackages(
   const source30323 = verifiedSource(sources[2]!);
   const source24979 = verifiedSource(sources[3]!);
   const sourceOrigen = verifiedSource(sources[4]!);
+  const sourceThomas = verifiedSource(sources[5]!);
+  const sourceAugustine = verifiedSource(sources[6]!);
+  const sourceAquinasPrima = verifiedSource(sources[7]!);
+  const sourceAquinasPrimaSecundae = verifiedSource(sources[8]!);
+  const sourceAquinasSecundaSecundae = verifiedSource(sources[9]!);
+  const sourceAquinasTertia = verifiedSource(sources[10]!);
   const apostolicWorks = [parseDidache(source42053), ...parseApostolicFathers(source77576)];
   const confessionalWorks = parseConfessionalDocuments(source30323, source24979);
   const origenWorks = [parseOrigenCommentaryOnJohn(sourceOrigen)];
+  const thomasWorks = [parseCopticGospelOfThomas(sourceThomas)];
+  const augustineWorks = [parseAugustineConfessions(sourceAugustine)];
+  const aquinasWorks = [
+    parseAquinasSummaPart(sourceAquinasPrima, "prima-pars", sources[7]!.id),
+    parseAquinasSummaPart(sourceAquinasPrimaSecundae, "prima-secundae", sources[8]!.id),
+    parseAquinasSummaPart(sourceAquinasSecundaSecundae, "secunda-secundae", sources[9]!.id),
+    parseAquinasSummaPart(sourceAquinasTertia, "tertia-pars", sources[10]!.id),
+  ];
   const definitions = [
     {
       corpusId: "apostolic-fathers-public-domain",
@@ -439,6 +539,11 @@ export function buildPrimarySourcePackages(
       version: "1870+1884-r1",
       works: apostolicWorks,
       sourceIds: [sources[0]!.id, sources[1]!.id],
+      language: "en",
+      script: "Latn",
+      direction: "ltr" as const,
+      editionKind: "historical-translation",
+      workKind: "ancient-document",
     },
     {
       corpusId: "historic-creeds-public-domain",
@@ -448,6 +553,11 @@ export function buildPrimarySourcePackages(
       version: "1881+1913-r1",
       works: confessionalWorks,
       sourceIds: [sources[2]!.id, sources[3]!.id],
+      language: "en",
+      script: "Latn",
+      direction: "ltr" as const,
+      editionKind: "historical-translation",
+      workKind: "confessional-document",
     },
     {
       corpusId: "ancient-john-reception-public-domain",
@@ -457,14 +567,61 @@ export function buildPrimarySourcePackages(
       version: "1885-r1",
       works: origenWorks,
       sourceIds: [sources[4]!.id],
+      language: "en",
+      script: "Latn",
+      direction: "ltr" as const,
+      editionKind: "historical-translation",
+      workKind: "patristic-commentary",
+    },
+    {
+      corpusId: "nag-hammadi-coptic-open",
+      editionId: "coptic-scriptorium-thomas-cop-1",
+      title: "Gospel of Thomas — Coptic SCRIPTORIUM critical text",
+      abbreviation: "NHC II,2 COP",
+      version: "3ac067f-r1",
+      works: thomasWorks,
+      sourceIds: [sources[5]!.id],
+      language: "cop",
+      script: "Copt",
+      direction: "ltr" as const,
+      editionKind: "critical-text",
+      workKind: "nag-hammadi-tractate",
+    },
+    {
+      corpusId: "augustine-public-domain",
+      editionId: "augustine-confessions-pd-en-1",
+      title: "Augustine's Confessions — public-domain English edition",
+      abbreviation: "AUG CONF EN",
+      version: "gutenberg-3296-r1",
+      works: augustineWorks,
+      sourceIds: [sources[6]!.id],
+      language: "en",
+      script: "Latn",
+      direction: "ltr" as const,
+      editionKind: "historical-translation",
+      workKind: "patristic-work",
+    },
+    {
+      corpusId: "aquinas-summa-public-domain",
+      editionId: "aquinas-summa-pd-en-1",
+      title: "Aquinas, Summa Theologica — public-domain English edition",
+      abbreviation: "ST EN",
+      version: "benziger-gutenberg-r1",
+      works: aquinasWorks,
+      sourceIds: [sources[7]!.id, sources[8]!.id, sources[9]!.id, sources[10]!.id],
+      language: "en",
+      script: "Latn",
+      direction: "ltr" as const,
+      editionKind: "historical-translation",
+      workKind: "scholastic-treatise",
     },
   ];
   return definitions.map((definition) => {
     const fingerprint = sha256(
       JSON.stringify({
         schemaVersion: DATABASE_SCHEMA_VERSION,
-        parserVersion: "primary-sources-1.1.0",
-        builderVersion: "primary-sources-1.1.0",
+        parserVersion: "primary-sources-1.2.0",
+        builderVersion: "primary-sources-1.2.0",
         editionId: definition.editionId,
         sourceChecksums: definition.sourceIds.map(
           (id) => sources.find((source) => source.id === id)!.checksum,

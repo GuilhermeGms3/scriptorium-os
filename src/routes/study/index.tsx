@@ -4,6 +4,7 @@ import { ArrowRight, BookOpen, Download, Plus, Search, StickyNote, Upload } from
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { formatNumber, t } from "../../lib/i18n";
 import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
+import { STUDY_PATHS } from "../../lib/content/study-paths";
 
 export const Route = createFileRoute("/study/")({
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
@@ -58,6 +59,49 @@ function StudyIndex() {
           </li>
         ))}
       </ol>
+
+      <section className="mt-6 border-y border-border py-4">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <div>
+            <p className="meta-label">Pontos de partida com fontes instaladas</p>
+            <h2 className="mt-1 font-serif text-lg font-semibold">Conteúdo organizado por área</h2>
+          </div>
+          <Link to="/library" className="text-xs text-primary hover:underline">
+            Ver catálogo completo
+          </Link>
+        </div>
+        <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
+          Estes roteiros apontam para documentos reais no acervo. Eles não são conclusões prontas:
+          abra uma fonte, escolha um trecho e adicione sua nota ao estudo.
+        </p>
+        <div className="mt-3 grid gap-2 md:grid-cols-2">
+          {STUDY_PATHS.map((path) => (
+            <article key={path.id} className="rounded-md border border-border bg-card p-3">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="text-sm font-medium">{path.title}</h3>
+                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                  {path.coverage === "installed" ? "instalado" : "parcial"}
+                </span>
+              </div>
+              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                {path.description}
+              </p>
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                {path.resources.map((resource) => (
+                  <Link
+                    key={resource.workId}
+                    to="/library/read/$workId"
+                    params={{ workId: resource.workId }}
+                    className="rounded border border-input px-2 py-1 text-[11px] hover:bg-accent"
+                  >
+                    {resource.label}
+                  </Link>
+                ))}
+              </div>
+            </article>
+          ))}
+        </div>
+      </section>
 
       <form onSubmit={(event) => void submit(event)} className="mt-6 flex max-w-xl gap-2">
         <label className="min-w-0 flex-1">

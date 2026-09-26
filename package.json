@@ -19,6 +19,7 @@
     "content:import:tbb": "tsx scripts/content/import-wikisource-tbb.ts",
     "content:fetch:bpm": "tsx scripts/content/fetch-ebible-bpm.ts",
     "content:import:bpm": "tsx scripts/content/import-ebible-bpm.ts",
+    "content:fetch:theology": "tsx scripts/content/fetch-theological-sources.ts",
     "db:migrate": "npm run corpus:index",
     "benchmark:corpus": "tsx scripts/database/benchmark-corpus-runtime.ts",
     "benchmark:delivery": "tsx scripts/database/benchmark-corpus-delivery.ts",

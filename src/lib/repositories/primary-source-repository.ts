@@ -5,6 +5,9 @@ export const PRIMARY_SOURCE_EDITIONS = [
   "apostolic-fathers-pd-en-1",
   "historic-creeds-pd-en-1",
   "ancient-john-reception-pd-en-1",
+  "coptic-scriptorium-thomas-cop-1",
+  "augustine-confessions-pd-en-1",
+  "aquinas-summa-pd-en-1",
 ] as const;
 
 const PORTUGUESE_WORK_TITLES: Readonly<Record<string, string>> = {
@@ -22,12 +25,21 @@ const PORTUGUESE_WORK_TITLES: Readonly<Record<string, string>> = {
   "work:chalcedonian-definition": "Definição de Calcedônia (451)",
   "work:origen-commentary-john-books-1-2":
     "Comentário de Orígenes sobre o Evangelho de João — Livros I e II",
+  "work:gospel-thomas-coptic": "Evangelho de Tomé — texto copta",
+  "work:augustine-confessions": "Confissões de Santo Agostinho",
+  "work:aquinas-summa-prima-pars": "Suma Teológica — Primeira Parte",
+  "work:aquinas-summa-prima-secundae": "Suma Teológica — Primeira Parte da Segunda Parte",
+  "work:aquinas-summa-secunda-secundae": "Suma Teológica — Segunda Parte da Segunda Parte",
+  "work:aquinas-summa-tertia-pars": "Suma Teológica — Terceira Parte",
 };
 
 const PORTUGUESE_EDITION_TITLES: Readonly<Record<string, string>> = {
   "apostolic-fathers-pd-en-1": "Pais Apostólicos · edição histórica em inglês",
   "historic-creeds-pd-en-1": "Credos históricos · edição histórica em inglês",
   "ancient-john-reception-pd-en-1": "Recepção antiga de João · edição histórica em inglês",
+  "coptic-scriptorium-thomas-cop-1": "Nag Hammadi · texto crítico copta, sem tradução",
+  "augustine-confessions-pd-en-1": "Santo Agostinho · edição histórica em inglês",
+  "aquinas-summa-pd-en-1": "Tomás de Aquino · edição histórica em inglês",
 };
 
 const EDITION_DISCIPLINES: Readonly<Record<string, { id: string; label: string }>> = {
@@ -40,6 +52,29 @@ const EDITION_DISCIPLINES: Readonly<Record<string, { id: string; label: string }
     id: "exegese-recepcao",
     label: "Exegese e história da recepção",
   },
+  "coptic-scriptorium-thomas-cop-1": {
+    id: "gnosticismo-nag-hammadi",
+    label: "Nag Hammadi, gnosticismo e cristianismos antigos",
+  },
+  "augustine-confessions-pd-en-1": {
+    id: "patristica-agostinho",
+    label: "Patrística e pensamento agostiniano",
+  },
+  "aquinas-summa-pd-en-1": {
+    id: "escolastica-tomista",
+    label: "Teologia escolástica e tomismo",
+  },
+};
+
+const WORK_ATTRIBUTIONS: Readonly<Record<string, string>> = {
+  "work:aquinas-summa-prima-pars":
+    "Project Gutenberg eBook 17611; English Dominican Province translation.",
+  "work:aquinas-summa-prima-secundae":
+    "Project Gutenberg eBook 17897; English Dominican Province translation.",
+  "work:aquinas-summa-secunda-secundae":
+    "Project Gutenberg eBook 18755; English Dominican Province translation.",
+  "work:aquinas-summa-tertia-pars":
+    "Project Gutenberg eBook 19950; English Dominican Province translation.",
 };
 
 function localizedWorkTitle(workId: string, canonicalTitle: string): string {
@@ -84,7 +119,7 @@ export const PrimarySourceRepository = {
           corpusId: manifest.corpusId,
           language: manifest.languages[0] ?? "en",
           rights: manifest.rights.license,
-          attribution: manifest.rights.attribution,
+          attribution: WORK_ATTRIBUTIONS[work.id] ?? manifest.rights.attribution,
           disciplineId: EDITION_DISCIPLINES[manifest.editionId]?.id ?? "outras-fontes",
           disciplineLabel: EDITION_DISCIPLINES[manifest.editionId]?.label ?? "Outras fontes",
         });
@@ -115,7 +150,7 @@ export const PrimarySourceRepository = {
       corpusId: manifest.corpusId,
       language: manifest.languages[0] ?? "en",
       rights: manifest.rights.license,
-      attribution: manifest.rights.attribution,
+      attribution: WORK_ATTRIBUTIONS[work.id] ?? manifest.rights.attribution,
       disciplineId: EDITION_DISCIPLINES[manifest.editionId]?.id ?? "outras-fontes",
       disciplineLabel: EDITION_DISCIPLINES[manifest.editionId]?.label ?? "Outras fontes",
       units,

@@ -49,6 +49,15 @@ function stableUnitId(workId: string, section: string): string {
   return `textunit:primary-sources:${workId}:${digest}`;
 }
 
+function gutenbergBody(raw: string): string {
+  const normalized = normalizeLines(raw);
+  const start = normalized.search(/^\*\*\* START OF THE PROJECT GUTENBERG EBOOK .+ \*\*\*$/m);
+  const end = normalized.search(/^\*\*\* END OF THE PROJECT GUTENBERG EBOOK .+ \*\*\*$/m);
+  if (start < 0 || end <= start)
+    throw new Error("Project Gutenberg text boundaries were not found.");
+  return normalized.slice(normalized.indexOf("\n", start) + 1, end);
+}
+
 function romanToNumber(value: string): number {
   const values: Record<string, number> = { I: 1, V: 5, X: 10, L: 50, C: 100 };
   let total = 0;
@@ -263,6 +272,133 @@ export function parseOrigenCommentaryOnJohn(raw: string): ParsedPrimaryWork {
     ],
     language: "en",
     sourceId: "source:internet-archive:cu31924029220535",
+    units,
+  };
+}
+
+export function parseCopticGospelOfThomas(raw: string): ParsedPrimaryWork {
+  const divisions = [...raw.matchAll(/<div1\s+n="([^"]+)">([\s\S]*?)<\/div1>/g)];
+  if (divisions.length !== 116)
+    throw new Error(
+      `Coptic Gospel of Thomas expected prologue, 114 sayings and colophon; found ${divisions.length}.`,
+    );
+  const workId = "work:gospel-thomas-coptic";
+  const units = divisions.map((division, index) => {
+    const section =
+      division[1] === "0" ? "Prólogo" : division[1] === "subtitle" ? "Colofão" : division[1]!;
+    const tokens = [...division[2]!.matchAll(/<w(?:\s[^>]*)?>([\s\S]*?)<\/w>/g)].map((word) =>
+      word[1]!
+        .replace(/<[^>]+>/g, "")
+        .replace(/\s+/g, "")
+        .trim(),
+    );
+    const text = tokens
+      .filter(Boolean)
+      .join(" ")
+      .replace(/\s+([·.,;:!?])/g, "$1")
+      .normalize("NFC");
+    if (!text) throw new Error(`Empty Coptic Gospel of Thomas unit ${section}.`);
+    return {
+      id: stableUnitId(workId, section),
+      sequence: index + 1,
+      section,
+      title: section === "Prólogo" || section === "Colofão" ? section : `Dito ${section}`,
+      text,
+    };
+  });
+  return {
+    id: workId,
+    title: "Gospel of Thomas — Coptic text",
+    aliases: ["Evangelho de Tomé", "Gospel of Thomas", "NH II,2", "NHC II,2"],
+    language: "cop",
+    sourceId: "source:coptic-scriptorium:thomas",
+    units,
+  };
+}
+
+export function parseAugustineConfessions(raw: string): ParsedPrimaryWork {
+  const body = gutenbergBody(raw);
+  const books = [...body.matchAll(/^BOOK\s+([IVXLCDM]+)\s*$/gm)];
+  if (books.length !== 13)
+    throw new Error(`Augustine Confessions expected 13 books; found ${books.length}.`);
+  const workId = "work:augustine-confessions";
+  const units: ParsedPrimaryUnit[] = books.map((book, bookIndex) => {
+    const bookRoman = book[1]!;
+    const start = (book.index ?? 0) + book[0].length;
+    const end = books[bookIndex + 1]?.index ?? body.length;
+    const text = cleanBody(body.slice(start, end));
+    if (!text) throw new Error(`Empty Augustine Confessions book ${bookRoman}.`);
+    return {
+      id: stableUnitId(workId, bookRoman),
+      sequence: bookIndex + 1,
+      section: bookRoman,
+      title: `Livro ${bookRoman}`,
+      text,
+    };
+  });
+  return {
+    id: workId,
+    title: "The Confessions of Saint Augustine",
+    aliases: ["Confissões de Santo Agostinho", "Confessions", "Confessiones"],
+    language: "en",
+    sourceId: "source:gutenberg:3296",
+    units,
+  };
+}
+
+export function parseAquinasSummaPart(
+  raw: string,
+  part: "prima-pars" | "prima-secundae" | "secunda-secundae" | "tertia-pars",
+  sourceId: string,
+): ParsedPrimaryWork {
+  const body = gutenbergBody(raw);
+  const articles = [
+    ...body.matchAll(/^([A-Z][A-Z -]+ ARTICLE)\s+\[([^\]]+)\]\s*\n+([^\n]+)\s*$/gm),
+  ];
+  if (articles.length < 300)
+    throw new Error(`Aquinas ${part} expected at least 300 articles; found ${articles.length}.`);
+  const labels: Record<typeof part, { title: string; portuguese: string }> = {
+    "prima-pars": {
+      title: "Summa Theologica — Prima Pars",
+      portuguese: "Suma Teológica — Primeira Parte",
+    },
+    "prima-secundae": {
+      title: "Summa Theologica — Prima Secundae",
+      portuguese: "Suma Teológica — Primeira Parte da Segunda Parte",
+    },
+    "secunda-secundae": {
+      title: "Summa Theologica — Secunda Secundae",
+      portuguese: "Suma Teológica — Segunda Parte da Segunda Parte",
+    },
+    "tertia-pars": {
+      title: "Summa Theologica — Tertia Pars",
+      portuguese: "Suma Teológica — Terceira Parte",
+    },
+  };
+  const workId = `work:aquinas-summa-${part}`;
+  const units = articles.map((article, index) => {
+    const section = article[2]!.replace(/\s+/g, " ").trim();
+    const title = cleanBody(article[3]!);
+    const start = (article.index ?? 0) + article[0].length;
+    const end = articles[index + 1]?.index ?? body.length;
+    const text = cleanBody(`${article[3]}\n\n${body.slice(start, end)}`);
+    if (!text) throw new Error(`Empty Aquinas article ${section}.`);
+    return {
+      // Several Gutenberg files repeat an article locator with a different heading.
+      // Preserve the printed locator and include the heading only in stable identity.
+      id: stableUnitId(workId, `${section}:${title}`),
+      sequence: index + 1,
+      section,
+      title,
+      text,
+    };
+  });
+  return {
+    id: workId,
+    title: labels[part].title,
+    aliases: [labels[part].portuguese, "Summa Theologiae", "Suma Teológica"],
+    language: "en",
+    sourceId,
     units,
   };
 }

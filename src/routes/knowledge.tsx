@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import {
@@ -12,6 +12,7 @@ import { LibraryRepository } from "../lib/repositories/library-repository";
 import type { Citation } from "../lib/domain/bibliography";
 import type { KnowledgeClaim } from "../lib/domain/knowledge";
 import { ArgumentRepository } from "../lib/repositories/argument-repository";
+import { knowledgeLabel, knowledgeSourceLinks } from "../lib/content/knowledge-presentation";
 
 interface KnowledgeSearch {
   entity?: string;
@@ -36,19 +37,31 @@ function entityId(item: ExplorerEntity): string {
   return item.entity.id;
 }
 function entityName(item: ExplorerEntity): string {
-  return item.kind === "knowledge" ? item.entity.name : item.entity.labels.canonicalName;
+  const canonical = item.kind === "knowledge" ? item.entity.name : item.entity.labels.canonicalName;
+  return knowledgeLabel(item.entity.id, canonical);
 }
 function entityKind(item: ExplorerEntity): string {
   return item.kind === "knowledge" ? item.entity.type : item.entity.kind;
 }
 
 const KIND_LABELS: Record<string, string> = {
-  person: "Pessoas", place: "Lugares", event: "Eventos", passage: "Passagens",
-  work: "Obras", concept: "Conceitos", word: "Palavras", manuscript: "Manuscritos",
-  "historical-source": "Fontes históricas", "theological-topic": "Áreas da teologia",
-  doctrine: "Doutrinas", tradition: "Tradições", school: "Escolas de pensamento",
-  method: "Métodos de estudo", "epistemic-stance": "Posturas de análise",
-  "interpretive-framework": "Sistemas de interpretação", position: "Posições teológicas",
+  person: "Pessoas",
+  place: "Lugares",
+  event: "Eventos",
+  passage: "Passagens",
+  work: "Obras",
+  concept: "Conceitos",
+  word: "Palavras",
+  manuscript: "Manuscritos",
+  "historical-source": "Fontes históricas",
+  "theological-topic": "Áreas da teologia",
+  doctrine: "Doutrinas",
+  tradition: "Tradições",
+  school: "Escolas de pensamento",
+  method: "Métodos de estudo",
+  "epistemic-stance": "Posturas de análise",
+  "interpretive-framework": "Sistemas de interpretação",
+  position: "Posições teológicas",
   theory: "Teorias e hipóteses",
 };
 
@@ -204,9 +217,11 @@ function ExplorerContent({
     };
   }, [bundle.claims, focusedClaim]);
   const selected = bundle.selected;
-  const title =
+  const canonicalTitle =
     selected.kind === "knowledge" ? selected.entity.name : selected.entity.labels.canonicalName;
+  const title = knowledgeLabel(selected.entity.id, canonicalTitle);
   const description = selected.entity.description;
+  const sourceLinks = knowledgeSourceLinks(selected.entity.id);
   return (
     <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <section>
@@ -220,10 +235,10 @@ function ExplorerContent({
           </details>
         </div>
         <section className="mt-6">
-          <h2 className="meta-label">{t("knowledge.claims")} relacionadas</h2>
+          <h2 className="meta-label">{t("knowledge.claims")}</h2>
           {!bundle.claims.length && (
             <p className="mt-2 text-sm italic text-muted-foreground">
-              Nenhuma claim diretamente relacionada.
+              Nenhuma afirmação diretamente relacionada.
             </p>
           )}
           <ul className="mt-2 space-y-2">
@@ -241,7 +256,7 @@ function ExplorerContent({
                 <p className="mt-1 flex flex-wrap items-center gap-2">
                   <EvidenceTag kind={claim.kind} />
                   <span className="font-mono text-[10px] text-muted-foreground">
-                    {formatNumber(claim.anchors.length)} anchors ·{" "}
+                    {formatNumber(claim.anchors.length)} âncoras ·{" "}
                     {supportLevelLabel(claim.supportLevel)} ·{" "}
                     {reviewStatusLabel(claim.reviewStatus)}
                   </span>
@@ -263,6 +278,31 @@ function ExplorerContent({
               `${citation.contentKind}: ${citation.originalText ?? citation.note ?? citation.locator?.canonicalLocator ?? citation.locator?.pageStart ?? citation.id}`,
           )}
         />
+        {sourceLinks.length > 0 && (
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h3 className="meta-label">Fontes instaladas para investigar</h3>
+            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+              Associação editorial de estudo; a presença da fonte não comprova automaticamente uma
+              doutrina.
+            </p>
+            <ul className="mt-2 space-y-1.5">
+              {sourceLinks.map((source) => (
+                <li key={source.workId}>
+                  <Link
+                    to="/library/read/$workId"
+                    params={{ workId: source.workId }}
+                    className="block rounded bg-muted/40 p-2 text-xs hover:bg-accent"
+                  >
+                    <span className="font-medium">{source.label}</span>
+                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                      {source.role}
+                    </span>
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </section>
+        )}
         <RelationCard
           title="Teorias concorrentes"
           items={bundle.relatedTheories.map((theory) => theory.labels.canonicalName)}

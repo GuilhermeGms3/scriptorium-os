@@ -1873,7 +1873,7 @@
       "databasePath": "/corpus-packages/wlc-oshb-2.2.sqlite3",
       "checksum": "11307ebc41c2dd25b548f6248959a82ee128994b670d26c59fe306a400af8574",
       "sourceChecksum": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
-      "buildFingerprint": "6c3d5927ddff93649d851a7ce5d6f6d0d3806fbe38b94baeb93c23e642135e8f",
+      "buildFingerprint": "cccfea2b9e0c02dc7791fd7f4f54f7752bcf438bf107943653c834f9c8c17cca",
       "sizeBytes": 340262912,
       "downloadSizeBytes": 517914624,
       "storageSizeBytes": 517914624,
@@ -2287,7 +2287,7 @@
       "databasePath": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
       "checksum": "a9c7c62b80b62afa9200038275bfca0db9d3e5755d8a6db286e6686a203567df",
       "sourceChecksum": "9805e6f89c2602083933d6ba7bf529e2233f0348d656f3efaf08e4393221186e",
-      "buildFingerprint": "51373c0eac30508d37d8df5679310c692052b790d1480b7634e42374e241bf50",
+      "buildFingerprint": "1f14889a9f576c4d24692714bd65de0c3e9d33606b58ef471a8f264296353dc1",
       "sizeBytes": 2121728,
       "downloadSizeBytes": 7221248,
       "storageSizeBytes": 7221248,
@@ -2295,8 +2295,8 @@
       "sourceLocation": "/corpus-packages/apostolic-fathers-pd-en-1.sqlite3",
       "dependencies": [
         "schema:11",
-        "parser:primary-sources:1.1.0",
-        "builder:primary-sources:1.1.0",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
         "source:gutenberg:42053",
         "source:gutenberg:77576"
       ],
@@ -2402,9 +2402,9 @@
         "en"
       ],
       "databasePath": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
-      "checksum": "1c2309eb74dbc5d6c137b6ca1dd958814e1474074cd25b093980188dad7bf9e4",
+      "checksum": "8dc0d9a83cd37c1cff48a4aee14bc5580f22af04f66b6e9fbcc30091f634d891",
       "sourceChecksum": "1cb7136801e4dd4f8f834dd75fb8b6e1c70409d1c77c424e5c575e5616dee974",
-      "buildFingerprint": "76d7c18dbc471f6e3c2f12c4ed32999eaedcbf308e43f3d43202d4feb4a7b9b1",
+      "buildFingerprint": "e2b77e08c876a72abd61b200ae59e862a1dfa9131dada56ac4cf15839366770d",
       "sizeBytes": 688128,
       "downloadSizeBytes": 3334144,
       "storageSizeBytes": 3334144,
@@ -2412,8 +2412,8 @@
       "sourceLocation": "/corpus-packages/historic-creeds-pd-en-1.sqlite3",
       "dependencies": [
         "schema:11",
-        "parser:primary-sources:1.1.0",
-        "builder:primary-sources:1.1.0",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
         "source:gutenberg:30323",
         "source:gutenberg:24979"
       ],
@@ -2423,7 +2423,7 @@
           "workId": "work:apostles-creed",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/apostles-creed.sqlite3",
-          "checksum": "4479d7e25f81802c039183af6175329c08302c257650fa47049851c6c1bf7ea8",
+          "checksum": "109d5a9918ee267aa8e470c3142ede58b454616dcebc593b7153cacea252fa3f",
           "sizeBytes": 499712
         },
         {
@@ -2431,7 +2431,7 @@
           "workId": "work:athanasian-creed",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/athanasian-creed.sqlite3",
-          "checksum": "e2906782d9b6e4a27e95e9ef088e6c74dd857f6bfd235e7c2960c7553c9e7e61",
+          "checksum": "3a122acc89d8b544dad532319d1874889986591989303ff3aa31de66aae775ea",
           "sizeBytes": 585728
         },
         {
@@ -2439,7 +2439,7 @@
           "workId": "work:nicene-creed-325",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-creed-325.sqlite3",
-          "checksum": "a97f5479b4c82d9216d5726024645769a5f3d77b22db1a2c0c05a4331b307aa1",
+          "checksum": "483afd737cb261a8c6b91a131851774c291552f52141ef43af51041f894d33e1",
           "sizeBytes": 499712
         },
         {
@@ -2447,7 +2447,7 @@
           "workId": "work:nicene-constantinopolitan-western",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/nicene-constantinopolitan-western.sqlite3",
-          "checksum": "1a1e6a464576fe7990edd5aa7d2f6858e1e042cbc72dcd0af401bf263640737b",
+          "checksum": "486485e228fdfb4ee57981675eee1b984fd26707e99dca72f80ac60ff8dc2c96",
           "sizeBytes": 499712
         },
         {
@@ -2455,14 +2455,14 @@
           "workId": "work:chalcedonian-definition",
           "role": "content",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/chalcedonian-definition.sqlite3",
-          "checksum": "aee7cb185d47339961792db0cd275c0ed8041c446ab5d7a8e12ddcc4347cb60e",
+          "checksum": "c9d50b5c4af572f4ced70069275029994144692556d7bbaf254e22fde71639c9",
           "sizeBytes": 561152
         },
         {
           "id": "historic-creeds-pd-en-1:search",
           "role": "search",
           "databasePath": "/corpus-packages/historic-creeds-pd-en-1/search.sqlite3",
-          "checksum": "7c01a78bde8749e936d812215a8a46e99007cda83bcb296628e5ae09fa888cc1",
+          "checksum": "982309c5e3023bb4473796788865c7731905c666248180df56405eab4c94a336",
           "sizeBytes": 688128
         }
       ],
@@ -2499,9 +2499,9 @@
         "en"
       ],
       "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1.sqlite3",
-      "checksum": "1951421a22d57ea1fbe59c7c60cebf6f0acaf17090eec911b51350ecf0518a97",
+      "checksum": "049ed76a1652274b99f09a6a57272b8e17fc7cdf043e7b8e24dbd8c518bfab34",
       "sourceChecksum": "d94050371935dafb54c9a1534ca5d74b11b415a099ab07f825cbe138eda05796",
-      "buildFingerprint": "c40ad270de97b9639fb6a04510e7e222e0b082f9745164bce5f3bb7053d03af5",
+      "buildFingerprint": "5deb9f0c685e38632e1087c845e3197590002559e28881ad63bc434b6ca8602c",
       "sizeBytes": 1908736,
       "downloadSizeBytes": 3792896,
       "storageSizeBytes": 3792896,
@@ -2509,8 +2509,8 @@
       "sourceLocation": "/corpus-packages/ancient-john-reception-pd-en-1.sqlite3",
       "dependencies": [
         "schema:11",
-        "parser:primary-sources:1.1.0",
-        "builder:primary-sources:1.1.0",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
         "source:internet-archive:cu31924029220535"
       ],
       "parts": [
@@ -2519,14 +2519,14 @@
           "workId": "work:origen-commentary-john-books-1-2",
           "role": "content",
           "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1/origen-commentary-john-books-1-2.sqlite3",
-          "checksum": "0073192924e9c8d26feee034272626bf043683f8968fcbbe3a88cb413655c297",
+          "checksum": "7c68ed87ff59eed2db4d8baa8e7996c4ab71ba28243b9b3bba2856bb3fb627d8",
           "sizeBytes": 1884160
         },
         {
           "id": "ancient-john-reception-pd-en-1:search",
           "role": "search",
           "databasePath": "/corpus-packages/ancient-john-reception-pd-en-1/search.sqlite3",
-          "checksum": "c6fe98fe9f1377fa1a2fab4005b0182e5b9e3497c9d5f0cfa968a4b2a863903e",
+          "checksum": "5da787d35404fe663c0dfa1d666b410b74051778e3d39dcff2f3431b8c5d4822",
           "sizeBytes": 1908736
         }
       ],
@@ -2541,6 +2541,228 @@
         "datasetId": "dataset:ancient-john-reception-pd-en-1",
         "sourceArtifactIds": [
           "source:internet-archive:cu31924029220535"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:coptic-scriptorium-thomas-cop-1",
+      "corpusId": "nag-hammadi-coptic-open",
+      "editionId": "coptic-scriptorium-thomas-cop-1",
+      "version": "3ac067f-r1",
+      "title": "Gospel of Thomas — Coptic SCRIPTORIUM critical text",
+      "abbreviation": "NHC II,2 COP",
+      "works": [
+        "work:gospel-thomas-coptic"
+      ],
+      "languages": [
+        "cop"
+      ],
+      "databasePath": "/corpus-packages/coptic-scriptorium-thomas-cop-1.sqlite3",
+      "checksum": "b45dd7e4b67a786595837f576e80cc20026732b19ce07f3ac6b37d844046b28a",
+      "sourceChecksum": "821005d18f4231a16f094897d87f1e4b8a205aa0c3000bba2b17e9e39b0ae364",
+      "buildFingerprint": "d2a776b5ead0d0641ab17a17a2ba9d4df85f74b5b9b1e9126a5403b6ed2bfddf",
+      "sizeBytes": 1245184,
+      "downloadSizeBytes": 2453504,
+      "storageSizeBytes": 2453504,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/coptic-scriptorium-thomas-cop-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
+        "source:coptic-scriptorium:thomas"
+      ],
+      "parts": [
+        {
+          "id": "coptic-scriptorium-thomas-cop-1:work:gospel-thomas-coptic",
+          "workId": "work:gospel-thomas-coptic",
+          "role": "content",
+          "databasePath": "/corpus-packages/coptic-scriptorium-thomas-cop-1/gospel-thomas-coptic.sqlite3",
+          "checksum": "57ed6e94809173580ea6db6e4f95b2585e6b135cf5388bc9c73886beac01a39a",
+          "sizeBytes": 1208320
+        },
+        {
+          "id": "coptic-scriptorium-thomas-cop-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/coptic-scriptorium-thomas-cop-1/search.sqlite3",
+          "checksum": "833b8ef963b74eee10aef8af0c5defe87140413bafcf4592eaa6575c160a3deb",
+          "sizeBytes": 1245184
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "CC BY 4.0",
+        "redistribution": "allowed",
+        "attribution": "Coptic SCRIPTORIUM; annotations by Paul Dilley, Lydia Bremer-McCollum, Caroline T. Schroeder and Amir Zeldes."
+      },
+      "provenance": {
+        "packageId": "package:coptic-scriptorium-thomas-cop-1",
+        "datasetId": "dataset:coptic-scriptorium-thomas-cop-1",
+        "sourceArtifactIds": [
+          "source:coptic-scriptorium:thomas"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:augustine-confessions-pd-en-1",
+      "corpusId": "augustine-public-domain",
+      "editionId": "augustine-confessions-pd-en-1",
+      "version": "gutenberg-3296-r1",
+      "title": "Augustine's Confessions — public-domain English edition",
+      "abbreviation": "AUG CONF EN",
+      "works": [
+        "work:augustine-confessions"
+      ],
+      "languages": [
+        "en"
+      ],
+      "databasePath": "/corpus-packages/augustine-confessions-pd-en-1.sqlite3",
+      "checksum": "60eb5e27ff4a1640affcdf39093356bc88b872f1f54369008d3b9a4571206ca7",
+      "sourceChecksum": "64d271522c4fde4a56b751bb1d9cd6e5309609a2bb825c8349638084fda7e9f0",
+      "buildFingerprint": "264d43bf9c29246c5b82cd619c0b846d025bfbb9ae1ef5d2d102d99f594ee642",
+      "sizeBytes": 3448832,
+      "downloadSizeBytes": 6897664,
+      "storageSizeBytes": 6897664,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/augustine-confessions-pd-en-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
+        "source:gutenberg:3296"
+      ],
+      "parts": [
+        {
+          "id": "augustine-confessions-pd-en-1:work:augustine-confessions",
+          "workId": "work:augustine-confessions",
+          "role": "content",
+          "databasePath": "/corpus-packages/augustine-confessions-pd-en-1/augustine-confessions.sqlite3",
+          "checksum": "e0db86d3594f84afbd14bf9a22cdcb901a067d47af784529535e37f17285ff90",
+          "sizeBytes": 3448832
+        },
+        {
+          "id": "augustine-confessions-pd-en-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/augustine-confessions-pd-en-1/search.sqlite3",
+          "checksum": "f2e99f1af2cf303a929bb9d3096bb7c89352afd3c6021476c2601df9d0a4b82f",
+          "sizeBytes": 3448832
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "Public domain in the United States",
+        "redistribution": "allowed",
+        "attribution": "Project Gutenberg eBook 3296; translation attributed to E. B. Pusey."
+      },
+      "provenance": {
+        "packageId": "package:augustine-confessions-pd-en-1",
+        "datasetId": "dataset:augustine-confessions-pd-en-1",
+        "sourceArtifactIds": [
+          "source:gutenberg:3296"
+        ],
+        "transformationIds": [
+          "transformation:primary-source-structural-import:1"
+        ]
+      }
+    },
+    {
+      "schemaVersion": 11,
+      "id": "runtime:package:aquinas-summa-pd-en-1",
+      "corpusId": "aquinas-summa-public-domain",
+      "editionId": "aquinas-summa-pd-en-1",
+      "version": "benziger-gutenberg-r1",
+      "title": "Aquinas, Summa Theologica — public-domain English edition",
+      "abbreviation": "ST EN",
+      "works": [
+        "work:aquinas-summa-prima-pars",
+        "work:aquinas-summa-prima-secundae",
+        "work:aquinas-summa-secunda-secundae",
+        "work:aquinas-summa-tertia-pars"
+      ],
+      "languages": [
+        "en"
+      ],
+      "databasePath": "/corpus-packages/aquinas-summa-pd-en-1.sqlite3",
+      "checksum": "3fb4017b6cb7987d4bdd14cad157b96e857eece04003da53d60e9197a79ebbc9",
+      "sourceChecksum": "001ed06f773c4e19e0569eb5f98c38ff70730892b0bfd83618afb6d5d1c72d01",
+      "buildFingerprint": "ec7434eb09bf7e5f411c2b13989317b47fbc386f2d72ea09fee2aa4bbeb2e059",
+      "sizeBytes": 68960256,
+      "downloadSizeBytes": 138829824,
+      "storageSizeBytes": 138829824,
+      "deliveryMode": "work-shards",
+      "sourceLocation": "/corpus-packages/aquinas-summa-pd-en-1.sqlite3",
+      "dependencies": [
+        "schema:11",
+        "parser:primary-sources:1.2.0",
+        "builder:primary-sources:1.2.0",
+        "source:gutenberg:17611",
+        "source:gutenberg:17897",
+        "source:gutenberg:18755",
+        "source:gutenberg:19950"
+      ],
+      "parts": [
+        {
+          "id": "aquinas-summa-pd-en-1:work:aquinas-summa-prima-pars",
+          "workId": "work:aquinas-summa-prima-pars",
+          "role": "content",
+          "databasePath": "/corpus-packages/aquinas-summa-pd-en-1/aquinas-summa-prima-pars.sqlite3",
+          "checksum": "16d86c59b8fdc3c520d7c33dc985071c147f087361c8ece02b5714b431e6e091",
+          "sizeBytes": 15724544
+        },
+        {
+          "id": "aquinas-summa-pd-en-1:work:aquinas-summa-prima-secundae",
+          "workId": "work:aquinas-summa-prima-secundae",
+          "role": "content",
+          "databasePath": "/corpus-packages/aquinas-summa-pd-en-1/aquinas-summa-prima-secundae.sqlite3",
+          "checksum": "57c24ca0f3723b82614939cdc3f8ffc587e4ee07d9ab8d1ba66da3cdec2d0c16",
+          "sizeBytes": 15884288
+        },
+        {
+          "id": "aquinas-summa-pd-en-1:work:aquinas-summa-secunda-secundae",
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "role": "content",
+          "databasePath": "/corpus-packages/aquinas-summa-pd-en-1/aquinas-summa-secunda-secundae.sqlite3",
+          "checksum": "c220340a2c342c0cd618f105f6600a5167e76e5fcd8d4a0530ad70431b8ed548",
+          "sizeBytes": 23232512
+        },
+        {
+          "id": "aquinas-summa-pd-en-1:work:aquinas-summa-tertia-pars",
+          "workId": "work:aquinas-summa-tertia-pars",
+          "role": "content",
+          "databasePath": "/corpus-packages/aquinas-summa-pd-en-1/aquinas-summa-tertia-pars.sqlite3",
+          "checksum": "84d0ff88fde6c772cbad9609ec322f2e7a780830c93bbf7bb74e38e02fbe451b",
+          "sizeBytes": 15028224
+        },
+        {
+          "id": "aquinas-summa-pd-en-1:search",
+          "role": "search",
+          "databasePath": "/corpus-packages/aquinas-summa-pd-en-1/search.sqlite3",
+          "checksum": "7cf27a78286a6fd8868c392fa4d538563b8a8f1d979050447528730023925685",
+          "sizeBytes": 68960256
+        }
+      ],
+      "versificationSchemeId": "scriptorium-document-locator-1",
+      "rights": {
+        "license": "Public domain in the United States",
+        "redistribution": "allowed",
+        "attribution": "Project Gutenberg eBook 17611; English Dominican Province translation. Project Gutenberg eBook 17897; English Dominican Province translation. Project Gutenberg eBook 18755; English Dominican Province translation. Project Gutenberg eBook 19950; English Dominican Province translation."
+      },
+      "provenance": {
+        "packageId": "package:aquinas-summa-pd-en-1",
+        "datasetId": "dataset:aquinas-summa-pd-en-1",
+        "sourceArtifactIds": [
+          "source:gutenberg:17611",
+          "source:gutenberg:17897",
+          "source:gutenberg:18755",
+          "source:gutenberg:19950"
         ],
         "transformationIds": [
           "transformation:primary-source-structural-import:1"

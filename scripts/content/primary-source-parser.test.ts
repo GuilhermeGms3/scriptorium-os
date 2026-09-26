@@ -3,6 +3,9 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
   parseApostolicFathers,
+  parseAquinasSummaPart,
+  parseAugustineConfessions,
+  parseCopticGospelOfThomas,
   parseConfessionalDocuments,
   parseDidache,
   parseOrigenCommentaryOnJohn,
@@ -60,5 +63,46 @@ describe("primary-source parsing", () => {
     expect(work.units.some((unit) => unit.text.includes("ORIGEN'S COMMENTARY ON JOHN"))).toBe(
       false,
     );
+  });
+
+  it("imports the open Coptic Gospel of Thomas as prologue, 114 sayings and colophon", () => {
+    const work = parseCopticGospelOfThomas(
+      source("coptic-scriptorium-thomas", "thomas_gospel.xml"),
+    );
+    expect(work.language).toBe("cop");
+    expect(work.units).toHaveLength(116);
+    expect(work.units[0]?.section).toBe("Prólogo");
+    expect(work.units.at(-2)?.section).toBe("114");
+    expect(work.units.at(-1)?.section).toBe("Colofão");
+    expect(work.units[1]?.text).toMatch(/[ⲁ-⳿]/u);
+  });
+
+  it("imports all thirteen books of Augustine's Confessions", () => {
+    const work = parseAugustineConfessions(source("gutenberg-3296", "pg3296.txt"));
+    expect(work.units).toHaveLength(13);
+    expect(work.units[0]?.section).toBe("I");
+    expect(work.units.at(-1)?.section).toBe("XIII");
+    expect(new Set(work.units.map((unit) => unit.id)).size).toBe(work.units.length);
+  });
+
+  it("imports the four public-domain English Summa parts as addressable articles", () => {
+    const definitions = [
+      ["gutenberg-17611", "pg17611.txt", "prima-pars", "source:gutenberg:17611"],
+      ["gutenberg-17897", "pg17897.txt", "prima-secundae", "source:gutenberg:17897"],
+      ["gutenberg-18755", "pg18755.txt", "secunda-secundae", "source:gutenberg:18755"],
+      ["gutenberg-19950", "pg19950.txt", "tertia-pars", "source:gutenberg:19950"],
+    ] as const;
+    const works = definitions.map(([folder, file, part, sourceId]) =>
+      parseAquinasSummaPart(source(folder, file), part, sourceId),
+    );
+    expect(works).toHaveLength(4);
+    expect(works.every((work) => work.units.length > 300)).toBe(true);
+    expect(works[0]?.units[0]?.section).toBe("I, Q. 1, Art. 1");
+    expect(
+      works.every((work) => new Set(work.units.map((unit) => unit.id)).size === work.units.length),
+    ).toBe(true);
+    expect(
+      works.flatMap((work) => work.units).some((unit) => unit.text.includes("Objection")),
+    ).toBe(true);
   });
 });

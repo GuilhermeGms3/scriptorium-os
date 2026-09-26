@@ -108,4 +108,55 @@ describe("primary-source runtime packages", () => {
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     db.close();
   });
+
+  it("ships the Coptic Gospel of Thomas with all sayings and Coptic FTS", () => {
+    const manifest = packages.find(
+      (candidate) => candidate.editionId === "coptic-scriptorium-thomas-cop-1",
+    )!;
+    expect(manifest.languages).toEqual(["cop"]);
+    expect(manifest.works).toEqual(["work:gospel-thomas-coptic"]);
+    expect(manifest.rights.license).toBe("CC BY 4.0");
+    const db = database(manifest.editionId);
+    expect(
+      (db.prepare("SELECT count(*) total FROM text_units").get() as { total: number }).total,
+    ).toBe(116);
+    expect(
+      (
+        db
+          .prepare("SELECT count(*) total FROM text_units_fts WHERE text_units_fts MATCH ?")
+          .get("ⲡⲉϫⲉ") as { total: number }
+      ).total,
+    ).toBeGreaterThan(0);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    db.close();
+  });
+
+  it("ships Augustine and all four Summa parts as lazy searchable primary works", () => {
+    const augustine = packages.find(
+      (candidate) => candidate.editionId === "augustine-confessions-pd-en-1",
+    )!;
+    const summa = packages.find((candidate) => candidate.editionId === "aquinas-summa-pd-en-1")!;
+    expect(augustine.works).toEqual(["work:augustine-confessions"]);
+    expect(summa.works).toHaveLength(4);
+    expect(summa.parts.filter((part) => part.role === "content")).toHaveLength(4);
+    const augustineDb = database(augustine.editionId);
+    expect(
+      (augustineDb.prepare("SELECT count(*) total FROM text_units").get() as { total: number })
+        .total,
+    ).toBe(13);
+    augustineDb.close();
+    const summaDb = database(summa.editionId);
+    expect(
+      (summaDb.prepare("SELECT count(*) total FROM text_units").get() as { total: number }).total,
+    ).toBe(2_661);
+    expect(
+      (
+        summaDb
+          .prepare("SELECT count(*) total FROM text_units_fts WHERE text_units_fts MATCH ?")
+          .get("predestination") as { total: number }
+      ).total,
+    ).toBeGreaterThan(0);
+    expect(summaDb.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    summaDb.close();
+  });
 });

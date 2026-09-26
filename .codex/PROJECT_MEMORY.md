@@ -1,5 +1,14 @@
 # Project Memory
 
+## Phase 10.2 (2026-09-25)
+
+- The primary-source runtime now includes the Coptic SCRIPTORIUM Gospel of Thomas (CC BY 4.0) as prologue, sayings 1–114 and colophon. It is explicitly a Sahidic Coptic source text with no translation.
+- The Library has a complete metadata catalog of 13 Nag Hammadi codices and 52 tractate witnesses. Repeated witnesses remain distinct; catalog presence is not presented as installed text.
+- Public-domain historical English editions add Augustine's complete Confessions (13 books) and all four Project Gutenberg parts of Aquinas's Summa Theologica (2,661 addressable articles) as work-sharded SQLite/FTS packages.
+- Source acquisition is pinned by URL, revision/eBook id, byte size and SHA-256 through `npm run content:fetch:theology`. A modern complete Portuguese Nag Hammadi translation is not bundled; it requires explicit redistribution permission or private OPFS import.
+- Study now exposes source-backed starting paths for exegesis/reception, patristics, Trinity/Christology, ethics/soteriology, Nag Hammadi and ecclesiology/liturgy. The routes open installed primary works rather than displaying methodological prompts as content.
+- Phase 10.2 verification passed 139 tests across 20 files, typecheck, focused ESLint and the full client/SSR/Nitro build. A repeated corpus build reused all ten packages; browser QA covered Thomas, Aquinas, Study and Knowledge, including Portuguese presentation labels and per-volume citations.
+
 ## Phase 10.1 (2026-09-16)
 
 - Primary-source runtime now packages seven Apostolic Fathers works and five historic creeds/conciliar documents from pinned public-domain Project Gutenberg artifacts into work-sharded SQLite plus FTS5 search shards.
@@ -58,7 +67,7 @@
 
 - Requested outcome: Phase 10 content expansion over the Phase 9/9.5 runtime.
 - In scope: Greek lexicon, full Hebrew/WLC linguistic layer, John 1:1–18 pilot, patristic and historical-document catalogs, real Synoptic Problem content and focused Reader integration.
-- Out of scope: LXX, apparatus, Nag Hammadi, remote backend, IA/RAG, PDF/EPUB/OCR, automatic bibliographic merge and complete scholarly encyclopedic coverage.
+- Out of scope after Phase 10.2: LXX, apparatus, the remaining Nag Hammadi source texts/translations, remote backend, IA/RAG, EPUB/OCR, automatic bibliographic merge and complete scholarly encyclopedic coverage.
 
 ## Decisions
 
