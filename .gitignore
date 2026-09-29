@@ -15,6 +15,9 @@ dist-ssr
 .tanstack/**
 .nitro
 *.local
+.env
+.env.*
+!.env.example
 
 # Corpus pipeline transactional work areas (source snapshots and generated datasets are tracked)
 corpora/.staging/
@@ -24,10 +27,12 @@ generated/corpora/stepbible-tagnt/.import-*/
 generated/corpora/stepbible-tagnt/.previous-*/
 generated/corpora/stepbible-tagnt/.import.lock
 
-# Reproducible runtime indexes (manifests remain tracked; rebuild with corpus:index)
+# Large reproducible corpus indexes (manifests remain tracked; rebuild with corpus:index)
 public/corpus-packages/*.sqlite3
 public/corpus-packages/**/*.sqlite3
-public/knowledge/*.sqlite3
+
+# The small curated knowledge snapshot is intentionally tracked so a clone can
+# inspect the current graph without rebuilding it.
 
 # Wrangler / Cloudflare
 .wrangler/

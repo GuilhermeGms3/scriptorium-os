@@ -62,7 +62,12 @@ em outro computador ou domínio, use HTTPS no proxy reverso: fora de `localhost`
 o navegador pode negar OPFS em uma origem HTTP e o Scriptorium cairá para o
 armazenamento temporário sinalizado pela interface.
 
-`npm test` e `npm run build` reconstroem os índices para que um clone limpo não dependa de bancos locais ignorados. `npm run db:migrate` aplica as migrations por meio da reconstrução determinística dos pacotes.
+Os índices grandes de corpus permanecem ignorados e são reconstruídos por
+`npm test` e `npm run build`. O snapshot curado e leve
+`public/knowledge/knowledge.sqlite3` é versionado para que um clone possa
+inspecionar imediatamente o grafo atual; `npm run corpus:index` também o
+reproduz deterministicamente. `npm run db:migrate` aplica as migrations por
+meio dessa reconstrução.
 
 ## Corpora e dados
 
