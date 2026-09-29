@@ -9,6 +9,11 @@
 - Study now exposes source-backed starting paths for exegesis/reception, patristics, Trinity/Christology, ethics/soteriology, Nag Hammadi and ecclesiology/liturgy. The routes open installed primary works rather than displaying methodological prompts as content.
 - Phase 10.2 verification passed 139 tests across 20 files, typecheck, focused ESLint and the full client/SSR/Nitro build. A repeated corpus build reused all ten packages; browser QA covered Thomas, Aquinas, Study and Knowledge, including Portuguese presentation labels and per-volume citations.
 
+## Docker deployment (2026-09-28)
+
+- Local/self-hosted packaging uses a multi-stage Node 22 image around the existing Nitro `node-server` output. Runtime is non-root, read-only and needs no server-side data volume because mutable studies, notes and private documents remain browser-owned in OPFS.
+- Remote browser access must terminate HTTPS to retain the persistent OPFS path; plain HTTP outside `localhost` can force the visibly degraded in-memory workspace.
+
 ## Phase 10.1 (2026-09-16)
 
 - Primary-source runtime now packages seven Apostolic Fathers works and five historic creeds/conciliar documents from pinned public-domain Project Gutenberg artifacts into work-sharded SQLite plus FTS5 search shards.

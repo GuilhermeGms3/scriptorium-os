@@ -40,6 +40,28 @@ npm run benchmark:corpus
 npm run preview
 ```
 
+## Docker
+
+O build local usa o preset Nitro `node-server` e gera uma imagem autônoma com
+Node.js 22. Para construir e iniciar:
+
+```bash
+docker compose up --build -d
+```
+
+Abra `http://localhost:3000`. Para parar:
+
+```bash
+docker compose down
+```
+
+O container executa como usuário sem privilégios e com filesystem somente
+leitura. Os corpora são servidos pela imagem; estudos, notas e documentos
+privados permanecem no OPFS do navegador, não em um volume Docker. Ao publicar
+em outro computador ou domínio, use HTTPS no proxy reverso: fora de `localhost`,
+o navegador pode negar OPFS em uma origem HTTP e o Scriptorium cairá para o
+armazenamento temporário sinalizado pela interface.
+
 `npm test` e `npm run build` reconstroem os índices para que um clone limpo não dependa de bancos locais ignorados. `npm run db:migrate` aplica as migrations por meio da reconstrução determinística dos pacotes.
 
 ## Corpora e dados

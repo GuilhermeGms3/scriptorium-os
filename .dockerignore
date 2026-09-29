@@ -1,0 +1,33 @@
+.git
+.github
+.codex
+.idea
+.vscode
+.wrangler
+.output
+.nitro
+.tanstack
+.vinxi
+node_modules
+dist
+dist-ssr
+coverage
+logs
+*.log
+*.local
+.env
+.env.*
+!.env.example
+
+# Os índices são reconstruídos deterministicamente durante o build.
+public/corpus-packages/**/*.sqlite3
+public/corpus-packages/*.sqlite3
+public/knowledge/*.sqlite3
+
+# Artefatos transitórios do pipeline nunca entram no contexto.
+corpora/.staging
+corpora/source/stepbible-tagnt/.acquire-*
+generated/corpora/**/.staging
+generated/corpora/stepbible-tagnt/.import-*
+generated/corpora/stepbible-tagnt/.previous-*
+generated/corpora/stepbible-tagnt/.import.lock
