@@ -245,6 +245,15 @@ function renderVerseText(tokens: TokenOccurrence[]): string {
 export class SblgntXmlAdapter implements CorpusAdapter {
   readonly id = "sblgnt-xml";
   readonly importerVersion = "1.0.0";
+  readonly transformationType = "parse-xml";
+  readonly structuralDecisions = [
+    "Storage schema v2 omits only token editionId, textUnitId, ref and language inherited from chapter/verse; repository restores the v1 domain exactly. JSON whitespace is removed.",
+    "Each source <w> is preserved as one TokenOccurrence; no whitespace retokenization is performed.",
+    "Source <prefix> and <suffix> values are preserved on the adjacent token.",
+    "Source <p> boundaries are preserved as paragraph IDs and chapter-local boundary ranges.",
+    "Lexeme, gloss, morphology and Strong identifiers remain absent because the SBLGNT XML does not supply them.",
+    "Generated storage is partitioned by book and chapter; no per-verse files are created.",
+  ];
 
   supports(manifest: CorpusPackageManifest): boolean {
     return manifest.corpusId === "sblgnt" && manifest.format === "multiple";

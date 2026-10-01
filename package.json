@@ -13,6 +13,8 @@
     "corpus:verify": "tsx scripts/corpus/cli.ts verify",
     "corpus:import": "tsx scripts/corpus/cli.ts import",
     "corpus:build": "tsx scripts/corpus/cli.ts build",
+    "corpus:status": "tsx scripts/corpus/cli.ts status",
+    "corpus:list": "tsx scripts/corpus/cli.ts list",
     "corpus:index": "tsx scripts/database/build-corpus-index.ts",
     "content:fetch:lexicon": "tsx scripts/content/fetch-lexical-sources.ts",
     "content:fetch:tbb": "tsx scripts/content/fetch-wikisource-tbb.ts",

@@ -1,6 +1,9 @@
-import { readFile } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
+import { existsSync } from "node:fs";
+import { appendFile, cp, mkdir, mkdtemp, readFile, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { resolve } from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { CorpusRightsGate } from "../../src/lib/domain/corpus";
 import {
   BIBLIA_LIVRE_COMMIT,
@@ -14,8 +17,16 @@ import {
   ScriptureKnowledgeEngine,
   validatePassageKnowledgeBundle,
 } from "../../src/lib/knowledge-engine/scripture-knowledge-engine";
+import type { CorpusAdapter } from "./adapter";
 import { BibliaLivreAdapter, parseBibliaLivreF4 } from "./adapters/biblia-livre-adapter";
-import { verifyCorpus } from "./pipeline";
+import {
+  CorpusPipelineError,
+  createCorpusPipeline,
+  verifyCorpus,
+  type CorpusGit,
+  type CorpusPipelineEvent,
+  type CorpusPipelineOptions,
+} from "./pipeline";
 
 const manifest = manifestJson as typeof manifestJson;
 describe("Bíblia Livre official N4", () => {
@@ -133,5 +144,208 @@ describe("Bíblia Livre official N4", () => {
     );
     expect(raw).toContain(BIBLIA_LIVRE_EDITION_ID);
     expect(raw).not.toContain('"original"');
+  });
+});
+
+const SNAPSHOT = resolve("corpora/source/biblia-livre", BIBLIA_LIVRE_COMMIT);
+const SAMPLE_FILES = ["README.md", "LICENCA.md", "rute.txt", "oba.txt", "jud.txt"].map((name) =>
+  name.endsWith(".txt") ? `textos/f4/n4/${name}` : name,
+);
+const SAMPLE_BOOKS = ["ruth", "obadiah", "jude"];
+const temporaryRoots: string[] = [];
+
+afterEach(async () => {
+  for (const root of temporaryRoots.splice(0)) await rm(root, { recursive: true, force: true });
+});
+
+async function sandbox(options: { resolvedCommit?: string } = {}) {
+  const root = await mkdtemp(resolve(tmpdir(), "scriptorium-corpus-"));
+  temporaryRoots.push(root);
+  const events: CorpusPipelineEvent[] = [];
+  const clones = { count: 0 };
+  const git: CorpusGit = {
+    async clone(_repository, destination) {
+      clones.count += 1;
+      for (const file of SAMPLE_FILES) {
+        await mkdir(resolve(destination, file, ".."), { recursive: true });
+        await cp(resolve(SNAPSHOT, file), resolve(destination, file));
+      }
+    },
+    async checkout() {},
+    async revParse() {
+      return options.resolvedCommit ?? BIBLIA_LIVRE_COMMIT;
+    },
+  };
+  const base: CorpusPipelineOptions = {
+    projectRoot: root,
+    registry: [
+      {
+        ...BIBLIA_LIVRE_PACKAGE,
+        acquisitionPlan: {
+          ...BIBLIA_LIVRE_PACKAGE.acquisitionPlan!,
+          expectedBookIds: SAMPLE_BOOKS,
+        },
+      },
+    ],
+    git,
+    now: () => new Date("2026-10-01T12:00:00.000Z"),
+    onEvent: (event) => events.push(event),
+  };
+  return {
+    root,
+    events,
+    clones,
+    pipeline: createCorpusPipeline(base),
+    with: (overrides: CorpusPipelineOptions) => createCorpusPipeline({ ...base, ...overrides }),
+  };
+}
+
+async function failure(promise: Promise<unknown>): Promise<CorpusPipelineError> {
+  try {
+    await promise;
+  } catch (error) {
+    expect(error).toBeInstanceOf(CorpusPipelineError);
+    return error as CorpusPipelineError;
+  }
+  throw new Error("Expected the pipeline to fail.");
+}
+
+async function stagingLeftovers(root: string): Promise<string[]> {
+  const staging = resolve(root, "corpora/.staging");
+  return existsSync(staging) ? readdir(staging) : [];
+}
+
+describe("Bíblia Livre pipeline guarantees", () => {
+  it("installs the snapshot atomically and reuses it when verified", async () => {
+    const { root, pipeline, events, clones } = await sandbox();
+    const acquired = await pipeline.acquire("biblia-livre");
+    expect(acquired.artifacts.map((artifact) => artifact.sourcePath).sort()).toEqual(
+      [...SAMPLE_FILES].sort(),
+    );
+    expect(acquired.retrievedAt).toBe("2026-10-01T12:00:00.000Z");
+    expect(
+      existsSync(
+        resolve(root, "corpora/source/biblia-livre", BIBLIA_LIVRE_COMMIT, "artifact-manifest.json"),
+      ),
+    ).toBe(true);
+    expect(await stagingLeftovers(root)).toEqual([]);
+
+    expect((await pipeline.acquire("biblia-livre")).packageDigest).toEqual(acquired.packageDigest);
+    expect(clones.count).toBe(1);
+    expect(events.map((event) => event.type)).toEqual(["acquired", "acquisition-reused"]);
+    expect((await pipeline.status("biblia-livre")).acquisition).toEqual({
+      state: "verified",
+      reason: null,
+    });
+  });
+
+  it("reports a tampered artifact as an integrity failure naming its path", async () => {
+    const { root, pipeline } = await sandbox();
+    await pipeline.acquire("biblia-livre");
+    await appendFile(
+      resolve(root, "corpora/source/biblia-livre", BIBLIA_LIVRE_COMMIT, "textos/f4/n4/oba.txt"),
+      "x",
+    );
+    const error = await failure(pipeline.verify("biblia-livre"));
+    expect(error.code).toBe("integrity");
+    expect(
+      error.details.filter((detail) => detail.startsWith("textos/f4/n4/oba.txt:")),
+    ).toHaveLength(2);
+    expect((await failure(pipeline.acquire("biblia-livre"))).code).toBe("integrity");
+    expect((await pipeline.status("biblia-livre")).acquisition.state).toBe("corrupt");
+  });
+
+  it("rejects a wrong commit without leaving a snapshot, staging area or lock", async () => {
+    const { root, pipeline } = await sandbox({ resolvedCommit: "0".repeat(40) });
+    const error = await failure(pipeline.acquire("biblia-livre"));
+    expect(error.code).toBe("git");
+    expect(existsSync(resolve(root, "corpora/source/biblia-livre"))).toBe(false);
+    expect(await stagingLeftovers(root)).toEqual([]);
+    expect((await pipeline.status("biblia-livre")).acquisition.state).toBe("missing");
+  });
+
+  it("reuses an up-to-date dataset, re-imports a missing chapter and honours force", async () => {
+    const { root, pipeline, events } = await sandbox();
+    const output = resolve(root, "generated/corpora/biblia-livre/2025.1.0");
+    const first = await pipeline.build("biblia-livre");
+    expect(first.books.map((book) => book.id)).toEqual(SAMPLE_BOOKS);
+    expect(first.transformations[0]?.type).toBe("parse-f4");
+    expect(first.structuralDecisions).toEqual(manifest.structuralDecisions);
+    expect(Object.keys(first.statistics)).toEqual(Object.keys(manifest.statistics));
+    expect((await pipeline.status("biblia-livre")).dataset.state).toBe("up-to-date");
+
+    const manifestBytes = await readFile(resolve(output, "manifest.json"));
+    await pipeline.import("biblia-livre");
+    await rm(resolve(output, "books/jude/01.json"));
+    expect((await pipeline.status("biblia-livre")).dataset).toEqual({
+      state: "stale",
+      reason: "chapter file books/jude/01.json is missing",
+    });
+    await pipeline.import("biblia-livre");
+    expect(existsSync(resolve(output, "books/jude/01.json"))).toBe(true);
+    await pipeline.import("biblia-livre", { force: true });
+    expect(await readFile(resolve(output, "manifest.json"))).toEqual(manifestBytes);
+    expect(events.map((event) => event.type)).toEqual([
+      "acquired",
+      "imported",
+      "import-reused",
+      "imported",
+      "imported",
+    ]);
+    expect(await readdir(resolve(root, "generated/corpora/biblia-livre/.staging"))).toEqual([]);
+  });
+
+  it("aggregates validation errors from two books and keeps the previous dataset", async () => {
+    const context = await sandbox();
+    await context.pipeline.build("biblia-livre");
+    const output = resolve(context.root, "generated/corpora/biblia-livre/2025.1.0");
+    const before = await readFile(resolve(output, "manifest.json"));
+    const base = new BibliaLivreAdapter();
+    const failing: CorpusAdapter = {
+      id: base.id,
+      importerVersion: base.importerVersion,
+      transformationType: base.transformationType,
+      structuralDecisions: base.structuralDecisions,
+      supports: (candidate) => base.supports(candidate),
+      discover: (sourceRoot) => base.discover(sourceRoot),
+      parseAndNormalize: (...args) => base.parseAndNormalize(...args),
+      validate: (book) =>
+        book.book.id === "obadiah" ? [] : [`${book.book.id}: synthetic validation failure`],
+    };
+    const error = await failure(
+      context.with({ adapters: [failing] }).import("biblia-livre", { force: true }),
+    );
+    expect(error.code).toBe("validation");
+    expect(error.details).toEqual([
+      "textos/f4/n4/jud.txt › jude: synthetic validation failure",
+      "textos/f4/n4/rute.txt › ruth: synthetic validation failure",
+    ]);
+    expect(await readFile(resolve(output, "manifest.json"))).toEqual(before);
+    expect(existsSync(resolve(output, "books/jude/01.json"))).toBe(true);
+    expect(await readdir(resolve(context.root, "generated/corpora/biblia-livre/.staging"))).toEqual(
+      [],
+    );
+  });
+
+  it("fails closed on a live lock and recovers a dead or expired one", async () => {
+    const { root, pipeline, events } = await sandbox();
+    const lockPath = resolve(root, "corpora/.staging/biblia-livre.lock");
+    await mkdir(resolve(lockPath, ".."), { recursive: true });
+    const writeLock = (pid: number, createdAt: string) =>
+      writeFile(lockPath, JSON.stringify({ pid, createdAt }), "utf8");
+
+    await writeLock(process.pid, "2026-10-01T11:00:00.000Z");
+    const locked = await failure(pipeline.acquire("biblia-livre"));
+    expect(locked.code).toBe("locked");
+    expect(locked.details).toContain(`lock: ${lockPath}`);
+    expect(existsSync(resolve(root, "corpora/source/biblia-livre"))).toBe(false);
+
+    const deadPid = spawnSync(process.execPath, ["-e", ""]).pid;
+    await writeLock(deadPid, "2026-10-01T11:00:00.000Z");
+    await pipeline.acquire("biblia-livre");
+    await writeLock(process.pid, "2026-10-01T05:00:00.000Z");
+    await pipeline.import("biblia-livre");
+    expect(events.filter((event) => event.type === "lock-recovered")).toHaveLength(2);
+    expect(existsSync(lockPath)).toBe(false);
   });
 });
