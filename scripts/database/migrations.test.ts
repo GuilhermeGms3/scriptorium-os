@@ -1,9 +1,14 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import { afterEach, describe, expect, it } from "vitest";
-import { applyMigrations, DATABASE_SCHEMA_VERSION } from "./migrate";
+import {
+  applyMigrations,
+  DATABASE_SCHEMA_VERSION,
+  removeDatabaseFiles,
+  sweepInterruptedBuildFiles,
+} from "./migrate";
 
 const temporaryDirectories: string[] = [];
 afterEach(() => {
@@ -32,5 +37,24 @@ describe("SQLite migrations", () => {
         .run(),
     ).toThrow();
     database.close();
+  });
+
+  it("removes a database together with sidecar files left by an interrupted build", () => {
+    const directory = mkdtempSync(join(tmpdir(), "scriptorium-db-"));
+    temporaryDirectories.push(directory);
+    const nested = join(directory, "edition");
+    mkdirSync(nested);
+    for (const file of ["x.sqlite3", "x.sqlite3-journal", "x.sqlite3-mj123", "keep.json"])
+      writeFileSync(join(directory, file), "");
+    for (const file of ["y.sqlite3", "y.sqlite3-journal", "y.sqlite3-mj123", "y.sqlite3-wal"])
+      writeFileSync(join(nested, file), "");
+
+    removeDatabaseFiles(join(directory, "x.sqlite3"));
+    expect(readdirSync(directory).sort()).toEqual(["edition", "keep.json"]);
+
+    expect(sweepInterruptedBuildFiles(directory)).toBe(3);
+    expect(readdirSync(nested)).toEqual(["y.sqlite3"]);
+    expect(existsSync(join(directory, "keep.json"))).toBe(true);
+    expect(sweepInterruptedBuildFiles(join(directory, "missing"))).toBe(0);
   });
 });
