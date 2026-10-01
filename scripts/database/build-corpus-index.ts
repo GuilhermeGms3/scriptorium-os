@@ -26,7 +26,7 @@ import {
   sweepInterruptedBuildFiles,
   timed,
 } from "./migrate";
-import { seedKnowledgeDatabase } from "./seed-knowledge";
+import { seedKnowledgeDatabase, type KnowledgeSeedReport } from "./seed-knowledge";
 import { buildPrimarySourcePackages } from "./build-primary-source-index";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -1030,6 +1030,7 @@ function buildKnowledgeDatabase(): {
   checksum: string;
   sizeBytes: number;
   schemaVersion: number;
+  counts: KnowledgeSeedReport["counts"];
 } {
   const directory = join(root, "public/knowledge");
   const path = join(directory, "knowledge.sqlite3");
@@ -1038,8 +1039,12 @@ function buildKnowledgeDatabase(): {
   const database = new DatabaseSync(path);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   database.exec("BEGIN IMMEDIATE");
+  let report: KnowledgeSeedReport;
   try {
-    seedKnowledgeDatabase(database, join(root, "content/scriptorium-content-seed-v0.1.json"));
+    report = seedKnowledgeDatabase(
+      database,
+      join(root, "content/scriptorium-content-seed-v0.1.json"),
+    );
     database.exec("COMMIT; VACUUM;");
   } catch (error) {
     database.exec("ROLLBACK");
@@ -1060,7 +1065,7 @@ function buildKnowledgeDatabase(): {
     schemaVersion: DATABASE_SCHEMA_VERSION,
   };
   writeFileSync(join(directory, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-  return manifest;
+  return { ...manifest, counts: report.counts };
 }
 
 progress("Construindo a base de conhecimento…");

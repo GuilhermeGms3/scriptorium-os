@@ -266,6 +266,8 @@ export function reviewStatusLabel(status: ReviewStatus): string {
 }
 
 const CLAIM_KIND_LABELS: Record<ClaimKind, string> = {
+  "textual-observation": "Observação textual",
+  "historical-source-observation": "Observação de fonte histórica",
   "linguistic-analysis": "Análise linguística",
   "textual-critical-analysis": "Crítica textual",
   "historical-reconstruction": "Reconstrução histórica",
