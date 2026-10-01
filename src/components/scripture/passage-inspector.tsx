@@ -2,7 +2,10 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { Argument } from "../../lib/domain/argument";
 import type { TextAnchor } from "../../lib/domain/knowledge";
+import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
+import { knowledgeLabel } from "../../lib/content/knowledge-presentation";
 import type { ResearchQuestion } from "../../lib/domain/research";
 import type { SemanticPassageLink } from "../../lib/domain/semantic-content";
 import { passageRefsOverlap } from "../../lib/domain/scripture";
@@ -48,6 +51,69 @@ function primarySourceAnchor(anchor: TextAnchor):
     ...anchor,
     anchor: { ...anchor.anchor, startUnitId: anchor.anchor.startUnitId },
   };
+}
+
+function ViewpointArguments({ label, items }: { label: string; items: Argument[] }) {
+  return (
+    <div className="mt-2">
+      <p className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">{label}</p>
+      {items.length ? (
+        <ul className="mt-1 space-y-0.5">
+          {items.map((argument) => (
+            <li key={argument.id} className="text-xs">
+              {knowledgeLabel(argument.id, argument.title ?? argument.id)}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-0.5 text-xs text-muted-foreground italic">Nenhum argumento registrado.</p>
+      )}
+    </div>
+  );
+}
+
+/** Claims grouped by the perspective a cited source attributes them to; never inferred. */
+function PassageViewpoints({ bundle }: { bundle: PassageKnowledgeBundle | null }) {
+  if (!bundle || !hasAvailableData(bundle.viewpoints)) {
+    return (
+      <p className="mt-1 text-sm text-muted-foreground italic">
+        {bundle ? statusLabel(bundle.viewpoints.status) : t("scripture.noPassageSelected")}
+      </p>
+    );
+  }
+  return (
+    <ul className="mt-2 space-y-2">
+      {bundle.viewpoints.data.map((viewpoint) => (
+        <li
+          key={viewpoint.profile?.id ?? "unassigned"}
+          className="rounded-md border border-border p-2.5"
+        >
+          <p className="text-sm font-medium">
+            {viewpoint.profile
+              ? knowledgeLabel(viewpoint.profile.id, viewpoint.profile.label)
+              : "Sem perspectiva atribuída"}
+          </p>
+          {viewpoint.profile?.description && (
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {viewpoint.profile.description}
+            </p>
+          )}
+          <ul className="mt-2 space-y-1.5">
+            {viewpoint.claims.map((claim) => (
+              <li key={claim.id} className="border-l border-border pl-2.5">
+                <p className="text-xs leading-relaxed">{claim.proposition}</p>
+                <p className="mt-0.5 font-mono text-[9px] text-muted-foreground uppercase">
+                  {claimKindLabel(claim.kind)} · {supportLevelLabel(claim.supportLevel)}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <ViewpointArguments label="Argumentos a favor" items={viewpoint.supportingArguments} />
+          <ViewpointArguments label="Argumentos contra" items={viewpoint.opposingArguments} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 export function PassageInspector() {
@@ -198,6 +264,10 @@ export function PassageInspector() {
                   {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
                 </p>
               )}
+            </section>
+            <section>
+              <h3 className="meta-label">Leituras por perspectiva</h3>
+              <PassageViewpoints bundle={bundle} />
             </section>
             <section>
               <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
