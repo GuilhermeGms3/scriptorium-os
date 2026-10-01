@@ -9,6 +9,7 @@ import migration6 from "./migrations/006_legacy_demo_cleanup.sql?raw";
 import migration7 from "./migrations/007_legacy_fixture_cleanup.sql?raw";
 import migration8 from "./migrations/008_localized_work_titles.sql?raw";
 import migration9 from "./migrations/009_private_documents.sql?raw";
+import migration10 from "./migrations/010_semantic_document_engine.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -21,6 +22,7 @@ const migrations = [
   migration7,
   migration8,
   migration9,
+  migration10,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

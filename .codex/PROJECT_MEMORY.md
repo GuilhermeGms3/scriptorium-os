@@ -1,5 +1,25 @@
 # Project Memory
 
+## Semantic content engine (2026-09-30)
+
+- Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,
+  reviewable passage-link candidates and cached local translations. Deterministic extraction is a
+  reproducible baseline; scores describe pattern matching, never theological or historical truth.
+- A candidate link starts as `machine-proposed`. Only accepted links surface back in the biblical
+  Passage Inspector. Protected PDF text and its derivatives remain in the browser workspace and do
+  not enter distributable corpus packages.
+- English primary-source units and English Greek/Hebrew lexical definitions can be translated on
+  demand by the optional Python service using `Helsinki-NLP/opus-mt-tc-big-en-pt`. Original text is
+  always preserved, translations are cached by checksum/model and labeled machine-generated.
+- No configured “Premier 18”/18B model was found. Translation provider/model remain replaceable;
+  the Python service is a separate Docker profile and does not alter the Node, Lovable or Cloudflare
+  production targets.
+- Repository research identified Sefaria, ETCBC/BHSA, Open Scriptures morphhb/Strong's and Concord
+  as useful architectural/data references. Every future import still requires per-artifact rights
+  and provenance review.
+- Six commercial PDFs are currently tracked in `livros/` by user-authored commit `ffe3b8a`; do not
+  derive and publish their text. Runtime analysis of user-owned copies remains local-only.
+
 ## Phase 10.2 (2026-09-25)
 
 - The primary-source runtime now includes the Coptic SCRIPTORIUM Gospel of Thomas (CC BY 4.0) as prologue, sayings 1–114 and colophon. It is explicitly a Sahidic Coptic source text with no translation.

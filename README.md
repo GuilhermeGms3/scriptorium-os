@@ -11,6 +11,8 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 - Ontologia teológica multidimensional e grafo de argumentos persistidos em SQLite.
 - Source Engine com Author/Work/Edition/Source, citações estruturadas e importação CSL-JSON, RIS e um subconjunto básico de BibTeX.
 - Workspace pessoal persistente em SQLite/OPFS, separado dos corpora imutáveis, com exportação e reimportação JSON.
+- Motor semântico local para segmentar documentos privados, classificar domínios e propor vínculos bíblicos submetidos a revisão humana.
+- Serviço Python opcional para tradução local inglês→português, sempre mantendo original, modelo e estado de revisão.
 - Artefatos de origem, checksums, direitos e transformações preservados pelo pipeline.
 
 Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles não são importados nos chunks JavaScript do Vite; o Reader abre o shard da obra necessária, a busca usa shards FTS compactos e a concordância usa um índice linguístico global separado. O workspace mutável fica no OPFS do navegador e nunca é enviado a um backend.
@@ -55,6 +57,12 @@ Abra `http://localhost:3000`. Para parar:
 docker compose down
 ```
 
+Para iniciar também o tradutor local (o primeiro uso baixa o modelo inglês→português):
+
+```bash
+docker compose --profile semantic up --build -d
+```
+
 O container executa como usuário sem privilégios e com filesystem somente
 leitura. Os corpora são servidos pela imagem; estudos, notas e documentos
 privados permanecem no OPFS do navegador, não em um volume Docker. Ao publicar
@@ -75,8 +83,8 @@ Fontes imutáveis ficam em `corpora/source/`; derivados normalizados, em `genera
 
 A Biblioteca também inclui pacotes SQLite/FTS legíveis de sete obras dos Pais Apostólicos, cinco credos/documentos conciliares históricos, os livros I–II do comentário de Orígenes sobre João, o Evangelho de Tomé em copta, as Confissões de Agostinho e as quatro partes da Suma Teológica em edições históricas inglesas. Consulte [Pais Apostólicos](docs/content/apostolic-fathers.md), [credos](docs/content/creeds-confessions.md), [recepção de João 1](docs/content/john-reception.md), [biblioteca teológica](docs/content/theological-library.md) e [cobertura de conteúdo](docs/content/content-coverage.md).
 
-Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e geração, [docs/corpora/phase10-content.md](docs/corpora/phase10-content.md) para a expansão de conteúdo, [docs/architecture/text-identity.md](docs/architecture/text-identity.md) para a base arquitetural da Fase 8, [docs/architecture/phase9-5-consolidation.md](docs/architecture/phase9-5-consolidation.md) para o runtime canônico e [docs/architecture/private-document-ingestion.md](docs/architecture/private-document-ingestion.md) para a ingestão local de PDFs privados.
+Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e geração, [docs/corpora/phase10-content.md](docs/corpora/phase10-content.md) para a expansão de conteúdo, [docs/architecture/text-identity.md](docs/architecture/text-identity.md) para a base arquitetural da Fase 8, [docs/architecture/phase9-5-consolidation.md](docs/architecture/phase9-5-consolidation.md) para o runtime canônico, [docs/architecture/private-document-ingestion.md](docs/architecture/private-document-ingestion.md) para a ingestão local de PDFs, [docs/architecture/semantic-content-engine.md](docs/architecture/semantic-content-engine.md) para a desmontagem e linkagem e [docs/architecture/local-translation.md](docs/architecture/local-translation.md) para o tradutor opcional.
 
 ## Limites atuais
 
-O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados localmente e não integram os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, IA/RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.
+O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados, segmentados e vinculados localmente; nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.

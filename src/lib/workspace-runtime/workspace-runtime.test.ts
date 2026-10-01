@@ -1,13 +1,16 @@
 import { DatabaseSync } from "node:sqlite";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   applyWorkspaceMigrations,
   WORKSPACE_SCHEMA_VERSION,
 } from "../../../scripts/database/workspace-migrate";
 import { SourceImportService } from "../application/source-import-service";
+import { SemanticDocumentIndexingService } from "../application/semantic-document-indexing-service";
+import { LocalTranslationService } from "../application/local-translation-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
+import { SemanticContentRepository } from "../repositories/semantic-content-repository";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -53,6 +56,7 @@ function adapter(db: DatabaseSync): WorkspaceDatabase {
   };
 }
 afterEach(() => {
+  vi.restoreAllMocks();
   while (databases.length) databases.pop()?.close();
 });
 
@@ -96,6 +100,93 @@ describe("Phase 9.5 workspace schema", () => {
       ),
     ).toMatchObject([{ pageIndex: 0, pageLabel: "1" }]);
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("indexes semantic segments idempotently and requires review before passage links become accepted", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Exegese local",
+        language: "pt-BR",
+        originalName: "exegese-local.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 256,
+        checksum: "b".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "A exegese de João 1:1 considera o vocabulário grego.",
+            itemCount: 8,
+          },
+        ],
+      },
+      "opfs:/semantic-test.pdf",
+      workspace,
+    );
+    const first = await SemanticDocumentIndexingService.indexDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    const second = await SemanticDocumentIndexingService.indexDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    expect(first).toMatchObject({ segmentCount: 1, passageLinkCount: 1, duplicate: false });
+    expect(second).toMatchObject({ segmentCount: 1, passageLinkCount: 1, duplicate: true });
+    const proposed = await SemanticContentRepository.listLinksForPassage(
+      { bookId: "john", chapter: 1, verseStart: 1 },
+      { reviewStatus: "machine-proposed" },
+      workspace,
+    );
+    expect(proposed).toHaveLength(1);
+    expect(
+      await SemanticContentRepository.listLinksForPassage(
+        { bookId: "john", chapter: 1, verseStart: 1 },
+        { reviewStatus: "accepted" },
+        workspace,
+      ),
+    ).toEqual([]);
+    await SemanticContentRepository.reviewPassageLink(proposed[0]!.id, "accepted", workspace);
+    expect(
+      await SemanticContentRepository.listLinksForPassage(
+        { bookId: "john", chapter: 1, verseStart: 1 },
+        { reviewStatus: "accepted" },
+        workspace,
+      ),
+    ).toHaveLength(1);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("caches local translations by source checksum without replacing the original", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          translatedText: "No princípio era a Palavra.",
+          provider: "test-local",
+          model: "fixture-en-pt",
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    const request = {
+      sourceKind: "primary-text-unit" as const,
+      sourceId: "unit:fixture:1",
+      sourceLanguage: "en",
+      text: "In the beginning was the Word.",
+    };
+    const first = await LocalTranslationService.translate(request, workspace);
+    const second = await LocalTranslationService.translate(request, workspace);
+    expect(first.translatedText).toBe("No princípio era a Palavra.");
+    expect(second.id).toBe(first.id);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(request.text).toBe("In the beginning was the Word.");
   });
   it("removes the known localStorage DEMO chain from an already-upgraded workspace", () => {
     const db = database();

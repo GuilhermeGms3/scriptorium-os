@@ -117,6 +117,23 @@ export const PrivateDocumentRepository = {
     return row ? mapPage(row) : null;
   },
 
+  async listPages(
+    documentId: string,
+    options: { offset?: number; limit?: number } = {},
+    database?: WorkspaceDatabase,
+  ): Promise<PrivateDocumentPage[]> {
+    const offset = Math.max(0, Math.trunc(options.offset ?? 0));
+    const limit = Math.min(Math.max(1, Math.trunc(options.limit ?? 50)), 200);
+    const db = database ?? (await getWorkspaceDatabase());
+    return (
+      await db.query(
+        `SELECT * FROM private_document_pages
+         WHERE document_id=? ORDER BY page_index LIMIT ? OFFSET ?`,
+        [documentId, limit, offset],
+      )
+    ).map(mapPage);
+  },
+
   async search(
     query: string,
     options: { documentId?: string; limit?: number } = {},

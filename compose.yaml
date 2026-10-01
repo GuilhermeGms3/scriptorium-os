@@ -13,3 +13,23 @@ services:
       - /tmp:size=64m,mode=1777
     security_opt:
       - no-new-privileges:true
+  semantic-engine:
+    profiles: ["semantic"]
+    build:
+      context: ./services/semantic-engine
+      dockerfile: Dockerfile
+    image: scriptorium-semantic-engine:local
+    init: true
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:8018:8018"
+    environment:
+      HF_HOME: /models/huggingface
+      SCRIPTORIUM_TRANSLATION_MODEL: Helsinki-NLP/opus-mt-tc-big-en-pt
+    volumes:
+      - semantic-model-cache:/models
+    security_opt:
+      - no-new-privileges:true
+
+volumes:
+  semantic-model-cache:

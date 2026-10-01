@@ -1871,12 +1871,12 @@
         "hbo"
       ],
       "databasePath": "/corpus-packages/wlc-oshb-2.2.sqlite3",
-      "checksum": "11307ebc41c2dd25b548f6248959a82ee128994b670d26c59fe306a400af8574",
+      "checksum": "5fb78a018487b7b1aa93602f2ef46e1872ea7e66074258b9864e8ff5bfc3a307",
       "sourceChecksum": "0a7efe1d3eb3f1c1b97ef33b6ff11721260e14f2854aaeaaedc5d8e8a82f2a58",
-      "buildFingerprint": "cccfea2b9e0c02dc7791fd7f4f54f7752bcf438bf107943653c834f9c8c17cca",
-      "sizeBytes": 340262912,
-      "downloadSizeBytes": 517914624,
-      "storageSizeBytes": 517914624,
+      "buildFingerprint": "b3d5d9af92bc27af385e2ef55ece51e9c1e29ecaa7968000a10178e1d4f63808",
+      "sizeBytes": 340508672,
+      "downloadSizeBytes": 518160384,
+      "storageSizeBytes": 518160384,
       "deliveryMode": "work-shards",
       "sourceLocation": "/corpus-packages/wlc-oshb-2.2.sqlite3",
       "dependencies": [],
@@ -2204,8 +2204,8 @@
           "id": "wlc-oshb-2.2:linguistic",
           "role": "linguistic",
           "databasePath": "/corpus-packages/wlc-oshb-2.2/linguistic.sqlite3",
-          "checksum": "50541a5ef9dfb52510bcb91c3088c8a787475a2b28f3f042ebe0c1bb974ed506",
-          "sizeBytes": 138448896
+          "checksum": "8dabd3d2fe401e83a2092d88e5501b3229d4ac8b909cf28fc513e1ca3205f0d0",
+          "sizeBytes": 138694656
         }
       ],
       "versificationSchemeId": "oshb-wlc-2.2",

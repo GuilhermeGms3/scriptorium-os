@@ -6,13 +6,15 @@
 
 import * as Tabs from "@radix-ui/react-tabs";
 import { useEffect, useState } from "react";
-import { Plus, X } from "lucide-react";
+import { Languages, Plus, X } from "lucide-react";
+import { LocalTranslationService } from "../../lib/application/local-translation-service";
 import { useWorkbench, type WordSelection } from "../../lib/workbench/workbench-context";
 import { SourceReferenceCard } from "../common/source-reference";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { passageRefKey } from "../../lib/domain/scripture";
 import { morphologyLabel, t } from "../../lib/i18n";
 import type { WordKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
+import type { LexicalDictionaryEntry } from "../../lib/domain/linguistic";
 import { LexicalOccurrences } from "./lexical-occurrences";
 
 const TABS = [
@@ -171,38 +173,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           <Tabs.Content value="lexicon" className="space-y-4">
             {wordBundle?.dictionary.status === "available" &&
               wordBundle.dictionary.data.map((entry) => (
-                <article key={entry.id} className="space-y-2 rounded-md border border-border p-3">
-                  <div className="flex flex-wrap items-baseline gap-x-2">
-                    <h3 className="original-text text-lg">{entry.lemma}</h3>
-                    {entry.transliteration && (
-                      <span className="font-mono text-xs text-muted-foreground">
-                        {entry.transliteration}
-                      </span>
-                    )}
-                  </div>
-                  <div>
-                    <p className="meta-label">Glosa breve da fonte (em inglês)</p>
-                    <p className="mt-1 font-medium">{entry.gloss}</p>
-                  </div>
-                  {entry.definition && (
-                    <div>
-                      <p className="meta-label">Definição da fonte (em inglês)</p>
-                      <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">
-                        {entry.definition}
-                      </p>
-                    </div>
-                  )}
-                  <p className="rounded border border-dashed border-border bg-muted/20 p-2 text-xs text-muted-foreground">
-                    A tradução lexical revisada em português ainda não foi importada. A interface
-                    mantém o idioma original do dicionário para não apresentar tradução automática
-                    como conteúdo acadêmico.
-                  </p>
-                  <p className="text-[11px] text-muted-foreground">
-                    {entry.language === "hbo"
-                      ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"
-                      : "TBESG · STEP Bible / Tyndale House Cambridge · CC BY 4.0"}
-                  </p>
-                </article>
+                <LexiconEntry key={entry.id} entry={entry} />
               ))}
             {annotation ? (
               <dl className="space-y-3 text-sm">
@@ -238,7 +209,8 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                 )}
                 {wordBundle?.dictionary.status !== "available" && (
                   <p className="text-xs text-muted-foreground">
-                    Não há verbete TBESG resolvido para esta identificação lexical.
+                    Não há verbete {token.language === "hbo" ? "TBESH" : "TBESG"} resolvido para
+                    esta identificação lexical.
                   </p>
                 )}
               </dl>
@@ -411,6 +383,92 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
         />
       </div>
     </div>
+  );
+}
+
+function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
+  const sourceText = [entry.gloss, entry.definition].filter(Boolean).join("\n\n");
+  const [translation, setTranslation] = useState<string>();
+  const [translating, setTranslating] = useState(false);
+  const [error, setError] = useState<string>();
+  useEffect(() => {
+    let active = true;
+    void LocalTranslationService.findCached({
+      sourceKind: "lexical-entry",
+      sourceId: entry.id,
+      sourceLanguage: "en",
+      text: sourceText,
+    }).then(
+      (value) => {
+        if (active) setTranslation(value?.translatedText);
+      },
+      () => {
+        if (active) setTranslation(undefined);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [entry.id, sourceText]);
+  const translate = async () => {
+    setTranslating(true);
+    setError(undefined);
+    try {
+      const result = await LocalTranslationService.translate({
+        sourceKind: "lexical-entry",
+        sourceId: entry.id,
+        sourceLanguage: "en",
+        text: sourceText,
+      });
+      setTranslation(result.translatedText);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setTranslating(false);
+    }
+  };
+  return (
+    <article className="space-y-2 rounded-md border border-border p-3">
+      <div className="flex flex-wrap items-baseline gap-x-2">
+        <h3 className="original-text text-lg">{entry.lemma}</h3>
+        {entry.transliteration && (
+          <span className="font-mono text-xs text-muted-foreground">{entry.transliteration}</span>
+        )}
+      </div>
+      <div>
+        <p className="meta-label">Glosa breve da fonte (em inglês)</p>
+        <p className="mt-1 font-medium">{entry.gloss}</p>
+      </div>
+      {entry.definition && (
+        <div>
+          <p className="meta-label">Definição da fonte (em inglês)</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{entry.definition}</p>
+        </div>
+      )}
+      {translation ? (
+        <div className="rounded border border-border bg-muted/20 p-2">
+          <p className="meta-label">Tradução automática auxiliar</p>
+          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{translation}</p>
+          <p className="mt-2 text-[10px] text-muted-foreground">Não revisada academicamente.</p>
+        </div>
+      ) : (
+        <button
+          type="button"
+          onClick={() => void translate()}
+          disabled={translating}
+          className="inline-flex items-center gap-1.5 rounded border border-input px-2 py-1 text-xs disabled:opacity-50"
+        >
+          <Languages className="size-3.5" />
+          {translating ? "Traduzindo…" : "Traduzir definição para português"}
+        </button>
+      )}
+      {error && <p className="text-xs text-destructive">{error}</p>}
+      <p className="text-[11px] text-muted-foreground">
+        {entry.language === "hbo"
+          ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"
+          : "TBESG · STEP Bible / Tyndale House Cambridge · CC BY 4.0"}
+      </p>
+    </article>
   );
 }
 

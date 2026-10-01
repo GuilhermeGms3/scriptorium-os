@@ -4,8 +4,10 @@ import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import type { TextAnchor } from "../../lib/domain/knowledge";
 import type { ResearchQuestion } from "../../lib/domain/research";
+import type { SemanticPassageLink } from "../../lib/domain/semantic-content";
 import { passageRefsOverlap } from "../../lib/domain/scripture";
 import { StudyRepository } from "../../lib/repositories/study-repository";
+import { SemanticContentRepository } from "../../lib/repositories/semantic-content-repository";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
@@ -51,6 +53,7 @@ function primarySourceAnchor(anchor: TextAnchor):
 export function PassageInspector() {
   const { passageContext } = useWorkbench();
   const [researchQuestions, setResearchQuestions] = useState<ResearchQuestion[]>([]);
+  const [semanticSources, setSemanticSources] = useState<SemanticPassageLink[]>([]);
   useEffect(() => {
     let active = true;
     if (!passageContext) {
@@ -86,6 +89,27 @@ export function PassageInspector() {
         ),
       );
     });
+    return () => {
+      active = false;
+    };
+  }, [passageContext]);
+  useEffect(() => {
+    let active = true;
+    if (!passageContext) {
+      setSemanticSources([]);
+      return;
+    }
+    void SemanticContentRepository.listLinksForPassage(passageContext.ref, {
+      reviewStatus: "accepted",
+      limit: 50,
+    }).then(
+      (links) => {
+        if (active) setSemanticSources(links);
+      },
+      () => {
+        if (active) setSemanticSources([]);
+      },
+    );
     return () => {
       active = false;
     };
@@ -311,13 +335,36 @@ export function PassageInspector() {
           </Tabs.Content>
 
           <Tabs.Content value="literature">
-            <p className="text-sm text-muted-foreground italic">
-              {bundle && bundle.sources.references.length > 0
-                ? t("scripture.literatureCount", {
-                    count: formatNumber(bundle.sources.references.length),
-                  })
-                : t("scripture.literatureAwaiting")}
-            </p>
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground italic">
+                {bundle && bundle.sources.references.length > 0
+                  ? t("scripture.literatureCount", {
+                      count: formatNumber(bundle.sources.references.length),
+                    })
+                  : t("scripture.literatureAwaiting")}
+              </p>
+              {semanticSources.length > 0 && (
+                <section>
+                  <p className="meta-label">Trechos confirmados da biblioteca privada</p>
+                  <ul className="mt-2 space-y-2">
+                    {semanticSources.map((link) => (
+                      <li key={link.id} className="rounded border border-border bg-muted/30 p-2.5">
+                        <p className="text-xs font-medium">{link.rawReference}</p>
+                        <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
+                          Página {link.pageIndex + 1} · vínculo revisado
+                        </p>
+                        <a
+                          href={`/library/document/${encodeURIComponent(link.documentId)}?page=${link.pageIndex + 1}`}
+                          className="mt-1 inline-block text-[10px] underline underline-offset-2"
+                        >
+                          Abrir trecho local
+                        </a>
+                      </li>
+                    ))}
+                  </ul>
+                </section>
+              )}
+            </div>
           </Tabs.Content>
 
           <Tabs.Content value="notes">

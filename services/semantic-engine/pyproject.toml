@@ -1,0 +1,19 @@
+[project]
+name = "scriptorium-semantic-engine"
+version = "0.1.0"
+description = "Serviço local opcional de tradução do Scriptorium"
+requires-python = ">=3.11,<3.14"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "pydantic>=2.10,<3",
+  "torch>=2.6,<3",
+  "transformers>=4.48,<5",
+  "uvicorn[standard]>=0.34,<1",
+]
+
+[project.optional-dependencies]
+test = ["httpx>=0.28,<1", "pytest>=8.3,<9"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+

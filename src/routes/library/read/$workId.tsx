@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
-import { BookOpen, Check, Clipboard, NotebookPen } from "lucide-react";
+import { BookOpen, Check, Clipboard, Languages, LoaderCircle, NotebookPen } from "lucide-react";
+import { LocalTranslationService } from "../../../lib/application/local-translation-service";
+import type { LocalTranslation } from "../../../lib/domain/semantic-content";
 import {
   PrimarySourceRepository,
   type PrimarySourceDocument,
@@ -27,6 +29,9 @@ function PrimarySourceReader() {
   const [noteTitle, setNoteTitle] = useState("");
   const [noteBody, setNoteBody] = useState("");
   const [noteStatus, setNoteStatus] = useState<string>();
+  const [translation, setTranslation] = useState<LocalTranslation | null>();
+  const [translationError, setTranslationError] = useState<string>();
+  const [translating, setTranslating] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -60,6 +65,33 @@ function PrimarySourceReader() {
       ? [selectedUnit, ...limited]
       : limited;
   }, [document, selectedId, unitQuery]);
+
+  useEffect(() => {
+    if (!selected || document?.language !== "en") {
+      setTranslation(null);
+      setTranslationError(undefined);
+      return;
+    }
+    let active = true;
+    setTranslation(undefined);
+    setTranslationError(undefined);
+    void LocalTranslationService.findCached({
+      sourceKind: "primary-text-unit",
+      sourceId: selected.id,
+      sourceLanguage: document.language,
+      text: selected.text,
+    }).then(
+      (value) => {
+        if (active) setTranslation(value);
+      },
+      () => {
+        if (active) setTranslation(null);
+      },
+    );
+    return () => {
+      active = false;
+    };
+  }, [document?.language, selected]);
   if (document === undefined)
     return <p className="p-6 text-sm text-muted-foreground">Abrindo corpus primário…</p>;
   if (!document)
@@ -108,6 +140,25 @@ function PrimarySourceReader() {
     setNoteTitle("");
     setNoteBody("");
     setNoteStatus("Nota persistida e ancorada à unidade textual.");
+  };
+  const translateSelected = async () => {
+    if (!selected || document.language !== "en") return;
+    setTranslating(true);
+    setTranslationError(undefined);
+    try {
+      setTranslation(
+        await LocalTranslationService.translate({
+          sourceKind: "primary-text-unit",
+          sourceId: selected.id,
+          sourceLanguage: document.language,
+          text: selected.text,
+        }),
+      );
+    } catch (cause) {
+      setTranslationError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setTranslating(false);
+    }
   };
 
   return (
@@ -169,7 +220,49 @@ function PrimarySourceReader() {
         </header>
         {selected && (
           <article className="mx-auto max-w-3xl px-6 py-8">
+            <p className="meta-label mb-3">Texto original · {document.language}</p>
             <p className="whitespace-pre-line font-serif text-[17px] leading-8">{selected.text}</p>
+            {document.language === "en" && (
+              <section className="mt-8 rounded-md border border-border bg-muted/20 p-4">
+                <div className="flex flex-wrap items-center justify-between gap-3">
+                  <div>
+                    <h3 className="meta-label flex items-center gap-1.5">
+                      <Languages className="size-3.5" /> Tradução local para português
+                    </h3>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Tradução automática auxiliar; o original acima permanece canônico.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void translateSelected()}
+                    disabled={translating || translation === undefined || Boolean(translation)}
+                    className="inline-flex h-9 items-center gap-2 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
+                  >
+                    {translating && <LoaderCircle className="size-3.5 animate-spin" />}
+                    {translation ? "Tradução armazenada" : "Traduzir esta seção"}
+                  </button>
+                </div>
+                {translation?.translatedText && (
+                  <div className="mt-4 border-t border-border pt-4">
+                    <p className="whitespace-pre-line font-serif text-[17px] leading-8">
+                      {translation.translatedText}
+                    </p>
+                    <p className="mt-3 font-mono text-[10px] text-muted-foreground">
+                      Gerada por {translation.model} ·{" "}
+                      {translation.reviewStatus === "human-reviewed"
+                        ? "revisada por humano"
+                        : "não revisada"}
+                    </p>
+                  </div>
+                )}
+                {translationError && (
+                  <p role="alert" className="mt-3 text-xs text-destructive">
+                    {translationError} Inicie o perfil Docker “semantic” para usar o modelo local.
+                  </p>
+                )}
+              </section>
+            )}
             <section className="mt-10 border-t border-border pt-5">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="meta-label">Citação estruturada</h3>

@@ -166,6 +166,13 @@ describe("ScriptureKnowledgeEngine", () => {
     expect(firstToken).toBeDefined();
     const word = await ScriptureKnowledgeEngine.getWordKnowledgeBundle(firstToken!);
     expect(word.annotation.status).toBe("available");
+    expect(word.dictionary.status).toBe("available");
+    if (word.dictionary.status === "available") {
+      expect(
+        word.dictionary.data.some((entry) => entry.gloss.toLowerCase().includes("beginning")),
+      ).toBe(true);
+      expect(word.dictionary.data.every((entry) => entry.definition === undefined)).toBe(true);
+    }
     expect(word.concordance.status).toBe("available");
     if (word.concordance.status === "available") {
       expect(word.concordance.data.total).toBeGreaterThan(0);

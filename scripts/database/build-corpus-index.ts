@@ -399,6 +399,7 @@ function indexTbesh(database: DatabaseSync, corpusId: string): void {
     for (const reference of references) {
       insertReference.run(id, "strong", reference);
       insertReference.run(id, "strong", reference.replace(/^H/, ""));
+      insertReference.run(id, "strong", reference.replace(/^H0*(?=\d)/, ""));
       insertReference.run(id, "extended-strong", reference);
     }
     records += 1;
@@ -657,7 +658,9 @@ function packageFingerprint(definition: PackageDefinition): string {
   return sha256(
     JSON.stringify({
       schemaVersion: DATABASE_SCHEMA_VERSION,
-      builderVersion: "corpus-runtime-10.1.1",
+      builderVersion: definition.generatedDirectory.includes("wlc")
+        ? "corpus-runtime-10.1.2"
+        : "corpus-runtime-10.1.1",
       definition,
       sourceManifest: sha256(sourceManifestBytes),
       generatedContent: generatedContentDigest.digest("hex"),
