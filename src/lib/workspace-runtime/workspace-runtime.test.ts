@@ -6,11 +6,13 @@ import {
 } from "../../../scripts/database/workspace-migrate";
 import { SourceImportService } from "../application/source-import-service";
 import { SemanticDocumentIndexingService } from "../application/semantic-document-indexing-service";
+import { DocumentKnowledgePipelineService } from "../application/document-knowledge-pipeline-service";
 import { LocalTranslationService } from "../application/local-translation-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { SemanticContentRepository } from "../repositories/semantic-content-repository";
+import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -160,6 +162,91 @@ describe("Phase 9.5 workspace schema", () => {
         workspace,
       ),
     ).toHaveLength(1);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("decomposes a private book, reviews proposals and preserves decisions on reprocessing", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro desmontável",
+        language: "pt-BR",
+        originalName: "livro-desmontavel.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 512,
+        checksum: "c".repeat(64),
+        pageCount: 2,
+        textPageCount: 2,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "CAPÍTULO 1\n\nA exegese de João 1:1 é relevante porque o texto",
+            itemCount: 10,
+          },
+          {
+            pageIndex: 1,
+            pageLabel: "2",
+            text: "grego sustenta esta observação.",
+            itemCount: 6,
+          },
+        ],
+      },
+      "opfs:/book-pipeline.pdf",
+      workspace,
+    );
+    const first = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    expect(first).toMatchObject({ duplicate: false });
+    expect(first.nodeCount).toBeGreaterThan(1);
+    expect(first.proposalCount).toBeGreaterThan(0);
+    const proposals = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      {},
+      workspace,
+    );
+    const claim = proposals.find((proposal) => proposal.proposalKind === "claim");
+    expect(claim).toBeTruthy();
+    if (!claim || claim.payload.kind !== "claim") throw new Error("Claim proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(
+      claim.id,
+      "accepted",
+      {
+        payload: {
+          ...claim.payload,
+          proposition: "Afirmação revisada pelo pesquisador.",
+        },
+      },
+      workspace,
+    );
+    const rerun = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+      { force: true },
+    );
+    expect(rerun.preservedReviewCount).toBe(1);
+    const aggregate = await DocumentKnowledgeRepository.aggregate(imported.document.id, workspace);
+    expect(aggregate).toMatchObject({ acceptedCount: 1 });
+    expect(aggregate.acceptedProposals[0]?.payload).toMatchObject({
+      proposition: "Afirmação revisada pelo pesquisador.",
+    });
+    const exported = await DocumentKnowledgePipelineService.exportAccepted(
+      imported.document.id,
+      workspace,
+    );
+    expect(exported).toMatchObject({
+      format: "scriptorium-private-knowledge-export-v1",
+      localOnly: true,
+      requiresRightsReview: true,
+    });
+    expect(exported.proposals).toHaveLength(1);
+    expect(exported.evidenceUnits).toHaveLength(1);
+    expect(exported.evidenceUnits[0]?.spans.length).toBeGreaterThanOrEqual(1);
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
   it("caches local translations by source checksum without replacing the original", async () => {

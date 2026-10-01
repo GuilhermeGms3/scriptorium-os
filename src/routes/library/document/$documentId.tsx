@@ -11,6 +11,7 @@ import {
   X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
+import { DocumentKnowledgeWorkbench } from "../../../components/library/document-knowledge-workbench";
 import { SemanticDocumentIndexingService } from "../../../lib/application/semantic-document-indexing-service";
 import type {
   PrivateDocument,
@@ -221,7 +222,9 @@ function PrivateDocumentReaderPage() {
               <BrainCircuit className="size-3.5" />
             )}
             {semanticProgress ??
-              (semanticSummary?.status === "ready" ? "Reindexar conteúdo" : "Analisar conteúdo")}
+              (semanticSummary?.status === "ready"
+                ? "Redetectar referências"
+                : "Detectar referências")}
           </button>
         </div>
       </header>
@@ -316,6 +319,7 @@ function PrivateDocumentReaderPage() {
               </div>
             )}
           </section>
+          <DocumentKnowledgeWorkbench documentId={document.id} onNavigatePage={setPageIndex} />
         </aside>
         <main className="min-h-0 overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-8">

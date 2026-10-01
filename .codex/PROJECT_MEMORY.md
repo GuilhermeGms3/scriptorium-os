@@ -1,5 +1,24 @@
 # Project Memory
 
+## Book Decomposition Pipeline v1 (2026-10-01)
+
+- Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,
+  `semantic_unit_spans`, reviewable `knowledge_proposals` and versioned
+  `document_knowledge_indexes`. No proposal writes to the public knowledge snapshot.
+- `DocumentKnowledgeAnalyzer` is the provider boundary. The deterministic v1 implementation
+  detects book/part/chapter/section/bibliography structure, joins simple cross-page continuations
+  and proposes topics, passage relations, claims, arguments, quotations and controlled entities.
+- Proposal IDs include a payload fingerprint. Reprocessing is idempotent and preserves accepted or
+  rejected decisions, including edited claim text, when the semantic proposal remains the same.
+- The private document reader now exposes Structure, Review and Aggregate views. Export is explicit,
+  local-only JSON (`scriptorium-private-knowledge-export-v1`) marked as requiring rights review.
+- Verification: strict typecheck passed; focused ESLint passed; 24 focused tests passed; direct Vite
+  client/SSR/Nitro build passed. Direct full Vitest without `pretest` remained blocked by local
+  corpus SQLite files whose checksums differ from the committed registry after a Node 24 rebuild;
+  this is the previously identified cross-toolchain artifact reproducibility issue.
+- Next safe actions: browser QA with a real text-layer PDF; add golden-layout fixtures for footnotes,
+  bibliographies and complex tables of contents; pin the binary corpus build toolchain.
+
 ## Semantic content engine (2026-09-30)
 
 - Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,

@@ -23,6 +23,37 @@ reconhece marcadores controlados em português/inglês e resolve referências b�
 idiomas. Esta camada deliberadamente simples fornece baseline reproduzível para comparar futuros
 extratores mais sofisticados.
 
+## Book Decomposition Pipeline v1
+
+A desmontagem de livros privados acrescenta uma camada acima dos blocos de página:
+
+```text
+PDF privado
+  -> nós estruturais (livro/parte/capítulo/seção/bibliografia)
+  -> unidades semânticas com um ou mais spans físicos
+  -> propostas tipadas de conhecimento
+  -> revisão humana
+  -> agregação privada
+  -> exportação editorial explícita
+```
+
+`DocumentKnowledgeAnalyzer` é o contrato substituível. A implementação inicial,
+`deterministic-document-knowledge:1`, detecta estrutura, reúne continuações simples entre páginas e
+propõe assuntos, referências bíblicas, afirmações, argumentos, citações e entidades de um
+vocabulário controlado. Heurísticas e escores medem somente a força do padrão que disparou a
+proposta; não medem verdade, importância ou concordância teológica.
+
+As tabelas `document_nodes`, `semantic_units`, `semantic_unit_spans` e `knowledge_proposals` ficam
+exclusivamente no workspace privado. Uma unidade pode conservar vários spans de página, de modo que
+uma frase interrompida pela paginação continue citável sem apagar a localização física. IDs de
+propostas incluem fingerprint do payload; reprocessar o mesmo livro não cria duplicatas e preserva
+decisões humanas quando a proposta permanece semanticamente igual.
+
+Propostas começam como `machine-proposed`. Aceitar ou rejeitar é uma decisão local do pesquisador.
+A exportação `scriptorium-private-knowledge-export-v1` contém somente a estrutura e as propostas
+aceitas, permanece marcada como `localOnly` e `requiresRightsReview`, e não é importada
+automaticamente em `content/packs` nem em `public/knowledge`.
+
 ## Persistência
 
 A migration 010 acrescenta:
@@ -32,6 +63,13 @@ A migration 010 acrescenta:
 - `semantic_segment_domains`: domínio, evidência textual, método e revisão;
 - `semantic_passage_links`: endereço com versificação, relação, método e revisão;
 - `local_translations`: cache local por origem, checksum, idioma e modelo.
+
+A migration 011 acrescenta:
+
+- `document_knowledge_indexes`: versão do analisador, estado e contagens da desmontagem;
+- `document_nodes`: hierarquia estrutural proposta para o livro;
+- `semantic_units` e `semantic_unit_spans`: unidades citáveis e suas âncoras físicas;
+- `knowledge_proposals`: candidatos tipados, editáveis e revisáveis.
 
 O texto do segmento não é duplicado: ele é reconstruído pelos offsets da página privada. Exclusão
 do documento remove os derivados por foreign keys. Reindexação apaga somente os derivados daquele
@@ -59,8 +97,8 @@ material; não afirmam autoria, qualidade acadêmica ou concordância com uma tr
 
 ## Próximos incrementos seguros
 
-1. detecção estrutural de capítulos, notas e citações bibliográficas;
-2. criação assistida de entidades/conceitos, sempre como candidato revisável;
+1. melhorar detecção de notas e entradas bibliográficas em edições variadas;
+2. acrescentar analisadores locais opcionais sob o mesmo contrato de propostas;
 3. OCR/EPUB local;
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
-5. conexão aceita com Claim/Evidence/Argument por IDs explícitos.
+5. promoção editorial assistida para `Claim`/`Evidence`/`Argument`, sempre fora do fluxo automático.
