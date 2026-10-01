@@ -10,6 +10,12 @@ const TranslationResponseSchema = z.object({
   modelRevision: z.string().optional(),
 });
 
+const TranslationModelInfoSchema = z.object({
+  provider: z.string().min(1),
+  model: z.string().min(1),
+  modelRevision: z.string().min(1),
+});
+
 export interface LocalTranslationRequest {
   sourceKind: LocalTranslation["sourceKind"];
   sourceId: string;
@@ -58,7 +64,7 @@ export const LocalTranslationService = {
       throw new Error("O trecho excede o limite local de 50.000 caracteres.");
     const targetLanguage = request.targetLanguage ?? "pt-BR";
     const sourceChecksum = await sha256(text);
-    const cached = await LocalTranslationRepository.findCached(
+    const fallbackCached = await LocalTranslationRepository.findCached(
       {
         sourceKind: request.sourceKind,
         sourceId: request.sourceId,
@@ -67,12 +73,27 @@ export const LocalTranslationService = {
       },
       database,
     );
-    if (cached) return cached;
 
     const controller = new AbortController();
     const timeout = globalThis.setTimeout(() => controller.abort(), 120_000);
     let response: Response;
     try {
+      const infoResponse = await fetch(`${endpoint()}/v1/info`, { signal: controller.signal });
+      if (!infoResponse.ok)
+        throw new Error(`Identidade do tradutor indisponível (${infoResponse.status}).`);
+      const info = TranslationModelInfoSchema.parse(await infoResponse.json());
+      const exactCached = await LocalTranslationRepository.findCached(
+        {
+          sourceKind: request.sourceKind,
+          sourceId: request.sourceId,
+          targetLanguage,
+          sourceChecksum,
+          model: info.model,
+          modelRevision: info.modelRevision,
+        },
+        database,
+      );
+      if (exactCached) return exactCached;
       response = await fetch(`${endpoint()}/v1/translate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -84,6 +105,7 @@ export const LocalTranslationService = {
         signal: controller.signal,
       });
     } catch (cause) {
+      if (fallbackCached) return fallbackCached;
       if (cause instanceof DOMException && cause.name === "AbortError")
         throw new Error("O tradutor local excedeu o tempo limite de 120 segundos.");
       throw new Error("O tradutor local não respondeu.");
@@ -97,8 +119,9 @@ export const LocalTranslationService = {
       );
     }
     const result = TranslationResponseSchema.parse(await response.json());
+    const modelRevision = result.modelRevision ?? "main";
     const timestamp = new Date().toISOString();
-    const idSeed = `${request.sourceKind}:${request.sourceId}:${targetLanguage}:${sourceChecksum}:${result.model}`;
+    const idSeed = `${request.sourceKind}:${request.sourceId}:${targetLanguage}:${sourceChecksum}:${result.provider}:${result.model}:${modelRevision}`;
     const value: LocalTranslation = {
       id: `translation:${await sha256(idSeed)}`,
       sourceKind: request.sourceKind,
@@ -109,7 +132,7 @@ export const LocalTranslationService = {
       translatedText: result.translatedText,
       provider: result.provider,
       model: result.model,
-      ...(result.modelRevision ? { modelRevision: result.modelRevision } : {}),
+      modelRevision,
       reviewStatus: "machine-generated",
       createdAt: timestamp,
       updatedAt: timestamp,

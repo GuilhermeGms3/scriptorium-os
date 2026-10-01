@@ -11,6 +11,8 @@ import {
   type SemanticUnit,
   SemanticUnitSchema,
 } from "../domain/document-knowledge";
+import type { PassageRef } from "../domain/scripture";
+import { passageRefScheme } from "../domain/scripture";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -366,6 +368,59 @@ export const DocumentKnowledgeRepository = {
         bind,
       )
     ).map(mapProposal);
+  },
+
+  async listAcceptedPassageRelations(
+    passage: PassageRef,
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const start = passage.verseStart ?? 1;
+    const end = passage.verseEnd ?? passage.verseStart ?? 999;
+    return (
+      await db.query(
+        `SELECT * FROM knowledge_proposals
+         WHERE proposal_kind='passage-relation' AND review_status='accepted'
+           AND json_extract(payload_json,'$.passage.bookId')=?
+           AND json_extract(payload_json,'$.passage.chapter')=?
+           AND json_extract(payload_json,'$.passage.versificationSchemeId')=?
+           AND (
+             json_extract(payload_json,'$.passage.verseStart') IS NULL OR
+             (
+               json_extract(payload_json,'$.passage.verseStart') <= ? AND
+               coalesce(
+                 json_extract(payload_json,'$.passage.verseEnd'),
+                 json_extract(payload_json,'$.passage.verseStart')
+               ) >= ?
+             )
+           )
+         ORDER BY updated_at DESC,id LIMIT 200`,
+        [passage.bookId, passage.chapter, passageRefScheme(passage), end, start],
+      )
+    ).map(mapProposal);
+  },
+
+  async listAcceptedProposalsForUnits(
+    unitIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    if (!unitIds.length) return [];
+    const db = database ?? (await getWorkspaceDatabase());
+    const result: KnowledgeProposal[] = [];
+    for (const batch of chunks([...new Set(unitIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      result.push(
+        ...(
+          await db.query(
+            `SELECT * FROM knowledge_proposals
+             WHERE review_status='accepted' AND semantic_unit_id IN (${placeholders})
+             ORDER BY semantic_unit_id,proposal_kind,id`,
+            batch,
+          )
+        ).map(mapProposal),
+      );
+    }
+    return result;
   },
 
   async reviewProposal(

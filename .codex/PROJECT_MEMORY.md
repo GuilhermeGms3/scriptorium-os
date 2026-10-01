@@ -1,5 +1,23 @@
 # Project Memory
 
+## Passage aggregation and editorial gate (2026-10-01)
+
+- Workspace schema 12 keys local translations by provider model revision and expands controlled
+  semantic domains for social/political history, tradition, soteriology, eschatology and religious
+  currents.
+- Accepted private-book passage relations now resolve to their citeable semantic unit, sibling
+  accepted proposals, physical pages and optional local translation in Passage Inspector. This is
+  a private overlay; curated knowledge remains read-only and separate.
+- Passage Inspector exposes an honest 15-area coverage matrix. Pending links do not count as
+  coverage.
+- The deterministic resolver supports full pt/en references, same-chapter continuations and
+  context-bound relative verses; exact per-chapter verse counts remain future work.
+- Accepted English units can be translated in batch, without tokenizer truncation, and translations
+  have an explicit human-review action.
+- Claims and arguments can declare an interpretive perspective. Editorial staging always has
+  `publicationAllowed: false` and blocks private rights, missing passage or missing evidence before
+  any future curated import.
+
 ## Book Decomposition Pipeline v1 (2026-10-01)
 
 - Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,

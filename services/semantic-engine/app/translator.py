@@ -18,6 +18,9 @@ class TranslationResult:
 
 
 class TranslationBackend(Protocol):
+    model_name: str
+    model_revision: str | None
+
     def translate(self, text: str, source_language: str, target_language: str) -> TranslationResult: ...
 
 
@@ -44,6 +47,28 @@ def split_text(text: str, maximum_characters: int = 1_500) -> list[str]:
                 chunks.append(chunk)
             cursor = max(end, cursor + 1)
     return chunks
+
+
+def split_to_token_limit(text: str, tokenizer: object, maximum_tokens: int = 480) -> list[str]:
+    """Divide novamente quando a tokenização excede a janela, sem truncar conteúdo."""
+    pending = split_text(text, maximum_characters=1_200)
+    result: list[str] = []
+    while pending:
+        chunk = pending.pop(0)
+        encoded = tokenizer(chunk, add_special_tokens=True, truncation=False)  # type: ignore[operator]
+        input_ids = encoded["input_ids"]
+        token_count = len(input_ids[0]) if input_ids and isinstance(input_ids[0], list) else len(input_ids)
+        if token_count <= maximum_tokens:
+            result.append(chunk)
+            continue
+        midpoint = len(chunk) // 2
+        left_boundary = chunk.rfind(" ", 0, midpoint)
+        right_boundary = chunk.find(" ", midpoint)
+        boundary = left_boundary if left_boundary > len(chunk) // 3 else right_boundary
+        if boundary <= 0 or boundary >= len(chunk):
+            raise ValueError("Um trecho não pôde ser dividido sem truncamento de tokens.")
+        pending[:0] = [chunk[:boundary].strip(), chunk[boundary:].strip()]
+    return result
 
 
 class MarianTranslationBackend:
@@ -79,14 +104,14 @@ class MarianTranslationBackend:
             raise ValueError("Este backend aceita somente português como destino.")
         tokenizer, model = self._load()
         translations: list[str] = []
-        for chunk in split_text(text):
-            encoded = tokenizer(chunk, return_tensors="pt", truncation=True, max_length=512)
+        for chunk in split_to_token_limit(text, tokenizer):
+            encoded = tokenizer(chunk, return_tensors="pt", truncation=False)
             generated = model.generate(**encoded, max_new_tokens=768, num_beams=4)
             translations.append(tokenizer.decode(generated[0], skip_special_tokens=True).strip())
         return TranslationResult(
             translated_text="\n\n".join(translations),
             provider="transformers-local",
             model=self.model_name,
-            model_revision=self.model_revision,
+            model_revision=self.model_revision or "main",
         )
 

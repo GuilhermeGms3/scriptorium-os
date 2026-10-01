@@ -72,12 +72,14 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     proposition: z.string().min(1),
     claimKind: z.enum(CLAIM_KINDS),
     qualifiers: z.array(z.string().min(1)).default([]),
+    perspectiveProfileIds: z.array(z.string().min(1)).default([]),
   }),
   z.object({
     kind: z.literal("argument"),
     conclusion: z.string().min(1),
     premises: z.array(z.string().min(1)).min(1),
     marker: z.string().min(1),
+    perspectiveProfileIds: z.array(z.string().min(1)).default([]),
   }),
   z.object({
     kind: z.literal("citation"),
@@ -167,4 +169,24 @@ export interface DocumentKnowledgeExport {
   structure: DocumentNode[];
   evidenceUnits: SemanticUnit[];
   proposals: KnowledgeProposal[];
+}
+
+export interface EditorialReadinessIssue {
+  code:
+    | "private-rights"
+    | "missing-passage"
+    | "missing-evidence"
+    | "missing-perspective"
+    | "machine-translation";
+  severity: "blocker" | "warning";
+  message: string;
+}
+
+export interface EditorialKnowledgeExport extends Omit<DocumentKnowledgeExport, "format"> {
+  format: "scriptorium-editorial-staging-v1";
+  publicationAllowed: false;
+  readiness: {
+    status: "blocked" | "needs-review";
+    issues: EditorialReadinessIssue[];
+  };
 }

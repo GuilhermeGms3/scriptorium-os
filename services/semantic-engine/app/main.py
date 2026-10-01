@@ -27,6 +27,14 @@ class TranslationResponse(BaseModel):
     model_revision: str | None = Field(default=None, alias="modelRevision")
 
 
+class ModelInfoResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
+    provider: str
+    model: str
+    model_revision: str = Field(alias="modelRevision")
+
+
 @lru_cache(maxsize=1)
 def backend() -> TranslationBackend:
     return MarianTranslationBackend()
@@ -49,6 +57,15 @@ app.add_middleware(
 @app.get("/health")
 def health() -> dict[str, str]:
     return {"status": "ok"}
+
+
+@app.get("/v1/info", response_model=ModelInfoResponse)
+def model_info(translation_backend: TranslationBackend = Depends(backend)) -> ModelInfoResponse:
+    return ModelInfoResponse(
+        provider="transformers-local",
+        model=translation_backend.model_name,
+        modelRevision=translation_backend.model_revision or "main",
+    )
 
 
 @app.post("/v1/translate", response_model=TranslationResponse)

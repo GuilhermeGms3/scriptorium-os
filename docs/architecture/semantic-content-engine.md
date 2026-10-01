@@ -54,6 +54,32 @@ A exportação `scriptorium-private-knowledge-export-v1` contém somente a estru
 aceitas, permanece marcada como `localOnly` e `requiresRightsReview`, e não é importada
 automaticamente em `content/packs` nem em `public/knowledge`.
 
+### Ponte livro → passagem
+
+Uma relação bíblica aceita não é mais somente um marcador isolado. O
+`WorkspacePassageKnowledgeService` resolve a relação para sua unidade citável, reúne as demais
+propostas aceitas da mesma unidade, a tradução local disponível e as páginas físicas. O Passage
+Inspector apresenta essa camada como **conhecimento privado**, separada do snapshot curado e sem
+copiar o texto do livro para o banco público.
+
+O resolvedor aceita referências completas em português/inglês, continuação compacta no mesmo
+capítulo (`João 1:1, 3-5`) e referências relativas (`vv. 3-5`) quando existe contexto bíblico
+explícito. Ele valida capítulo por livro e limites estruturais básicos; não substitui um índice
+canônico exato de quantidade de versículos por capítulo.
+
+### Cobertura e promoção editorial
+
+Cada passagem expõe uma matriz que distingue conteúdo curado, conteúdo privado aceito e lacuna em
+15 áreas: texto, crítica textual, linguística, exegese, hermenêutica, contexto histórico, política,
+arqueologia, geografia, tradição, teologia, soteriologia, escatologia, recepção e correntes
+religiosas. Ausência permanece `missing`; uma simples proposta pendente não conta como cobertura.
+
+Claims e argumentos podem receber um perfil de perspectiva durante a revisão. O pacote
+`scriptorium-editorial-staging-v1` é somente uma pré-promoção: `publicationAllowed` é sempre falso.
+Ele bloqueia material privado sem decisão documentada de direitos ou sem vínculo/evidência e avisa
+sobre perspectivas ausentes e traduções não revisadas. Não existe escrita automática em
+`public/knowledge`.
+
 ## Persistência
 
 A migration 010 acrescenta:
@@ -71,15 +97,20 @@ A migration 011 acrescenta:
 - `semantic_units` e `semantic_unit_spans`: unidades citáveis e suas âncoras físicas;
 - `knowledge_proposals`: candidatos tipados, editáveis e revisáveis.
 
+A migration 012 fixa a revisão do modelo na identidade do cache de tradução e amplia o vocabulário
+de domínios para história social/política, tradição, soteriologia, escatologia e correntes
+religiosas.
+
 O texto do segmento não é duplicado: ele é reconstruído pelos offsets da página privada. Exclusão
 do documento remove os derivados por foreign keys. Reindexação apaga somente os derivados daquele
 documento e recomeça dentro do mesmo workspace local.
 
 ## Domínios controlados
 
-Exegese, hermenêutica, teologia, contexto histórico, arqueologia, geografia, crítica textual,
-linguística, patrística, liturgia, filosofia da religião, ciência e `other`. Esses rótulos organizam
-material; não afirmam autoria, qualidade acadêmica ou concordância com uma tradição.
+Exegese, hermenêutica, teologia, contexto e história social/política, arqueologia, geografia,
+crítica textual, linguística, patrística, liturgia, tradição, soteriologia, escatologia, correntes
+religiosas, filosofia da religião, ciência e `other`. Esses rótulos organizam material; não afirmam
+autoria, qualidade acadêmica ou concordância com uma tradição.
 
 ## Repertórios avaliados
 
@@ -101,4 +132,5 @@ material; não afirmam autoria, qualidade acadêmica ou concordância com uma tr
 2. acrescentar analisadores locais opcionais sob o mesmo contrato de propostas;
 3. OCR/EPUB local;
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
-5. promoção editorial assistida para `Claim`/`Evidence`/`Argument`, sempre fora do fluxo automático.
+5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
+   separada, com decisão de direitos registrada e revisão de dois passos.

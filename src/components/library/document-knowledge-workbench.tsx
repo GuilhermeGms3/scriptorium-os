@@ -2,21 +2,28 @@ import {
   Check,
   Download,
   FileText,
+  Languages,
   ListTree,
   LoaderCircle,
   Network,
+  ShieldCheck,
   Sparkles,
   X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { DocumentKnowledgePipelineService } from "../../lib/application/document-knowledge-pipeline-service";
+import { EditorialPromotionService } from "../../lib/application/editorial-promotion-service";
+import { PrivateDocumentTranslationService } from "../../lib/application/private-document-translation-service";
+import { PERSPECTIVE_PRESETS } from "../../lib/content/perspective-presets";
 import type {
   DocumentKnowledgeAggregate,
   DocumentKnowledgeIndexSummary,
   DocumentNode,
+  EditorialReadinessIssue,
   KnowledgeProposal,
   KnowledgeProposalPayload,
 } from "../../lib/domain/document-knowledge";
+import type { LocalTranslation } from "../../lib/domain/semantic-content";
 import { DocumentKnowledgeRepository } from "../../lib/repositories/document-knowledge-repository";
 
 type Tab = "structure" | "proposals" | "aggregate";
@@ -70,9 +77,11 @@ function nodeDepth(node: DocumentNode, byId: Map<string, DocumentNode>): number 
 
 export function DocumentKnowledgeWorkbench({
   documentId,
+  documentLanguage,
   onNavigatePage,
 }: {
   documentId: string;
+  documentLanguage?: string;
   onNavigatePage: (pageIndex: number) => void;
 }) {
   const [tab, setTab] = useState<Tab>("structure");
@@ -83,6 +92,11 @@ export function DocumentKnowledgeWorkbench({
   const [progress, setProgress] = useState<string>();
   const [error, setError] = useState<string>();
   const [edits, setEdits] = useState<Record<string, string>>({});
+  const [perspectiveEdits, setPerspectiveEdits] = useState<Record<string, string>>({});
+  const [translations, setTranslations] = useState<LocalTranslation[]>([]);
+  const [translationEdits, setTranslationEdits] = useState<Record<string, string>>({});
+  const [translationProgress, setTranslationProgress] = useState<string>();
+  const [editorialIssues, setEditorialIssues] = useState<EditorialReadinessIssue[]>();
   const [reviewing, setReviewing] = useState<string>();
 
   const refresh = useCallback(async () => {
@@ -94,14 +108,16 @@ export function DocumentKnowledgeWorkbench({
       setAggregate(undefined);
       return;
     }
-    const [nextNodes, nextProposals, nextAggregate] = await Promise.all([
+    const [nextNodes, nextProposals, nextAggregate, nextTranslations] = await Promise.all([
       DocumentKnowledgeRepository.listNodes(documentId),
       DocumentKnowledgeRepository.listProposals(documentId),
       DocumentKnowledgeRepository.aggregate(documentId),
+      PrivateDocumentTranslationService.listAccepted(documentId),
     ]);
     setNodes(nextNodes);
     setProposals(nextProposals);
     setAggregate(nextAggregate);
+    setTranslations(nextTranslations);
   }, [documentId]);
 
   useEffect(() => {
@@ -137,8 +153,21 @@ export function DocumentKnowledgeWorkbench({
     setError(undefined);
     try {
       let payload: KnowledgeProposalPayload | undefined;
-      if (proposal.payload.kind === "claim" && edits[proposal.id]?.trim())
-        payload = { ...proposal.payload, proposition: edits[proposal.id]!.trim() };
+      if (proposal.payload.kind === "claim")
+        payload = {
+          ...proposal.payload,
+          proposition: edits[proposal.id]?.trim() || proposal.payload.proposition,
+          perspectiveProfileIds: perspectiveEdits[proposal.id]
+            ? [perspectiveEdits[proposal.id]!]
+            : proposal.payload.perspectiveProfileIds,
+        };
+      if (proposal.payload.kind === "argument")
+        payload = {
+          ...proposal.payload,
+          perspectiveProfileIds: perspectiveEdits[proposal.id]
+            ? [perspectiveEdits[proposal.id]!]
+            : proposal.payload.perspectiveProfileIds,
+        };
       await DocumentKnowledgeRepository.reviewProposal(
         proposal.id,
         status,
@@ -149,6 +178,52 @@ export function DocumentKnowledgeWorkbench({
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setReviewing(undefined);
+    }
+  };
+
+  const translateAccepted = async () => {
+    setError(undefined);
+    setTranslationProgress("Preparando tradução local…");
+    try {
+      await PrivateDocumentTranslationService.translateAccepted(documentId, (item) =>
+        setTranslationProgress(`Traduzindo ${item.completed}/${item.total} unidades aceitas…`),
+      );
+      await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    } finally {
+      setTranslationProgress(undefined);
+    }
+  };
+
+  const reviewTranslation = async (translation: LocalTranslation) => {
+    setError(undefined);
+    try {
+      await PrivateDocumentTranslationService.review(
+        translation.id,
+        translationEdits[translation.id] ?? translation.translatedText,
+      );
+      await refresh();
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
+    }
+  };
+
+  const prepareEditorial = async () => {
+    setError(undefined);
+    try {
+      const value = await EditorialPromotionService.prepare(documentId);
+      setEditorialIssues(value.readiness.issues);
+      const url = URL.createObjectURL(
+        new Blob([JSON.stringify(value, null, 2)], { type: "application/json" }),
+      );
+      const anchor = window.document.createElement("a");
+      anchor.href = url;
+      anchor.download = `scriptorium-editorial-staging-${documentId.replace(/[^a-z0-9-]+/gi, "-")}.json`;
+      anchor.click();
+      URL.revokeObjectURL(url);
+    } catch (cause) {
+      setError(cause instanceof Error ? cause.message : String(cause));
     }
   };
 
@@ -283,6 +358,33 @@ export function DocumentKnowledgeWorkbench({
                     ) : (
                       <p className="mt-1.5 text-xs leading-relaxed">{proposalText(proposal)}</p>
                     )}
+                    {(proposal.payload.kind === "claim" ||
+                      proposal.payload.kind === "argument") && (
+                      <label className="mt-2 block text-[10px] text-muted-foreground">
+                        Perspectiva interpretativa
+                        <select
+                          value={
+                            perspectiveEdits[proposal.id] ??
+                            proposal.payload.perspectiveProfileIds[0] ??
+                            ""
+                          }
+                          onChange={(event) =>
+                            setPerspectiveEdits((current) => ({
+                              ...current,
+                              [proposal.id]: event.target.value,
+                            }))
+                          }
+                          className="mt-1 min-h-8 w-full rounded border border-input bg-background px-2 text-xs text-foreground"
+                        >
+                          <option value="">Não atribuída</option>
+                          {PERSPECTIVE_PRESETS.map((perspective) => (
+                            <option key={perspective.id} value={perspective.id}>
+                              {perspective.label}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                    )}
                     {proposal.reviewStatus === "machine-proposed" && (
                       <div className="mt-2 flex gap-1">
                         <button
@@ -303,6 +405,18 @@ export function DocumentKnowledgeWorkbench({
                         </button>
                       </div>
                     )}
+                    {proposal.reviewStatus === "accepted" &&
+                      (proposal.payload.kind === "claim" || proposal.payload.kind === "argument") &&
+                      perspectiveEdits[proposal.id] !== undefined && (
+                        <button
+                          type="button"
+                          disabled={reviewing === proposal.id}
+                          onClick={() => void review(proposal, "accepted")}
+                          className="mt-2 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                        >
+                          <Check className="size-3" /> Atualizar perspectiva
+                        </button>
+                      )}
                   </article>
                 ))
               )}
@@ -353,8 +467,74 @@ export function DocumentKnowledgeWorkbench({
               >
                 <Download className="size-3" /> Exportar seleção editorial
               </button>
+              {/^(?:en)(?:-|$)/iu.test(documentLanguage ?? "") && (
+                <div className="rounded border border-border p-2">
+                  <div className="flex items-center justify-between gap-2">
+                    <p className="text-xs font-medium">Tradução das unidades aceitas</p>
+                    <button
+                      type="button"
+                      onClick={() => void translateAccepted()}
+                      disabled={Boolean(translationProgress)}
+                      className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                    >
+                      {translationProgress ? (
+                        <LoaderCircle className="size-3 animate-spin" />
+                      ) : (
+                        <Languages className="size-3" />
+                      )}
+                      Traduzir aceitas
+                    </button>
+                  </div>
+                  {translationProgress && (
+                    <p className="mt-1 text-[10px] text-muted-foreground">{translationProgress}</p>
+                  )}
+                  <div className="mt-2 space-y-2">
+                    {translations.slice(0, 30).map((translation) => (
+                      <div key={translation.id} className="border-l border-border pl-2">
+                        <textarea
+                          aria-label="Revisar tradução da unidade"
+                          value={translationEdits[translation.id] ?? translation.translatedText}
+                          onChange={(event) =>
+                            setTranslationEdits((current) => ({
+                              ...current,
+                              [translation.id]: event.target.value,
+                            }))
+                          }
+                          className="min-h-20 w-full resize-y rounded border border-input bg-background p-1.5 text-xs"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => void reviewTranslation(translation)}
+                          className="mt-1 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                        >
+                          <Check className="size-3" /> Marcar revisão humana
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              <button
+                type="button"
+                onClick={() => void prepareEditorial()}
+                disabled={!aggregate.acceptedCount}
+                className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+              >
+                <ShieldCheck className="size-3" /> Preparar pacote de promoção
+              </button>
+              {editorialIssues && (
+                <ul className="space-y-1 rounded border border-border p-2 text-[10px]">
+                  {editorialIssues.map((issue) => (
+                    <li key={issue.code}>
+                      <strong>{issue.severity === "blocker" ? "Bloqueio" : "Revisão"}:</strong>{" "}
+                      {issue.message}
+                    </li>
+                  ))}
+                </ul>
+              )}
               <p className="text-[10px] leading-relaxed text-muted-foreground">
-                Exportação privada. Publicação exige revisão de direitos e proveniência.
+                O pacote é apenas de staging: nunca publica automaticamente e sempre bloqueia a
+                promoção de material privado até a decisão explícita de direitos.
               </p>
             </div>
           )}

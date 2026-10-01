@@ -8,6 +8,9 @@ import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import { knowledgeLabel } from "../../lib/content/knowledge-presentation";
 import type { ResearchQuestion } from "../../lib/domain/research";
 import type { SemanticPassageLink } from "../../lib/domain/semantic-content";
+import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
+import { COVERAGE_LABELS } from "../../lib/domain/workspace-passage-knowledge";
+import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
 import { passageRefsOverlap } from "../../lib/domain/scripture";
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import { SemanticContentRepository } from "../../lib/repositories/semantic-content-repository";
@@ -120,6 +123,8 @@ export function PassageInspector() {
   const { passageContext } = useWorkbench();
   const [researchQuestions, setResearchQuestions] = useState<ResearchQuestion[]>([]);
   const [semanticSources, setSemanticSources] = useState<SemanticPassageLink[]>([]);
+  const [workspaceKnowledge, setWorkspaceKnowledge] =
+    useState<WorkspacePassageKnowledgeLayer | null>(null);
   useEffect(() => {
     let active = true;
     if (!passageContext) {
@@ -155,6 +160,25 @@ export function PassageInspector() {
         ),
       );
     });
+    return () => {
+      active = false;
+    };
+  }, [passageContext]);
+  useEffect(() => {
+    let active = true;
+    if (!passageContext) {
+      setWorkspaceKnowledge(null);
+      return;
+    }
+    const curated = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref);
+    void WorkspacePassageKnowledgeService.load(passageContext.ref, curated).then(
+      (layer) => {
+        if (active) setWorkspaceKnowledge(layer);
+      },
+      () => {
+        if (active) setWorkspaceKnowledge(null);
+      },
+    );
     return () => {
       active = false;
     };
@@ -269,6 +293,40 @@ export function PassageInspector() {
               <h3 className="meta-label">Leituras por perspectiva</h3>
               <PassageViewpoints bundle={bundle} />
             </section>
+            {workspaceKnowledge && (
+              <section>
+                <h3 className="meta-label">Cobertura desta passagem</h3>
+                <ul className="mt-2 grid grid-cols-2 gap-1.5">
+                  {workspaceKnowledge.coverage.map((entry) => (
+                    <li
+                      key={entry.area}
+                      className="flex min-h-8 items-center justify-between gap-2 rounded border border-border px-2 text-[10px]"
+                    >
+                      <span>{COVERAGE_LABELS[entry.area]}</span>
+                      <span
+                        className={`font-mono uppercase ${
+                          entry.status === "available"
+                            ? "text-emerald-700 dark:text-emerald-400"
+                            : entry.status === "private"
+                              ? "text-primary"
+                              : entry.status === "in-review"
+                                ? "text-amber-700 dark:text-amber-400"
+                                : "text-muted-foreground"
+                        }`}
+                      >
+                        {entry.status === "available"
+                          ? "curado"
+                          : entry.status === "private"
+                            ? `privado ${entry.sourceCount}`
+                            : entry.status === "in-review"
+                              ? "revisão"
+                              : "sem fonte"}
+                      </span>
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
             <section>
               <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
               <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -431,6 +489,56 @@ export function PassageInspector() {
                         </a>
                       </li>
                     ))}
+                  </ul>
+                </section>
+              )}
+              {workspaceKnowledge && workspaceKnowledge.items.length > 0 && (
+                <section>
+                  <p className="meta-label">Conhecimento aceito dos livros privados</p>
+                  <ul className="mt-2 space-y-3">
+                    {workspaceKnowledge.items.map((item) => {
+                      const claims = item.proposals.filter(
+                        (proposal) => proposal.payload.kind === "claim",
+                      );
+                      const topics = item.proposals.flatMap((proposal) =>
+                        proposal.payload.kind === "topic-assignment"
+                          ? [proposal.payload.domain]
+                          : [],
+                      );
+                      return (
+                        <li key={item.id} className="rounded border border-border bg-muted/30 p-3">
+                          <p className="text-xs font-medium">{item.document.title}</p>
+                          <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                            {item.passageRelation.payload.rawReference} · páginas{" "}
+                            {item.pages.map((page) => page + 1).join(", ")}
+                          </p>
+                          {claims.map((proposal) =>
+                            proposal.payload.kind === "claim" ? (
+                              <p
+                                key={proposal.id}
+                                className="mt-2 border-l-2 border-primary/40 pl-2 text-xs leading-relaxed"
+                              >
+                                {proposal.payload.proposition}
+                              </p>
+                            ) : null,
+                          )}
+                          <p className="mt-2 line-clamp-5 text-xs leading-relaxed text-muted-foreground">
+                            {item.translation?.translatedText ?? item.unit.text}
+                          </p>
+                          {topics.length > 0 && (
+                            <p className="mt-2 font-mono text-[9px] text-muted-foreground uppercase">
+                              {topics.join(" · ")}
+                            </p>
+                          )}
+                          <a
+                            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
+                            className="mt-2 inline-block text-[10px] underline underline-offset-2"
+                          >
+                            Abrir evidência local
+                          </a>
+                        </li>
+                      );
+                    })}
                   </ul>
                 </section>
               )}

@@ -7,12 +7,15 @@ import {
 import { SourceImportService } from "../application/source-import-service";
 import { SemanticDocumentIndexingService } from "../application/semantic-document-indexing-service";
 import { DocumentKnowledgePipelineService } from "../application/document-knowledge-pipeline-service";
+import { EditorialPromotionService } from "../application/editorial-promotion-service";
 import { LocalTranslationService } from "../application/local-translation-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
+import { WorkspacePassageKnowledgeService } from "../application/workspace-passage-knowledge-service";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { SemanticContentRepository } from "../repositories/semantic-content-repository";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
+import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -219,6 +222,7 @@ describe("Phase 9.5 workspace schema", () => {
         payload: {
           ...claim.payload,
           proposition: "Afirmação revisada pelo pesquisador.",
+          perspectiveProfileIds: ["historical-critical"],
         },
       },
       workspace,
@@ -247,21 +251,54 @@ describe("Phase 9.5 workspace schema", () => {
     expect(exported.proposals).toHaveLength(1);
     expect(exported.evidenceUnits).toHaveLength(1);
     expect(exported.evidenceUnits[0]?.spans.length).toBeGreaterThanOrEqual(1);
+    const passageRelation = proposals.find(
+      (proposal) => proposal.proposalKind === "passage-relation",
+    );
+    expect(passageRelation).toBeTruthy();
+    if (!passageRelation) throw new Error("Passage relation proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(passageRelation.id, "accepted", {}, workspace);
+    const passageLayer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "john", chapter: 1, verseStart: 1 },
+      null,
+      workspace,
+    );
+    expect(passageLayer.items).toHaveLength(1);
+    expect(passageLayer.items[0]).toMatchObject({
+      document: { title: "Livro desmontável" },
+    });
+    const editorial = await EditorialPromotionService.prepare(imported.document.id, workspace);
+    expect(editorial).toMatchObject({
+      format: "scriptorium-editorial-staging-v1",
+      publicationAllowed: false,
+      readiness: { status: "blocked" },
+    });
+    expect(editorial.readiness.issues.map((issue) => issue.code)).toContain("private-rights");
+    expect(editorial.readiness.issues.map((issue) => issue.code)).not.toContain("missing-passage");
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
   it("caches local translations by source checksum without replacing the original", async () => {
     const db = database();
     const workspace = adapter(db);
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input).endsWith("/v1/info"))
+        return new Response(
+          JSON.stringify({
+            provider: "test-local",
+            model: "fixture-en-pt",
+            modelRevision: "fixture-revision",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      return new Response(
         JSON.stringify({
           translatedText: "No princípio era a Palavra.",
           provider: "test-local",
           model: "fixture-en-pt",
+          modelRevision: "fixture-revision",
         }),
         { status: 200, headers: { "content-type": "application/json" } },
-      ),
-    );
+      );
+    });
     const request = {
       sourceKind: "primary-text-unit" as const,
       sourceId: "unit:fixture:1",
@@ -272,8 +309,28 @@ describe("Phase 9.5 workspace schema", () => {
     const second = await LocalTranslationService.translate(request, workspace);
     expect(first.translatedText).toBe("No princípio era a Palavra.");
     expect(second.id).toBe(first.id);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(request.text).toBe("In the beginning was the Word.");
+    await LocalTranslationRepository.review(first.id, "No princípio existia a Palavra.", workspace);
+    await LocalTranslationRepository.save(
+      {
+        ...first,
+        translatedText: "Machine retry must not replace review.",
+        reviewStatus: "machine-generated",
+        updatedAt: new Date().toISOString(),
+      },
+      workspace,
+    );
+    const reviewed = await LocalTranslationRepository.listForSources(
+      "primary-text-unit",
+      [request.sourceId],
+      workspace,
+    );
+    expect(reviewed[0]).toMatchObject({
+      translatedText: "No princípio existia a Palavra.",
+      reviewStatus: "human-reviewed",
+      modelRevision: "fixture-revision",
+    });
   });
   it("removes the known localStorage DEMO chain from an already-upgraded workspace", () => {
     const db = database();

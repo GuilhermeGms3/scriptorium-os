@@ -1,0 +1,15 @@
+export const PERSPECTIVE_PRESETS = [
+  { id: "historical-critical", label: "Histórico-crítica" },
+  { id: "jewish", label: "Judaica" },
+  { id: "patristic", label: "Patrística" },
+  { id: "catholic", label: "Católica" },
+  { id: "orthodox", label: "Ortodoxa" },
+  { id: "reformed", label: "Reformada" },
+  { id: "lutheran", label: "Luterana" },
+  { id: "wesleyan-arminian", label: "Wesleyana-arminiana" },
+  { id: "pentecostal", label: "Pentecostal" },
+  { id: "liberation", label: "Teologia da libertação" },
+  { id: "feminist", label: "Feminista" },
+  { id: "black-theology", label: "Teologia negra" },
+  { id: "postcolonial", label: "Pós-colonial" },
+] as const;

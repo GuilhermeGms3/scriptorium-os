@@ -117,6 +117,7 @@ function argumentPayload(sentence: string): KnowledgeProposalPayload | null {
     conclusion: conclusionFirst ? before : after,
     premises: [conclusionFirst ? after : before],
     marker: match[0],
+    perspectiveProfileIds: [],
   };
 }
 
@@ -188,6 +189,7 @@ async function proposalsForUnit(
           proposition: sentence,
           claimKind: "academic-hypothesis",
           qualifiers: [],
+          perspectiveProfileIds: [],
         },
         confidence: 0.55,
       });

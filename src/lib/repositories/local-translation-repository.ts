@@ -32,19 +32,74 @@ function mapTranslation(row: WorkspaceRow): LocalTranslation {
 
 export const LocalTranslationRepository = {
   async findCached(
-    key: Pick<LocalTranslation, "sourceKind" | "sourceId" | "targetLanguage" | "sourceChecksum">,
+    key: Pick<LocalTranslation, "sourceKind" | "sourceId" | "targetLanguage" | "sourceChecksum"> & {
+      model?: string;
+      modelRevision?: string;
+    },
     database?: WorkspaceDatabase,
   ): Promise<LocalTranslation | null> {
     const db = database ?? (await getWorkspaceDatabase());
+    const modelClause = key.model ? "AND model=?" : "";
+    const revisionClause = key.modelRevision ? "AND coalesce(model_revision,'main')=?" : "";
+    const bind = [
+      key.sourceKind,
+      key.sourceId,
+      key.targetLanguage,
+      key.sourceChecksum,
+      ...(key.model ? [key.model] : []),
+      ...(key.modelRevision ? [key.modelRevision] : []),
+    ];
     const row = (
       await db.query(
         `SELECT * FROM local_translations
          WHERE source_kind=? AND source_id=? AND target_language=? AND source_checksum=?
+           ${modelClause} ${revisionClause}
          ORDER BY updated_at DESC LIMIT 1`,
-        [key.sourceKind, key.sourceId, key.targetLanguage, key.sourceChecksum],
+        bind,
       )
     )[0];
     return row ? mapTranslation(row) : null;
+  },
+
+  async listForSources(
+    sourceKind: LocalTranslation["sourceKind"],
+    sourceIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<LocalTranslation[]> {
+    if (!sourceIds.length) return [];
+    const db = database ?? (await getWorkspaceDatabase());
+    const result: LocalTranslation[] = [];
+    const unique = [...new Set(sourceIds)];
+    for (let offset = 0; offset < unique.length; offset += 400) {
+      const batch = unique.slice(offset, offset + 400);
+      const placeholders = batch.map(() => "?").join(",");
+      result.push(
+        ...(
+          await db.query(
+            `SELECT * FROM local_translations
+             WHERE source_kind=? AND source_id IN (${placeholders})
+             ORDER BY source_id,updated_at DESC`,
+            [sourceKind, ...batch],
+          )
+        ).map(mapTranslation),
+      );
+    }
+    const newestBySource = new Map<string, LocalTranslation>();
+    for (const translation of result)
+      if (!newestBySource.has(translation.sourceId))
+        newestBySource.set(translation.sourceId, translation);
+    return [...newestBySource.values()];
+  },
+
+  async review(id: string, translatedText: string, database?: WorkspaceDatabase): Promise<void> {
+    const normalized = translatedText.normalize("NFC").trim();
+    if (!normalized) throw new Error("A tradução revisada não pode ficar vazia.");
+    const db = database ?? (await getWorkspaceDatabase());
+    await db.execute(
+      `UPDATE local_translations
+       SET translated_text=?,review_status='human-reviewed',updated_at=? WHERE id=?`,
+      [normalized, new Date().toISOString(), id],
+    );
   },
 
   async save(translation: LocalTranslation, database?: WorkspaceDatabase): Promise<void> {
@@ -55,9 +110,15 @@ export const LocalTranslationRepository = {
         id,source_kind,source_id,source_language,target_language,source_checksum,translated_text,
         provider,model,model_revision,review_status,created_at,updated_at
       ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?)
-      ON CONFLICT(source_kind,source_id,target_language,source_checksum,model) DO UPDATE SET
-        translated_text=excluded.translated_text,provider=excluded.provider,
-        model_revision=excluded.model_revision,review_status=excluded.review_status,
+      ON CONFLICT(source_kind,source_id,target_language,source_checksum,model,model_revision) DO UPDATE SET
+        translated_text=CASE
+          WHEN local_translations.review_status='human-reviewed'
+          THEN local_translations.translated_text ELSE excluded.translated_text END,
+        provider=excluded.provider,
+        model_revision=excluded.model_revision,
+        review_status=CASE
+          WHEN local_translations.review_status='human-reviewed'
+          THEN local_translations.review_status ELSE excluded.review_status END,
         updated_at=excluded.updated_at`,
       [
         value.id,
@@ -69,7 +130,7 @@ export const LocalTranslationRepository = {
         value.translatedText,
         value.provider,
         value.model,
-        value.modelRevision ?? null,
+        value.modelRevision ?? "main",
         value.reviewStatus,
         value.createdAt,
         value.updatedAt,

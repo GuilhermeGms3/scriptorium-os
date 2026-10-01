@@ -31,12 +31,18 @@ const SEMANTIC_DOMAIN_LABELS: Readonly<Record<string, string>> = {
   hermeneutics: "Hermenêutica",
   theology: "Teologia",
   "historical-context": "Contexto histórico",
+  "social-history": "História social",
+  "political-history": "História política",
   archaeology: "Arqueologia",
   geography: "Geografia",
   "textual-criticism": "Crítica textual",
   linguistics: "Linguística",
   patristics: "Patrística",
   liturgy: "Liturgia",
+  tradition: "Tradição",
+  soteriology: "Soteriologia",
+  eschatology: "Escatologia",
+  "religious-currents": "Correntes religiosas",
   "philosophy-of-religion": "Filosofia da religião",
   science: "Ciência",
   other: "Outro",
@@ -319,7 +325,11 @@ function PrivateDocumentReaderPage() {
               </div>
             )}
           </section>
-          <DocumentKnowledgeWorkbench documentId={document.id} onNavigatePage={setPageIndex} />
+          <DocumentKnowledgeWorkbench
+            documentId={document.id}
+            {...(document.language ? { documentLanguage: document.language } : {})}
+            onNavigatePage={setPageIndex}
+          />
         </aside>
         <main className="min-h-0 overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-8">
