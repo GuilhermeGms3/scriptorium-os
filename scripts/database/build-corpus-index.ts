@@ -707,7 +707,9 @@ function buildPackage(
   const outputPath = join(outputDirectory, `${sourceManifest.editionId}.sqlite3`);
   mkdirSync(dirname(outputPath), { recursive: true });
   removeDatabaseFiles(outputPath);
-  progress(`  ${sourceManifest.editionId}: base principal (${sourceManifest.books.length} livros)…`);
+  progress(
+    `  ${sourceManifest.editionId}: base principal (${sourceManifest.books.length} livros)…`,
+  );
   const database = new DatabaseSync(outputPath);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   database.exec("BEGIN IMMEDIATE");
@@ -982,8 +984,7 @@ const previousPackages = existsSync(previousRegistryPath)
   : [];
 const buildReport: { editionId: string; action: "reused" | "rebuilt" }[] = [];
 const sweptFiles = sweepInterruptedBuildFiles(outputDirectory);
-if (sweptFiles)
-  progress(`Removidos ${sweptFiles} ficheiros laterais de um build interrompido.`);
+if (sweptFiles) progress(`Removidos ${sweptFiles} ficheiros laterais de um build interrompido.`);
 const packages = definitions.map((definition, index) => {
   const generated = json<GeneratedCorpusManifest>(
     join(root, definition.generatedDirectory, "manifest.json"),
