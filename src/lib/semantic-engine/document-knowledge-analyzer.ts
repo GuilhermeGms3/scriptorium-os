@@ -14,6 +14,19 @@ export interface DocumentKnowledgeAnalysis {
   proposals: KnowledgeProposal[];
 }
 
+export interface DocumentKnowledgeAnalyzerCheckpoint {
+  nextNodeOrdinal: number;
+  nextUnitOrdinal: number;
+  processedCharacters: number;
+  currentPartId?: string;
+  currentChapterId?: string;
+  currentSectionId?: string;
+}
+
+export interface IncrementalDocumentKnowledgeAnalysis extends DocumentKnowledgeAnalysis {
+  checkpoint: DocumentKnowledgeAnalyzerCheckpoint;
+}
+
 export interface DocumentKnowledgeAnalyzer {
   readonly id: string;
   readonly version: string;
@@ -21,6 +34,11 @@ export interface DocumentKnowledgeAnalyzer {
     document: PrivateDocument,
     pages: readonly PrivateDocumentPage[],
   ): Promise<DocumentKnowledgeAnalysis>;
+  analyzeBatch?(
+    document: PrivateDocument,
+    pages: readonly PrivateDocumentPage[],
+    checkpoint?: DocumentKnowledgeAnalyzerCheckpoint,
+  ): Promise<IncrementalDocumentKnowledgeAnalysis>;
 }
 
 export const DETERMINISTIC_DOCUMENT_ANALYZER_ID = "deterministic-document-knowledge";
@@ -270,36 +288,45 @@ async function proposalsForUnit(
 async function analyzeDeterministically(
   document: PrivateDocument,
   pages: readonly PrivateDocumentPage[],
-): Promise<DocumentKnowledgeAnalysis> {
+  checkpoint?: DocumentKnowledgeAnalyzerCheckpoint,
+): Promise<IncrementalDocumentKnowledgeAnalysis> {
   const method = `${DETERMINISTIC_DOCUMENT_ANALYZER_ID}:${DETERMINISTIC_DOCUMENT_ANALYZER_VERSION}`;
   const rootId = `${document.id}:node:book`;
-  const nodes: DocumentNode[] = [
-    {
-      id: rootId,
-      documentId: document.id,
-      kind: "book",
-      title: document.title,
-      ordinal: 0,
-      pageStart: 0,
-      pageEnd: Math.max(0, document.pageCount - 1),
-      method,
-      confidence: 1,
-      reviewStatus: "accepted",
-    },
-  ];
+  const nodes: DocumentNode[] = checkpoint
+    ? []
+    : [
+        {
+          id: rootId,
+          documentId: document.id,
+          kind: "book",
+          title: document.title,
+          ordinal: 0,
+          pageStart: 0,
+          pageEnd: Math.max(0, document.pageCount - 1),
+          method,
+          confidence: 1,
+          reviewStatus: "accepted",
+        },
+      ];
   const units: UnitDraft[] = [];
-  let currentPartId: string | undefined;
-  let currentChapterId: string | undefined;
-  let currentSectionId: string | undefined;
+  let currentPartId = checkpoint?.currentPartId;
+  let currentChapterId = checkpoint?.currentChapterId;
+  let currentSectionId = checkpoint?.currentSectionId;
+  let nextNodeOrdinal = checkpoint?.nextNodeOrdinal ?? 1;
+  let nextUnitOrdinal = checkpoint?.nextUnitOrdinal ?? 0;
+  let processedCharacters = checkpoint?.processedCharacters ?? 0;
 
   for (const page of pages) {
+    processedCharacters += page.text.length;
     const bundles = page.text ? await analyzePrivateDocumentPage(document, page) : [];
     for (const bundle of bundles) {
       const kind = unitKind(bundle.segment.structuralKind, bundle.text);
       if (kind === "heading") {
         const title = normalizeTitle(bundle.text);
         const kindForNode = nodeKind(title);
-        const id = `${document.id}:node:${nodes.length}:${(await sha256(title)).slice(0, 12)}`;
+        const ordinal = nextNodeOrdinal;
+        const id = `${document.id}:node:${ordinal}:${(await sha256(title)).slice(0, 12)}`;
+        nextNodeOrdinal += 1;
         const parentId =
           kindForNode === "part" || kindForNode === "front-matter" || kindForNode === "back-matter"
             ? rootId
@@ -314,7 +341,7 @@ async function analyzeDeterministically(
           parentId,
           kind: kindForNode,
           title,
-          ordinal: nodes.length,
+          ordinal,
           pageStart: page.pageIndex,
           pageEnd: page.pageIndex,
           method,
@@ -362,13 +389,15 @@ async function analyzeDeterministically(
         continue;
       }
       const checksum = await sha256(bundle.text);
-      const id = `${document.id}:unit:${units.length + 1}:${checksum.slice(0, 12)}`;
+      const ordinal = nextUnitOrdinal;
+      const id = `${document.id}:unit:${ordinal + 1}:${checksum.slice(0, 12)}`;
+      nextUnitOrdinal += 1;
       units.push({
         id,
         documentId: document.id,
         documentNodeId: activeNodeId,
         kind,
-        ordinal: units.length,
+        ordinal,
         textChecksum: checksum,
         language: document.language ?? "und",
         method,
@@ -400,11 +429,26 @@ async function analyzeDeterministically(
     nodes,
     units: units.map(({ domains: _domains, passageLinks: _passageLinks, ...unit }) => unit),
     proposals,
+    checkpoint: {
+      nextNodeOrdinal,
+      nextUnitOrdinal,
+      processedCharacters,
+      ...(currentPartId ? { currentPartId } : {}),
+      ...(currentChapterId ? { currentChapterId } : {}),
+      ...(currentSectionId ? { currentSectionId } : {}),
+    },
   };
 }
 
 export const DeterministicDocumentKnowledgeAnalyzer: DocumentKnowledgeAnalyzer = {
   id: DETERMINISTIC_DOCUMENT_ANALYZER_ID,
   version: DETERMINISTIC_DOCUMENT_ANALYZER_VERSION,
-  analyze: analyzeDeterministically,
+  async analyze(document, pages) {
+    const { checkpoint: _checkpoint, ...analysis } = await analyzeDeterministically(
+      document,
+      pages,
+    );
+    return analysis;
+  },
+  analyzeBatch: analyzeDeterministically,
 };
