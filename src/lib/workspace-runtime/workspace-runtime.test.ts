@@ -2,6 +2,8 @@ import { DatabaseSync } from "node:sqlite";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+import { createHash } from "node:crypto";
+import { DeterministicDocumentKnowledgeAnalyzer, type DocumentKnowledgeAnalyzer } from "../semantic-engine/document-knowledge-analyzer";
 import {
   applyWorkspaceMigrations,
   WORKSPACE_SCHEMA_VERSION,
@@ -874,5 +876,87 @@ describe("structured citations", () => {
         reviewStatus: "draft",
       }).contentKind,
     ).toBe("paraphrase");
+  });
+});
+describe("document knowledge reviews across analyzer upgrades", () => {
+  it("keeps a human decision when an improved analyzer changes the proposal payload", async () => {
+    const workspace = adapter(database());
+    const { document } = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro revisado",
+        language: "pt-BR",
+        originalName: "livro-revisado.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 64,
+        checksum: "e".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "CAPÍTULO 1\n\nAgostinho afirma que o Verbo existe desde a eternidade, segundo Jo 1:1.",
+            itemCount: 5,
+          },
+        ],
+      },
+      "opfs:/livro-revisado.pdf",
+      workspace,
+    );
+    await DocumentKnowledgePipelineService.analyzeDocument(document.id, undefined, workspace);
+    const claim = (
+      await DocumentKnowledgeRepository.listProposals(document.id, {}, workspace)
+    ).find((proposal) => proposal.proposalKind === "claim");
+    if (!claim) throw new Error("Claim proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(
+      claim.id,
+      "accepted",
+      { note: "conferido" },
+      workspace,
+    );
+
+    // Simulates a new analyzer version whose claim payload differs (and so does its id).
+    const upgraded: DocumentKnowledgeAnalyzer = {
+      id: DeterministicDocumentKnowledgeAnalyzer.id,
+      version: "upgraded",
+      async analyze(source, pages) {
+        const analysis = await DeterministicDocumentKnowledgeAnalyzer.analyze(source, pages);
+        return {
+          ...analysis,
+          proposals: analysis.proposals.map((proposal) => {
+            if (proposal.payload.kind !== "claim") return proposal;
+            const payload = {
+              ...proposal.payload,
+              qualifiers: [...proposal.payload.qualifiers, "modalized"],
+            };
+            const fingerprint = createHash("sha256")
+              .update(JSON.stringify(payload))
+              .digest("hex")
+              .slice(0, 16);
+            const unit = proposal.semanticUnitId.split(":").at(-1);
+            return {
+              ...proposal,
+              id: `${source.id}:proposal:${unit}:claim:${fingerprint}`,
+              payload,
+            };
+          }),
+        };
+      },
+    };
+    const rerun = await DocumentKnowledgePipelineService.analyzeDocument(
+      document.id,
+      undefined,
+      workspace,
+      {
+        analyzer: upgraded,
+      },
+    );
+    expect(rerun.preservedReviewCount).toBe(1);
+    const proposals = await DocumentKnowledgeRepository.listProposals(document.id, {}, workspace);
+    expect(proposals.find((proposal) => proposal.id === claim.id)).toMatchObject({
+      reviewStatus: "accepted",
+      reviewNote: "conferido",
+    });
   });
 });

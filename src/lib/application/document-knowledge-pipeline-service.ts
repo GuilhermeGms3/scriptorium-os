@@ -87,6 +87,30 @@ function preserveReview(
     updatedAt: reviewed.updatedAt,
   };
 }
+/** Sufixo de checksum de texto de um ID de unidade (`…:unit:<ordinal>:<checksum12>`). */
+function unitChecksum(unitId: string): string {
+  return unitId.split(":").at(-1) ?? unitId;
+}
+
+/**
+Uma decisão humana deve persistir após uma atualização do analisador. Quando a nova análise deixa de emitir
+o ID de uma proposta revisada (seu conteúdo foi alterado: um qualificador corrigido, uma classificação melhor),
+a revisão é mantida e reassociada à unidade que ainda apresenta o mesmo checksum de texto.
+Revisões cujo texto não existe mais (a página foi reextraída de forma diferente) não podem ser reancoradas.
+ */
+function carryOverOrphanedReviews(
+  proposals: readonly KnowledgeProposal[],
+  units: readonly { id: string }[],
+  previous: Map<string, KnowledgeProposal>,
+): KnowledgeProposal[] {
+  const emitted = new Set(proposals.map((proposal) => proposal.id));
+  const unitByChecksum = new Map(units.map((unit) => [unitChecksum(unit.id), unit.id]));
+  return [...previous.values()].flatMap((reviewed) => {
+    if (reviewed.reviewStatus === "machine-proposed" || emitted.has(reviewed.id)) return [];
+    const unitId = unitByChecksum.get(unitChecksum(reviewed.semanticUnitId));
+    return unitId ? [{ ...reviewed, semanticUnitId: unitId }] : [];
+  });
+}
 
 async function allProposals(
   documentId: string,
@@ -171,7 +195,10 @@ export const DocumentKnowledgePipelineService = {
           database,
         );
       listener?.({ phase: "proposals", message: "Preparando propostas auditáveis…" });
-      const proposals = analysis.proposals.map((proposal) => preserveReview(proposal, previous));
+      const proposals = [
+        ...analysis.proposals.map((proposal) => preserveReview(proposal, previous)),
+        ...carryOverOrphanedReviews(analysis.proposals, analysis.units, previous),
+      ];
       const preservedReviewCount = proposals.filter(
         (proposal) => proposal.reviewStatus !== "machine-proposed",
       ).length;
