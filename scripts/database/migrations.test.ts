@@ -1,4 +1,12 @@
-import { existsSync, mkdirSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "node:fs";
+import {
+  existsSync,
+  mkdirSync,
+  mkdtempSync,
+  readFileSync,
+  readdirSync,
+  rmSync,
+  writeFileSync,
+} from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
@@ -39,6 +47,19 @@ describe("SQLite migrations", () => {
         .run(),
     ).toThrow();
     database.close();
+  });
+
+  it("produces byte-identical SQLite files for identical clean migration builds", () => {
+    const directory = mkdtempSync(join(tmpdir(), "scriptorium-deterministic-db-"));
+    temporaryDirectories.push(directory);
+    const paths = [join(directory, "first.sqlite3"), join(directory, "second.sqlite3")];
+    for (const path of paths) {
+      const database = new DatabaseSync(path);
+      applyMigrations(database, resolve("src/lib/corpus-runtime/migrations"));
+      database.exec("VACUUM");
+      database.close();
+    }
+    expect(readFileSync(paths[0]!)).toEqual(readFileSync(paths[1]!));
   });
 
   it("removes a database together with sidecar files left by an interrupted build", () => {

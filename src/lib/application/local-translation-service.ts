@@ -13,7 +13,12 @@ const TranslationResponseSchema = z.object({
 const TranslationModelInfoSchema = z.object({
   provider: z.string().min(1),
   model: z.string().min(1),
-  modelRevision: z.string().min(1),
+  modelRevision: z
+    .string()
+    .min(1)
+    .refine((value) => value !== "main", {
+      message: "O tradutor deve informar uma revisão imutável do modelo.",
+    }),
 });
 
 export interface LocalTranslationRequest {
@@ -22,6 +27,39 @@ export interface LocalTranslationRequest {
   sourceLanguage: string;
   targetLanguage?: string;
   text: string;
+}
+
+export interface LocalTranslationOptions {
+  signal?: AbortSignal;
+  infoTimeoutMs?: number;
+  translationTimeoutMs?: number;
+}
+
+function abortScope(
+  signal: AbortSignal | undefined,
+  timeoutMs: number,
+): {
+  signal: AbortSignal;
+  dispose: () => void;
+  timedOut: () => boolean;
+} {
+  const controller = new AbortController();
+  let timeoutReached = false;
+  const forwardAbort = () => controller.abort(signal?.reason);
+  signal?.addEventListener("abort", forwardAbort, { once: true });
+  if (signal?.aborted) forwardAbort();
+  const timeout = globalThis.setTimeout(() => {
+    timeoutReached = true;
+    controller.abort();
+  }, timeoutMs);
+  return {
+    signal: controller.signal,
+    dispose: () => {
+      globalThis.clearTimeout(timeout);
+      signal?.removeEventListener("abort", forwardAbort);
+    },
+    timedOut: () => timeoutReached,
+  };
 }
 
 async function sha256(value: string): Promise<string> {
@@ -57,6 +95,7 @@ export const LocalTranslationService = {
   async translate(
     request: LocalTranslationRequest,
     database?: WorkspaceDatabase,
+    options: LocalTranslationOptions = {},
   ): Promise<LocalTranslation> {
     const text = request.text.normalize("NFC").trim();
     if (!text) throw new Error("Não há texto para traduzir.");
@@ -74,26 +113,40 @@ export const LocalTranslationService = {
       database,
     );
 
-    const controller = new AbortController();
-    const timeout = globalThis.setTimeout(() => controller.abort(), 120_000);
-    let response: Response;
+    const infoScope = abortScope(options.signal, options.infoTimeoutMs ?? 30_000);
+    let info: z.infer<typeof TranslationModelInfoSchema>;
     try {
-      const infoResponse = await fetch(`${endpoint()}/v1/info`, { signal: controller.signal });
+      const infoResponse = await fetch(`${endpoint()}/v1/info`, { signal: infoScope.signal });
       if (!infoResponse.ok)
         throw new Error(`Identidade do tradutor indisponível (${infoResponse.status}).`);
-      const info = TranslationModelInfoSchema.parse(await infoResponse.json());
-      const exactCached = await LocalTranslationRepository.findCached(
-        {
-          sourceKind: request.sourceKind,
-          sourceId: request.sourceId,
-          targetLanguage,
-          sourceChecksum,
-          model: info.model,
-          modelRevision: info.modelRevision,
-        },
-        database,
-      );
-      if (exactCached) return exactCached;
+      info = TranslationModelInfoSchema.parse(await infoResponse.json());
+    } catch (cause) {
+      if (options.signal?.aborted) throw new DOMException("Tradução cancelada.", "AbortError");
+      if (fallbackCached) return fallbackCached;
+      if (infoScope.timedOut())
+        throw new Error("A identificação do tradutor local excedeu 30 segundos.");
+      throw new Error("O tradutor local não respondeu.");
+    } finally {
+      infoScope.dispose();
+    }
+
+    const exactCached = await LocalTranslationRepository.findCached(
+      {
+        sourceKind: request.sourceKind,
+        sourceId: request.sourceId,
+        targetLanguage,
+        sourceChecksum,
+        model: info.model,
+        modelRevision: info.modelRevision,
+      },
+      database,
+    );
+    if (exactCached) return exactCached;
+
+    const translationTimeoutMs = options.translationTimeoutMs ?? 600_000;
+    const translationScope = abortScope(options.signal, translationTimeoutMs);
+    let response: Response;
+    try {
       response = await fetch(`${endpoint()}/v1/translate`, {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -102,15 +155,18 @@ export const LocalTranslationService = {
           sourceLanguage: request.sourceLanguage,
           targetLanguage,
         }),
-        signal: controller.signal,
+        signal: translationScope.signal,
       });
     } catch (cause) {
+      if (options.signal?.aborted) throw new DOMException("Tradução cancelada.", "AbortError");
       if (fallbackCached) return fallbackCached;
-      if (cause instanceof DOMException && cause.name === "AbortError")
-        throw new Error("O tradutor local excedeu o tempo limite de 120 segundos.");
-      throw new Error("O tradutor local não respondeu.");
+      if (translationScope.timedOut())
+        throw new Error(
+          `O tradutor local excedeu ${Math.round(translationTimeoutMs / 1_000)} segundos.`,
+        );
+      throw cause;
     } finally {
-      globalThis.clearTimeout(timeout);
+      translationScope.dispose();
     }
     if (!response.ok) {
       const detail = await response.text().catch(() => "");
@@ -119,7 +175,7 @@ export const LocalTranslationService = {
       );
     }
     const result = TranslationResponseSchema.parse(await response.json());
-    const modelRevision = result.modelRevision ?? "main";
+    const modelRevision = result.modelRevision ?? info.modelRevision;
     const timestamp = new Date().toISOString();
     const idSeed = `${request.sourceKind}:${request.sourceId}:${targetLanguage}:${sourceChecksum}:${result.provider}:${result.model}:${modelRevision}`;
     const value: LocalTranslation = {

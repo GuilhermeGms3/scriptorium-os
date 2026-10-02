@@ -51,8 +51,6 @@ function ChapterReader() {
   const chapter = Number(chapterParam);
   const { setPassageContext, selectWord, readingPrefs } = useWorkbench();
 
-  ScriptureKnowledgeEngine.primePassageKnowledgeBundle(loadedBundle);
-
   const [editionId, setEditionId] = useState(() =>
     ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
   );

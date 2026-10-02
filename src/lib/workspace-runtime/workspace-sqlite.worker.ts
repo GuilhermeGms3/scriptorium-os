@@ -12,6 +12,7 @@ import migration9 from "./migrations/009_private_documents.sql?raw";
 import migration10 from "./migrations/010_semantic_document_engine.sql?raw";
 import migration11 from "./migrations/011_document_knowledge_pipeline.sql?raw";
 import migration12 from "./migrations/012_translation_model_identity.sql?raw";
+import migration13 from "./migrations/013_canonical_document_knowledge.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -27,6 +28,7 @@ const migrations = [
   migration10,
   migration11,
   migration12,
+  migration13,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

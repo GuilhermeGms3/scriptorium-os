@@ -5,6 +5,7 @@ import type {
   KnowledgeProposalPayload,
   SemanticUnit,
 } from "../domain/document-knowledge";
+import type { ClaimKind } from "../domain/knowledge";
 import { analyzePrivateDocumentPage } from "./deterministic-semantic-analyzer";
 
 export interface DocumentKnowledgeAnalysis {
@@ -23,7 +24,7 @@ export interface DocumentKnowledgeAnalyzer {
 }
 
 export const DETERMINISTIC_DOCUMENT_ANALYZER_ID = "deterministic-document-knowledge";
-export const DETERMINISTIC_DOCUMENT_ANALYZER_VERSION = "1";
+export const DETERMINISTIC_DOCUMENT_ANALYZER_VERSION = "2";
 
 interface UnitDraft extends SemanticUnit {
   domains: { domain: string; evidence: string[]; confidence: number }[];
@@ -51,7 +52,58 @@ const CONTROLLED_ENTITIES = [
     label: "Tomás de Aquino",
     entityType: "person" as const,
   },
+  {
+    pattern: /\bSeptuaginta\b|\bSeptuagint\b|\bLXX\b/giu,
+    label: "Septuaginta",
+    entityType: "work" as const,
+  },
+  { pattern: /\bVulgata\b|\bVulgate\b/giu, label: "Vulgata", entityType: "work" as const },
+  {
+    pattern: /\bManuscritos do Mar Morto\b|\bDead Sea Scrolls\b/giu,
+    label: "Manuscritos do Mar Morto",
+    entityType: "work" as const,
+  },
 ] as const;
+
+function classifyClaim(sentence: string, unit: UnitDraft): ClaimKind {
+  const domains = new Set(unit.domains.map((item) => item.domain));
+  if (/\b(?:variante|manuscrito|aparato|witness|variant|manuscript)\b/iu.test(sentence))
+    return "textual-critical-analysis";
+  if (
+    domains.has("linguistics") ||
+    /\b(?:grego|hebraico|aramaico|lema|morfologia|sintaxe|grammar|lemma|syntax)\b/iu.test(sentence)
+  )
+    return "linguistic-analysis";
+  if (domains.has("archaeology") || domains.has("historical-context"))
+    return "historical-reconstruction";
+  if (/\b(?:símbolo|simboliza|allegor|symbol)\w*\b/iu.test(sentence))
+    return "symbolic-interpretation";
+  if (domains.has("philosophy-of-religion")) return "philosophical-analysis";
+  if (domains.has("patristics") || domains.has("liturgy")) return "reception-history";
+  if (
+    domains.has("theology") ||
+    /\b(?:doutrina|trindade|cristologia|soteriologia|theolog|doctrine|trinity)\w*\b/iu.test(
+      sentence,
+    )
+  )
+    return "theological-interpretation";
+  if (domains.has("exegesis") || domains.has("hermeneutics")) return "exegetical-interpretation";
+  return "academic-hypothesis";
+}
+
+function claimQualifiers(sentence: string): string[] {
+  const qualifiers: string[] = [];
+  if (/\b(?:não|nunca|nem|not|never|no)\b/iu.test(sentence)) qualifiers.push("contains-negation");
+  if (
+    /\b(?:segundo|conforme|de acordo com|afirma que|according to|argues that|states that)\b/iu.test(
+      sentence,
+    )
+  )
+    qualifiers.push("attributed-statement");
+  if (/\b(?:talvez|possivelmente|provavelmente|may|might|possibly|probably)\b/iu.test(sentence))
+    qualifiers.push("modalized");
+  return qualifiers;
+}
 
 function normalizeTitle(value: string): string {
   return value.normalize("NFC").replace(/\s+/g, " ").trim();
@@ -187,8 +239,8 @@ async function proposalsForUnit(
         payload: {
           kind: "claim",
           proposition: sentence,
-          claimKind: "academic-hypothesis",
-          qualifiers: [],
+          claimKind: classifyClaim(sentence, unit),
+          qualifiers: claimQualifiers(sentence),
           perspectiveProfileIds: [],
         },
         confidence: 0.55,

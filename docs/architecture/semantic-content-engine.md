@@ -38,9 +38,12 @@ PDF privado
 ```
 
 `DocumentKnowledgeAnalyzer` é o contrato substituível. A implementação inicial,
-`deterministic-document-knowledge:1`, detecta estrutura, reúne continuações simples entre páginas e
+`deterministic-document-knowledge:2`, detecta estrutura, reúne continuações simples entre páginas e
 propõe assuntos, referências bíblicas, afirmações, argumentos, citações e entidades de um
-vocabulário controlado. Heurísticas e escores medem somente a força do padrão que disparou a
+vocabulário controlado. A versão 2 classifica claims por sinais linguísticos, textuais, históricos,
+filosóficos, teológicos e exegéticos e conserva qualificadores de negação, atribuição e modalidade;
+isso continua sendo classificação heurística, não compreensão autônoma de autoria ou correferência.
+Heurísticas e escores medem somente a força do padrão que disparou a
 proposta; não medem verdade, importância ou concordância teológica.
 
 As tabelas `document_nodes`, `semantic_units`, `semantic_unit_spans` e `knowledge_proposals` ficam
@@ -101,6 +104,14 @@ A migration 012 fixa a revisão do modelo na identidade do cache de tradução e
 de domínios para história social/política, tradição, soteriologia, escatologia e correntes
 religiosas.
 
+A migration 013 torna o pipeline de desmontagem a única fonte de verdade usada pela aplicação.
+Relações e domínios já aceitos no motor legado são convertidos em `semantic_units` e
+`knowledge_proposals` com revisão preservada; as tabelas antigas permanecem apenas como janela de
+compatibilidade e não são consultadas pelo Reader. A mesma migration cria
+`private_translation_jobs`, que registra lotes pausados, concluídos ou falhos. O índice grava
+progresso de leitura por página durante uma nova execução e contagens são recalculadas do banco ao
+concluir, incluindo unidades legadas migradas.
+
 O texto do segmento não é duplicado: ele é reconstruído pelos offsets da página privada. Exclusão
 do documento remove os derivados por foreign keys. Reindexação apaga somente os derivados daquele
 documento e recomeça dentro do mesmo workspace local.
@@ -126,6 +137,15 @@ autoria, qualidade acadêmica ou concordância com uma tradição.
   `SYSTEM_EXTRACTED -> revisão explícita`; `Resume-Matcher`, validação estruturada de saída e
   provider substituível. Nenhum código ou histórico foi copiado automaticamente.
 
+## Limite incremental atual
+
+O checkpoint de carregamento é persistido a cada lote de páginas e evita que a interface prometa um
+progresso inexistente. A substituição do índice só começa depois que a análise terminou, preservando
+o índice anterior durante a etapa mais cara. O analisador determinístico ainda precisa reunir as
+páginas em memória para conservar continuações e hierarquia entre páginas; portanto retomada no
+meio da inferência estrutural, com estado do analisador serializado, continua sendo dívida técnica
+explícita. Não se chama esse comportamento de processamento streaming.
+
 ## Próximos incrementos seguros
 
 1. melhorar detecção de notas e entradas bibliográficas em edições variadas;
@@ -134,3 +154,5 @@ autoria, qualidade acadêmica ou concordância com uma tradição.
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
 5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
    separada, com decisão de direitos registrada e revisão de dois passos.
+6. introduzir sessões incrementais serializáveis no contrato de analisadores antes de elevar o
+   limite de 50 milhões de caracteres.

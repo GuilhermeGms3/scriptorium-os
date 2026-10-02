@@ -248,7 +248,7 @@ const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
 };
 
 export function evidenceLabel(kind: EvidenceKind | string): string {
-  return EVIDENCE_LABELS[kind as EvidenceKind] ?? kind;
+  return EVIDENCE_LABELS[kind as EvidenceKind] ?? CLAIM_KIND_LABELS[kind as ClaimKind] ?? kind;
 }
 
 const REVIEW_LABELS: Record<ReviewStatus, string> = {
@@ -313,6 +313,24 @@ const RELATION_LABELS: Record<RelationKind, string> = {
 
 export function relationLabel(relation: RelationKind | string): string {
   return RELATION_LABELS[relation as RelationKind] ?? relation;
+}
+
+const ARGUMENT_RELATION_LABELS: Readonly<Record<string, string>> = {
+  supports: "sustenta",
+  opposes: "se opõe a",
+  "objects-to": "objeta a",
+  "responds-to": "responde a",
+  qualifies: "qualifica",
+  "depends-on": "depende de",
+  undercuts: "enfraquece a base de",
+  rebuts: "refuta",
+  "alternative-to": "alternativa a",
+  "competes-with": "concorre com",
+  "derived-from": "deriva de",
+};
+
+export function argumentRelationLabel(relation: string): string {
+  return ARGUMENT_RELATION_LABELS[relation] ?? relation.replaceAll("-", " ");
 }
 
 export function formatNumber(value: number): string {

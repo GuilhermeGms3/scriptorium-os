@@ -1,6 +1,7 @@
 import type { LocalTranslation } from "../domain/semantic-content";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
+import { PrivateTranslationJobRepository } from "../repositories/private-translation-job-repository";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
 import { LocalTranslationService } from "./local-translation-service";
 
@@ -10,7 +11,13 @@ export interface PrivateTranslationProgress {
   sourceId?: string;
 }
 
+export interface PrivateTranslationOptions {
+  signal?: AbortSignal;
+}
+
 export const PrivateDocumentTranslationService = {
+  getJob: PrivateTranslationJobRepository.get,
+
   async listAccepted(
     documentId: string,
     database?: WorkspaceDatabase,
@@ -31,6 +38,7 @@ export const PrivateDocumentTranslationService = {
     documentId: string,
     listener?: (progress: PrivateTranslationProgress) => void,
     database?: WorkspaceDatabase,
+    options: PrivateTranslationOptions = {},
   ): Promise<LocalTranslation[]> {
     const accepted = await DocumentKnowledgeRepository.listProposals(
       documentId,
@@ -44,23 +52,69 @@ export const PrivateDocumentTranslationService = {
       throw new Error("Nenhuma unidade aceita em inglês está disponível para tradução.");
 
     const translations: LocalTranslation[] = [];
-    listener?.({ completed: 0, total: translatable.length });
-    for (const [index, unit] of translatable.entries()) {
-      translations.push(
-        await LocalTranslationService.translate(
+    let completed = 0;
+    let lastSourceId: string | undefined;
+    await PrivateTranslationJobRepository.save(
+      {
+        documentId,
+        status: "running",
+        completedCount: 0,
+        totalCount: translatable.length,
+      },
+      database,
+    );
+    listener?.({ completed, total: translatable.length });
+    try {
+      for (const unit of translatable) {
+        if (options.signal?.aborted) throw new DOMException("Tradução cancelada.", "AbortError");
+        const request = {
+          sourceKind: "private-segment" as const,
+          sourceId: unit.id,
+          sourceLanguage: unit.language,
+          targetLanguage: "pt-BR",
+          text: unit.text,
+        };
+        const translation =
+          (await LocalTranslationService.findCached(request, database)) ??
+          (await LocalTranslationService.translate(
+            request,
+            database,
+            options.signal ? { signal: options.signal } : {},
+          ));
+        translations.push(translation);
+        completed += 1;
+        lastSourceId = unit.id;
+        await PrivateTranslationJobRepository.save(
           {
-            sourceKind: "private-segment",
-            sourceId: unit.id,
-            sourceLanguage: unit.language,
-            targetLanguage: "pt-BR",
-            text: unit.text,
+            documentId,
+            status: completed === translatable.length ? "complete" : "running",
+            completedCount: completed,
+            totalCount: translatable.length,
+            lastSourceId,
           },
           database,
-        ),
+        );
+        listener?.({ completed, total: translatable.length, sourceId: unit.id });
+      }
+      return translations;
+    } catch (cause) {
+      const cancelled =
+        options.signal?.aborted || (cause instanceof DOMException && cause.name === "AbortError");
+      await PrivateTranslationJobRepository.save(
+        {
+          documentId,
+          status: cancelled ? "paused" : "failed",
+          completedCount: completed,
+          totalCount: translatable.length,
+          ...(lastSourceId ? { lastSourceId } : {}),
+          ...(!cancelled ? { error: cause instanceof Error ? cause.message : String(cause) } : {}),
+        },
+        database,
       );
-      listener?.({ completed: index + 1, total: translatable.length, sourceId: unit.id });
+      if (cancelled)
+        throw new Error("Tradução pausada. Ao retomar, unidades já traduzidas serão reutilizadas.");
+      throw cause;
     }
-    return translations;
   },
 
   async review(

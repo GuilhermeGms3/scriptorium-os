@@ -21,7 +21,10 @@ export const CorpusPackageManifestSchema = z.object({
   databasePath: z.string().min(1),
   checksum: z.string().regex(/^[a-f0-9]{64}$/i),
   sourceChecksum: z.string().regex(/^[a-f0-9]{64}$/i),
-  buildFingerprint: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  buildFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i)
+    .optional(),
   sizeBytes: z.number().int().nonnegative(),
   downloadSizeBytes: z.number().int().nonnegative().optional(),
   storageSizeBytes: z.number().int().nonnegative().optional(),

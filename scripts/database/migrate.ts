@@ -3,6 +3,7 @@ import { basename, dirname, join } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 
 export const DATABASE_SCHEMA_VERSION = 11;
+export const DETERMINISTIC_MIGRATION_TIMESTAMP = "1970-01-01T00:00:00.000Z";
 
 interface MigrationOptions {
   appliedAt?: string;
@@ -35,7 +36,7 @@ export function applyMigrations(
     database.exec("BEGIN IMMEDIATE");
     try {
       database.exec(readFileSync(join(migrationsDirectory, file), "utf8"));
-      record.run(version, file, options.appliedAt ?? new Date().toISOString());
+      record.run(version, file, options.appliedAt ?? DETERMINISTIC_MIGRATION_TIMESTAMP);
       database.exec("COMMIT");
     } catch (error) {
       database.exec("ROLLBACK");

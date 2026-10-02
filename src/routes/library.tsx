@@ -20,6 +20,8 @@ import {
   type PrivateDocumentImportProgress,
   type PrivateDocumentImportResult,
 } from "../lib/application/private-document-import-service";
+import type { PrivateDocument } from "../lib/domain/private-document";
+import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
 import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
 
 interface LibrarySearch {
@@ -46,6 +48,7 @@ export function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
+  const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
   const [showImport, setShowImport] = useState(false);
   const [newCollection, setNewCollection] = useState("");
 
@@ -53,11 +56,15 @@ export function LibraryPage() {
     setLoading(true);
     setError(undefined);
     try {
-      const [nextSources, nextCollections] = await Promise.all([
-        LibraryRepository.listSources(collectionId ? { collectionId } : {}),
-        LibraryRepository.listCollections(),
-      ]);
-      setPrimaryWorks(await PrimarySourceRepository.listWorks());
+      const [nextSources, nextCollections, nextPrimaryWorks, nextPrivateDocuments] =
+        await Promise.all([
+          LibraryRepository.listSources(collectionId ? { collectionId } : {}),
+          LibraryRepository.listCollections(),
+          PrimarySourceRepository.listWorks(),
+          PrivateDocumentRepository.listDocuments(),
+        ]);
+      setPrimaryWorks(nextPrimaryWorks);
+      setPrivateDocuments(nextPrivateDocuments);
       setSources(nextSources);
       setCollections(nextCollections);
       setSelectedId((current) =>
@@ -114,6 +121,17 @@ export function LibraryPage() {
     }
     return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "pt-BR"));
   }, [primaryWorks]);
+  const filteredPrivateDocuments = useMemo(() => {
+    const normalized = query.normalize("NFC").toLocaleLowerCase("pt-BR").trim();
+    return normalized
+      ? privateDocuments.filter((document) =>
+          `${document.title} ${document.language ?? ""}`
+            .normalize("NFC")
+            .toLocaleLowerCase("pt-BR")
+            .includes(normalized),
+        )
+      : privateDocuments;
+  }, [privateDocuments, query]);
   const installedPrimaryWorkIds = useMemo(
     () => new Set(primaryWorks.map((work) => work.id)),
     [primaryWorks],
@@ -211,6 +229,39 @@ export function LibraryPage() {
               className="w-full bg-transparent text-xs outline-none"
             />
           </label>
+          {filteredPrivateDocuments.length > 0 && (
+            <section className="border-b border-border p-3" aria-labelledby="private-library-title">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 id="private-library-title" className="meta-label">
+                    Livros privados neste dispositivo · {filteredPrivateDocuments.length}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Arquivos, texto extraído, revisões e traduções permanecem somente no workspace
+                    local.
+                  </p>
+                </div>
+                <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+              </div>
+              <div className="mt-3 grid gap-1 sm:grid-cols-2">
+                {filteredPrivateDocuments.map((document) => (
+                  <a
+                    key={document.id}
+                    href={`/library/document/${encodeURIComponent(document.id)}`}
+                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <FileText className="size-3.5" /> {document.title}
+                    </span>
+                    <span className="mt-1 block text-[10px] text-muted-foreground">
+                      {document.textPageCount}/{document.pageCount} páginas com texto ·{" "}
+                      {document.language ?? "idioma não informado"}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
           {primaryWorks.length > 0 && !query.trim() && (
             <section className="border-b border-border p-3">
               <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>

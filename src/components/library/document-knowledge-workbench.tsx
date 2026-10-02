@@ -10,7 +10,7 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { DocumentKnowledgePipelineService } from "../../lib/application/document-knowledge-pipeline-service";
 import { EditorialPromotionService } from "../../lib/application/editorial-promotion-service";
 import { PrivateDocumentTranslationService } from "../../lib/application/private-document-translation-service";
@@ -25,6 +25,7 @@ import type {
 } from "../../lib/domain/document-knowledge";
 import type { LocalTranslation } from "../../lib/domain/semantic-content";
 import { DocumentKnowledgeRepository } from "../../lib/repositories/document-knowledge-repository";
+import type { PrivateTranslationJob } from "../../lib/repositories/private-translation-job-repository";
 
 type Tab = "structure" | "proposals" | "aggregate";
 
@@ -96,8 +97,17 @@ export function DocumentKnowledgeWorkbench({
   const [translations, setTranslations] = useState<LocalTranslation[]>([]);
   const [translationEdits, setTranslationEdits] = useState<Record<string, string>>({});
   const [translationProgress, setTranslationProgress] = useState<string>();
+  const [translationJob, setTranslationJob] = useState<PrivateTranslationJob | null>(null);
   const [editorialIssues, setEditorialIssues] = useState<EditorialReadinessIssue[]>();
   const [reviewing, setReviewing] = useState<string>();
+  const translationController = useRef<AbortController | null>(null);
+
+  useEffect(
+    () => () => {
+      translationController.current?.abort();
+    },
+    [],
+  );
 
   const refresh = useCallback(async () => {
     const nextSummary = await DocumentKnowledgeRepository.getSummary(documentId);
@@ -108,16 +118,19 @@ export function DocumentKnowledgeWorkbench({
       setAggregate(undefined);
       return;
     }
-    const [nextNodes, nextProposals, nextAggregate, nextTranslations] = await Promise.all([
-      DocumentKnowledgeRepository.listNodes(documentId),
-      DocumentKnowledgeRepository.listProposals(documentId),
-      DocumentKnowledgeRepository.aggregate(documentId),
-      PrivateDocumentTranslationService.listAccepted(documentId),
-    ]);
+    const [nextNodes, nextProposals, nextAggregate, nextTranslations, nextTranslationJob] =
+      await Promise.all([
+        DocumentKnowledgeRepository.listNodes(documentId),
+        DocumentKnowledgeRepository.listProposals(documentId),
+        DocumentKnowledgeRepository.aggregate(documentId),
+        PrivateDocumentTranslationService.listAccepted(documentId),
+        PrivateDocumentTranslationService.getJob(documentId),
+      ]);
     setNodes(nextNodes);
     setProposals(nextProposals);
     setAggregate(nextAggregate);
     setTranslations(nextTranslations);
+    setTranslationJob(nextTranslationJob);
   }, [documentId]);
 
   useEffect(() => {
@@ -182,16 +195,23 @@ export function DocumentKnowledgeWorkbench({
   };
 
   const translateAccepted = async () => {
+    const controller = new AbortController();
+    translationController.current = controller;
     setError(undefined);
     setTranslationProgress("Preparando tradução local…");
     try {
-      await PrivateDocumentTranslationService.translateAccepted(documentId, (item) =>
-        setTranslationProgress(`Traduzindo ${item.completed}/${item.total} unidades aceitas…`),
+      await PrivateDocumentTranslationService.translateAccepted(
+        documentId,
+        (item) =>
+          setTranslationProgress(`Traduzindo ${item.completed}/${item.total} unidades aceitas…`),
+        undefined,
+        { signal: controller.signal },
       );
       await refresh();
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
+      if (translationController.current === controller) translationController.current = null;
       setTranslationProgress(undefined);
     }
   };
@@ -471,23 +491,36 @@ export function DocumentKnowledgeWorkbench({
                 <div className="rounded border border-border p-2">
                   <div className="flex items-center justify-between gap-2">
                     <p className="text-xs font-medium">Tradução das unidades aceitas</p>
-                    <button
-                      type="button"
-                      onClick={() => void translateAccepted()}
-                      disabled={Boolean(translationProgress)}
-                      className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
-                    >
-                      {translationProgress ? (
-                        <LoaderCircle className="size-3 animate-spin" />
-                      ) : (
-                        <Languages className="size-3" />
-                      )}
-                      Traduzir aceitas
-                    </button>
+                    {translationProgress ? (
+                      <button
+                        type="button"
+                        onClick={() => translationController.current?.abort()}
+                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                      >
+                        <X className="size-3" /> Pausar
+                      </button>
+                    ) : (
+                      <button
+                        type="button"
+                        onClick={() => void translateAccepted()}
+                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                      >
+                        <Languages className="size-3" /> Traduzir ou retomar
+                      </button>
+                    )}
                   </div>
                   {translationProgress && (
                     <p className="mt-1 text-[10px] text-muted-foreground">{translationProgress}</p>
                   )}
+                  {!translationProgress &&
+                    translationJob &&
+                    translationJob.status !== "complete" && (
+                      <p className="mt-1 text-[10px] text-muted-foreground">
+                        Lote {translationJob.status === "paused" ? "pausado" : "interrompido"} em{" "}
+                        {translationJob.completedCount}/{translationJob.totalCount}. As unidades já
+                        concluídas serão reutilizadas.
+                      </p>
+                    )}
                   <div className="mt-2 space-y-2">
                     {translations.slice(0, 30).map((translation) => (
                       <div key={translation.id} className="border-l border-border pl-2">

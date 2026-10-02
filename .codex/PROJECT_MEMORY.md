@@ -1,5 +1,28 @@
 # Project Memory
 
+## Canonical private knowledge consolidation (2026-10-01)
+
+- Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
+  `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query
+  the legacy semantic engine; its service/repository remain deprecated compatibility surfaces.
+- Library now lists persisted private documents after reload. Backup schema v3 preserves private
+  document identity, structure, spans, review decisions, translations and translation-job state,
+  but deliberately exports empty page anchors rather than protected text. Reimport of the original
+  checksum rehydrates those page IDs without deleting derived knowledge.
+- Knowledge Explorer now consumes supporting/opposing arguments, evidence, objections, responses
+  and multidimensional perspectives. Private passage knowledge renders arguments, premises,
+  citations and entities in addition to claims/topics/translations.
+- Immutable knowledge builds use the epoch migration timestamp and a byte-for-byte reproducibility
+  test. Curated claims now include actual evidence and perspective links instead of schema-only
+  support.
+- Local English-to-Portuguese translation resolves Hugging Face aliases to a commit SHA, separates
+  model-info and inference timeouts, persists batch progress and supports pause/resume through the
+  checksum cache. `main` is rejected as cache identity.
+- The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
+  claim-kind and qualifier classification, but full author/citation/coreference understanding and
+  resumable streaming inference remain explicit future work; checkpointed loading is not described
+  as full streaming.
+
 ## Passage aggregation and editorial gate (2026-10-01)
 
 - Workspace schema 12 keys local translations by provider model revision and expands controlled

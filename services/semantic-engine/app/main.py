@@ -64,7 +64,7 @@ def model_info(translation_backend: TranslationBackend = Depends(backend)) -> Mo
     return ModelInfoResponse(
         provider="transformers-local",
         model=translation_backend.model_name,
-        modelRevision=translation_backend.model_revision or "main",
+        modelRevision=translation_backend.resolved_model_revision,
     )
 
 

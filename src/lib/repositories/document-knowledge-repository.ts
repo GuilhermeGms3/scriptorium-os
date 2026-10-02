@@ -117,7 +117,10 @@ export const DocumentKnowledgeRepository = {
   ): Promise<void> {
     const db = database ?? (await getWorkspaceDatabase());
     await db.transaction([
-      { sql: "DELETE FROM semantic_units WHERE document_id=?", bind: [documentId] },
+      {
+        sql: "DELETE FROM semantic_units WHERE document_id=? AND method<>'legacy-semantic-engine-migration:1'",
+        bind: [documentId],
+      },
       { sql: "DELETE FROM document_nodes WHERE document_id=?", bind: [documentId] },
       {
         sql: `INSERT INTO document_knowledge_indexes(
@@ -132,6 +135,56 @@ export const DocumentKnowledgeRepository = {
         bind: [documentId, analyzerId, analyzerVersion, sourceChecksum],
       },
     ]);
+  },
+
+  async prepare(
+    documentId: string,
+    analyzerId: string,
+    analyzerVersion: string,
+    sourceChecksum: string,
+    database?: WorkspaceDatabase,
+  ): Promise<void> {
+    const db = database ?? (await getWorkspaceDatabase());
+    await db.execute(
+      `INSERT INTO document_knowledge_indexes(
+         document_id,analyzer_id,analyzer_version,source_checksum,status,stage,checkpoint_page,
+         node_count,unit_count,proposal_count,progress_json,indexed_at,error
+       ) VALUES(?,?,?,?,'processing','structure',0,0,0,0,'{}',NULL,NULL)
+       ON CONFLICT(document_id) DO UPDATE SET
+         analyzer_id=excluded.analyzer_id,analyzer_version=excluded.analyzer_version,
+         source_checksum=excluded.source_checksum,status='processing',stage='structure',
+         checkpoint_page=0,progress_json='{}',error=NULL`,
+      [documentId, analyzerId, analyzerVersion, sourceChecksum],
+    );
+  },
+
+  async updateProgress(
+    documentId: string,
+    progress: {
+      stage: "structure" | "proposals" | "aggregation";
+      checkpointPage: number;
+      current: number;
+      total: number;
+      message: string;
+    },
+    database?: WorkspaceDatabase,
+  ): Promise<void> {
+    const db = database ?? (await getWorkspaceDatabase());
+    await db.execute(
+      `UPDATE document_knowledge_indexes
+       SET stage=?,checkpoint_page=?,progress_json=?,error=NULL
+       WHERE document_id=? AND status='processing'`,
+      [
+        progress.stage,
+        progress.checkpointPage,
+        JSON.stringify({
+          current: progress.current,
+          total: progress.total,
+          message: progress.message,
+        }),
+        documentId,
+      ],
+    );
   },
 
   async storeNodes(nodes: readonly DocumentNode[], database?: WorkspaceDatabase): Promise<void> {
@@ -236,12 +289,20 @@ export const DocumentKnowledgeRepository = {
     const db = database ?? (await getWorkspaceDatabase());
     await db.execute(
       `UPDATE document_knowledge_indexes SET status='ready',stage='complete',checkpoint_page=?,
-       node_count=?,unit_count=?,proposal_count=?,indexed_at=?,error=NULL WHERE document_id=?`,
+       node_count=(SELECT count(*) FROM document_nodes WHERE document_id=?),
+       unit_count=(SELECT count(*) FROM semantic_units WHERE document_id=?),
+       proposal_count=(SELECT count(*) FROM knowledge_proposals WHERE document_id=?),
+       progress_json=?,indexed_at=?,error=NULL WHERE document_id=?`,
       [
         counts.checkpointPage,
-        counts.nodeCount,
-        counts.unitCount,
-        counts.proposalCount,
+        documentId,
+        documentId,
+        documentId,
+        JSON.stringify({
+          current: counts.checkpointPage,
+          total: counts.checkpointPage,
+          message: "Índice concluído.",
+        }),
         new Date().toISOString(),
         documentId,
       ],

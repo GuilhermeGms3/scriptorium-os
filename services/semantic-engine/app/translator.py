@@ -21,6 +21,9 @@ class TranslationBackend(Protocol):
     model_name: str
     model_revision: str | None
 
+    @property
+    def resolved_model_revision(self) -> str: ...
+
     def translate(self, text: str, source_language: str, target_language: str) -> TranslationResult: ...
 
 
@@ -79,7 +82,26 @@ class MarianTranslationBackend:
         self.model_revision = os.getenv("SCRIPTORIUM_TRANSLATION_MODEL_REVISION") or None
         self._tokenizer = None
         self._model = None
+        self._resolved_model_revision: str | None = None
         self._lock = threading.Lock()
+
+    @property
+    def resolved_model_revision(self) -> str:
+        if self._resolved_model_revision is not None:
+            return self._resolved_model_revision
+        requested = self.model_revision or "main"
+        if re.fullmatch(r"[0-9a-f]{40}", requested, flags=re.IGNORECASE):
+            self._resolved_model_revision = requested.lower()
+            return self._resolved_model_revision
+        from huggingface_hub import HfApi
+
+        information = HfApi().model_info(self.model_name, revision=requested)
+        if not information.sha or not re.fullmatch(
+            r"[0-9a-f]{40}", information.sha, flags=re.IGNORECASE
+        ):
+            raise RuntimeError("O repositório do modelo não informou um commit imutável.")
+        self._resolved_model_revision = information.sha.lower()
+        return self._resolved_model_revision
 
     def _load(self) -> tuple[object, object]:
         if self._tokenizer is not None and self._model is not None:
@@ -89,7 +111,7 @@ class MarianTranslationBackend:
                 from transformers import AutoModelForSeq2SeqLM, AutoTokenizer
 
                 arguments = {
-                    "revision": self.model_revision or "main",
+                    "revision": self.resolved_model_revision,
                     "trust_remote_code": False,
                 }
                 self._tokenizer = AutoTokenizer.from_pretrained(self.model_name, **arguments)
@@ -112,6 +134,6 @@ class MarianTranslationBackend:
             translated_text="\n\n".join(translations),
             provider="transformers-local",
             model=self.model_name,
-            model_revision=self.model_revision or "main",
+            model_revision=self.resolved_model_revision,
         )
 

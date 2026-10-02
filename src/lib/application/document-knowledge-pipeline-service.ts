@@ -31,6 +31,7 @@ async function loadPages(
   pageCount: number,
   listener: ((progress: DocumentKnowledgeProgress) => void) | undefined,
   database: WorkspaceDatabase | undefined,
+  persistProgress: boolean,
 ): Promise<PrivateDocumentPage[]> {
   const pages: PrivateDocumentPage[] = [];
   let characters = 0;
@@ -54,6 +55,18 @@ async function loadPages(
       total: pageCount,
       message: `Preparando ${pages.length} de ${pageCount} páginas…`,
     });
+    if (persistProgress)
+      await DocumentKnowledgeRepository.updateProgress(
+        documentId,
+        {
+          stage: "structure",
+          checkpointPage: pages.length,
+          current: pages.length,
+          total: pageCount,
+          message: `Preparando ${pages.length} de ${pageCount} páginas…`,
+        },
+        database,
+      );
   }
   return pages;
 }
@@ -127,9 +140,36 @@ export const DocumentKnowledgePipelineService = {
       ]),
     );
     try {
-      const pages = await loadPages(documentId, document.pageCount, listener, database);
+      const canExposeCheckpoint = existing?.status !== "ready";
+      if (canExposeCheckpoint)
+        await DocumentKnowledgeRepository.prepare(
+          documentId,
+          analyzer.id,
+          analyzer.version,
+          document.checksum,
+          database,
+        );
+      const pages = await loadPages(
+        documentId,
+        document.pageCount,
+        listener,
+        database,
+        canExposeCheckpoint,
+      );
       listener?.({ phase: "structure", message: "Reconstruindo capítulos e seções…" });
       const analysis = await analyzer.analyze(document, pages);
+      if (canExposeCheckpoint)
+        await DocumentKnowledgeRepository.updateProgress(
+          documentId,
+          {
+            stage: "proposals",
+            checkpointPage: document.pageCount,
+            current: analysis.units.length,
+            total: analysis.units.length,
+            message: "Estrutura e unidades reconstruídas.",
+          },
+          database,
+        );
       listener?.({ phase: "proposals", message: "Preparando propostas auditáveis…" });
       const proposals = analysis.proposals.map((proposal) => preserveReview(proposal, previous));
       const preservedReviewCount = proposals.filter(
@@ -157,12 +197,13 @@ export const DocumentKnowledgePipelineService = {
         },
         database,
       );
+      const persisted = await DocumentKnowledgeRepository.getSummary(documentId, database);
       listener?.({ phase: "complete", message: "Livro desmontado e pronto para revisão." });
       return {
         documentId,
-        nodeCount: analysis.nodes.length,
-        unitCount: analysis.units.length,
-        proposalCount: proposals.length,
+        nodeCount: persisted?.nodeCount ?? analysis.nodes.length,
+        unitCount: persisted?.unitCount ?? analysis.units.length,
+        proposalCount: persisted?.proposalCount ?? proposals.length,
         preservedReviewCount,
         duplicate: false,
       };
