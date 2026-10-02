@@ -68,4 +68,41 @@ describe("parseBiblicalReferences", () => {
       { chapter: 2, verseStart: 1, verseEnd: 1 },
     ]);
   });
+    it("distinguishes Jo (João) from Jó and Jn (Jonas) from John", () => {
+    const books = (text: string) =>
+      parseBiblicalReferences(text).map((reference) => reference.bookId);
+    expect(books("Jo 3:16")).toEqual(["john"]);
+    expect(books("Jó 1:1")).toEqual(["job"]);
+    expect(books("Jn 1:1")).toEqual(["jonah"]);
+  });
+
+  it("accepts a space after the book numeral and single-chapter books cited by verse", () => {
+    const refs = (text: string) =>
+      parseBiblicalReferences(text).map(
+        ({ bookId, chapter, verseStart }) => `${bookId} ${chapter}:${verseStart}`,
+      );
+    expect(refs("1 Co 13:4")).toEqual(["1-corinthians 13:4"]);
+    expect(refs("Jd 5 e Fm 10")).toEqual(["jude 1:5", "philemon 1:10"]);
+  });
+
+  it("continues a reference into a new chapter after a semicolon", () => {
+    expect(
+      parseBiblicalReferences("Rm 3:21-26; 5:8").map(({ chapter, verseStart, verseEnd }) => ({
+        chapter,
+        verseStart,
+        verseEnd,
+      })),
+    ).toEqual([
+      { chapter: 3, verseStart: 21, verseEnd: 26 },
+      { chapter: 5, verseStart: 8, verseEnd: 8 },
+    ]);
+  });
+
+  it("does not read ordinary words as ambiguous book abbreviations", () => {
+    for (const text of ["Os 12 apóstolos", "todos os 12 apóstolos", "Os 2,5 milhões", "At 2 horas"])
+      expect(parseBiblicalReferences(text)).toEqual([]);
+    expect(
+      parseBiblicalReferences("Os 11:1 e At 2:1").map((reference) => reference.bookId),
+    ).toEqual(["hosea", "acts"]);
+  });
 });

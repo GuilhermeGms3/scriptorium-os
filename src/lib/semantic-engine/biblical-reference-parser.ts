@@ -20,7 +20,7 @@ const EXTRA_ALIASES: Readonly<Record<string, readonly string[]>> = {
   psalms: ["Psalm", "Salmo"],
   "song-of-songs": ["Cantares", "Cântico", "Song of Solomon"],
   ecclesiastes: ["Qohelet", "Eclesiastes"],
-  john: ["Evangelho de João", "Gospel of John", "Jn"],
+  john: ["Evangelho de João", "Gospel of John", "Jhn"], // Jn pode ser confundido com "Jonas"
   revelation: ["Revelação", "Revelations"],
   "1-corinthians": ["I Coríntios", "1 Cor", "I Corinthians"],
   "2-corinthians": ["II Coríntios", "2 Cor", "II Corinthians"],
@@ -110,49 +110,73 @@ const BOOK_CHAPTER_LIMITS: Readonly<Record<string, number>> = {
   revelation: 22,
 };
 
-function normalizedAlias(value: string): string {
+/**
+ Chave de busca para alias. Os acentos são mantidos intencionalmente: "Jo" é João e "Jó" é Jó.
+Um espaço após um numeral inicial é ignorado; portanto, "1 Co" e "1Co" compartilham a mesma chave.
+ */
+function aliasKey(value: string): string {
   return value
-    .normalize("NFD")
-    .replace(/\p{M}+/gu, "")
+    .normalize("NFC")
     .replace(/[._]/g, "")
     .replace(/\s+/g, " ")
     .trim()
-    .toLocaleLowerCase("pt-BR");
+    .toLocaleLowerCase("pt-BR")
+    .replace(/^(\d|i{1,3})\s+(?=\p{L})/u, "$1");
+}
+
+function withoutAccents(value: string): string {
+  return value.normalize("NFD").replace(/\p{M}+/gu, "").normalize("NFC");
 }
 
 function regexAlias(value: string): string {
   return value
     .trim()
     .replace(/[.*+?^${}()|[\]\\]/g, "\\$&")
-    .replace(/\s+/g, "\\s+");
+    .replace(/\s+/g, "\\s+")
+    .replace(/^(\d|I{1,3})(?=\p{L})/u, "$1\\s?");
 }
+
+/** Abreviações que também são palavras comuns; precisam de capítulo:versículo para contar... */
+const AMBIGUOUS_ALIASES = new Set(["os", "at", "is", "am", "ex", "ag", "na", "ne", "et", "ed"]);
 
 const aliasToBookId = new Map<string, string>();
 const aliases: string[] = [];
-for (const [, [id, englishName, abbreviation]] of Object.entries(BIBLIA_LIVRE_BOOKS)) {
-  for (const alias of [
-    englishName,
-    abbreviation,
-    bookLabel(id, englishName),
-    ...(EXTRA_ALIASES[id] ?? []),
-  ]) {
-    const normalized = normalizedAlias(alias);
-    if (!normalized || aliasToBookId.has(normalized)) continue;
-    aliasToBookId.set(normalized, id);
-    aliases.push(alias);
-    const accentless = alias.normalize("NFD").replace(/\p{M}+/gu, "");
-    if (accentless !== alias) aliases.push(accentless);
+const bookAliases = Object.values(BIBLIA_LIVRE_BOOKS).map(([id, englishName, abbreviation]) => ({
+  id,
+  names: [englishName, abbreviation, bookLabel(id, englishName), ...(EXTRA_ALIASES[id] ?? [])],
+}));
+function registerAlias(alias: string, id: string, exact: boolean): void {
+  const key = aliasKey(alias);
+  if (!key) return;
+  const existing = aliasToBookId.get(key);
+  if (existing) {
+    if (exact && existing !== id)
+      throw new Error(`Abreviatura bíblica ambígua "${alias}": ${existing} e ${id}.`);
+    return;
   }
+  aliasToBookId.set(key, id);
+  aliases.push(alias);
 }
+// Primeiro as grafias exatas, para que uma alternativa sem acento (como "Jo" em vez de "Jó") nunca substitua outra.
+for (const { id, names } of bookAliases) for (const name of names) registerAlias(name, id, true);
+for (const { id, names } of bookAliases)
+  for (const name of names) {
+    const plain = withoutAccents(name);
+    if (plain !== name) registerAlias(plain, id, false);
+  }
 
 const BOOK_PATTERN = aliases
   .sort((left, right) => right.length - left.length)
   .map(regexAlias)
   .join("|");
+
 const REFERENCE_PATTERN = new RegExp(
-  `(?<![\\p{L}\\p{N}])(${BOOK_PATTERN})\\s+(\\d{1,3})(?:\\s*[:.,]\\s*(\\d{1,3})(?:\\s*[-–—]\\s*(\\d{1,3}))?)?`,
-  "giu",
+  `(?<![\\p{L}\\p{N}])(${BOOK_PATTERN})\\s+(\\d{1,3})(?:\\s*([:.,])\\s*(\\d{1,3})(?:\\s*[-–—]\\s*(\\d{1,3}))?)?(?![\\p{L}\\d])`,
+  "gu",
 );
+const SAME_CHAPTER_CONTINUATION =
+  /^\s*[,;]\s*(?:vv?\.?\s*)?(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?(?!\s*[:.]\s*\d)/u;
+const NEW_CHAPTER_CONTINUATION = /^\s*;\s*(\d{1,3})\s*[:.]\s*(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?/u;
 
 const RELATIVE_VERSE_PATTERN =
   /(?<![\p{L}\p{N}])(?:vv?|vers(?:o|os|ículo|ículos)|verses?)\.?\s*(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?/giu;
@@ -201,11 +225,21 @@ export function parseBiblicalReferences(
   REFERENCE_PATTERN.lastIndex = 0;
   for (const match of text.matchAll(REFERENCE_PATTERN)) {
     const rawReference = match[0];
-    const bookId = aliasToBookId.get(normalizedAlias(match[1] ?? ""));
-    const chapter = Number(match[2]);
-    const verseStart = match[3] ? Number(match[3]) : undefined;
-    const verseEnd = match[4] ? Number(match[4]) : verseStart;
+    const key = aliasKey(match[1] ?? "");
+    const bookId = aliasToBookId.get(key);
+    let chapter = Number(match[2]);
+    const separator = match[3];
+    let verseStart = match[4] ? Number(match[4]) : undefined;
+    let verseEnd = match[5] ? Number(match[5]) : verseStart;
     if (!bookId || !Number.isInteger(chapter)) continue;
+    // "Os 12 apóstolos", "At 2 horas", "Os 2,5 milhões": ambiguous words need chapter:verse.
+    if (AMBIGUOUS_ALIASES.has(key) && (verseStart === undefined || separator !== ":")) continue;
+    // Single-chapter books are cited by verse: "Jd 5", "Fm 10".
+    if (BOOK_CHAPTER_LIMITS[bookId] === 1 && verseStart === undefined) {
+      verseStart = chapter;
+      verseEnd = chapter;
+      chapter = 1;
+    }
     if (!validAddress(bookId, chapter, verseStart, verseEnd)) continue;
     const startOffset = match.index ?? 0;
     references.push(
@@ -221,30 +255,37 @@ export function parseBiblicalReferences(
     );
 
     if (verseStart !== undefined) {
-      const tail = text.slice(startOffset + rawReference.length);
-      const sameChapterPattern =
-        /^\s*[,;]\s*(?:vv?\.?\s*)?(\d{1,3})(?:\s*[-–—]\s*(\d{1,3}))?(?!\s*[:.]\s*\d)/u;
+      const tailStart = startOffset + rawReference.length;
+      const tail = text.slice(tailStart);
       let consumed = 0;
-      let continuation = sameChapterPattern.exec(tail);
-      while (continuation) {
-        const nextStart = Number(continuation[1]);
-        const nextEnd = continuation[2] ? Number(continuation[2]) : nextStart;
-        if (validAddress(bookId, chapter, nextStart, nextEnd)) {
-          const relativeOffset = consumed + continuation[0].indexOf(continuation[1]!);
+      let currentChapter = chapter;
+      for (;;) {
+        const rest = tail.slice(consumed);
+        const sameChapter = SAME_CHAPTER_CONTINUATION.exec(rest);
+        const newChapter = sameChapter ? null : NEW_CHAPTER_CONTINUATION.exec(rest);
+        const continuation = sameChapter ?? newChapter;
+        if (!continuation) break;
+        const nextChapter = newChapter ? Number(newChapter[1]) : currentChapter;
+        const nextStart = Number(newChapter ? newChapter[2] : continuation[1]);
+        const nextEndRaw = newChapter ? newChapter[3] : continuation[2];
+        const nextEnd = nextEndRaw ? Number(nextEndRaw) : nextStart;
+        const firstNumber = newChapter ? newChapter[1]! : continuation[1]!;
+        if (validAddress(bookId, nextChapter, nextStart, nextEnd)) {
+          const relativeOffset = consumed + continuation[0].indexOf(firstNumber);
           references.push(
             parsedReference(
               continuation[0].trim().replace(/^[,;]\s*/u, ""),
-              startOffset + rawReference.length + relativeOffset,
+              tailStart + relativeOffset,
               bookId,
-              chapter,
+              nextChapter,
               nextStart,
               nextEnd,
               0.94,
             ),
           );
         }
+        currentChapter = nextChapter;
         consumed += continuation[0].length;
-        continuation = sameChapterPattern.exec(tail.slice(consumed));
       }
     }
   }
