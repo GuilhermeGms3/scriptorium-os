@@ -21,6 +21,10 @@ import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import { PrivateTranslationJobRepository } from "../repositories/private-translation-job-repository";
 import {
+  DeterministicDocumentKnowledgeAnalyzer,
+  type DocumentKnowledgeAnalyzer,
+} from "../semantic-engine/document-knowledge-analyzer";
+import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
   type WorkspaceRow,
@@ -295,6 +299,104 @@ describe("Phase 9.5 workspace schema", () => {
     });
     expect(editorial.readiness.issues.map((issue) => issue.code)).toContain("private-rights");
     expect(editorial.readiness.issues.map((issue) => issue.code)).not.toContain("missing-passage");
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("persists semantic checkpoints in bounded batches and resumes after failure", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const pages = Array.from({ length: 55 }, (_, pageIndex) => ({
+      pageIndex,
+      pageLabel: String(pageIndex + 1),
+      text:
+        pageIndex === 0
+          ? "CAPÍTULO 1\n\nA exegese de João 1:1 indica uma observação textual completa."
+          : `A análise da página ${pageIndex + 1} indica uma observação exegética completa sobre João 1:1.`,
+      itemCount: 12,
+    }));
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro incremental",
+        language: "pt-BR",
+        originalName: "livro-incremental.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 4_096,
+        checksum: "f".repeat(64),
+        pageCount: pages.length,
+        textPageCount: pages.length,
+        extractionMethod: "pdf-text-layer",
+        pages,
+      },
+      "opfs:/incremental.pdf",
+      workspace,
+    );
+    let largestBatch = 0;
+    const observingAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        largestBatch = Math.max(largestBatch, batchPages.length);
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    let progressWrites = 0;
+    const interruptedWorkspace: WorkspaceDatabase = {
+      ...workspace,
+      async execute(sql, bind) {
+        if (sql.includes("SET stage=?,checkpoint_page=?")) {
+          progressWrites += 1;
+          if (progressWrites === 2) throw new Error("Falha simulada após gravar o segundo lote.");
+        }
+        await workspace.execute(sql, bind);
+      },
+    };
+    await expect(
+      DocumentKnowledgePipelineService.analyzeDocument(
+        imported.document.id,
+        undefined,
+        interruptedWorkspace,
+        { analyzer: observingAnalyzer },
+      ),
+    ).rejects.toThrow("Falha simulada");
+    expect(largestBatch).toBeLessThanOrEqual(50);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "failed", checkpointPage: 50 });
+    const rowsBeforeResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsBeforeResume.count).toBeGreaterThanOrEqual(55);
+
+    let resumedAt: number | undefined;
+    const recoveryAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        resumedAt ??= batchPages[0]?.pageIndex;
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    const resumed = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+      { analyzer: recoveryAnalyzer },
+    );
+    expect(resumedAt).toBe(50);
+    expect(resumed).toMatchObject({ duplicate: false });
+    expect(resumed.unitCount).toBeGreaterThanOrEqual(55);
+    const rowsAfterResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsAfterResume.count).toBe(rowsBeforeResume.count);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "ready", checkpointPage: 55 });
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
   it("caches local translations by source checksum without replacing the original", async () => {
