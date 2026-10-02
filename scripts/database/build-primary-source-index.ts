@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import {
@@ -7,7 +7,13 @@ import {
   type CorpusPackageManifest,
 } from "../../src/lib/corpus-runtime/contracts";
 import { buildSearchNormalization } from "../../src/lib/corpus-runtime/search-normalization";
-import { applyMigrations, DATABASE_SCHEMA_VERSION } from "./migrate";
+import {
+  applyMigrations,
+  DATABASE_SCHEMA_VERSION,
+  progress,
+  removeDatabaseFiles,
+  timed,
+} from "./migrate";
 import {
   parseApostolicFathers,
   parseAquinasSummaPart,
@@ -223,7 +229,7 @@ function buildShard(
   const directory = join(outputDirectory, editionId);
   const path = join(directory, fileName);
   mkdirSync(directory, { recursive: true });
-  if (existsSync(path)) rmSync(path);
+  removeDatabaseFiles(path);
   const database = new DatabaseSync(path);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   database.prepare("ATTACH DATABASE ? AS source_db").run(sourcePath);
@@ -299,7 +305,7 @@ function buildPackage(
 ): CorpusPackageManifest {
   const outputPath = join(outputDirectory, `${input.editionId}.sqlite3`);
   mkdirSync(outputDirectory, { recursive: true });
-  if (existsSync(outputPath)) rmSync(outputPath);
+  removeDatabaseFiles(outputPath);
   const database = new DatabaseSync(outputPath);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   const sourceChecksum = sha256(
@@ -508,6 +514,7 @@ export function buildPrimarySourcePackages(
   previousPackages: CorpusPackageManifest[] = [],
   report: { editionId: string; action: "reused" | "rebuilt" }[] = [],
 ): CorpusPackageManifest[] {
+  progress("Lendo e verificando as fontes primárias…");
   const source42053 = verifiedSource(sources[0]!);
   const source77576 = verifiedSource(sources[1]!);
   const source30323 = verifiedSource(sources[2]!);
@@ -616,7 +623,8 @@ export function buildPrimarySourcePackages(
       workKind: "scholastic-treatise",
     },
   ];
-  return definitions.map((definition) => {
+  return definitions.map((definition, index) => {
+    const step = `[fontes ${index + 1}/${definitions.length}] ${definition.editionId}`;
     const fingerprint = sha256(
       JSON.stringify({
         schemaVersion: DATABASE_SCHEMA_VERSION,
@@ -637,10 +645,12 @@ export function buildPrimarySourcePackages(
       (manifest) => manifest.editionId === definition.editionId,
     );
     if (previous && cachedPackageValid(previous, fingerprint)) {
+      progress(`${step}: atualizado, reaproveitado`);
       report.push({ editionId: definition.editionId, action: "reused" });
       return CorpusPackageManifestSchema.parse({ ...previous, buildFingerprint: fingerprint });
     }
+    progress(`${step}: reconstruindo…`);
     report.push({ editionId: definition.editionId, action: "rebuilt" });
-    return buildPackage(definition, fingerprint);
+    return timed(step, () => buildPackage(definition, fingerprint));
   });
 }

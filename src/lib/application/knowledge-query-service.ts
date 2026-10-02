@@ -1,7 +1,12 @@
-import type { Argument, ArgumentRelation } from "../domain/argument";
+import type { Argument, ArgumentRelation, EvidenceRecord } from "../domain/argument";
 import type { KnowledgeClaim, KnowledgeEntity, KnowledgeRelation } from "../domain/knowledge";
+import type { PerspectiveProfile } from "../domain/perspective";
 import type { OntologyEntity, OntologyRelation } from "../domain/theology";
-import { ArgumentRepository, TheologyRepository } from "../repositories/argument-repository";
+import {
+  ArgumentRepository,
+  PerspectiveRepository,
+  TheologyRepository,
+} from "../repositories/argument-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
 
 export type ExplorerEntity =
@@ -10,11 +15,53 @@ export type ExplorerEntity =
 export interface KnowledgeExplorerBundle {
   selected: ExplorerEntity;
   claims: KnowledgeClaim[];
+  argumentClaims: KnowledgeClaim[];
   arguments: Argument[];
   argumentRelations: ArgumentRelation[];
   knowledgeRelations: KnowledgeRelation[];
   ontologyRelations: OntologyRelation[];
   relatedTheories: OntologyEntity[];
+  supportingArguments: Argument[];
+  opposingArguments: Argument[];
+  objections: ArgumentRelation[];
+  responses: ArgumentRelation[];
+  evidence: EvidenceRecord[];
+  perspectives: PerspectiveProfile[];
+}
+
+function uniqueById<T extends { id: string }>(values: readonly T[]): T[] {
+  return values.filter(
+    (value, index, all) => all.findIndex((candidate) => candidate.id === value.id) === index,
+  );
+}
+
+async function enrichClaimsAndArguments(claims: KnowledgeClaim[], argumentsList: Argument[]) {
+  const referencedClaimIds = new Set(
+    argumentsList.flatMap((argument) => [argument.conclusionClaimId, ...argument.premiseClaimIds]),
+  );
+  const [supporting, opposing, evidence, objections, responses, allPerspectives, argumentClaims] =
+    await Promise.all([
+      Promise.all(claims.map((claim) => ArgumentRepository.getSupportingArguments(claim.id))),
+      Promise.all(claims.map((claim) => ArgumentRepository.getOpposingArguments(claim.id))),
+      Promise.all(claims.map((claim) => ArgumentRepository.getEvidenceForClaim(claim.id))),
+      Promise.all(argumentsList.map((argument) => ArgumentRepository.getObjections(argument.id))),
+      Promise.all(argumentsList.map((argument) => ArgumentRepository.getResponses(argument.id))),
+      PerspectiveRepository.list(),
+      Promise.all([...referencedClaimIds].map((claimId) => KnowledgeRepository.getClaim(claimId))),
+    ]);
+  const perspectiveIds = new Set([
+    ...claims.flatMap((claim) => claim.perspectiveProfileIds ?? []),
+    ...argumentsList.flatMap((argument) => argument.perspectiveProfileIds),
+  ]);
+  return {
+    supportingArguments: uniqueById(supporting.flat()),
+    opposingArguments: uniqueById(opposing.flat()),
+    evidence: uniqueById(evidence.flat()),
+    objections: uniqueById(objections.flat()),
+    responses: uniqueById(responses.flat()),
+    perspectives: allPerspectives.filter((profile) => perspectiveIds.has(profile.id)),
+    argumentClaims: argumentClaims.filter((claim): claim is KnowledgeClaim => claim !== null),
+  };
 }
 
 export const KnowledgeQueryService = {
@@ -52,6 +99,7 @@ export const KnowledgeQueryService = {
           ),
         )
       ).flat();
+      const enriched = await enrichClaimsAndArguments(claims, argumentsList);
       return {
         selected: { kind: "ontology", entity: ontology },
         claims,
@@ -61,6 +109,7 @@ export const KnowledgeQueryService = {
         ontologyRelations: await TheologyRepository.getRelations(id),
         relatedTheories:
           ontology.kind === "theory" ? await ArgumentRepository.getCompetingTheories(id) : [],
+        ...enriched,
       };
     }
     const entity = await KnowledgeRepository.getEntity(id);
@@ -72,14 +121,16 @@ export const KnowledgeQueryService = {
     const argumentsForClaims = await Promise.all(
       claims.map((claim) => ArgumentRepository.getArgumentsForClaim(claim.id)),
     );
+    const argumentsList = uniqueById(argumentsForClaims.flat());
     return {
       selected: { kind: "knowledge", entity },
       claims,
-      arguments: argumentsForClaims.flat(),
+      arguments: argumentsList,
       argumentRelations: [],
       knowledgeRelations,
       ontologyRelations: [],
       relatedTheories: [],
+      ...(await enrichClaimsAndArguments(claims, argumentsList)),
     };
   },
 };

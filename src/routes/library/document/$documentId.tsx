@@ -1,51 +1,14 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  BrainCircuit,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Library,
-  LoaderCircle,
-  LockKeyhole,
-  Search,
-  X,
-} from "lucide-react";
+import { ChevronLeft, ChevronRight, Library, LockKeyhole, Search } from "lucide-react";
 import { useEffect, useState } from "react";
-import { SemanticDocumentIndexingService } from "../../../lib/application/semantic-document-indexing-service";
+import { DocumentKnowledgeWorkbench } from "../../../components/library/document-knowledge-workbench";
 import type {
   PrivateDocument,
   PrivateDocumentPage,
   PrivateDocumentSearchHit,
 } from "../../../lib/domain/private-document";
-import type {
-  SemanticIndexSummary,
-  SemanticSegmentBundle,
-} from "../../../lib/domain/semantic-content";
 import { PrivateDocumentRepository } from "../../../lib/repositories/private-document-repository";
-import { SemanticContentRepository } from "../../../lib/repositories/semantic-content-repository";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
-
-const SEMANTIC_DOMAIN_LABELS: Readonly<Record<string, string>> = {
-  exegesis: "Exegese",
-  hermeneutics: "Hermenêutica",
-  theology: "Teologia",
-  "historical-context": "Contexto histórico",
-  archaeology: "Arqueologia",
-  geography: "Geografia",
-  "textual-criticism": "Crítica textual",
-  linguistics: "Linguística",
-  patristics: "Patrística",
-  liturgy: "Liturgia",
-  "philosophy-of-religion": "Filosofia da religião",
-  science: "Ciência",
-  other: "Outro",
-};
-
-const REVIEW_STATUS_LABELS: Readonly<Record<string, string>> = {
-  "machine-proposed": "aguardando revisão",
-  accepted: "confirmado",
-  rejected: "rejeitado",
-};
 
 export const Route = createFileRoute("/library/document/$documentId")({
   validateSearch: (search: Record<string, unknown>): { page?: number } => {
@@ -67,9 +30,6 @@ function PrivateDocumentReaderPage() {
   const [results, setResults] = useState<PrivateDocumentSearchHit[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string>();
-  const [semanticSummary, setSemanticSummary] = useState<SemanticIndexSummary | null>();
-  const [semanticBundles, setSemanticBundles] = useState<SemanticSegmentBundle[]>([]);
-  const [semanticProgress, setSemanticProgress] = useState<string>();
 
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => {
@@ -80,10 +40,7 @@ function PrivateDocumentReaderPage() {
     setDocument(undefined);
     void PrivateDocumentRepository.getDocument(documentId).then(
       (value) => {
-        if (active) {
-          setDocument(value);
-          void SemanticContentRepository.getIndexSummary(documentId).then(setSemanticSummary);
-        }
+        if (active) setDocument(value);
       },
       (cause: unknown) => {
         if (active) setError(cause instanceof Error ? cause.message : String(cause));
@@ -111,20 +68,6 @@ function PrivateDocumentReaderPage() {
     };
   }, [document, pageIndex]);
 
-  useEffect(() => {
-    if (!document || semanticSummary?.status !== "ready") {
-      setSemanticBundles([]);
-      return;
-    }
-    let active = true;
-    void SemanticContentRepository.listPageBundles(document.id, pageIndex).then((value) => {
-      if (active) setSemanticBundles(value);
-    });
-    return () => {
-      active = false;
-    };
-  }, [document, pageIndex, semanticSummary]);
-
   const runSearch = async () => {
     if (!document || !query.trim()) {
       setResults([]);
@@ -140,28 +83,6 @@ function PrivateDocumentReaderPage() {
       setSearching(false);
     }
   };
-  const runSemanticIndex = async () => {
-    if (!document) return;
-    setError(undefined);
-    setSemanticProgress("Preparando análise…");
-    try {
-      await SemanticDocumentIndexingService.indexDocument(document.id, (progress) =>
-        setSemanticProgress(progress.message),
-      );
-      setSemanticSummary(await SemanticContentRepository.getIndexSummary(document.id));
-      setSemanticBundles(await SemanticContentRepository.listPageBundles(document.id, pageIndex));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setSemanticProgress(undefined);
-    }
-  };
-  const reviewLink = async (id: string, status: "accepted" | "rejected") => {
-    if (!document) return;
-    await SemanticContentRepository.reviewPassageLink(id, status);
-    setSemanticBundles(await SemanticContentRepository.listPageBundles(document.id, pageIndex));
-  };
-
   if (document === undefined)
     return <p className="p-8 text-sm italic text-muted-foreground">Abrindo documento local…</p>;
   if (!document)
@@ -209,20 +130,6 @@ function PrivateDocumentReaderPage() {
               {searching ? "Buscando…" : "Buscar"}
             </button>
           </form>
-          <button
-            type="button"
-            onClick={() => void runSemanticIndex()}
-            disabled={Boolean(semanticProgress)}
-            className="inline-flex h-9 items-center gap-2 rounded border border-input px-3 text-xs disabled:opacity-50"
-          >
-            {semanticProgress ? (
-              <LoaderCircle className="size-3.5 animate-spin" />
-            ) : (
-              <BrainCircuit className="size-3.5" />
-            )}
-            {semanticProgress ??
-              (semanticSummary?.status === "ready" ? "Reindexar conteúdo" : "Analisar conteúdo")}
-          </button>
         </div>
       </header>
       <div className="grid min-h-0 lg:grid-cols-[300px_1fr]">
@@ -250,72 +157,11 @@ function PrivateDocumentReaderPage() {
               ))}
             </ol>
           )}
-          <section className="mt-6 border-t border-border pt-4">
-            <p className="meta-label flex items-center gap-1.5">
-              <BrainCircuit className="size-3" /> Contexto desta página
-            </p>
-            {semanticSummary?.status !== "ready" ? (
-              <p className="mt-2 text-xs italic text-muted-foreground">
-                Execute a análise para separar assuntos e propor vínculos com passagens. Nada é
-                aceito automaticamente.
-              </p>
-            ) : semanticBundles.length === 0 ? (
-              <p className="mt-2 text-xs italic text-muted-foreground">
-                Nenhum segmento textual nesta página.
-              </p>
-            ) : (
-              <div className="mt-2 space-y-3">
-                {semanticBundles.map((bundle) => (
-                  <article key={bundle.segment.id} className="rounded border border-border p-2">
-                    <p className="line-clamp-3 text-xs leading-relaxed">{bundle.text}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {bundle.classifications.map((classification) => (
-                        <span
-                          key={classification.domain}
-                          className="rounded bg-muted px-1.5 py-0.5 font-mono text-[9px]"
-                        >
-                          {SEMANTIC_DOMAIN_LABELS[classification.domain] ?? classification.domain} ·{" "}
-                          {Math.round(classification.score * 100)}%
-                        </span>
-                      ))}
-                    </div>
-                    {bundle.passageLinks.map((link) => (
-                      <div key={link.id} className="mt-2 rounded bg-muted/40 p-2 text-[10px]">
-                        <a
-                          href={`/scripture/${link.bookId}/${link.chapter}`}
-                          className="font-medium underline-offset-2 hover:underline"
-                        >
-                          {link.rawReference}
-                        </a>
-                        <p className="mt-1 text-muted-foreground">
-                          Candidato · {Math.round(link.confidence * 100)}% ·{" "}
-                          {REVIEW_STATUS_LABELS[link.reviewStatus] ?? link.reviewStatus}
-                        </p>
-                        {link.reviewStatus === "machine-proposed" && (
-                          <div className="mt-2 flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => void reviewLink(link.id, "accepted")}
-                              className="inline-flex items-center gap-1 rounded border border-input px-1.5 py-1"
-                            >
-                              <Check className="size-3" /> Confirmar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void reviewLink(link.id, "rejected")}
-                              className="inline-flex items-center gap-1 rounded border border-input px-1.5 py-1"
-                            >
-                              <X className="size-3" /> Rejeitar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+          <DocumentKnowledgeWorkbench
+            documentId={document.id}
+            {...(document.language ? { documentLanguage: document.language } : {})}
+            onNavigatePage={setPageIndex}
+          />
         </aside>
         <main className="min-h-0 overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-8">

@@ -1,5 +1,66 @@
 # Project Memory
 
+## Canonical private knowledge consolidation (2026-10-01)
+
+- Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
+  `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query
+  the legacy semantic engine; its service/repository remain deprecated compatibility surfaces.
+- Library now lists persisted private documents after reload. Backup schema v3 preserves private
+  document identity, structure, spans, review decisions, translations and translation-job state,
+  but deliberately exports empty page anchors rather than protected text. Reimport of the original
+  checksum rehydrates those page IDs without deleting derived knowledge.
+- Knowledge Explorer now consumes supporting/opposing arguments, evidence, objections, responses
+  and multidimensional perspectives. Private passage knowledge renders arguments, premises,
+  citations and entities in addition to claims/topics/translations.
+- Immutable knowledge builds use the epoch migration timestamp and a byte-for-byte reproducibility
+  test. Curated claims now include actual evidence and perspective links instead of schema-only
+  support.
+- Local English-to-Portuguese translation resolves Hugging Face aliases to a commit SHA, separates
+  model-info and inference timeouts, persists batch progress and supports pause/resume through the
+  checksum cache. `main` is rejected as cache identity.
+- The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
+  claim-kind and qualifier classification and processes 50-page batches with a serialized
+  hierarchy/ordinal checkpoint. Failed runs resume after the last committed batch with idempotent
+  inserts. Full author/citation/coreference understanding remains future work; optional providers
+  only gain resumability when they implement `analyzeBatch()`.
+
+## Passage aggregation and editorial gate (2026-10-01)
+
+- Workspace schema 12 keys local translations by provider model revision and expands controlled
+  semantic domains for social/political history, tradition, soteriology, eschatology and religious
+  currents.
+- Accepted private-book passage relations now resolve to their citeable semantic unit, sibling
+  accepted proposals, physical pages and optional local translation in Passage Inspector. This is
+  a private overlay; curated knowledge remains read-only and separate.
+- Passage Inspector exposes an honest 15-area coverage matrix. Pending links do not count as
+  coverage.
+- The deterministic resolver supports full pt/en references, same-chapter continuations and
+  context-bound relative verses; exact per-chapter verse counts remain future work.
+- Accepted English units can be translated in batch, without tokenizer truncation, and translations
+  have an explicit human-review action.
+- Claims and arguments can declare an interpretive perspective. Editorial staging always has
+  `publicationAllowed: false` and blocks private rights, missing passage or missing evidence before
+  any future curated import.
+
+## Book Decomposition Pipeline v1 (2026-10-01)
+
+- Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,
+  `semantic_unit_spans`, reviewable `knowledge_proposals` and versioned
+  `document_knowledge_indexes`. No proposal writes to the public knowledge snapshot.
+- `DocumentKnowledgeAnalyzer` is the provider boundary. The deterministic v1 implementation
+  detects book/part/chapter/section/bibliography structure, joins simple cross-page continuations
+  and proposes topics, passage relations, claims, arguments, quotations and controlled entities.
+- Proposal IDs include a payload fingerprint. Reprocessing is idempotent and preserves accepted or
+  rejected decisions, including edited claim text, when the semantic proposal remains the same.
+- The private document reader now exposes Structure, Review and Aggregate views. Export is explicit,
+  local-only JSON (`scriptorium-private-knowledge-export-v1`) marked as requiring rights review.
+- Verification: strict typecheck passed; focused ESLint passed; 24 focused tests passed; direct Vite
+  client/SSR/Nitro build passed. Direct full Vitest without `pretest` remained blocked by local
+  corpus SQLite files whose checksums differ from the committed registry after a Node 24 rebuild;
+  this is the previously identified cross-toolchain artifact reproducibility issue.
+- Next safe actions: browser QA with a real text-layer PDF; add golden-layout fixtures for footnotes,
+  bibliographies and complex tables of contents; pin the binary corpus build toolchain.
+
 ## Semantic content engine (2026-09-30)
 
 - Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,

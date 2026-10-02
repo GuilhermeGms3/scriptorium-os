@@ -6,7 +6,7 @@ import type {
   SemanticSegment,
   SemanticSegmentBundle,
 } from "../domain/semantic-content";
-import { parseBiblicalReferences } from "./biblical-reference-parser";
+import { biblicalRelationType, parseBiblicalReferences } from "./biblical-reference-parser";
 
 export const SEMANTIC_ENGINE_VERSION = "deterministic-pt-en-1";
 const MAX_SEGMENT_CHARACTERS = 1_800;
@@ -33,6 +33,27 @@ const DOMAIN_TERMS: Readonly<Record<Exclude<SemanticDomain, "other">, readonly s
     "império romano",
     "roman empire",
     "segundo templo",
+  ],
+  "social-history": [
+    "história social",
+    "social history",
+    "classe social",
+    "social class",
+    "família",
+    "kinship",
+    "honra e vergonha",
+    "honor and shame",
+  ],
+  "political-history": [
+    "história política",
+    "political history",
+    "poder romano",
+    "roman rule",
+    "herodes",
+    "herod",
+    "tributação",
+    "taxation",
+    "governador",
   ],
   archaeology: [
     "arqueologia",
@@ -78,6 +99,47 @@ const DOMAIN_TERMS: Readonly<Record<Exclude<SemanticDomain, "other">, readonly s
     "origen",
   ],
   liturgy: ["liturgia", "liturgy", "culto", "worship", "eucaristia", "eucharist", "oração"],
+  tradition: [
+    "tradição",
+    "tradition",
+    "católico",
+    "catholic",
+    "ortodoxo",
+    "orthodox",
+    "reformado",
+    "reformed",
+    "pentecostal",
+  ],
+  soteriology: [
+    "soteriologia",
+    "soteriology",
+    "salvação",
+    "salvation",
+    "justificação",
+    "justification",
+    "expiação",
+    "atonement",
+  ],
+  eschatology: [
+    "escatologia",
+    "eschatology",
+    "ressurreição final",
+    "final resurrection",
+    "juízo final",
+    "last judgment",
+    "parousia",
+  ],
+  "religious-currents": [
+    "gnosticismo",
+    "gnosticism",
+    "hermetismo",
+    "hermeticism",
+    "mistério",
+    "mystery religion",
+    "nag hammadi",
+    "esotérico",
+    "esoteric",
+  ],
   "philosophy-of-religion": [
     "filosofia da religião",
     "philosophy of religion",
@@ -216,7 +278,7 @@ export async function analyzePrivateDocumentPage(
           ...(reference.verseStart !== undefined ? { verseStart: reference.verseStart } : {}),
           ...(reference.verseEnd !== undefined ? { verseEnd: reference.verseEnd } : {}),
           versificationSchemeId: reference.versificationSchemeId,
-          relationType: "cites",
+          relationType: biblicalRelationType(span.text, reference),
           confidence: reference.confidence,
           method: SEMANTIC_ENGINE_VERSION,
           reviewStatus: "machine-proposed",

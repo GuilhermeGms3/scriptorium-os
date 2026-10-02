@@ -90,7 +90,9 @@ describe("ScriptureKnowledgeEngine", () => {
 
     expect(bundle.variants.status).toBe("not-imported");
     expect(bundle.analyses.status).toBe("available");
-    expect(bundle.perspectives).toEqual([]);
+    expect(bundle.perspectives).toEqual([
+      expect.objectContaining({ id: "perspective:textual-nonconfessional" }),
+    ]);
     expect(bundle.user.studyLinks).toEqual([]);
     if (hasAvailableData(bundle.claims)) {
       expect(bundle.claims.data.every((claim) => claim.origin !== "user")).toBe(true);

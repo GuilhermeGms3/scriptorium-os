@@ -1,16 +1,31 @@
 import { DatabaseSync } from "node:sqlite";
+import { createHash } from "node:crypto";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
+
 import {
   applyWorkspaceMigrations,
   WORKSPACE_SCHEMA_VERSION,
 } from "../../../scripts/database/workspace-migrate";
 import { SourceImportService } from "../application/source-import-service";
 import { SemanticDocumentIndexingService } from "../application/semantic-document-indexing-service";
+import { DocumentKnowledgePipelineService } from "../application/document-knowledge-pipeline-service";
+import { EditorialPromotionService } from "../application/editorial-promotion-service";
 import { LocalTranslationService } from "../application/local-translation-service";
+import { PrivateDocumentTranslationService } from "../application/private-document-translation-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
+import { WorkspacePassageKnowledgeService } from "../application/workspace-passage-knowledge-service";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { SemanticContentRepository } from "../repositories/semantic-content-repository";
+import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
+import { LocalTranslationRepository } from "../repositories/local-translation-repository";
+import { PrivateTranslationJobRepository } from "../repositories/private-translation-job-repository";
+import {
+  DeterministicDocumentKnowledgeAnalyzer,
+  type DocumentKnowledgeAnalyzer,
+} from "../semantic-engine/document-knowledge-analyzer";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -160,21 +175,255 @@ describe("Phase 9.5 workspace schema", () => {
         workspace,
       ),
     ).toHaveLength(1);
+    db.exec(
+      readFileSync(
+        resolve("src/lib/workspace-runtime/migrations/013_canonical_document_knowledge.sql"),
+        "utf8",
+      ),
+    );
+    const migrated = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      { reviewStatus: "accepted" },
+      workspace,
+    );
+    expect(migrated).toEqual([
+      expect.objectContaining({
+        proposalKind: "passage-relation",
+        method: "legacy-semantic-engine-migration:1",
+      }),
+    ]);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("decomposes a private book, reviews proposals and preserves decisions on reprocessing", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro desmontável",
+        language: "pt-BR",
+        originalName: "livro-desmontavel.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 512,
+        checksum: "c".repeat(64),
+        pageCount: 2,
+        textPageCount: 2,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "CAPÍTULO 1\n\nA exegese de João 1:1 é relevante porque o texto",
+            itemCount: 10,
+          },
+          {
+            pageIndex: 1,
+            pageLabel: "2",
+            text: "grego sustenta esta observação.",
+            itemCount: 6,
+          },
+        ],
+      },
+      "opfs:/book-pipeline.pdf",
+      workspace,
+    );
+    const first = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    expect(first).toMatchObject({ duplicate: false });
+    expect(first.nodeCount).toBeGreaterThan(1);
+    expect(first.proposalCount).toBeGreaterThan(0);
+    const proposals = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      {},
+      workspace,
+    );
+    const claim = proposals.find((proposal) => proposal.proposalKind === "claim");
+    expect(claim).toBeTruthy();
+    if (!claim || claim.payload.kind !== "claim") throw new Error("Claim proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(
+      claim.id,
+      "accepted",
+      {
+        payload: {
+          ...claim.payload,
+          proposition: "Afirmação revisada pelo pesquisador.",
+          perspectiveProfileIds: ["historical-critical"],
+        },
+      },
+      workspace,
+    );
+    const rerun = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+      { force: true },
+    );
+    expect(rerun.preservedReviewCount).toBe(1);
+    const aggregate = await DocumentKnowledgeRepository.aggregate(imported.document.id, workspace);
+    expect(aggregate).toMatchObject({ acceptedCount: 1 });
+    expect(aggregate.acceptedProposals[0]?.payload).toMatchObject({
+      proposition: "Afirmação revisada pelo pesquisador.",
+    });
+    const exported = await DocumentKnowledgePipelineService.exportAccepted(
+      imported.document.id,
+      workspace,
+    );
+    expect(exported).toMatchObject({
+      format: "scriptorium-private-knowledge-export-v1",
+      localOnly: true,
+      requiresRightsReview: true,
+    });
+    expect(exported.proposals).toHaveLength(1);
+    expect(exported.evidenceUnits).toHaveLength(1);
+    expect(exported.evidenceUnits[0]?.spans.length).toBeGreaterThanOrEqual(1);
+    const passageRelation = proposals.find(
+      (proposal) => proposal.proposalKind === "passage-relation",
+    );
+    expect(passageRelation).toBeTruthy();
+    if (!passageRelation) throw new Error("Passage relation proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(passageRelation.id, "accepted", {}, workspace);
+    const passageLayer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "john", chapter: 1, verseStart: 1 },
+      null,
+      workspace,
+    );
+    expect(passageLayer.items).toHaveLength(1);
+    expect(passageLayer.items[0]).toMatchObject({
+      document: { title: "Livro desmontável" },
+    });
+    const editorial = await EditorialPromotionService.prepare(imported.document.id, workspace);
+    expect(editorial).toMatchObject({
+      format: "scriptorium-editorial-staging-v1",
+      publicationAllowed: false,
+      readiness: { status: "blocked" },
+    });
+    expect(editorial.readiness.issues.map((issue) => issue.code)).toContain("private-rights");
+    expect(editorial.readiness.issues.map((issue) => issue.code)).not.toContain("missing-passage");
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("persists semantic checkpoints in bounded batches and resumes after failure", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const pages = Array.from({ length: 55 }, (_, pageIndex) => ({
+      pageIndex,
+      pageLabel: String(pageIndex + 1),
+      text:
+        pageIndex === 0
+          ? "CAPÍTULO 1\n\nA exegese de João 1:1 indica uma observação textual completa."
+          : `A análise da página ${pageIndex + 1} indica uma observação exegética completa sobre João 1:1.`,
+      itemCount: 12,
+    }));
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro incremental",
+        language: "pt-BR",
+        originalName: "livro-incremental.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 4_096,
+        checksum: "f".repeat(64),
+        pageCount: pages.length,
+        textPageCount: pages.length,
+        extractionMethod: "pdf-text-layer",
+        pages,
+      },
+      "opfs:/incremental.pdf",
+      workspace,
+    );
+    let largestBatch = 0;
+    const observingAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        largestBatch = Math.max(largestBatch, batchPages.length);
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    let progressWrites = 0;
+    const interruptedWorkspace: WorkspaceDatabase = {
+      ...workspace,
+      async execute(sql, bind) {
+        if (sql.includes("SET stage=?,checkpoint_page=?")) {
+          progressWrites += 1;
+          if (progressWrites === 2) throw new Error("Falha simulada após gravar o segundo lote.");
+        }
+        await workspace.execute(sql, bind);
+      },
+    };
+    await expect(
+      DocumentKnowledgePipelineService.analyzeDocument(
+        imported.document.id,
+        undefined,
+        interruptedWorkspace,
+        { analyzer: observingAnalyzer },
+      ),
+    ).rejects.toThrow("Falha simulada");
+    expect(largestBatch).toBeLessThanOrEqual(50);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "failed", checkpointPage: 50 });
+    const rowsBeforeResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsBeforeResume.count).toBeGreaterThanOrEqual(55);
+
+    let resumedAt: number | undefined;
+    const recoveryAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        resumedAt ??= batchPages[0]?.pageIndex;
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    const resumed = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+      { analyzer: recoveryAnalyzer },
+    );
+    expect(resumedAt).toBe(50);
+    expect(resumed).toMatchObject({ duplicate: false });
+    expect(resumed.unitCount).toBeGreaterThanOrEqual(55);
+    const rowsAfterResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsAfterResume.count).toBe(rowsBeforeResume.count);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "ready", checkpointPage: 55 });
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
   it("caches local translations by source checksum without replacing the original", async () => {
     const db = database();
     const workspace = adapter(db);
-    const fetchMock = vi.spyOn(globalThis, "fetch").mockResolvedValue(
-      new Response(
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(async (input) => {
+      if (String(input).endsWith("/v1/info"))
+        return new Response(
+          JSON.stringify({
+            provider: "test-local",
+            model: "fixture-en-pt",
+            modelRevision: "fixture-revision",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      return new Response(
         JSON.stringify({
           translatedText: "No princípio era a Palavra.",
           provider: "test-local",
           model: "fixture-en-pt",
+          modelRevision: "fixture-revision",
         }),
         { status: 200, headers: { "content-type": "application/json" } },
-      ),
-    );
+      );
+    });
     const request = {
       sourceKind: "primary-text-unit" as const,
       sourceId: "unit:fixture:1",
@@ -185,8 +434,228 @@ describe("Phase 9.5 workspace schema", () => {
     const second = await LocalTranslationService.translate(request, workspace);
     expect(first.translatedText).toBe("No princípio era a Palavra.");
     expect(second.id).toBe(first.id);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(fetchMock).toHaveBeenCalledTimes(3);
     expect(request.text).toBe("In the beginning was the Word.");
+    await LocalTranslationRepository.review(first.id, "No princípio existia a Palavra.", workspace);
+    await LocalTranslationRepository.save(
+      {
+        ...first,
+        translatedText: "Machine retry must not replace review.",
+        reviewStatus: "machine-generated",
+        updatedAt: new Date().toISOString(),
+      },
+      workspace,
+    );
+    const reviewed = await LocalTranslationRepository.listForSources(
+      "primary-text-unit",
+      [request.sourceId],
+      workspace,
+    );
+    expect(reviewed[0]).toMatchObject({
+      translatedText: "No princípio existia a Palavra.",
+      reviewStatus: "human-reviewed",
+      modelRevision: "fixture-revision",
+    });
+  });
+  it("roundtrips private knowledge and human-reviewed translations without exporting protected text", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const input = {
+      title: "Private English commentary",
+      language: "en",
+      originalName: "private-commentary.pdf",
+      mimeType: "application/pdf" as const,
+      sizeBytes: 512,
+      checksum: "d".repeat(64),
+      pageCount: 1,
+      textPageCount: 1,
+      extractionMethod: "pdf-text-layer" as const,
+      pages: [
+        {
+          pageIndex: 0,
+          pageLabel: "1",
+          text: "CHAPTER 1\n\nJohn 1:1 means that the Logos is central because the text says so.",
+          itemCount: 12,
+        },
+      ],
+    };
+    const imported = await PrivateDocumentRepository.importDocument(
+      input,
+      "opfs:/private-commentary.pdf",
+      workspace,
+    );
+    await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    const proposal = (
+      await DocumentKnowledgeRepository.listProposals(imported.document.id, {}, workspace)
+    ).find((item) => item.proposalKind === "claim");
+    expect(proposal).toBeTruthy();
+    if (!proposal) throw new Error("Expected a claim proposal.");
+    await DocumentKnowledgeRepository.reviewProposal(proposal.id, "accepted", {}, workspace);
+    const unit = (
+      await DocumentKnowledgeRepository.listUnits(
+        imported.document.id,
+        [proposal.semanticUnitId],
+        workspace,
+      )
+    )[0];
+    expect(unit).toBeTruthy();
+    if (!unit) throw new Error("Expected an evidence unit.");
+    const now = new Date().toISOString();
+    await LocalTranslationRepository.save(
+      {
+        id: "translation:private-roundtrip",
+        sourceKind: "private-segment",
+        sourceId: unit.id,
+        sourceLanguage: "en",
+        targetLanguage: "pt-BR",
+        sourceChecksum: unit.textChecksum,
+        translatedText: "Tradução revisada pelo pesquisador.",
+        provider: "fixture-local",
+        model: "fixture-en-pt",
+        modelRevision: "0123456789abcdef0123456789abcdef01234567",
+        reviewStatus: "human-reviewed",
+        createdAt: now,
+        updatedAt: now,
+      },
+      workspace,
+    );
+
+    const backup = await ResearchWorkspaceService.exportJson(workspace);
+    expect(backup).not.toContain(input.pages[0]!.text);
+    expect(JSON.parse(backup)).toMatchObject({
+      schemaVersion: 3,
+      manifest: { privateTextIncluded: false },
+    });
+    db.exec("DELETE FROM private_documents");
+    expect(await PrivateDocumentRepository.getDocument(imported.document.id, workspace)).toBeNull();
+
+    await ResearchWorkspaceService.importJson(backup, workspace);
+    expect(
+      await PrivateDocumentRepository.getDocument(imported.document.id, workspace),
+    ).toBeTruthy();
+    const restoredProposal = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      { reviewStatus: "accepted" },
+      workspace,
+    );
+    expect(restoredProposal).toHaveLength(1);
+    expect(
+      await LocalTranslationRepository.listForSources("private-segment", [unit.id], workspace),
+    ).toEqual([
+      expect.objectContaining({
+        translatedText: "Tradução revisada pelo pesquisador.",
+        reviewStatus: "human-reviewed",
+      }),
+    ]);
+    expect(
+      await PrivateDocumentRepository.search(
+        "Logos",
+        { documentId: imported.document.id },
+        workspace,
+      ),
+    ).toEqual([]);
+
+    const rehydrated = await PrivateDocumentRepository.importDocument(
+      input,
+      "opfs:/private-commentary.pdf",
+      workspace,
+    );
+    expect(rehydrated.duplicate).toBe(false);
+    expect(
+      await PrivateDocumentRepository.search(
+        "Logos",
+        { documentId: imported.document.id },
+        workspace,
+      ),
+    ).toHaveLength(1);
+    expect(
+      await DocumentKnowledgeRepository.listProposals(
+        imported.document.id,
+        { reviewStatus: "accepted" },
+        workspace,
+      ),
+    ).toHaveLength(1);
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("persists a paused private translation batch and can report resumable progress", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Cancelable commentary",
+        language: "en",
+        originalName: "cancelable.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 128,
+        checksum: "e".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "John 1:1 means the Logos is important because this sentence is long enough.",
+            itemCount: 12,
+          },
+        ],
+      },
+      "opfs:/cancelable.pdf",
+      workspace,
+    );
+    await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    const proposal = (
+      await DocumentKnowledgeRepository.listProposals(imported.document.id, {}, workspace)
+    ).find((item) => item.proposalKind === "claim");
+    if (!proposal) throw new Error("Expected a claim proposal.");
+    await DocumentKnowledgeRepository.reviewProposal(proposal.id, "accepted", {}, workspace);
+    vi.spyOn(globalThis, "fetch").mockImplementation(async (input, init) => {
+      if (String(input).endsWith("/v1/info"))
+        return new Response(
+          JSON.stringify({
+            provider: "test-local",
+            model: "fixture-en-pt",
+            modelRevision: "0123456789abcdef0123456789abcdef01234567",
+          }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        );
+      return new Promise<Response>((_resolve, reject) => {
+        if (init?.signal?.aborted) {
+          reject(new DOMException("Canceled", "AbortError"));
+          return;
+        }
+        init?.signal?.addEventListener(
+          "abort",
+          () => reject(new DOMException("Canceled", "AbortError")),
+          { once: true },
+        );
+      });
+    });
+    const controller = new AbortController();
+    const translating = PrivateDocumentTranslationService.translateAccepted(
+      imported.document.id,
+      undefined,
+      workspace,
+      { signal: controller.signal },
+    );
+    await new Promise((resolveWait) => setTimeout(resolveWait, 0));
+    controller.abort();
+    await expect(translating).rejects.toThrow(/pausada/i);
+    expect(
+      await PrivateTranslationJobRepository.get(imported.document.id, workspace),
+    ).toMatchObject({
+      status: "paused",
+      completedCount: 0,
+      totalCount: 1,
+    });
   });
   it("removes the known localStorage DEMO chain from an already-upgraded workspace", () => {
     const db = database();
@@ -509,5 +978,125 @@ describe("structured citations", () => {
         reviewStatus: "draft",
       }).contentKind,
     ).toBe("paraphrase");
+  });
+});
+
+describe("document knowledge reviews across analyzer upgrades", () => {
+  type KnowledgeProposalLike = Awaited<
+    ReturnType<typeof DeterministicDocumentKnowledgeAnalyzer.analyze>
+  >["proposals"][number];
+
+  /** Changes every claim payload (and therefore its id), as an improved analyzer would. */
+  function upgradeClaims<T extends { proposals: KnowledgeProposalLike[] }>(
+    documentId: string,
+    analysis: T,
+  ): T {
+    return {
+      ...analysis,
+      proposals: analysis.proposals.map((proposal) => {
+        if (proposal.payload.kind !== "claim") return proposal;
+        const payload = {
+          ...proposal.payload,
+          qualifiers: [...proposal.payload.qualifiers, "modalized"],
+        };
+        const fingerprint = createHash("sha256")
+          .update(JSON.stringify(payload))
+          .digest("hex")
+          .slice(0, 16);
+        const unit = proposal.semanticUnitId.split(":").at(-1);
+        return { ...proposal, id: `${documentId}:proposal:${unit}:claim:${fingerprint}`, payload };
+      }),
+    };
+  }
+
+  async function reviewedDocument() {
+    const workspace = adapter(database());
+    const { document } = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro revisado",
+        language: "pt-BR",
+        originalName: "livro-revisado.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 64,
+        checksum: "e".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "CAPÍTULO 1\n\nAgostinho afirma que o Verbo existe desde a eternidade, segundo Jo 1:1.",
+            itemCount: 5,
+          },
+        ],
+      },
+      "opfs:/livro-revisado.pdf",
+      workspace,
+    );
+    await DocumentKnowledgePipelineService.analyzeDocument(document.id, undefined, workspace);
+    const claim = (
+      await DocumentKnowledgeRepository.listProposals(document.id, {}, workspace)
+    ).find((proposal) => proposal.proposalKind === "claim");
+    if (!claim) throw new Error("Claim proposal not found.");
+    await DocumentKnowledgeRepository.reviewProposal(
+      claim.id,
+      "accepted",
+      { note: "conferido" },
+      workspace,
+    );
+    return { workspace, document, claim };
+  }
+
+  async function expectReviewKept(
+    workspace: ReturnType<typeof adapter>,
+    documentId: string,
+    claimId: string,
+    analyzer: DocumentKnowledgeAnalyzer,
+  ) {
+    const rerun = await DocumentKnowledgePipelineService.analyzeDocument(
+      documentId,
+      undefined,
+      workspace,
+      {
+        analyzer,
+      },
+    );
+    expect(rerun.preservedReviewCount).toBe(1);
+    const proposals = await DocumentKnowledgeRepository.listProposals(documentId, {}, workspace);
+    expect(proposals.find((proposal) => proposal.id === claimId)).toMatchObject({
+      reviewStatus: "accepted",
+      reviewNote: "conferido",
+    });
+  }
+
+  it("keeps a human decision on the batched path (the default analyzer)", async () => {
+    const { workspace, document, claim } = await reviewedDocument();
+    await expectReviewKept(workspace, document.id, claim.id, {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      version: "upgraded-batch",
+      async analyzeBatch(source, pages, checkpoint) {
+        const batch = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          source,
+          pages,
+          checkpoint,
+        );
+        return upgradeClaims(source.id, batch);
+      },
+    });
+  });
+
+  it("keeps a human decision on the whole-document path", async () => {
+    const { workspace, document, claim } = await reviewedDocument();
+    await expectReviewKept(workspace, document.id, claim.id, {
+      id: DeterministicDocumentKnowledgeAnalyzer.id,
+      version: "upgraded-whole",
+      async analyze(source, pages) {
+        return upgradeClaims(
+          source.id,
+          await DeterministicDocumentKnowledgeAnalyzer.analyze(source, pages),
+        );
+      },
+    });
   });
 });

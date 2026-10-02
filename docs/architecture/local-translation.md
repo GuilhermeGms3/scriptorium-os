@@ -12,6 +12,12 @@ inglês→português, publicado sob CC BY 4.0. Não existe no repositório confi
 modelo chamado “Premier 18” ou de 18 bilhões de parâmetros; o nome e a revisão do modelo são
 configuráveis para não cristalizar uma suposição.
 
+Antes de consultar o cache, o cliente lê `GET /v1/info` e obtém provider, modelo e revisão efetivos.
+O serviço resolve tags/branches do Hugging Face para o SHA imutável do commit e usa esse SHA tanto
+para baixar quanto para identificar o modelo; o cliente rejeita `main` como identidade de cache.
+Por isso, trocar uma revisão não reutiliza silenciosamente uma tradução produzida por outra. Uma
+entrada antiga ainda pode ser usada como fallback somente quando o serviço local está indisponível.
+
 ## Execução
 
 ```bash
@@ -32,7 +38,14 @@ Variáveis:
 
 - somente `en` → `pt` no backend atual;
 - requisição limitada a 50 mil caracteres;
+- textos maiores que a janela do modelo são divididos recursivamente por tokens, sem truncamento;
 - nenhum download de URL arbitrária ou execução de código remoto (`trust_remote_code=False`);
-- cache inclui checksum do original e identidade do modelo;
+- cache inclui checksum do original, modelo e revisão efetiva;
+- identificação do modelo tem timeout curto separado; a inferência pode usar até dez minutos na
+  primeira carga sem fingir que o serviço falhou aos 120 segundos;
 - tradução automática não é apresentada como edição acadêmica ou revisada;
+- unidades privadas só entram na tradução em lote depois de terem alguma proposta aceita, e cada
+  tradução precisa ser marcada separadamente como revisada por humano;
+- lotes privados persistem contagem e último item no workspace, podem ser pausados e, ao retomar,
+  reutilizam traduções já cacheadas em vez de repetir inferência;
 - textos copta, grego e hebraico não são enviados ao tradutor por detecção implícita.

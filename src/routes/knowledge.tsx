@@ -7,12 +7,22 @@ import {
   type KnowledgeExplorerBundle,
 } from "../lib/application/knowledge-query-service";
 import { EvidenceTag } from "../components/knowledge/knowledge-entity";
-import { formatNumber, reviewStatusLabel, supportLevelLabel, t } from "../lib/i18n";
+import {
+  argumentRelationLabel,
+  formatNumber,
+  reviewStatusLabel,
+  supportLevelLabel,
+  t,
+} from "../lib/i18n";
 import { LibraryRepository } from "../lib/repositories/library-repository";
 import type { Citation } from "../lib/domain/bibliography";
 import type { KnowledgeClaim } from "../lib/domain/knowledge";
 import { ArgumentRepository } from "../lib/repositories/argument-repository";
-import { knowledgeLabel, knowledgeSourceLinks } from "../lib/content/knowledge-presentation";
+import {
+  argumentLabel,
+  knowledgeLabel,
+  knowledgeSourceLinks,
+} from "../lib/content/knowledge-presentation";
 
 interface KnowledgeSearch {
   entity?: string;
@@ -222,6 +232,24 @@ function ExplorerContent({
   const title = knowledgeLabel(selected.entity.id, canonicalTitle);
   const description = selected.entity.description;
   const sourceLinks = knowledgeSourceLinks(selected.entity.id);
+  const claimsById = new Map(
+    [...bundle.claims, ...bundle.argumentClaims].map((claim) => [claim.id, claim]),
+  );
+  const argumentsById = new Map(bundle.arguments.map((argument) => [argument.id, argument]));
+  const ontologyById = new Map(
+    [...(selected.kind === "ontology" ? [selected.entity] : []), ...bundle.relatedTheories].map(
+      (entity) => [entity.id, entity],
+    ),
+  );
+  const graphLabel = (kind: string, id: string): string => {
+    if (kind === "claim") return claimsById.get(id)?.proposition ?? id;
+    if (kind === "argument") {
+      const argument = argumentsById.get(id);
+      return argumentLabel(id, argument?.title);
+    }
+    if (kind === "theory") return knowledgeLabel(id, id);
+    return id;
+  };
   return (
     <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <section>
@@ -267,9 +295,50 @@ function ExplorerContent({
         </section>
       </section>
       <aside className="space-y-4">
+        <section className="rounded-lg border border-border bg-card p-4">
+          <h3 className="meta-label">Argumentos</h3>
+          {bundle.arguments.length ? (
+            <div className="mt-2 space-y-2">
+              {bundle.arguments.map((argument) => (
+                <article key={argument.id} className="rounded bg-muted/40 p-2.5 text-xs">
+                  <h4 className="font-medium">{argumentLabel(argument.id, argument.title)}</h4>
+                  <p className="mt-1 text-muted-foreground">
+                    <strong>Conclusão:</strong>{" "}
+                    {claimsById.get(argument.conclusionClaimId)?.proposition ??
+                      argument.conclusionClaimId}
+                  </p>
+                  <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-muted-foreground">
+                    {argument.premiseClaimIds.map((claimId) => (
+                      <li key={claimId}>{claimsById.get(claimId)?.proposition ?? claimId}</li>
+                    ))}
+                  </ol>
+                  {argument.notes && <p className="mt-1 text-muted-foreground">{argument.notes}</p>}
+                </article>
+              ))}
+            </div>
+          ) : (
+            <p className="mt-2 text-xs italic text-muted-foreground">Nenhuma relação registrada.</p>
+          )}
+        </section>
         <RelationCard
-          title="Argumentos"
-          items={bundle.arguments.map((argument) => argument.title ?? argument.id)}
+          title="Argumentos favoráveis"
+          items={bundle.supportingArguments.map((argument) =>
+            argumentLabel(argument.id, argument.title),
+          )}
+        />
+        <RelationCard
+          title="Argumentos contrários"
+          items={bundle.opposingArguments.map((argument) =>
+            argumentLabel(argument.id, argument.title),
+          )}
+        />
+        <RelationCard
+          title="Evidências"
+          items={bundle.evidence.map((evidence) => evidence.label)}
+        />
+        <RelationCard
+          title="Perspectivas declaradas"
+          items={bundle.perspectives.map((profile) => profile.label)}
         />
         <RelationCard
           title="Citações acadêmicas"
@@ -305,24 +374,43 @@ function ExplorerContent({
         )}
         <RelationCard
           title="Teorias concorrentes"
-          items={bundle.relatedTheories.map((theory) => theory.labels.canonicalName)}
+          items={bundle.relatedTheories.map((theory) =>
+            knowledgeLabel(theory.id, theory.labels.canonicalName),
+          )}
         />
         <RelationCard
           title="Relações argumentativas"
           items={bundle.argumentRelations.map(
-            (relation) => `${relation.relationType}: ${relation.fromId} → ${relation.toId}`,
+            (relation) =>
+              `${graphLabel(relation.fromKind, relation.fromId)} ${argumentRelationLabel(relation.relationType)} ${graphLabel(relation.toKind, relation.toId)}`,
+          )}
+        />
+        <RelationCard
+          title="Objeções"
+          items={bundle.objections.map(
+            (relation) =>
+              `${graphLabel(relation.fromKind, relation.fromId)} ${argumentRelationLabel(relation.relationType)} ${graphLabel(relation.toKind, relation.toId)}`,
+          )}
+        />
+        <RelationCard
+          title="Respostas"
+          items={bundle.responses.map(
+            (relation) =>
+              `${graphLabel(relation.fromKind, relation.fromId)} ${argumentRelationLabel(relation.relationType)} ${graphLabel(relation.toKind, relation.toId)}`,
           )}
         />
         <RelationCard
           title="Relações ontológicas"
           items={bundle.ontologyRelations.map(
             (relation) =>
-              `${relation.relationType}: ${relation.fromEntityId} → ${relation.toEntityId}`,
+              `${knowledgeLabel(relation.fromEntityId, ontologyById.get(relation.fromEntityId)?.labels.canonicalName ?? relation.fromEntityId)} ${argumentRelationLabel(relation.relationType)} ${knowledgeLabel(relation.toEntityId, ontologyById.get(relation.toEntityId)?.labels.canonicalName ?? relation.toEntityId)}`,
           )}
         />
         <RelationCard
           title="Relações de conhecimento"
-          items={bundle.knowledgeRelations.map((relation) => relation.relation.value)}
+          items={bundle.knowledgeRelations.map((relation) =>
+            argumentRelationLabel(relation.relation.value),
+          )}
         />
       </aside>
     </div>

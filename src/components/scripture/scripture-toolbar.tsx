@@ -5,7 +5,15 @@
  */
 
 import { useNavigate } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Columns2, Rows3, WholeWord, BookOpenText, MessagesSquare } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Columns2,
+  Rows3,
+  WholeWord,
+  BookOpenText,
+  MessagesSquare,
+} from "lucide-react";
 import type { Book, Edition } from "../../lib/domain/scripture";
 import type { ReaderView } from "./verse";
 import { cn } from "../../lib/utils";
@@ -118,10 +126,16 @@ export function ScriptureToolbar({
         onClick={() => onShowExplanationsChange(!showExplanations)}
         disabled={!explanationsAvailable || view !== "single"}
         aria-pressed={showExplanations}
-        title={explanationsAvailable ? "Mostrar ou ocultar explicações junto aos versículos" : "Ainda não há explicações indexadas para este capítulo"}
+        title={
+          explanationsAvailable
+            ? "Mostrar ou ocultar explicações junto aos versículos"
+            : "Ainda não há explicações indexadas para este capítulo"
+        }
         className={cn(
           "flex h-7 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-35",
-          showExplanations && view === "single" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent hover:text-foreground",
+          showExplanations && view === "single"
+            ? "bg-accent text-foreground"
+            : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
       >
         <MessagesSquare className="size-3.5" />

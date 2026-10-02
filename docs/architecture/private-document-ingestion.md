@@ -61,7 +61,7 @@ O fluxo correto é:
 1. pesquisar o texto extraído;
 2. abrir o trecho na página original;
 3. criar uma citação com âncora exata;
-4. relacionar a citação a uma passagem, pergunta ou claim;
+4. revisar propostas de estrutura, citação, passagem, claim ou argumento;
 5. registrar se a interpretação é humana, assistida por máquina ou revisada.
 
 ## Persistência
@@ -76,7 +76,7 @@ O fluxo correto é:
 ## Entregas futuras
 
 1. fila local de OCR recuperável para páginas sem camada textual;
-2. seleção de trechos e criação direta de citações/links para estudos;
-3. identificação estrutural de cabeçalhos, notas e seções;
+2. seleção livre de trechos e criação direta de citações/links para estudos;
+3. detecção mais ampla de notas e bibliografias em layouts variados;
 4. exportação privada opcional e criptografada dos documentos;
 5. importadores EPUB e imagem depois da validação continuada do pipeline de PDF.
