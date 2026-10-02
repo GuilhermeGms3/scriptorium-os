@@ -149,6 +149,26 @@ export const DocumentKnowledgeRepository = {
         const currentPartId = candidate["currentPartId"];
         const currentChapterId = candidate["currentChapterId"];
         const currentSectionId = candidate["currentSectionId"];
+        const bibliographyMode = candidate["bibliographyMode"];
+        const lastPersonLabel = candidate["lastPersonLabel"];
+        const lastWorkLabel = candidate["lastWorkLabel"];
+        const rawProviderState = candidate["providerState"];
+        const providerState =
+          rawProviderState && typeof rawProviderState === "object"
+            ? Object.fromEntries(
+                Object.entries(rawProviderState).filter(
+                  (entry): entry is [string, string | number | boolean | null] => {
+                    const value = entry[1];
+                    return (
+                      value === null ||
+                      typeof value === "string" ||
+                      typeof value === "number" ||
+                      typeof value === "boolean"
+                    );
+                  },
+                ),
+              )
+            : undefined;
         validCheckpoint = {
           nextNodeOrdinal,
           nextUnitOrdinal,
@@ -156,6 +176,10 @@ export const DocumentKnowledgeRepository = {
           ...(typeof currentPartId === "string" ? { currentPartId } : {}),
           ...(typeof currentChapterId === "string" ? { currentChapterId } : {}),
           ...(typeof currentSectionId === "string" ? { currentSectionId } : {}),
+          ...(bibliographyMode === true ? { bibliographyMode: true } : {}),
+          ...(typeof lastPersonLabel === "string" ? { lastPersonLabel } : {}),
+          ...(typeof lastWorkLabel === "string" ? { lastWorkLabel } : {}),
+          ...(providerState ? { providerState } : {}),
         };
       }
     }

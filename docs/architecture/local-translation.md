@@ -27,6 +27,17 @@ docker compose --profile semantic up --build
 O primeiro uso baixa o modelo para o volume `semantic-model-cache`. A aplicação continua utilizável
 sem o perfil: nesse caso o botão informa que o tradutor local está indisponível.
 
+Para desenvolvimento nativo com Python 3.13.3, a partir da raiz:
+
+```bash
+npm run semantic:install
+npm run semantic:test
+npm run semantic:dev
+```
+
+Esses comandos não confiam cegamente no executável `python` do Windows: procuram a `.venv` e depois
+o launcher `py -3.13` antes dos fallbacks compatíveis.
+
 Variáveis:
 
 - `VITE_SEMANTIC_ENGINE_URL`: URL consumida pelo navegador; padrão `http://127.0.0.1:8018`;

@@ -407,7 +407,7 @@ function ImportPanel({
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [pdfProgress, setPdfProgress] = useState<PrivateDocumentImportProgress>();
   const [pdfResults, setPdfResults] = useState<PrivateDocumentImportResult[]>([]);
-  const [pdfError, setPdfError] = useState<string>();
+  const [pdfErrors, setPdfErrors] = useState<Array<{ filename: string; message: string }>>([]);
   const preview = input.trim() ? SourceImportService.preview(format, input) : null;
   const runImport = async () => {
     setBusy(true);
@@ -422,19 +422,30 @@ function ImportPanel({
   const importPdfs = async () => {
     if (!pdfFiles.length) return;
     setBusy(true);
-    setPdfError(undefined);
+    setPdfErrors([]);
     setPdfResults([]);
     const imported: PrivateDocumentImportResult[] = [];
+    const failures: Array<{ filename: string; message: string }> = [];
     try {
       for (const file of pdfFiles) {
         setPdfProgress({ phase: "validating", message: `Preparando ${file.name}…` });
-        imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
-        setPdfResults([...imported]);
+        try {
+          imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
+          setPdfResults([...imported]);
+        } catch (cause) {
+          failures.push({
+            filename: file.name,
+            message: cause instanceof Error ? cause.message : String(cause),
+          });
+          setPdfErrors([...failures]);
+        }
       }
       setPdfFiles([]);
-      await onImported();
-    } catch (cause) {
-      setPdfError(cause instanceof Error ? cause.message : String(cause));
+      if (imported.length) await onImported();
+      setPdfProgress({
+        phase: "complete",
+        message: `${imported.length} PDF${imported.length === 1 ? "" : "s"} indexado${imported.length === 1 ? "" : "s"}; ${failures.length} exige${failures.length === 1 ? "" : "m"} OCR ou correção.`,
+      });
     } finally {
       setBusy(false);
     }
@@ -506,17 +517,25 @@ function ImportPanel({
               {pdfProgress.message}
             </p>
           )}
-          {pdfError && (
-            <p role="alert" className="mt-2 text-xs text-destructive">
-              {pdfError}
-            </p>
+          {pdfErrors.length > 0 && (
+            <ul role="alert" className="mt-2 space-y-1 text-xs text-destructive">
+              {pdfErrors.map((failure) => (
+                <li key={failure.filename}>
+                  {failure.filename}: {failure.message}
+                </li>
+              ))}
+            </ul>
           )}
           {pdfResults.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs">
               {pdfResults.map((result) => (
                 <li key={result.documentId}>
                   {result.title}: {result.textPageCount}/{result.pageCount} páginas{" "}
-                  {result.duplicate ? "já indexadas" : "indexadas"}.
+                  {result.duplicate ? "já indexadas" : "indexadas"} · idioma {result.language} ·{" "}
+                  {result.textLayerStatus === "complete"
+                    ? "camada textual completa"
+                    : "camada textual parcial; páginas vazias exigem OCR"}
+                  .
                 </li>
               ))}
             </ul>

@@ -2,13 +2,15 @@
 
 ## Estado atual
 
-O Scriptorium ingere **PDFs privados que possuam camada textual**. O arquivo original permanece no
+O Scriptorium ingere em lote **PDFs privados que possuam camada textual**. O arquivo original permanece no
 OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
 índice FTS5. A Biblioteca e a busca global conseguem localizar os trechos e abrir a página física
 correspondente.
 
 EPUB, imagens e OCR ainda não foram implementados. Um PDF composto apenas por imagens é recusado
-com uma mensagem explícita, sem fingir que foi indexado.
+com uma mensagem explícita, sem fingir que foi indexado. A fila continua com os demais arquivos e
+apresenta um diagnóstico por nome. PDFs parcialmente pesquisáveis são importados, mas exibem quantas
+páginas ainda dependem de OCR.
 
 ## Objetivo
 
@@ -23,6 +25,7 @@ arquivo privado
   -> identificação de formato e checksum
   -> extração de texto por página
   -> identificação das páginas sem camada textual
+  -> detecção conservadora de idioma (pt-BR, en, es, el, he ou und)
   -> normalização sem apagar o original
   -> blocos citáveis (página, seção e offsets)
   -> índice FTS local
@@ -40,6 +43,11 @@ Cada página mantém:
 
 Os IDs são derivados do SHA-256 do arquivo e do índice da página. Reimportar o mesmo PDF é
 idempotente: o registro existente é reutilizado.
+
+O limite atual é 256 MiB por arquivo e 5.000 páginas. A detecção de idioma usa uma amostra das
+primeiras páginas textuais; ela nunca traduz nem modifica o texto-fonte. Grego e hebraico são
+reconhecidos por escrita antes da heurística latina, impedindo seu envio implícito ao tradutor de
+inglês.
 
 ## Limites de direitos e segurança
 

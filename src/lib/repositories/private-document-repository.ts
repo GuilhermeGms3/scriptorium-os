@@ -116,6 +116,40 @@ export const PrivateDocumentRepository = {
     return row ? mapDocument(row) : null;
   },
 
+  async updateTitle(
+    id: string,
+    title: string,
+    database?: WorkspaceDatabase,
+  ): Promise<PrivateDocument> {
+    const normalized = title.normalize("NFC").replace(/\s+/g, " ").trim();
+    if (normalized.length < 2) throw new Error("O título do documento é inválido.");
+    const db = database ?? (await getWorkspaceDatabase());
+    const document = await this.getDocument(id, db);
+    if (!document) throw new Error("Documento privado não encontrado.");
+    await db.transaction([
+      {
+        sql: "UPDATE private_documents SET title=? WHERE id=?",
+        bind: [normalized, id],
+      },
+      {
+        sql: "UPDATE bibliographic_sources SET title=?,normalized_title=?,updated_at=? WHERE id=?",
+        bind: [
+          normalized,
+          normalizedTitle(normalized),
+          new Date().toISOString(),
+          document.sourceId,
+        ],
+      },
+      {
+        sql: "UPDATE workspace_fts SET title=? WHERE entity_kind='source' AND entity_id=?",
+        bind: [normalized, document.sourceId],
+      },
+    ]);
+    const updated = await this.getDocument(id, db);
+    if (!updated) throw new Error("O título atualizado não pôde ser confirmado.");
+    return updated;
+  },
+
   async getDocumentForSource(
     sourceId: string,
     database?: WorkspaceDatabase,

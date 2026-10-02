@@ -125,7 +125,10 @@ function aliasKey(value: string): string {
 }
 
 function withoutAccents(value: string): string {
-  return value.normalize("NFD").replace(/\p{M}+/gu, "").normalize("NFC");
+  return value
+    .normalize("NFD")
+    .replace(/\p{M}+/gu, "")
+    .normalize("NFC");
 }
 
 function regexAlias(value: string): string {

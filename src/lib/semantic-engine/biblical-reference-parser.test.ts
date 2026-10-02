@@ -68,7 +68,7 @@ describe("parseBiblicalReferences", () => {
       { chapter: 2, verseStart: 1, verseEnd: 1 },
     ]);
   });
-    it("distinguishes Jo (João) from Jó and Jn (Jonas) from John", () => {
+  it("distinguishes Jo (João) from Jó and Jn (Jonas) from John", () => {
     const books = (text: string) =>
       parseBiblicalReferences(text).map((reference) => reference.bookId);
     expect(books("Jo 3:16")).toEqual(["john"]);

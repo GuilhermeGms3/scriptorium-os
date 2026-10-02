@@ -13,6 +13,21 @@ export default defineConfig({
   vite: {
     // SQLite's worker/WASM assets are resolved by the package at runtime.
     optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "react-runtime",
+                test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).

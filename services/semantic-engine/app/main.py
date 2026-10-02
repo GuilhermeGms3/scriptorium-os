@@ -8,6 +8,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
 from .translator import MarianTranslationBackend, TranslationBackend
+from .semantic_analyzer import (
+    ANALYZER_ID,
+    ANALYZER_REVISION,
+    AnalyzerUnit,
+    analyze_units,
+)
 
 
 class TranslationRequest(BaseModel):
@@ -19,7 +25,9 @@ class TranslationRequest(BaseModel):
 
 
 class TranslationResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+    model_config = ConfigDict(
+        populate_by_name=True, serialize_by_alias=True, protected_namespaces=()
+    )
 
     translated_text: str = Field(alias="translatedText")
     provider: str
@@ -28,11 +36,42 @@ class TranslationResponse(BaseModel):
 
 
 class ModelInfoResponse(BaseModel):
-    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+    model_config = ConfigDict(
+        populate_by_name=True, serialize_by_alias=True, protected_namespaces=()
+    )
 
     provider: str
     model: str
     model_revision: str = Field(alias="modelRevision")
+
+
+class SemanticUnitRequest(BaseModel):
+    id: str = Field(min_length=1, max_length=500)
+    text: str = Field(min_length=1, max_length=20_000)
+    kind: str = Field(min_length=1, max_length=80)
+    language: str = Field(min_length=2, max_length=35)
+
+
+class SemanticBatchRequest(BaseModel):
+    units: list[SemanticUnitRequest] = Field(min_length=1, max_length=200)
+    checkpoint: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+
+
+class SemanticProposalResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
+    unit_id: str = Field(alias="unitId")
+    payload: dict[str, object]
+    confidence: float = Field(ge=0, le=1)
+
+
+class SemanticBatchResponse(BaseModel):
+    model_config = ConfigDict(populate_by_name=True, serialize_by_alias=True)
+
+    analyzer_id: str = Field(alias="analyzerId")
+    analyzer_revision: str = Field(alias="analyzerRevision")
+    proposals: list[SemanticProposalResponse]
+    checkpoint: dict[str, str | int | float | bool | None]
 
 
 @lru_cache(maxsize=1)
@@ -86,5 +125,35 @@ def translate(
         provider=result.provider,
         model=result.model,
         modelRevision=result.model_revision,
+    )
+
+
+@app.get("/v1/analyze/info")
+def analyzer_info() -> dict[str, object]:
+    return {
+        "analyzerId": ANALYZER_ID,
+        "analyzerRevision": ANALYZER_REVISION,
+        "capabilities": ["bibliography", "attribution", "coreference", "incremental"],
+    }
+
+
+@app.post("/v1/analyze/batch", response_model=SemanticBatchResponse)
+def analyze_batch(request: SemanticBatchRequest) -> SemanticBatchResponse:
+    proposals, checkpoint = analyze_units(
+        [AnalyzerUnit(unit.id, unit.text, unit.kind, unit.language) for unit in request.units],
+        request.checkpoint,
+    )
+    return SemanticBatchResponse(
+        analyzerId=ANALYZER_ID,
+        analyzerRevision=ANALYZER_REVISION,
+        proposals=[
+            SemanticProposalResponse(
+                unitId=proposal.unit_id,
+                payload=proposal.payload,
+                confidence=proposal.confidence,
+            )
+            for proposal in proposals
+        ],
+        checkpoint=checkpoint,
     )
 

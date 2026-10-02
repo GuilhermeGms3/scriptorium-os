@@ -1,7 +1,8 @@
 import { DatabaseSync } from "node:sqlite";
 import { createHash } from "node:crypto";
-import { readFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { copyFileSync, mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import {
@@ -47,6 +48,23 @@ function database(): DatabaseSync {
   applyWorkspaceMigrations(db);
   return db;
 }
+
+function databaseAtVersion13(): DatabaseSync {
+  const db = new DatabaseSync(":memory:");
+  databases.push(db);
+  const source = resolve("src/lib/workspace-runtime/migrations");
+  const temporary = mkdtempSync(join(tmpdir(), "scriptorium-migrations-v13-"));
+  try {
+    for (const filename of readdirSync(source).filter(
+      (name) => /^\d{3}_.+\.sql$/u.test(name) && Number(name.slice(0, 3)) <= 13,
+    ))
+      copyFileSync(join(source, filename), join(temporary, filename));
+    applyWorkspaceMigrations(db, temporary);
+  } finally {
+    rmSync(temporary, { recursive: true, force: true });
+  }
+  return db;
+}
 function adapter(db: DatabaseSync): WorkspaceDatabase {
   return {
     persistence: "memory",
@@ -76,6 +94,94 @@ afterEach(() => {
 });
 
 describe("Phase 9.5 workspace schema", () => {
+  it("migrates reviewed v13 proposals and accepts the contextual proposal vocabulary", async () => {
+    const db = databaseAtVersion13();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Migração contextual",
+        language: "pt-BR",
+        originalName: "migracao-contextual.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 256,
+        checksum: "9".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [
+          {
+            pageIndex: 0,
+            pageLabel: "1",
+            text: "Agostinho afirma que o Verbo existe desde a eternidade.",
+            itemCount: 8,
+          },
+        ],
+      },
+      "opfs:/migration-v13.pdf",
+      workspace,
+    );
+    await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+    );
+    const before = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      {},
+      workspace,
+    );
+    await DocumentKnowledgeRepository.reviewProposal(
+      before[0]!.id,
+      "accepted",
+      { note: "decisão humana preservada" },
+      workspace,
+    );
+
+    applyWorkspaceMigrations(db);
+
+    const preserved = await DocumentKnowledgeRepository.listProposals(
+      imported.document.id,
+      { reviewStatus: "accepted" },
+      workspace,
+    );
+    expect(preserved[0]).toMatchObject({
+      id: before[0]!.id,
+      reviewStatus: "accepted",
+      reviewNote: "decisão humana preservada",
+    });
+    const unitId = String(
+      (db.prepare("SELECT id FROM semantic_units LIMIT 1").get() as Record<string, unknown>)["id"],
+    );
+    db.prepare(
+      `INSERT INTO knowledge_proposals(
+        id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,
+        review_status,created_at,updated_at
+      ) VALUES(?,?,?,?,?,?,?,?,?,?)`,
+    ).run(
+      "proposal:contextual:migration",
+      imported.document.id,
+      unitId,
+      "bibliographic-reference",
+      JSON.stringify({
+        kind: "bibliographic-reference",
+        rawText: "AGOSTINHO. Confissões. 397.",
+        authors: ["Agostinho"],
+        title: "Confissões",
+        year: 397,
+        referenceType: "book",
+      }),
+      "contextual-rule-analyzer:2",
+      0.76,
+      "machine-proposed",
+      "2026-10-02T00:00:00.000Z",
+      "2026-10-02T00:00:00.000Z",
+    );
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    expect(db.prepare("SELECT max(version) version FROM workspace_migrations").get()).toMatchObject(
+      { version: 14 },
+    );
+  });
+
   it("indexes private PDF pages locally and keeps checksum imports idempotent", async () => {
     const db = database();
     const workspace = adapter(db);
@@ -107,6 +213,17 @@ describe("Phase 9.5 workspace schema", () => {
     expect(first.duplicate).toBe(false);
     expect(second.duplicate).toBe(true);
     expect(first.document).toMatchObject({ pageCount: 2, textPageCount: 2 });
+    const renamed = await PrivateDocumentRepository.updateTitle(
+      first.document.id,
+      "Livro privado revisado",
+      workspace,
+    );
+    expect(renamed.title).toBe("Livro privado revisado");
+    expect(
+      db
+        .prepare("SELECT title FROM workspace_fts WHERE entity_kind='source' AND entity_id=?")
+        .get(first.document.sourceId),
+    ).toMatchObject({ title: "Livro privado revisado" });
     expect(
       await PrivateDocumentRepository.search(
         "hermeneutica",

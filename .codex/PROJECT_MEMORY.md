@@ -1,5 +1,31 @@
 # Project Memory
 
+## Contextual private knowledge engine (2026-10-02)
+
+- Workspace schema 14 preserves reviewed proposals while adding explicit bibliographic reference,
+  attribution and coreference proposal kinds. The deterministic analyzer carries bibliography,
+  recent-person and recent-work context across its 50-page checkpoints.
+- The optional Python service now implements the same bounded `analyzeBatch()` contract and returns
+  a serializable provider checkpoint. The client accepts only loopback endpoints, validates output
+  with Zod, rejects proposals for units outside the submitted batch and keeps every result
+  `machine-proposed`.
+- Private PDF batch import continues after per-file failures, detects Portuguese/English/Spanish and
+  Greek/Hebrew script conservatively, reports partial text layers and accepts files up to 256 MiB.
+  OCR remains explicit future work; protected bytes/text remain OPFS-only.
+- Python development is pinned to 3.13.3 through `.python-version`; npm semantic commands prefer the
+  local venv or Windows `py -3.13`, avoiding the stale `python` 3.10 PATH alias.
+- Client chunking separates React runtime from the application entry. The final measured entry fell
+  from 550.03 kB to 372.11 kB (React runtime 189.73 kB) without raising the warning threshold.
+- Browser QA imported the 37 PDFs found in the user's private library into OPFS: 31 were indexed and
+  six were rejected explicitly because they have no extractable text layer and require OCR. Protected
+  bytes and extracted text remain local and are not tracked by Git. Checksum reimports corrected
+  metadata without duplicating documents.
+- The contextual analyzer was exercised end-to-end against the local Python service. Reprocessing a
+  21-page document produced 260 reviewable proposals; a detected lowercase false attribution was
+  eliminated by the deterministic guard, and the browser console remained clean.
+- Fast Refresh ESLint exceptions are restricted to known stable component helpers/hooks; all eight
+  previous warnings are gone while the rule remains active.
+
 ## Canonical private knowledge consolidation (2026-10-01)
 
 - Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical

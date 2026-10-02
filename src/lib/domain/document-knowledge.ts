@@ -85,6 +85,9 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     kind: z.literal("citation"),
     quotedText: z.string().min(1),
     citationKind: z.enum(["exact-quote", "possible-quote"]),
+    attributedTo: z.string().min(1).optional(),
+    sourceWork: z.string().min(1).optional(),
+    locator: z.string().min(1).optional(),
   }),
   z.object({
     kind: z.literal("entity"),
@@ -102,6 +105,30 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     domain: z.enum(SEMANTIC_DOMAINS),
     evidence: z.array(z.string().min(1)),
   }),
+  z.object({
+    kind: z.literal("bibliographic-reference"),
+    rawText: z.string().min(1),
+    authors: z.array(z.string().min(1)).default([]),
+    title: z.string().min(1).optional(),
+    year: z.number().int().min(100).max(3000).optional(),
+    locator: z.string().min(1).optional(),
+    referenceType: z.enum(["book", "chapter", "article", "web", "unknown"]),
+  }),
+  z.object({
+    kind: z.literal("attribution"),
+    statement: z.string().min(1),
+    agentLabel: z.string().min(1),
+    agentType: z.enum(["person", "work", "tradition", "unknown"]),
+    relation: z.enum(["asserts", "reports", "quotes", "rejects", "questions"]),
+    resolution: z.enum(["explicit", "coreference"]),
+  }),
+  z.object({
+    kind: z.literal("coreference"),
+    mention: z.string().min(1),
+    resolvedLabel: z.string().min(1),
+    entityType: z.enum(["person", "work", "unknown"]),
+    basis: z.enum(["recent-explicit-mention", "recent-attribution"]),
+  }),
 ]);
 
 export const KnowledgeProposalSchema = z.object({
@@ -115,6 +142,9 @@ export const KnowledgeProposalSchema = z.object({
     "entity",
     "passage-relation",
     "topic-assignment",
+    "bibliographic-reference",
+    "attribution",
+    "coreference",
   ]),
   payload: KnowledgeProposalPayloadSchema,
   method: z.string().min(1),

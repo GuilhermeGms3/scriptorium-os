@@ -102,4 +102,60 @@ describe("Portuguese sentence handling", () => {
       conclusion: "toda a criação depende do Verbo eterno.",
     });
   });
+
+  it("keeps attribution context across incremental batches", async () => {
+    const first = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(document, [
+      page(0, "CAPÍTULO 1\n\nAgostinho afirma que o Verbo existe desde a eternidade."),
+    ]);
+    const second = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+      document,
+      [page(1, "Ele sustenta que todas as coisas foram criadas pelo Verbo eterno.")],
+      first.checkpoint,
+    );
+
+    expect(second.proposals.map((proposal) => proposal.payload)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "coreference",
+          mention: "Ele",
+          resolvedLabel: "Agostinho",
+        }),
+        expect.objectContaining({
+          kind: "attribution",
+          agentLabel: "Agostinho",
+          resolution: "coreference",
+        }),
+      ]),
+    );
+  });
+
+  it("classifies entries under a bibliography heading as bibliographic references", async () => {
+    const result = await DeterministicDocumentKnowledgeAnalyzer.analyze(document, [
+      page(
+        0,
+        "BIBLIOGRAFIA\n\nWEGNER, Uwe. Exegese do Novo Testamento. São Leopoldo: Sinodal, 1998.",
+      ),
+    ]);
+
+    expect(result.units).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: "bibliography-entry" })]),
+    );
+    expect(result.proposals.map((proposal) => proposal.payload)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "bibliographic-reference",
+          authors: ["WEGNER, Uwe"],
+          title: "Exegese do Novo Testamento",
+          year: 1998,
+        }),
+      ]),
+    );
+  });
+
+  it("does not invent an author from a lowercase phrase after Segundo", async () => {
+    const proposals = await payloads(
+      "Segundo o seu sábio e santo conselho, foi Deus servido permitir este acontecimento.",
+    );
+    expect(proposals.filter((payload) => payload.kind === "attribution")).toEqual([]);
+  });
 });

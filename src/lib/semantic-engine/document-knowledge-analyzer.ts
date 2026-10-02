@@ -21,6 +21,10 @@ export interface DocumentKnowledgeAnalyzerCheckpoint {
   currentPartId?: string;
   currentChapterId?: string;
   currentSectionId?: string;
+  bibliographyMode?: boolean;
+  lastPersonLabel?: string;
+  lastWorkLabel?: string;
+  providerState?: Record<string, string | number | boolean | null>;
 }
 
 export interface IncrementalDocumentKnowledgeAnalysis extends DocumentKnowledgeAnalysis {
@@ -42,7 +46,7 @@ export interface DocumentKnowledgeAnalyzer {
 }
 
 export const DETERMINISTIC_DOCUMENT_ANALYZER_ID = "deterministic-document-knowledge";
-export const DETERMINISTIC_DOCUMENT_ANALYZER_VERSION = "2";
+export const DETERMINISTIC_DOCUMENT_ANALYZER_VERSION = "3";
 
 interface UnitDraft extends SemanticUnit {
   domains: { domain: string; evidence: string[]; confidence: number }[];
@@ -63,6 +67,13 @@ const ARGUMENT_MARKER = words("porque|pois|portanto|logo(?=,)|because|therefore|
 const TERMINAL_PATTERN = /[.!?…][”"')\]]?$/u;
 const CONTINUATION_PATTERN = /^\p{Ll}/u;
 const LEADING_CONCLUSION_MARKER = /^(?:portanto|logo|therefore|thus)[,:]?\s+/iu;
+const EXPLICIT_ATTRIBUTION =
+  /^(?:segundo|conforme|para|de acordo com|according to)\s+(?<agent>[\p{Lu}][\p{L}\p{M}.'’ -]{1,80}?)(?:,|\s+(?:afirma|argumenta|sustenta|defende|escreve|observa|declara|interpreta|reports?|argues?|states?|writes?|observes?|rejects?))\s*(?<statement>[\s\S]+)$/iu;
+const SUBJECT_ATTRIBUTION =
+  /^(?<agent>[\p{Lu}][\p{L}\p{M}.'’-]*(?:\s+[\p{Lu}][\p{L}\p{M}.'’-]*){0,4})\s+(?<verb>afirma|argumenta|sustenta|defende|escreve|observa|declara|interpreta|rejeita|questiona|reports?|argues?|states?|writes?|observes?|rejects?|questions?)\s+(?:que\s+|that\s+)?(?<statement>[\s\S]{15,})$/iu;
+const PRONOUN_ATTRIBUTION =
+  /^(?<mention>ele|ela|o autor|a autora|he|she|the author)\s+(?<verb>afirma|argumenta|sustenta|defende|escreve|observa|declara|interpreta|rejeita|questiona|reports?|argues?|states?|writes?|observes?|rejects?|questions?)\s+(?:que\s+|that\s+)?(?<statement>[\s\S]{15,})$/iu;
+const YEAR_PATTERN = /(?:^|[^\d])((?:1[4-9]|20)\d{2})(?:[a-z])?(?:[^\d]|$)/u;
 
 const CONTROLLED_ENTITIES = [
   { pattern: /\bLogos\b/giu, label: "Logos", entityType: "concept" as const },
@@ -91,6 +102,84 @@ const CONTROLLED_ENTITIES = [
     entityType: "work" as const,
   },
 ] as const;
+
+interface DiscourseContext {
+  bibliographyMode: boolean;
+  lastPersonLabel?: string;
+  lastWorkLabel?: string;
+}
+
+function attributionRelation(
+  verb: string,
+): Extract<KnowledgeProposalPayload, { kind: "attribution" }>["relation"] {
+  if (/rejeita|reject/iu.test(verb)) return "rejects";
+  if (/questiona|question/iu.test(verb)) return "questions";
+  if (/escreve|write/iu.test(verb)) return "quotes";
+  if (/observa|declara|report/iu.test(verb)) return "reports";
+  return "asserts";
+}
+
+function explicitAttribution(sentence: string): {
+  agent: string;
+  statement: string;
+  relation: Extract<KnowledgeProposalPayload, { kind: "attribution" }>["relation"];
+} | null {
+  const prefixed = EXPLICIT_ATTRIBUTION.exec(sentence);
+  const subject = SUBJECT_ATTRIBUTION.exec(sentence);
+  const match = prefixed ?? subject;
+  const agent = match?.groups?.["agent"]?.replace(/\s+/g, " ").trim();
+  const statement = match?.groups?.["statement"]?.replace(/\s+/g, " ").trim();
+  if (
+    !agent ||
+    !statement ||
+    !/^\p{Lu}/u.test(agent) ||
+    /^(?:o|a|os|as|um|uma|seu|sua|the|his|her)\s/iu.test(agent) ||
+    agent.split(/\s+/u).length > 8
+  )
+    return null;
+  return {
+    agent,
+    statement,
+    relation: attributionRelation(match?.groups?.["verb"] ?? "afirma"),
+  };
+}
+
+function bibliographicPayload(
+  text: string,
+): Extract<KnowledgeProposalPayload, { kind: "bibliographic-reference" }> | null {
+  const normalized = text.replace(/\s+/g, " ").trim();
+  if (normalized.length < 20) return null;
+  const yearMatch = YEAR_PATTERN.exec(normalized);
+  const segments = normalized
+    .split(/\.\s+/u)
+    .map((part) => part.trim())
+    .filter(Boolean);
+  const authorSegment = segments[0];
+  if (!authorSegment || segments.length < 2) return null;
+  const authors = authorSegment
+    .split(/\s*(?:;|\be\b|\band\b|&)\s*/iu)
+    .map((author) => author.replace(/,$/u, "").trim())
+    .filter((author) => author.length >= 2 && author.length <= 120);
+  const title = segments[1]?.replace(/[,;:]$/u, "").trim();
+  const locator = normalized.match(/\b(?:p{1,2}|v|vol|cap)\.\s*[\divxlcdm–-]+/iu)?.[0];
+  return {
+    kind: "bibliographic-reference",
+    rawText: normalized,
+    authors,
+    ...(title && title.length >= 3 ? { title } : {}),
+    ...(yearMatch?.[1] ? { year: Number(yearMatch[1]) } : {}),
+    ...(locator ? { locator } : {}),
+    referenceType: /https?:\/\//iu.test(normalized)
+      ? "web"
+      : /\b(?:in:|cap[ií]tulo|chapter)\b/iu.test(normalized)
+        ? "chapter"
+        : /[“"]|\b(?:revista|journal)\b/iu.test(normalized)
+          ? "article"
+          : title
+            ? "book"
+            : "unknown",
+  };
+}
 
 function classifyClaim(sentence: string, unit: UnitDraft): ClaimKind {
   const domains = new Set(unit.domains.map((item) => item.domain));
@@ -232,6 +321,7 @@ async function proposalId(
 async function proposalsForUnit(
   document: PrivateDocument,
   unit: UnitDraft,
+  context: DiscourseContext,
 ): Promise<KnowledgeProposal[]> {
   if (unit.kind === "heading" || unit.kind === "unknown") return [];
   const drafts: { payload: KnowledgeProposalPayload; confidence: number }[] = [];
@@ -268,21 +358,99 @@ async function proposalsForUnit(
   }
   for (const match of unit.text.matchAll(/["“]([^"”]{20,600})["”]/gu)) {
     drafts.push({
-      payload: { kind: "citation", quotedText: match[1]!.trim(), citationKind: "possible-quote" },
+      payload: {
+        kind: "citation",
+        quotedText: match[1]!.trim(),
+        citationKind: "possible-quote",
+        ...(context.lastPersonLabel ? { attributedTo: context.lastPersonLabel } : {}),
+        ...(context.lastWorkLabel ? { sourceWork: context.lastWorkLabel } : {}),
+      },
       confidence: 0.62,
     });
   }
   for (const entity of CONTROLLED_ENTITIES) {
     entity.pattern.lastIndex = 0;
-    if (entity.pattern.test(unit.text))
+    if (entity.pattern.test(unit.text)) {
       drafts.push({
         payload: { kind: "entity", label: entity.label, entityType: entity.entityType },
         confidence: 0.7,
       });
+      if (entity.entityType === "person") context.lastPersonLabel = entity.label;
+      if (entity.entityType === "work") context.lastWorkLabel = entity.label;
+    }
   }
-  
+
+  if (unit.kind === "bibliography-entry") {
+    const bibliography = bibliographicPayload(unit.text);
+    if (bibliography) {
+      drafts.push({ payload: bibliography, confidence: 0.68 });
+      if (bibliography.authors[0]) context.lastPersonLabel = bibliography.authors[0];
+      if (bibliography.title) context.lastWorkLabel = bibliography.title;
+    }
+  }
+
   const sentences = sentenceCandidates(unit.text).slice(0, 8);
   for (const [index, sentence] of sentences.entries()) {
+    const coreference = PRONOUN_ATTRIBUTION.exec(sentence);
+    const mention = coreference?.groups?.["mention"];
+    const statement = coreference?.groups?.["statement"]?.replace(/\s+/g, " ").trim();
+    if (mention && statement && context.lastPersonLabel) {
+      drafts.push({
+        payload: {
+          kind: "coreference",
+          mention,
+          resolvedLabel: context.lastPersonLabel,
+          entityType: "person",
+          basis: "recent-attribution",
+        },
+        confidence: 0.58,
+      });
+      drafts.push({
+        payload: {
+          kind: "attribution",
+          statement,
+          agentLabel: context.lastPersonLabel,
+          agentType: "person",
+          relation: attributionRelation(coreference.groups?.["verb"] ?? "afirma"),
+          resolution: "coreference",
+        },
+        confidence: 0.56,
+      });
+    } else {
+      const explicit = explicitAttribution(sentence);
+      if (!explicit) {
+        if (ASSERTION_PATTERN.test(sentence))
+          drafts.push({
+            payload: {
+              kind: "claim",
+              proposition: sentence,
+              claimKind: classifyClaim(sentence, unit),
+              qualifiers: claimQualifiers(sentence, unit.language),
+              perspectiveProfileIds: [],
+            },
+            confidence: 0.55,
+          });
+        const argument = argumentPayload(sentence, sentences[index - 1]);
+        if (argument) drafts.push({ payload: argument, confidence: 0.58 });
+        continue;
+      }
+      context.lastPersonLabel = explicit.agent;
+      drafts.push({
+        payload: {
+          kind: "attribution",
+          statement: explicit.statement,
+          agentLabel: explicit.agent,
+          agentType: "person",
+          relation: explicit.relation,
+          resolution: "explicit",
+        },
+        confidence: 0.72,
+      });
+      drafts.push({
+        payload: { kind: "entity", label: explicit.agent, entityType: "person" },
+        confidence: 0.66,
+      });
+    }
     if (ASSERTION_PATTERN.test(sentence))
       drafts.push({
         payload: {
@@ -347,13 +515,18 @@ async function analyzeDeterministically(
   let nextNodeOrdinal = checkpoint?.nextNodeOrdinal ?? 1;
   let nextUnitOrdinal = checkpoint?.nextUnitOrdinal ?? 0;
   let processedCharacters = checkpoint?.processedCharacters ?? 0;
+  const discourse: DiscourseContext = {
+    bibliographyMode: checkpoint?.bibliographyMode ?? false,
+    ...(checkpoint?.lastPersonLabel ? { lastPersonLabel: checkpoint.lastPersonLabel } : {}),
+    ...(checkpoint?.lastWorkLabel ? { lastWorkLabel: checkpoint.lastWorkLabel } : {}),
+  };
 
   for (const page of pages) {
     processedCharacters += page.text.length;
     const bundles = page.text ? await analyzePrivateDocumentPage(document, page) : [];
     for (const bundle of bundles) {
-      const kind = unitKind(bundle.segment.structuralKind, bundle.text);
-      if (kind === "heading") {
+      const baseKind = unitKind(bundle.segment.structuralKind, bundle.text);
+      if (baseKind === "heading") {
         const title = normalizeTitle(bundle.text);
         const kindForNode = nodeKind(title);
         const ordinal = nextNodeOrdinal;
@@ -381,16 +554,28 @@ async function analyzeDeterministically(
           reviewStatus: "machine-proposed",
         });
         if (kindForNode === "part") {
+          discourse.bibliographyMode = false;
           currentPartId = id;
           currentChapterId = undefined;
           currentSectionId = undefined;
         } else if (kindForNode === "chapter") {
+          discourse.bibliographyMode = false;
           currentChapterId = id;
           currentSectionId = undefined;
         } else if (kindForNode === "section" || kindForNode === "subsection") {
+          discourse.bibliographyMode = false;
           currentSectionId = id;
+        } else if (kindForNode === "bibliography") {
+          discourse.bibliographyMode = true;
+          currentSectionId = id;
+        } else {
+          discourse.bibliographyMode = false;
         }
       }
+      const kind =
+        discourse.bibliographyMode && (baseKind === "paragraph" || baseKind === "list-item")
+          ? "bibliography-entry"
+          : baseKind;
       const activeNodeId = currentSectionId ?? currentChapterId ?? currentPartId ?? rootId;
       const previous = units.at(-1);
       const continuesPrevious =
@@ -454,9 +639,8 @@ async function analyzeDeterministically(
     }
   }
 
-  const proposals = (
-    await Promise.all(units.map((unit) => proposalsForUnit(document, unit)))
-  ).flat();
+  const proposals: KnowledgeProposal[] = [];
+  for (const unit of units) proposals.push(...(await proposalsForUnit(document, unit, discourse)));
   return {
     nodes,
     units: units.map(({ domains: _domains, passageLinks: _passageLinks, ...unit }) => unit),
@@ -468,6 +652,10 @@ async function analyzeDeterministically(
       ...(currentPartId ? { currentPartId } : {}),
       ...(currentChapterId ? { currentChapterId } : {}),
       ...(currentSectionId ? { currentSectionId } : {}),
+      ...(discourse.bibliographyMode ? { bibliographyMode: true } : {}),
+      ...(discourse.lastPersonLabel ? { lastPersonLabel: discourse.lastPersonLabel } : {}),
+      ...(discourse.lastWorkLabel ? { lastWorkLabel: discourse.lastWorkLabel } : {}),
+      ...(checkpoint?.providerState ? { providerState: checkpoint.providerState } : {}),
     },
   };
 }

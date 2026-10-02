@@ -36,6 +36,9 @@ const KIND_LABELS: Record<KnowledgeProposal["proposalKind"], string> = {
   entity: "Entidade",
   "passage-relation": "Passagem",
   "topic-assignment": "Assunto",
+  "bibliographic-reference": "Referência bibliográfica",
+  attribution: "Atribuição",
+  coreference: "Correferência",
 };
 
 const NODE_LABELS: Record<DocumentNode["kind"], string> = {
@@ -63,6 +66,14 @@ function proposalText(proposal: KnowledgeProposal): string {
       return proposal.payload.rawReference;
     case "topic-assignment":
       return proposal.payload.domain;
+    case "bibliographic-reference":
+      return [proposal.payload.authors.join("; "), proposal.payload.title, proposal.payload.year]
+        .filter(Boolean)
+        .join(". ");
+    case "attribution":
+      return `${proposal.payload.agentLabel}: ${proposal.payload.statement}`;
+    case "coreference":
+      return `${proposal.payload.mention} → ${proposal.payload.resolvedLabel}`;
   }
 }
 
@@ -86,6 +97,7 @@ export function DocumentKnowledgeWorkbench({
   onNavigatePage: (pageIndex: number) => void;
 }) {
   const [tab, setTab] = useState<Tab>("structure");
+  const [analyzerMode, setAnalyzerMode] = useState<"deterministic" | "contextual">("deterministic");
   const [summary, setSummary] = useState<DocumentKnowledgeIndexSummary | null>();
   const [nodes, setNodes] = useState<DocumentNode[]>([]);
   const [proposals, setProposals] = useState<KnowledgeProposal[]>([]);
@@ -147,11 +159,16 @@ export function DocumentKnowledgeWorkbench({
     setError(undefined);
     setProgress("Preparando desmontagem…");
     try {
+      const analyzer =
+        analyzerMode === "contextual"
+          ? (await import("../../lib/semantic-engine/python-document-knowledge-analyzer"))
+              .PythonDocumentKnowledgeAnalyzer
+          : undefined;
       await DocumentKnowledgePipelineService.analyzeDocument(
         documentId,
         (item) => setProgress(item.message),
         undefined,
-        { force: summary?.status === "ready" },
+        { force: summary?.status === "ready", ...(analyzer ? { analyzer } : {}) },
       );
       await refresh();
     } catch (cause) {
@@ -273,20 +290,44 @@ export function DocumentKnowledgeWorkbench({
         <p id="book-knowledge-title" className="meta-label flex items-center gap-1.5">
           <Network className="size-3" /> Conhecimento do livro
         </p>
-        <button
-          type="button"
-          onClick={() => void run()}
-          disabled={Boolean(progress)}
-          className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
-        >
-          {progress ? (
-            <LoaderCircle className="size-3 animate-spin" />
-          ) : (
-            <Sparkles className="size-3" />
-          )}
-          {summary?.status === "ready" ? "Reprocessar" : "Desmontar livro"}
-        </button>
+        <div className="flex items-center gap-1.5">
+          <label className="sr-only" htmlFor={`knowledge-analyzer-${documentId}`}>
+            Motor de análise do livro
+          </label>
+          <select
+            id={`knowledge-analyzer-${documentId}`}
+            value={analyzerMode}
+            disabled={Boolean(progress)}
+            onChange={(event) =>
+              setAnalyzerMode(event.target.value as "deterministic" | "contextual")
+            }
+            className="h-7 rounded border border-input bg-background px-1.5 text-[10px]"
+          >
+            <option value="deterministic">Determinístico</option>
+            <option value="contextual">Contextual local</option>
+          </select>
+          <button
+            type="button"
+            onClick={() => void run()}
+            disabled={Boolean(progress)}
+            className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+          >
+            {progress ? (
+              <LoaderCircle className="size-3 animate-spin" />
+            ) : (
+              <Sparkles className="size-3" />
+            )}
+            {summary?.status === "ready" ? "Reprocessar" : "Desmontar livro"}
+          </button>
+        </div>
       </div>
+
+      <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+        {analyzerMode === "contextual"
+          ? "Usa o serviço Python local para propor autoria, correferência e bibliografia; todo resultado continua pendente de revisão."
+          : "Baseline reproduzível no navegador, sem serviço externo."}
+        {summary?.analyzerId ? ` Índice atual: ${summary.analyzerId}.` : ""}
+      </p>
 
       {progress && <p className="mt-2 text-xs text-muted-foreground">{progress}</p>}
       {error && (

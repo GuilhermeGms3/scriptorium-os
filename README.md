@@ -14,7 +14,8 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 - Motor semântico local para reconstruir a estrutura de documentos privados, manter unidades citáveis multi-página e propor assuntos, vínculos bíblicos, claims, argumentos, citações e entidades submetidos a revisão humana.
 - Camada privada por passagem que reúne unidades aceitas, claims, assuntos, páginas e traduções e mede lacunas em 15 áreas de conhecimento.
 - Promoção editorial em dois passos, com pacote de staging bloqueado por direitos/evidência e sem escrita automática no conhecimento público.
-- Serviço Python opcional para tradução local inglês→português, sempre mantendo original, modelo e estado de revisão.
+- Serviço Python opcional para tradução local inglês→português e análise contextual em lotes,
+  sempre mantendo original, checkpoint, proveniência e estado de revisão.
 - Artefatos de origem, checksums, direitos e transformações preservados pelo pipeline.
 
 Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles não são importados nos chunks JavaScript do Vite; o Reader abre o shard da obra necessária, a busca usa shards FTS compactos e a concordância usa um índice linguístico global separado. O workspace mutável fica no OPFS do navegador e nunca é enviado a um backend.
@@ -41,8 +42,13 @@ npm test
 npm run lint
 npm run build
 npm run benchmark:corpus
+npm run semantic:test
 npm run preview
 ```
+
+No Windows, os comandos `semantic:*` procuram a `.venv` e depois `py -3.13`; assim, uma instalação
+antiga chamada apenas `python` no `PATH` não mascara o Python 3.13.3. Consulte o
+[README do motor semântico](services/semantic-engine/README.md).
 
 ## Docker
 
@@ -89,4 +95,4 @@ Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e ger
 
 ## Limites atuais
 
-O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados, segmentados e vinculados localmente; nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.
+O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser importados em lote, ter idioma detectado, ser indexados, segmentados e vinculados localmente; uma falha ou PDF escaneado não interrompe os demais arquivos. Nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.

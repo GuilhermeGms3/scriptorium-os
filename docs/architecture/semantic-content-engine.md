@@ -153,13 +153,25 @@ novamente do banco.
 Continuações de parágrafo são reunidas dentro de cada lote. Uma continuação exatamente na fronteira
 entre dois lotes permanece dividida em duas unidades citáveis, sem perder os offsets das páginas.
 Providers opcionais que implementem apenas `analyze()` continuam compatíveis, mas usam o caminho
-legado em memória e não oferecem retomada. Para obter as garantias incrementais, o provider deve
-implementar `analyzeBatch()` e devolver seu checkpoint serializável.
+legado em memória e não oferecem retomada. O provider Python contextual implementa
+`analyzeBatch()`, limita o lote, devolve checkpoint serializável e é carregado dinamicamente apenas
+quando selecionado no painel do documento. O cliente rejeita propostas para IDs de unidades que não
+pertencem ao lote enviado.
+
+Além das propostas determinísticas, o contrato atual representa explicitamente:
+
+- `attribution`: agente, enunciado, relação e resolução explícita ou por correferência;
+- `coreference`: menção pronominal, entidade resolvida e base da resolução;
+- `bibliographic-reference`: texto bruto, autores, título, ano, locator e tipo documental.
+
+O contexto recente de pessoa/obra e o estado de bibliografia atravessam lotes pelo checkpoint. Essas
+relações são heurísticas, permanecem `machine-proposed` e não se transformam em fatos ou citações
+aceitas sem revisão humana.
 
 ## Próximos incrementos seguros
 
 1. melhorar detecção de notas e entradas bibliográficas em edições variadas;
-2. acrescentar analisadores locais opcionais sob o mesmo contrato de propostas;
+2. evoluir correferência para cadeias com múltiplos candidatos e autoria por metadados editoriais;
 3. OCR/EPUB local;
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
 5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
