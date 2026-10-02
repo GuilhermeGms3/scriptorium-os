@@ -60,3 +60,46 @@ describe("deterministic document knowledge analyzer", () => {
     );
   });
 });
+describe("Portuguese sentence handling", () => {
+  async function payloads(text: string) {
+    const analysis = await DeterministicDocumentKnowledgeAnalyzer.analyze(document, [
+      page(0, `CAPÍTULO 1\n\n${text}`),
+    ]);
+    return analysis.proposals.map((proposal) => proposal.payload);
+  }
+
+  it('detects assertions with accented copulas such as "é"', async () => {
+    const claims = (
+      await payloads("O Logos é Deus desde a eternidade, conforme o prólogo do evangelho.")
+    ).filter((payload) => payload.kind === "claim");
+    expect(claims).toHaveLength(1);
+  });
+
+  it('does not treat the Portuguese contraction "no" as a negation', async () => {
+    const claim = (
+      await payloads("Agostinho afirma que no prólogo o Verbo existe desde a eternidade.")
+    ).find((payload) => payload.kind === "claim");
+    expect(claim?.kind === "claim" && claim.qualifiers).not.toContain("contains-negation");
+  });
+
+  it('keeps "cf." inside its sentence', async () => {
+    const claim = (
+      await payloads("Segundo Agostinho (cf. Jo 1.1) o Verbo é eterno e não foi criado.")
+    ).find((payload) => payload.kind === "claim");
+    expect(claim?.kind === "claim" && claim.proposition).toBe(
+      "Segundo Agostinho (cf. Jo 1.1) o Verbo é eterno e não foi criado.",
+    );
+  });
+
+  it('uses the previous sentence as premise of a leading "Portanto,"', async () => {
+    const argument = (
+      await payloads(
+        "A criação depende inteiramente do Verbo divino. Portanto, toda a criação depende do Verbo eterno.",
+      )
+    ).find((payload) => payload.kind === "argument");
+    expect(argument).toMatchObject({
+      premises: ["A criação depende inteiramente do Verbo divino."],
+      conclusion: "toda a criação depende do Verbo eterno.",
+    });
+  });
+});

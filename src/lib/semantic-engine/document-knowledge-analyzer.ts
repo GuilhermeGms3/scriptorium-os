@@ -48,12 +48,21 @@ interface UnitDraft extends SemanticUnit {
   domains: { domain: string; evidence: string[]; confidence: number }[];
   passageLinks: Awaited<ReturnType<typeof analyzePrivateDocumentPage>>[number]["passageLinks"];
 }
+//Alternativas de palavra com limites que reconhecem Unicode. O `\\b` do JavaScript reconhece apenas caracteres ASCII; portanto, `\\bé\\b` nunca corresponde a "O Logos é Deus".
 
-const ASSERTION_PATTERN =
-  /\b(?:é|são|significa|representa|afirma|sustenta|argumenta|conclui|indica|demonstra|defende|is|are|means|represents|states|argues|concludes|indicates|demonstrates)\b/iu;
-const ARGUMENT_MARKER = /\b(porque|pois|portanto|logo|because|therefore|thus)\b/iu;
+function words(alternatives: string, flags = "iu"): RegExp {
+  return new RegExp(`(?<![\\p{L}\\p{N}])(?:${alternatives})(?![\\p{L}\\p{N}])`, flags);
+}
+
+const ASSERTION_PATTERN = words(
+  "é|são|significa|representa|afirma|sustenta|argumenta|conclui|indica|demonstra|defende|is|are|means|represents|states|argues|concludes|indicates|demonstrates",
+);
+const ARGUMENT_MARKER = words("porque|pois|portanto|logo(?=,)|because|therefore|thus");
+/** Uma frase que começa com um marcador de conclusão extrai sua premissa da frase anterior. */
+
 const TERMINAL_PATTERN = /[.!?…][”"')\]]?$/u;
 const CONTINUATION_PATTERN = /^\p{Ll}/u;
+const LEADING_CONCLUSION_MARKER = /^(?:portanto|logo|therefore|thus)[,:]?\s+/iu;
 
 const CONTROLLED_ENTITIES = [
   { pattern: /\bLogos\b/giu, label: "Logos", entityType: "concept" as const },
@@ -85,22 +94,22 @@ const CONTROLLED_ENTITIES = [
 
 function classifyClaim(sentence: string, unit: UnitDraft): ClaimKind {
   const domains = new Set(unit.domains.map((item) => item.domain));
-  if (/\b(?:variante|manuscrito|aparato|witness|variant|manuscript)\b/iu.test(sentence))
+  if (words("variantes?|manuscritos?|aparato|witness(?:es)?|variants?|manuscripts?").test(sentence))
     return "textual-critical-analysis";
   if (
     domains.has("linguistics") ||
-    /\b(?:grego|hebraico|aramaico|lema|morfologia|sintaxe|grammar|lemma|syntax)\b/iu.test(sentence)
+    words("grego|hebraico|aramaico|lema|morfologia|sintaxe|grammar|lemma|syntax").test(sentence)
   )
     return "linguistic-analysis";
   if (domains.has("archaeology") || domains.has("historical-context"))
     return "historical-reconstruction";
-  if (/\b(?:símbolo|simboliza|allegor|symbol)\w*\b/iu.test(sentence))
+  if (words("(?:símbolo|simboliza|allegor|symbol)\\p{L}*").test(sentence))
     return "symbolic-interpretation";
   if (domains.has("philosophy-of-religion")) return "philosophical-analysis";
   if (domains.has("patristics") || domains.has("liturgy")) return "reception-history";
   if (
     domains.has("theology") ||
-    /\b(?:doutrina|trindade|cristologia|soteriologia|theolog|doctrine|trinity)\w*\b/iu.test(
+    words("(?:doutrina|trindade|cristologia|soteriologia|theolog|doctrine|trinity)\\p{L}*").test(
       sentence,
     )
   )
@@ -109,16 +118,19 @@ function classifyClaim(sentence: string, unit: UnitDraft): ClaimKind {
   return "academic-hypothesis";
 }
 
-function claimQualifiers(sentence: string): string[] {
+function claimQualifiers(sentence: string, language?: string): string[] {
   const qualifiers: string[] = [];
-  if (/\b(?:não|nunca|nem|not|never|no)\b/iu.test(sentence)) qualifiers.push("contains-negation");
+  // Portuguese "no" is "em + o" ("No princípio…"), never a negation.
+  const english = (language ?? "").toLowerCase().startsWith("en");
+  const negation = english ? "not|never|no" : "não|nunca|nem|jamais|not|never";
+  if (words(negation).test(sentence)) qualifiers.push("contains-negation");
   if (
-    /\b(?:segundo|conforme|de acordo com|afirma que|according to|argues that|states that)\b/iu.test(
+    words("segundo|conforme|de acordo com|afirma que|according to|argues that|states that").test(
       sentence,
     )
   )
     qualifiers.push("attributed-statement");
-  if (/\b(?:talvez|possivelmente|provavelmente|may|might|possibly|probably)\b/iu.test(sentence))
+  if (words("talvez|possivelmente|provavelmente|may|might|possibly|probably").test(sentence))
     qualifiers.push("modalized");
   return qualifiers;
 }
@@ -161,17 +173,34 @@ function unitKind(
   if (structuralKind === "paragraph") return "paragraph";
   return "unknown";
 }
+// Abreviações cujo ponto final não deve encerrar uma frase ("cf. Jo 1.1", "S. Tomás").
+const NON_TERMINAL_ABBREVIATION =
+  /(?<![\p{L}])(cf|Cf|p|pp|v|vv|S|Sto|Sta|Dr|Dra|Pe|Fr|séc|sécs|ed|eds|trad|cap|caps|vol|vols|op|cit|ibid|nº|n|ss|al|e\.g|i\.e)\.(?=\s)/gu;
+const PROTECTED_DOT = "\u2024";
 
 function sentenceCandidates(text: string): string[] {
   return text
+    .replace(NON_TERMINAL_ABBREVIATION, `$1${PROTECTED_DOT}`)
     .split(/(?<=[.!?…])\s+(?=\p{Lu}|["“])/u)
-    .map((sentence) => sentence.replace(/\s+/g, " ").trim())
+    .map((sentence) => sentence.replaceAll(PROTECTED_DOT, ".").replace(/\s+/g, " ").trim())
     .filter((sentence) => sentence.length >= 30 && sentence.length <= 800);
 }
 
-function argumentPayload(sentence: string): KnowledgeProposalPayload | null {
+function argumentPayload(sentence: string, previous?: string): KnowledgeProposalPayload | null {
+  const leading = LEADING_CONCLUSION_MARKER.exec(sentence);
+  if (leading && previous && previous.length >= 15) {
+    const conclusion = sentence.slice(leading[0].length).trim();
+    if (conclusion.length < 15) return null;
+    return {
+      kind: "argument",
+      conclusion,
+      premises: [previous],
+      marker: leading[0].trim().replace(/[,:]$/u, ""),
+      perspectiveProfileIds: [],
+    };
+  }
   const match = ARGUMENT_MARKER.exec(sentence);
-  if (!match?.index) return null;
+  if (!match || match.index === 0) return null;
   const before = sentence
     .slice(0, match.index)
     .replace(/[,:;\s]+$/u, "")
@@ -251,21 +280,24 @@ async function proposalsForUnit(
         confidence: 0.7,
       });
   }
-  for (const sentence of sentenceCandidates(unit.text).slice(0, 8)) {
+  
+  const sentences = sentenceCandidates(unit.text).slice(0, 8);
+  for (const [index, sentence] of sentences.entries()) {
     if (ASSERTION_PATTERN.test(sentence))
       drafts.push({
         payload: {
           kind: "claim",
           proposition: sentence,
           claimKind: classifyClaim(sentence, unit),
-          qualifiers: claimQualifiers(sentence),
+          qualifiers: claimQualifiers(sentence, unit.language),
           perspectiveProfileIds: [],
         },
         confidence: 0.55,
       });
-    const argument = argumentPayload(sentence);
+    const argument = argumentPayload(sentence, sentences[index - 1]);
     if (argument) drafts.push({ payload: argument, confidence: 0.58 });
   }
+
   const now = new Date().toISOString();
   const unique = new Map<string, { payload: KnowledgeProposalPayload; confidence: number }>();
   for (const draft of drafts) unique.set(JSON.stringify(draft.payload), draft);
