@@ -5,10 +5,12 @@ import { PrivateDocumentRepository } from "../repositories/private-document-repo
 import {
   DeterministicDocumentKnowledgeAnalyzer,
   type DocumentKnowledgeAnalyzer,
+  type DocumentKnowledgeAnalyzerCheckpoint,
 } from "../semantic-engine/document-knowledge-analyzer";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
 
 const MAX_ANALYZABLE_CHARACTERS = 50_000_000;
+const ANALYSIS_BATCH_SIZE = 50;
 
 export interface DocumentKnowledgeProgress {
   phase: "loading" | "structure" | "proposals" | "persisting" | "complete";
@@ -31,7 +33,6 @@ async function loadPages(
   pageCount: number,
   listener: ((progress: DocumentKnowledgeProgress) => void) | undefined,
   database: WorkspaceDatabase | undefined,
-  persistProgress: boolean,
 ): Promise<PrivateDocumentPage[]> {
   const pages: PrivateDocumentPage[] = [];
   let characters = 0;
@@ -55,18 +56,6 @@ async function loadPages(
       total: pageCount,
       message: `Preparando ${pages.length} de ${pageCount} páginas…`,
     });
-    if (persistProgress)
-      await DocumentKnowledgeRepository.updateProgress(
-        documentId,
-        {
-          stage: "structure",
-          checkpointPage: pages.length,
-          current: pages.length,
-          total: pageCount,
-          message: `Preparando ${pages.length} de ${pageCount} páginas…`,
-        },
-        database,
-      );
   }
   return pages;
 }
@@ -87,26 +76,27 @@ function preserveReview(
     updatedAt: reviewed.updatedAt,
   };
 }
-/** Sufixo de checksum de texto de um ID de unidade (`…:unit:<ordinal>:<checksum12>`). */
+
+/** Text checksum suffix of a unit id (`…:unit:<ordinal>:<checksum12>`). */
 function unitChecksum(unitId: string): string {
   return unitId.split(":").at(-1) ?? unitId;
 }
 
 /**
-Uma decisão humana deve persistir após uma atualização do analisador. Quando a nova análise deixa de emitir
-o ID de uma proposta revisada (seu conteúdo foi alterado: um qualificador corrigido, uma classificação melhor),
-a revisão é mantida e reassociada à unidade que ainda apresenta o mesmo checksum de texto.
-Revisões cujo texto não existe mais (a página foi reextraída de forma diferente) não podem ser reancoradas.
+ * A human decision must survive an analyzer upgrade. When the new analysis no longer emits
+ * a reviewed proposal's id (its payload changed: a fixed qualifier, a better classification),
+ * the review is kept and re-attached to the unit that still has the same text checksum.
+ * Reviews whose text is gone (the page was re-extracted differently) cannot be re-anchored.
  */
 function carryOverOrphanedReviews(
-  proposals: readonly KnowledgeProposal[],
-  units: readonly { id: string }[],
+  emittedProposalIds: ReadonlySet<string>,
+  unitIds: Iterable<string>,
   previous: Map<string, KnowledgeProposal>,
 ): KnowledgeProposal[] {
-  const emitted = new Set(proposals.map((proposal) => proposal.id));
-  const unitByChecksum = new Map(units.map((unit) => [unitChecksum(unit.id), unit.id]));
+  const unitByChecksum = new Map([...unitIds].map((unitId) => [unitChecksum(unitId), unitId]));
   return [...previous.values()].flatMap((reviewed) => {
-    if (reviewed.reviewStatus === "machine-proposed" || emitted.has(reviewed.id)) return [];
+    if (reviewed.reviewStatus === "machine-proposed" || emittedProposalIds.has(reviewed.id))
+      return [];
     const unitId = unitByChecksum.get(unitChecksum(reviewed.semanticUnitId));
     return unitId ? [{ ...reviewed, semanticUnitId: unitId }] : [];
   });
@@ -164,62 +154,153 @@ export const DocumentKnowledgePipelineService = {
       ]),
     );
     try {
-      const canExposeCheckpoint = existing?.status !== "ready";
-      if (canExposeCheckpoint)
-        await DocumentKnowledgeRepository.prepare(
+      let preservedReviewCount = 0;
+      let analyzedNodeCount = 0;
+      let analyzedUnitCount = 0;
+      let analyzedProposalCount = 0;
+
+      if (analyzer.analyzeBatch) {
+        const savedProgress = await DocumentKnowledgeRepository.getProgress(documentId, database);
+        const canResume =
+          !options.force &&
+          existing !== null &&
+          (existing.status === "failed" || existing.status === "processing") &&
+          existing.analyzerId === analyzer.id &&
+          existing.analyzerVersion === analyzer.version &&
+          existing.sourceChecksum === document.checksum &&
+          existing.checkpointPage > 0 &&
+          savedProgress?.analyzerCheckpoint !== undefined;
+        let offset = canResume ? existing.checkpointPage : 0;
+        let analyzerCheckpoint: DocumentKnowledgeAnalyzerCheckpoint | undefined = canResume
+          ? savedProgress.analyzerCheckpoint
+          : undefined;
+        const emittedProposalIds = new Set<string>();
+        const analyzedUnitIds: string[] = [];
+
+        if (canResume) await DocumentKnowledgeRepository.resume(documentId, database);
+        else
+          await DocumentKnowledgeRepository.begin(
+            documentId,
+            analyzer.id,
+            analyzer.version,
+            document.checksum,
+            database,
+          );
+
+        while (offset < document.pageCount) {
+          const pages = await PrivateDocumentRepository.listPages(
+            documentId,
+            { offset, limit: ANALYSIS_BATCH_SIZE },
+            database,
+          );
+          if (!pages.length)
+            throw new Error(
+              `O documento informa ${document.pageCount} páginas, mas a página ${offset + 1} não está disponível.`,
+            );
+          listener?.({
+            phase: "loading",
+            current: offset,
+            total: document.pageCount,
+            message: `Lendo páginas ${offset + 1}–${offset + pages.length} de ${document.pageCount}…`,
+          });
+          listener?.({
+            phase: "structure",
+            current: offset,
+            total: document.pageCount,
+            message: "Reconstruindo capítulos, seções e unidades semânticas…",
+          });
+          const batch = await analyzer.analyzeBatch(document, pages, analyzerCheckpoint);
+          if (batch.checkpoint.processedCharacters > MAX_ANALYZABLE_CHARACTERS)
+            throw new Error(
+              "O texto extraído ultrapassa o limite de 50 milhões de caracteres para uma análise local.",
+            );
+          const proposals = batch.proposals.map((proposal) => preserveReview(proposal, previous));
+          preservedReviewCount += proposals.filter(
+            (proposal) => proposal.reviewStatus !== "machine-proposed",
+          ).length;
+
+          listener?.({
+            phase: "persisting",
+            current: offset,
+            total: document.pageCount,
+            message: "Gravando este lote no workspace privado…",
+          });
+          await DocumentKnowledgeRepository.storeNodes(batch.nodes, database);
+          await DocumentKnowledgeRepository.storeUnits(batch.units, database);
+          await DocumentKnowledgeRepository.storeProposals(proposals, database);
+          for (const proposal of proposals) emittedProposalIds.add(proposal.id);
+          for (const unit of batch.units) analyzedUnitIds.push(unit.id);
+
+          offset += pages.length;
+          analyzerCheckpoint = batch.checkpoint;
+          analyzedNodeCount += batch.nodes.length;
+          analyzedUnitCount += batch.units.length;
+          analyzedProposalCount += proposals.length;
+          await DocumentKnowledgeRepository.updateProgress(
+            documentId,
+            {
+              stage: "proposals",
+              checkpointPage: offset,
+              current: offset,
+              total: document.pageCount,
+              message: `${offset} de ${document.pageCount} páginas analisadas e persistidas.`,
+              analyzerCheckpoint,
+            },
+            database,
+          );
+        }
+
+        // Reviews whose proposal the new analyzer no longer emits are re-attached once every
+        // batch is known. On a resumed run, proposals stored by earlier batches count as emitted.
+        if (canResume)
+          for (const stored of await allProposals(documentId, undefined, database)) {
+            emittedProposalIds.add(stored.id);
+            analyzedUnitIds.push(stored.semanticUnitId);
+          }
+        const carried = carryOverOrphanedReviews(emittedProposalIds, analyzedUnitIds, previous);
+        if (carried.length) {
+          await DocumentKnowledgeRepository.storeProposals(carried, database);
+          preservedReviewCount += carried.length;
+          analyzedProposalCount += carried.length;
+        }
+      } else {
+        const pages = await loadPages(documentId, document.pageCount, listener, database);
+        listener?.({ phase: "structure", message: "Reconstruindo capítulos e seções…" });
+        const analysis = await analyzer.analyze(document, pages);
+        listener?.({ phase: "proposals", message: "Preparando propostas auditáveis…" });
+        const proposals = [
+          ...analysis.proposals.map((proposal) => preserveReview(proposal, previous)),
+          ...carryOverOrphanedReviews(
+            new Set(analysis.proposals.map((proposal) => proposal.id)),
+            analysis.units.map((unit) => unit.id),
+            previous,
+          ),
+        ];
+        preservedReviewCount = proposals.filter(
+          (proposal) => proposal.reviewStatus !== "machine-proposed",
+        ).length;
+        listener?.({ phase: "persisting", message: "Gravando no workspace privado…" });
+        await DocumentKnowledgeRepository.begin(
           documentId,
           analyzer.id,
           analyzer.version,
           document.checksum,
           database,
         );
-      const pages = await loadPages(
-        documentId,
-        document.pageCount,
-        listener,
-        database,
-        canExposeCheckpoint,
-      );
-      listener?.({ phase: "structure", message: "Reconstruindo capítulos e seções…" });
-      const analysis = await analyzer.analyze(document, pages);
-      if (canExposeCheckpoint)
-        await DocumentKnowledgeRepository.updateProgress(
-          documentId,
-          {
-            stage: "proposals",
-            checkpointPage: document.pageCount,
-            current: analysis.units.length,
-            total: analysis.units.length,
-            message: "Estrutura e unidades reconstruídas.",
-          },
-          database,
-        );
-      listener?.({ phase: "proposals", message: "Preparando propostas auditáveis…" });
-      const proposals = [
-        ...analysis.proposals.map((proposal) => preserveReview(proposal, previous)),
-        ...carryOverOrphanedReviews(analysis.proposals, analysis.units, previous),
-      ];
-      const preservedReviewCount = proposals.filter(
-        (proposal) => proposal.reviewStatus !== "machine-proposed",
-      ).length;
+        await DocumentKnowledgeRepository.storeNodes(analysis.nodes, database);
+        await DocumentKnowledgeRepository.storeUnits(analysis.units, database);
+        await DocumentKnowledgeRepository.storeProposals(proposals, database);
+        analyzedNodeCount = analysis.nodes.length;
+        analyzedUnitCount = analysis.units.length;
+        analyzedProposalCount = proposals.length;
+      }
 
-      listener?.({ phase: "persisting", message: "Gravando no workspace privado…" });
-      await DocumentKnowledgeRepository.begin(
-        documentId,
-        analyzer.id,
-        analyzer.version,
-        document.checksum,
-        database,
-      );
-      await DocumentKnowledgeRepository.storeNodes(analysis.nodes, database);
-      await DocumentKnowledgeRepository.storeUnits(analysis.units, database);
-      await DocumentKnowledgeRepository.storeProposals(proposals, database);
       await DocumentKnowledgeRepository.complete(
         documentId,
         {
-          nodeCount: analysis.nodes.length,
-          unitCount: analysis.units.length,
-          proposalCount: proposals.length,
+          nodeCount: analyzedNodeCount,
+          unitCount: analyzedUnitCount,
+          proposalCount: analyzedProposalCount,
           checkpointPage: document.pageCount,
         },
         database,
@@ -228,9 +309,9 @@ export const DocumentKnowledgePipelineService = {
       listener?.({ phase: "complete", message: "Livro desmontado e pronto para revisão." });
       return {
         documentId,
-        nodeCount: persisted?.nodeCount ?? analysis.nodes.length,
-        unitCount: persisted?.unitCount ?? analysis.units.length,
-        proposalCount: persisted?.proposalCount ?? proposals.length,
+        nodeCount: persisted?.nodeCount ?? analyzedNodeCount,
+        unitCount: persisted?.unitCount ?? analyzedUnitCount,
+        proposalCount: persisted?.proposalCount ?? analyzedProposalCount,
         preservedReviewCount,
         duplicate: false,
       };

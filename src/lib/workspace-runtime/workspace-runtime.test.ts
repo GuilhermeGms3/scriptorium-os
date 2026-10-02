@@ -1,9 +1,9 @@
 import { DatabaseSync } from "node:sqlite";
+import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { createHash } from "node:crypto";
-import { DeterministicDocumentKnowledgeAnalyzer, type DocumentKnowledgeAnalyzer } from "../semantic-engine/document-knowledge-analyzer";
+
 import {
   applyWorkspaceMigrations,
   WORKSPACE_SCHEMA_VERSION,
@@ -22,6 +22,10 @@ import { SemanticContentRepository } from "../repositories/semantic-content-repo
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import { PrivateTranslationJobRepository } from "../repositories/private-translation-job-repository";
+import {
+  DeterministicDocumentKnowledgeAnalyzer,
+  type DocumentKnowledgeAnalyzer,
+} from "../semantic-engine/document-knowledge-analyzer";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -297,6 +301,104 @@ describe("Phase 9.5 workspace schema", () => {
     });
     expect(editorial.readiness.issues.map((issue) => issue.code)).toContain("private-rights");
     expect(editorial.readiness.issues.map((issue) => issue.code)).not.toContain("missing-passage");
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+  it("persists semantic checkpoints in bounded batches and resumes after failure", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const pages = Array.from({ length: 55 }, (_, pageIndex) => ({
+      pageIndex,
+      pageLabel: String(pageIndex + 1),
+      text:
+        pageIndex === 0
+          ? "CAPÍTULO 1\n\nA exegese de João 1:1 indica uma observação textual completa."
+          : `A análise da página ${pageIndex + 1} indica uma observação exegética completa sobre João 1:1.`,
+      itemCount: 12,
+    }));
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Livro incremental",
+        language: "pt-BR",
+        originalName: "livro-incremental.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 4_096,
+        checksum: "f".repeat(64),
+        pageCount: pages.length,
+        textPageCount: pages.length,
+        extractionMethod: "pdf-text-layer",
+        pages,
+      },
+      "opfs:/incremental.pdf",
+      workspace,
+    );
+    let largestBatch = 0;
+    const observingAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        largestBatch = Math.max(largestBatch, batchPages.length);
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    let progressWrites = 0;
+    const interruptedWorkspace: WorkspaceDatabase = {
+      ...workspace,
+      async execute(sql, bind) {
+        if (sql.includes("SET stage=?,checkpoint_page=?")) {
+          progressWrites += 1;
+          if (progressWrites === 2) throw new Error("Falha simulada após gravar o segundo lote.");
+        }
+        await workspace.execute(sql, bind);
+      },
+    };
+    await expect(
+      DocumentKnowledgePipelineService.analyzeDocument(
+        imported.document.id,
+        undefined,
+        interruptedWorkspace,
+        { analyzer: observingAnalyzer },
+      ),
+    ).rejects.toThrow("Falha simulada");
+    expect(largestBatch).toBeLessThanOrEqual(50);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "failed", checkpointPage: 50 });
+    const rowsBeforeResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsBeforeResume.count).toBeGreaterThanOrEqual(55);
+
+    let resumedAt: number | undefined;
+    const recoveryAnalyzer: DocumentKnowledgeAnalyzer = {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      async analyzeBatch(document, batchPages, checkpoint) {
+        resumedAt ??= batchPages[0]?.pageIndex;
+        return DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          document,
+          batchPages,
+          checkpoint,
+        );
+      },
+    };
+    const resumed = await DocumentKnowledgePipelineService.analyzeDocument(
+      imported.document.id,
+      undefined,
+      workspace,
+      { analyzer: recoveryAnalyzer },
+    );
+    expect(resumedAt).toBe(50);
+    expect(resumed).toMatchObject({ duplicate: false });
+    expect(resumed.unitCount).toBeGreaterThanOrEqual(55);
+    const rowsAfterResume = db
+      .prepare("SELECT count(*) count FROM semantic_units WHERE document_id=?")
+      .get(imported.document.id) as { count: number };
+    expect(rowsAfterResume.count).toBe(rowsBeforeResume.count);
+    expect(
+      await DocumentKnowledgeRepository.getSummary(imported.document.id, workspace),
+    ).toMatchObject({ status: "ready", checkpointPage: 55 });
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
   it("caches local translations by source checksum without replacing the original", async () => {
@@ -878,8 +980,36 @@ describe("structured citations", () => {
     ).toBe("paraphrase");
   });
 });
+
 describe("document knowledge reviews across analyzer upgrades", () => {
-  it("keeps a human decision when an improved analyzer changes the proposal payload", async () => {
+  type KnowledgeProposalLike = Awaited<
+    ReturnType<typeof DeterministicDocumentKnowledgeAnalyzer.analyze>
+  >["proposals"][number];
+
+  /** Changes every claim payload (and therefore its id), as an improved analyzer would. */
+  function upgradeClaims<T extends { proposals: KnowledgeProposalLike[] }>(
+    documentId: string,
+    analysis: T,
+  ): T {
+    return {
+      ...analysis,
+      proposals: analysis.proposals.map((proposal) => {
+        if (proposal.payload.kind !== "claim") return proposal;
+        const payload = {
+          ...proposal.payload,
+          qualifiers: [...proposal.payload.qualifiers, "modalized"],
+        };
+        const fingerprint = createHash("sha256")
+          .update(JSON.stringify(payload))
+          .digest("hex")
+          .slice(0, 16);
+        const unit = proposal.semanticUnitId.split(":").at(-1);
+        return { ...proposal, id: `${documentId}:proposal:${unit}:claim:${fingerprint}`, payload };
+      }),
+    };
+  }
+
+  async function reviewedDocument() {
     const workspace = adapter(database());
     const { document } = await PrivateDocumentRepository.importDocument(
       {
@@ -915,48 +1045,58 @@ describe("document knowledge reviews across analyzer upgrades", () => {
       { note: "conferido" },
       workspace,
     );
+    return { workspace, document, claim };
+  }
 
-    // Simulates a new analyzer version whose claim payload differs (and so does its id).
-    const upgraded: DocumentKnowledgeAnalyzer = {
-      id: DeterministicDocumentKnowledgeAnalyzer.id,
-      version: "upgraded",
-      async analyze(source, pages) {
-        const analysis = await DeterministicDocumentKnowledgeAnalyzer.analyze(source, pages);
-        return {
-          ...analysis,
-          proposals: analysis.proposals.map((proposal) => {
-            if (proposal.payload.kind !== "claim") return proposal;
-            const payload = {
-              ...proposal.payload,
-              qualifiers: [...proposal.payload.qualifiers, "modalized"],
-            };
-            const fingerprint = createHash("sha256")
-              .update(JSON.stringify(payload))
-              .digest("hex")
-              .slice(0, 16);
-            const unit = proposal.semanticUnitId.split(":").at(-1);
-            return {
-              ...proposal,
-              id: `${source.id}:proposal:${unit}:claim:${fingerprint}`,
-              payload,
-            };
-          }),
-        };
-      },
-    };
+  async function expectReviewKept(
+    workspace: ReturnType<typeof adapter>,
+    documentId: string,
+    claimId: string,
+    analyzer: DocumentKnowledgeAnalyzer,
+  ) {
     const rerun = await DocumentKnowledgePipelineService.analyzeDocument(
-      document.id,
+      documentId,
       undefined,
       workspace,
       {
-        analyzer: upgraded,
+        analyzer,
       },
     );
     expect(rerun.preservedReviewCount).toBe(1);
-    const proposals = await DocumentKnowledgeRepository.listProposals(document.id, {}, workspace);
-    expect(proposals.find((proposal) => proposal.id === claim.id)).toMatchObject({
+    const proposals = await DocumentKnowledgeRepository.listProposals(documentId, {}, workspace);
+    expect(proposals.find((proposal) => proposal.id === claimId)).toMatchObject({
       reviewStatus: "accepted",
       reviewNote: "conferido",
+    });
+  }
+
+  it("keeps a human decision on the batched path (the default analyzer)", async () => {
+    const { workspace, document, claim } = await reviewedDocument();
+    await expectReviewKept(workspace, document.id, claim.id, {
+      ...DeterministicDocumentKnowledgeAnalyzer,
+      version: "upgraded-batch",
+      async analyzeBatch(source, pages, checkpoint) {
+        const batch = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+          source,
+          pages,
+          checkpoint,
+        );
+        return upgradeClaims(source.id, batch);
+      },
+    });
+  });
+
+  it("keeps a human decision on the whole-document path", async () => {
+    const { workspace, document, claim } = await reviewedDocument();
+    await expectReviewKept(workspace, document.id, claim.id, {
+      id: DeterministicDocumentKnowledgeAnalyzer.id,
+      version: "upgraded-whole",
+      async analyze(source, pages) {
+        return upgradeClaims(
+          source.id,
+          await DeterministicDocumentKnowledgeAnalyzer.analyze(source, pages),
+        );
+      },
     });
   });
 });

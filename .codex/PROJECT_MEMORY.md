@@ -19,9 +19,10 @@
   model-info and inference timeouts, persists batch progress and supports pause/resume through the
   checksum cache. `main` is rejected as cache identity.
 - The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
-  claim-kind and qualifier classification, but full author/citation/coreference understanding and
-  resumable streaming inference remain explicit future work; checkpointed loading is not described
-  as full streaming.
+  claim-kind and qualifier classification and processes 50-page batches with a serialized
+  hierarchy/ordinal checkpoint. Failed runs resume after the last committed batch with idempotent
+  inserts. Full author/citation/coreference understanding remains future work; optional providers
+  only gain resumability when they implement `analyzeBatch()`.
 
 ## Passage aggregation and editorial gate (2026-10-01)
 

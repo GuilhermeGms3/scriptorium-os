@@ -13,6 +13,7 @@ import {
 } from "../domain/document-knowledge";
 import type { PassageRef } from "../domain/scripture";
 import { passageRefScheme } from "../domain/scripture";
+import type { DocumentKnowledgeAnalyzerCheckpoint } from "../semantic-engine/document-knowledge-analyzer";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -108,6 +109,64 @@ export const DocumentKnowledgeRepository = {
     return row ? mapSummary(row) : null;
   },
 
+  async getProgress(
+    documentId: string,
+    database?: WorkspaceDatabase,
+  ): Promise<{
+    current?: number;
+    total?: number;
+    message?: string;
+    analyzerCheckpoint?: DocumentKnowledgeAnalyzerCheckpoint;
+  } | null> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const row = (
+      await db.query("SELECT progress_json FROM document_knowledge_indexes WHERE document_id=?", [
+        documentId,
+      ])
+    )[0];
+    if (!row) return null;
+    const raw = JSON.parse(stringValue(row, "progress_json")) as unknown;
+    if (!raw || typeof raw !== "object") return {};
+    const value = raw as Record<string, unknown>;
+    const checkpoint = value["analyzerCheckpoint"];
+    let validCheckpoint: DocumentKnowledgeAnalyzerCheckpoint | undefined;
+    if (checkpoint && typeof checkpoint === "object") {
+      const candidate = checkpoint as Record<string, unknown>;
+      const nextNodeOrdinal = candidate["nextNodeOrdinal"];
+      const nextUnitOrdinal = candidate["nextUnitOrdinal"];
+      const processedCharacters = candidate["processedCharacters"];
+      if (
+        typeof nextNodeOrdinal === "number" &&
+        Number.isInteger(nextNodeOrdinal) &&
+        nextNodeOrdinal >= 0 &&
+        typeof nextUnitOrdinal === "number" &&
+        Number.isInteger(nextUnitOrdinal) &&
+        nextUnitOrdinal >= 0 &&
+        typeof processedCharacters === "number" &&
+        Number.isInteger(processedCharacters) &&
+        processedCharacters >= 0
+      ) {
+        const currentPartId = candidate["currentPartId"];
+        const currentChapterId = candidate["currentChapterId"];
+        const currentSectionId = candidate["currentSectionId"];
+        validCheckpoint = {
+          nextNodeOrdinal,
+          nextUnitOrdinal,
+          processedCharacters,
+          ...(typeof currentPartId === "string" ? { currentPartId } : {}),
+          ...(typeof currentChapterId === "string" ? { currentChapterId } : {}),
+          ...(typeof currentSectionId === "string" ? { currentSectionId } : {}),
+        };
+      }
+    }
+    return {
+      ...(typeof value["current"] === "number" ? { current: value["current"] } : {}),
+      ...(typeof value["total"] === "number" ? { total: value["total"] } : {}),
+      ...(typeof value["message"] === "string" ? { message: value["message"] } : {}),
+      ...(validCheckpoint ? { analyzerCheckpoint: validCheckpoint } : {}),
+    };
+  },
+
   async begin(
     documentId: string,
     analyzerId: string,
@@ -137,24 +196,13 @@ export const DocumentKnowledgeRepository = {
     ]);
   },
 
-  async prepare(
-    documentId: string,
-    analyzerId: string,
-    analyzerVersion: string,
-    sourceChecksum: string,
-    database?: WorkspaceDatabase,
-  ): Promise<void> {
+  async resume(documentId: string, database?: WorkspaceDatabase): Promise<void> {
     const db = database ?? (await getWorkspaceDatabase());
     await db.execute(
-      `INSERT INTO document_knowledge_indexes(
-         document_id,analyzer_id,analyzer_version,source_checksum,status,stage,checkpoint_page,
-         node_count,unit_count,proposal_count,progress_json,indexed_at,error
-       ) VALUES(?,?,?,?,'processing','structure',0,0,0,0,'{}',NULL,NULL)
-       ON CONFLICT(document_id) DO UPDATE SET
-         analyzer_id=excluded.analyzer_id,analyzer_version=excluded.analyzer_version,
-         source_checksum=excluded.source_checksum,status='processing',stage='structure',
-         checkpoint_page=0,progress_json='{}',error=NULL`,
-      [documentId, analyzerId, analyzerVersion, sourceChecksum],
+      `UPDATE document_knowledge_indexes
+       SET status='processing',error=NULL
+       WHERE document_id=? AND status IN ('processing','failed')`,
+      [documentId],
     );
   },
 
@@ -166,6 +214,7 @@ export const DocumentKnowledgeRepository = {
       current: number;
       total: number;
       message: string;
+      analyzerCheckpoint?: DocumentKnowledgeAnalyzerCheckpoint;
     },
     database?: WorkspaceDatabase,
   ): Promise<void> {
@@ -181,6 +230,9 @@ export const DocumentKnowledgeRepository = {
           current: progress.current,
           total: progress.total,
           message: progress.message,
+          ...(progress.analyzerCheckpoint
+            ? { analyzerCheckpoint: progress.analyzerCheckpoint }
+            : {}),
         }),
         documentId,
       ],
@@ -192,7 +244,7 @@ export const DocumentKnowledgeRepository = {
     for (const batch of chunks(nodes))
       await db.transaction(
         batch.map((node) => ({
-          sql: `INSERT INTO document_nodes(
+          sql: `INSERT OR IGNORE INTO document_nodes(
             id,document_id,parent_id,node_kind,title,ordinal,page_start,page_end,method,confidence,review_status
           ) VALUES(?,?,?,?,?,?,?,?,?,?,?)`,
           bind: [
@@ -218,7 +270,7 @@ export const DocumentKnowledgeRepository = {
       const statements: Parameters<WorkspaceDatabase["transaction"]>[0] = [];
       for (const unit of batch) {
         statements.push({
-          sql: `INSERT INTO semantic_units(
+          sql: `INSERT OR IGNORE INTO semantic_units(
             id,document_id,document_node_id,unit_kind,ordinal,text_checksum,language,method
           ) VALUES(?,?,?,?,?,?,?,?)`,
           bind: [
@@ -234,7 +286,7 @@ export const DocumentKnowledgeRepository = {
         });
         for (const span of unit.spans)
           statements.push({
-            sql: `INSERT INTO semantic_unit_spans(
+            sql: `INSERT OR IGNORE INTO semantic_unit_spans(
               unit_id,page_id,page_index,start_offset,end_offset,ordinal
             ) VALUES(?,?,?,?,?,?)`,
             bind: [
@@ -259,7 +311,7 @@ export const DocumentKnowledgeRepository = {
     for (const batch of chunks(proposals))
       await db.transaction(
         batch.map((proposal) => ({
-          sql: `INSERT INTO knowledge_proposals(
+          sql: `INSERT OR IGNORE INTO knowledge_proposals(
             id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,
             review_status,reviewed_at,review_note,created_at,updated_at
           ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`,

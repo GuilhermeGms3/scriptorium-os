@@ -137,14 +137,24 @@ autoria, qualidade acadêmica ou concordância com uma tradição.
   `SYSTEM_EXTRACTED -> revisão explícita`; `Resume-Matcher`, validação estruturada de saída e
   provider substituível. Nenhum código ou histórico foi copiado automaticamente.
 
-## Limite incremental atual
+## Processamento incremental e retomada
 
-O checkpoint de carregamento é persistido a cada lote de páginas e evita que a interface prometa um
-progresso inexistente. A substituição do índice só começa depois que a análise terminou, preservando
-o índice anterior durante a etapa mais cara. O analisador determinístico ainda precisa reunir as
-páginas em memória para conservar continuações e hierarquia entre páginas; portanto retomada no
-meio da inferência estrutural, com estado do analisador serializado, continua sendo dívida técnica
-explícita. Não se chama esse comportamento de processamento streaming.
+O analisador determinístico processa no máximo 50 páginas por lote. Depois de cada lote, o runtime
+persiste nós, unidades, propostas e um checkpoint que contém os próximos ordinais, a quantidade de
+caracteres processada e o contexto hierárquico atual (parte, capítulo e seção). Se o processo falhar,
+a próxima execução com o mesmo checksum, analisador e versão retoma da primeira página ainda não
+confirmada, sem carregar novamente o livro inteiro.
+
+As gravações derivadas usam IDs determinísticos e `INSERT OR IGNORE`. Assim, uma interrupção entre
+a escrita de um lote e a atualização do checkpoint pode repetir o lote sem duplicar resultados. O
+checkpoint só avança depois que todas as entidades do lote foram gravadas. A contagem final é lida
+novamente do banco.
+
+Continuações de parágrafo são reunidas dentro de cada lote. Uma continuação exatamente na fronteira
+entre dois lotes permanece dividida em duas unidades citáveis, sem perder os offsets das páginas.
+Providers opcionais que implementem apenas `analyze()` continuam compatíveis, mas usam o caminho
+legado em memória e não oferecem retomada. Para obter as garantias incrementais, o provider deve
+implementar `analyzeBatch()` e devolver seu checkpoint serializável.
 
 ## Próximos incrementos seguros
 
@@ -154,5 +164,3 @@ explícita. Não se chama esse comportamento de processamento streaming.
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
 5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
    separada, com decisão de direitos registrada e revisão de dois passos.
-6. introduzir sessões incrementais serializáveis no contrato de analisadores antes de elevar o
-   limite de 50 milhões de caracteres.
