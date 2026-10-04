@@ -14,6 +14,7 @@ import {
 import type { PassageRef } from "../domain/scripture";
 import { passageRefScheme } from "../domain/scripture";
 import type { DocumentKnowledgeAnalyzerCheckpoint } from "../semantic-engine/document-knowledge-analyzer";
+import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -218,6 +219,7 @@ export const DocumentKnowledgeRepository = {
         bind: [documentId, analyzerId, analyzerVersion, sourceChecksum],
       },
     ]);
+    notifyKnowledgeMutation();
   },
 
   async resume(documentId: string, database?: WorkspaceDatabase): Promise<void> {
@@ -383,6 +385,7 @@ export const DocumentKnowledgeRepository = {
         documentId,
       ],
     );
+    notifyKnowledgeMutation();
   },
 
   async fail(documentId: string, error: string, database?: WorkspaceDatabase): Promise<void> {
@@ -507,9 +510,22 @@ export const DocumentKnowledgeRepository = {
     ).map(mapProposal);
   },
 
-  async listAcceptedPassageRelations(
+  async listProposalsForUnit(
+    unitId: string,
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    return (
+      await db.query("SELECT * FROM knowledge_proposals WHERE semantic_unit_id=? ORDER BY id", [
+        unitId,
+      ])
+    ).map(mapProposal);
+  },
+
+  async listVisiblePassageRelations(
     passage: PassageRef,
     database?: WorkspaceDatabase,
+    includeMachineLinks = true,
   ): Promise<KnowledgeProposal[]> {
     const db = database ?? (await getWorkspaceDatabase());
     const start = passage.verseStart ?? 1;
@@ -517,7 +533,10 @@ export const DocumentKnowledgeRepository = {
     return (
       await db.query(
         `SELECT * FROM knowledge_proposals
-         WHERE proposal_kind='passage-relation' AND review_status='accepted'
+         WHERE proposal_kind='passage-relation' AND (review_status='accepted' OR
+           (?=1 AND review_status='machine-proposed' AND EXISTS(
+             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id AND d.publication='machine-visible'
+           )))
            AND json_extract(payload_json,'$.passage.bookId')=?
            AND json_extract(payload_json,'$.passage.chapter')=?
            AND json_extract(payload_json,'$.passage.versificationSchemeId')=?
@@ -532,9 +551,23 @@ export const DocumentKnowledgeRepository = {
              )
            )
          ORDER BY updated_at DESC,id LIMIT 200`,
-        [passage.bookId, passage.chapter, passageRefScheme(passage), end, start],
+        [
+          includeMachineLinks ? 1 : 0,
+          passage.bookId,
+          passage.chapter,
+          passageRefScheme(passage),
+          end,
+          start,
+        ],
       )
     ).map(mapProposal);
+  },
+
+  async listAcceptedPassageRelations(
+    passage: PassageRef,
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    return this.listVisiblePassageRelations(passage, database, false);
   },
 
   async listAcceptedProposalsForUnits(
@@ -589,6 +622,7 @@ export const DocumentKnowledgeRepository = {
         id,
       ],
     );
+    notifyKnowledgeMutation();
   },
 
   async aggregate(

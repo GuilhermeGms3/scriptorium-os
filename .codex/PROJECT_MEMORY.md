@@ -26,7 +26,27 @@
 - Fast Refresh ESLint exceptions are restricted to known stable component helpers/hooks; all eight
   previous warnings are gone while the rule remains active.
 
-## Canonical private knowledge consolidation (2026-10-01)
+## Local pipeline implementation milestone (2026-10-04)
+
+- Architecture: `docs/architecture/local-knowledge-pipeline.md`; local companion setup in
+  `services/semantic-engine/README.md`. Extension of canonical units/proposals, not a duplicate engine.
+- Workspace migration 15: jobs/configuration/checkpoints, unit receipts, publication/audit decisions,
+  OCR layouts. Optional backup-v3 fields preserve compatibility with older checksums.
+- Scanned originals can now be imported; Tesseract recovers only empty pages. Native PDF geometry is
+  retained on new text-layer imports. Existing text/evidence is never overwritten by OCR.
+- Companion: bounded loopback-only OCR/index/link endpoints; optional global multilingual CPU vector
+  retrieval plus FTS and cosine rerank; candidate-constrained JSON LLM output and literal UTF-16 spans.
+- Front: per-book preparation, OCR languages, model toggle, scheme confirmation, pause/resume, audit
+  sampling and bulk review/revocation. Inspector distinguishes private machine links from editorial review.
+- Inferential auto-publication remains blocked pending evaluation; explicit reference auto-visibility
+  requires verified source numbering and corpus resolution. Author/bibliography/coreference still heuristic.
+- Validation: typecheck, focused ESLint, Ruff, Python 3.13.3 syntax and production build passed;
+  migrations reapplied to an in-memory SQLite database at version 15 with zero FK violations.
+- Deferred at user request: automated suites, real OCR/model processing, performance and browser QA.
+  No new PDFs were processed during this code-only stage. Concurrent tabs/job leases, neural structure,
+  cross-encoder and calibration remain debt. Rebuilding canonical units invalidates private derived audits.
+
+## Canonical private knowledge consolidation details (2026-10-01)
 
 - Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
   `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query

@@ -95,4 +95,10 @@ Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e ger
 
 ## Limites atuais
 
+O pipeline opcional de livros agora inclui recuperação de páginas vazias por OCR local,
+preservação de geometria, candidatos FTS/vetoriais, inferência via LM Studio/llama.cpp,
+retomada e auditoria por livro. Configuração e limites efetivos:
+[pipeline local de conhecimento](docs/architecture/local-knowledge-pipeline.md).
+Modelos, Tesseract e validação funcional não são instalados/executados automaticamente.
+
 O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser importados em lote, ter idioma detectado, ser indexados, segmentados e vinculados localmente; uma falha ou PDF escaneado não interrompe os demais arquivos. Nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.

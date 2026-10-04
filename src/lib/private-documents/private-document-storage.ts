@@ -21,6 +21,10 @@ async function directory(): Promise<FileSystemDirectoryHandle> {
 }
 
 export const PrivateDocumentStorage = {
+  async read(checksum: string): Promise<File> {
+    if (!/^[a-f0-9]{64}$/iu.test(checksum)) throw new Error("Checksum do documento inválido.");
+    return (await (await directory()).getFileHandle(`${checksum}.pdf`)).getFile();
+  },
   async persist(file: File, checksum: string): Promise<string> {
     const target = await (await directory()).getFileHandle(`${checksum}.pdf`, { create: true });
     const writer = await target.createWritable();

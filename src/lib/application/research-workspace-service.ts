@@ -62,6 +62,10 @@ const PrivateKnowledgeBackupSchema = z.object({
   proposals: rows,
   translations: rows,
   translationJobs: rows,
+  pipelineJobs: rows.optional(),
+  pipelineDecisions: rows.optional(),
+  pipelineReceipts: rows.optional(),
+  pageLayouts: rows.optional(),
 });
 
 const BackupV3Schema = BackupV2Schema.omit({ schemaVersion: true, manifest: true }).extend({
@@ -196,6 +200,10 @@ async function exportPrivateKnowledge(
     proposals,
     translations,
     translationJobs,
+    pipelineJobs,
+    pipelineDecisions,
+    pipelineReceipts,
+    pageLayouts,
   ] = await Promise.all([
     database.query("SELECT * FROM private_documents ORDER BY id"),
     database.query(`SELECT id,document_id,page_index,page_label,'' text,0 character_count,
@@ -209,6 +217,10 @@ async function exportPrivateKnowledge(
     database.query("SELECT * FROM knowledge_proposals ORDER BY document_id,id"),
     database.query("SELECT * FROM local_translations ORDER BY source_kind,source_id,id"),
     database.query("SELECT * FROM private_translation_jobs ORDER BY document_id"),
+    database.query("SELECT * FROM pipeline_jobs ORDER BY document_id"),
+    database.query("SELECT * FROM pipeline_decisions ORDER BY proposal_id"),
+    database.query("SELECT * FROM pipeline_unit_receipts ORDER BY unit_id"),
+    database.query("SELECT * FROM document_page_layouts ORDER BY page_id"),
   ]);
   return {
     documents: serializableRows(documents),
@@ -220,6 +232,10 @@ async function exportPrivateKnowledge(
     proposals: serializableRows(proposals),
     translations: serializableRows(translations),
     translationJobs: serializableRows(translationJobs),
+    pipelineJobs: serializableRows(pipelineJobs),
+    pipelineDecisions: serializableRows(pipelineDecisions),
+    pipelineReceipts: serializableRows(pipelineReceipts),
+    pageLayouts: serializableRows(pageLayouts),
   };
 }
 
@@ -233,6 +249,10 @@ const privateKnowledgeTables = {
   proposals: "knowledge_proposals",
   translations: "local_translations",
   translationJobs: "private_translation_jobs",
+  pipelineJobs: "pipeline_jobs",
+  pipelineDecisions: "pipeline_decisions",
+  pipelineReceipts: "pipeline_unit_receipts",
+  pageLayouts: "document_page_layouts",
 } as const;
 
 async function importV1(
@@ -416,7 +436,7 @@ export const ResearchWorkspaceService = {
       statements.push(
         ...insertStatements(
           table,
-          backup.privateKnowledge[key as keyof typeof backup.privateKnowledge],
+          backup.privateKnowledge[key as keyof typeof backup.privateKnowledge] ?? [],
         ),
       );
     statements.push(...rebuildFtsStatements());

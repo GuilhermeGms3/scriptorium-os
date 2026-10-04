@@ -2,7 +2,7 @@ import { readdirSync, readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import type { DatabaseSync } from "node:sqlite";
 
-export const WORKSPACE_SCHEMA_VERSION = 14;
+export const WORKSPACE_SCHEMA_VERSION = 15;
 
 export function applyWorkspaceMigrations(
   database: DatabaseSync,

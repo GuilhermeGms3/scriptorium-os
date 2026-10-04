@@ -286,7 +286,11 @@ export const PrivateDocumentRepository = {
               page.text,
               page.text.length,
               page.text ? "pdf-text-layer" : "empty",
-              JSON.stringify({ hasText: Boolean(page.text), itemCount: page.itemCount }),
+              JSON.stringify({
+                hasText: Boolean(page.text),
+                itemCount: page.itemCount,
+                ...(page.layout ? { coordinateSpace: "pdf-points", layout: page.layout } : {}),
+              }),
             ],
           });
         await db.transaction(statements);
@@ -383,7 +387,11 @@ export const PrivateDocumentRepository = {
           page.text,
           page.text.length,
           page.text ? "pdf-text-layer" : "empty",
-          JSON.stringify({ hasText: Boolean(page.text), itemCount: page.itemCount }),
+          JSON.stringify({
+            hasText: Boolean(page.text),
+            itemCount: page.itemCount,
+            ...(page.layout ? { coordinateSpace: "pdf-points", layout: page.layout } : {}),
+          }),
         ],
       });
     }

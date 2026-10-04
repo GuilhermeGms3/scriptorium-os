@@ -26,6 +26,7 @@ import type {
 import type { LocalTranslation } from "../../lib/domain/semantic-content";
 import { DocumentKnowledgeRepository } from "../../lib/repositories/document-knowledge-repository";
 import type { PrivateTranslationJob } from "../../lib/repositories/private-translation-job-repository";
+import { LocalPipelinePanel } from "./local-pipeline-panel";
 
 type Tab = "structure" | "proposals" | "aggregate";
 
@@ -103,6 +104,7 @@ export function DocumentKnowledgeWorkbench({
   const [proposals, setProposals] = useState<KnowledgeProposal[]>([]);
   const [aggregate, setAggregate] = useState<DocumentKnowledgeAggregate>();
   const [progress, setProgress] = useState<string>();
+  const [pipelineBusy, setPipelineBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [edits, setEdits] = useState<Record<string, string>>({});
   const [perspectiveEdits, setPerspectiveEdits] = useState<Record<string, string>>({});
@@ -297,7 +299,7 @@ export function DocumentKnowledgeWorkbench({
           <select
             id={`knowledge-analyzer-${documentId}`}
             value={analyzerMode}
-            disabled={Boolean(progress)}
+            disabled={Boolean(progress) || pipelineBusy}
             onChange={(event) =>
               setAnalyzerMode(event.target.value as "deterministic" | "contextual")
             }
@@ -309,7 +311,7 @@ export function DocumentKnowledgeWorkbench({
           <button
             type="button"
             onClick={() => void run()}
-            disabled={Boolean(progress)}
+            disabled={Boolean(progress) || pipelineBusy}
             className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
           >
             {progress ? (
@@ -330,6 +332,12 @@ export function DocumentKnowledgeWorkbench({
       </p>
 
       {progress && <p className="mt-2 text-xs text-muted-foreground">{progress}</p>}
+      <LocalPipelinePanel
+        documentId={documentId}
+        onChanged={refresh}
+        disabled={Boolean(progress)}
+        onBusyChange={setPipelineBusy}
+      />
       {error && (
         <p role="alert" className="mt-2 text-xs text-destructive">
           {error}
@@ -400,10 +408,16 @@ export function DocumentKnowledgeWorkbench({
                     <div className="flex items-center justify-between gap-2">
                       <span className="font-mono text-[9px] uppercase text-muted-foreground">
                         {KIND_LABELS[proposal.proposalKind]} ·{" "}
-                        {Math.round(proposal.confidence * 100)}%
+                        {proposal.method.startsWith("local-llm:")
+                          ? "Inferência não calibrada"
+                          : `${Math.round(proposal.confidence * 100)}% (heurística)`}
                       </span>
                       <span className="text-[9px] text-muted-foreground">
-                        {proposal.reviewStatus}
+                        {proposal.reviewStatus === "accepted"
+                          ? "Aceita"
+                          : proposal.reviewStatus === "rejected"
+                            ? "Rejeitada"
+                            : "Proposta de máquina"}
                       </span>
                     </div>
                     {proposal.payload.kind === "claim" &&

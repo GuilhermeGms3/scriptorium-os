@@ -39,3 +39,33 @@ py -3.13 -m uvicorn app.main:app --host 127.0.0.1 --port 8018
 O modo contextual é complementar: estrutura, âncoras e propostas determinísticas continuam sendo
 calculadas no cliente. Se este serviço estiver indisponível, selecione o modo determinístico no painel
 do documento.
+
+## Pipeline de OCR, candidatos e LLM (opcional)
+
+`GET /v1/pipeline/info`, `POST /v1/pipeline/ocr`, `POST /v1/pipeline/index`
+e `POST /v1/pipeline/link` são consumidos pelo painel local de cada livro.
+Contrato completo e limites: [arquitetura](../../docs/architecture/local-knowledge-pipeline.md).
+
+Instale Tesseract com os idiomas `por`, `eng` e, para PDFs espanhóis, `spa`.
+Use `SCRIPTORIUM_TESSERACT` para indicar o executável quando não estiver no PATH.
+Não é preciso instalar llama.cpp se já utilizar LM Studio com API local compatível.
+
+Antes de iniciar `npm run semantic:dev`, configure, por exemplo:
+
+```powershell
+$env:SCRIPTORIUM_LLM_URL = "http://127.0.0.1:1234/v1"
+$env:SCRIPTORIUM_LLM_MODEL = "identificador-exato-no-servidor-local"
+$env:SCRIPTORIUM_LLM_REVISION = "sha256-do-arquivo-de-modelo-utilizado"
+$env:SCRIPTORIUM_EMBEDDING_URL = "http://127.0.0.1:1234/v1"
+$env:SCRIPTORIUM_EMBEDDING_MODEL = "identificador-do-embedding-multilingue"
+$env:SCRIPTORIUM_EMBEDDING_REVISION = "sha256-do-arquivo-de-embedding-utilizado"
+```
+
+Substitua os valores ilustrativos; obtenha hashes com `Get-FileHash -Algorithm SHA256`.
+Revisões são declaradas pelo operador, não verificadas pelo protocolo OpenAI-compatible:
+troque-as ao trocar o arquivo. O servidor precisa implementar `/embeddings` e
+`/chat/completions` com `response_format=json_schema`. Sem embedding configurado,
+o fluxo usa FTS; sem LLM configurado, recupera candidatos sem inferir.
+
+Os modelos não são baixados/iniciados por esses endpoints. Chamada sem índice,
+configuração inválida ou saída não verificável falha de forma recuperável.

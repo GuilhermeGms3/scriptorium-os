@@ -173,6 +173,18 @@ async function extract(
         pageLabel: String(pageNumber),
         text: extracted.text,
         itemCount: extracted.itemCount,
+        layout: content.items.flatMap((item) =>
+          "str" in item
+            ? [
+                {
+                  text: item.str,
+                  transform: item.transform,
+                  width: item.width,
+                  height: item.height,
+                },
+              ]
+            : [],
+        ),
       });
       page.cleanup();
     }
@@ -226,8 +238,7 @@ export const PrivateDocumentImportService = {
       };
     }
     const extracted = await extract(file, buffer, checksum, listener);
-    if (!extracted.textPageCount)
-      throw new Error("Nenhuma camada textual foi encontrada; este PDF exige OCR local.");
+    // Keep scanned originals/page identities so the optional local OCR can resume later.
     report(listener, { phase: "storing", message: "Armazenando o PDF no OPFS privado…" });
     const storageReference = await PrivateDocumentStorage.persist(file, checksum);
     try {

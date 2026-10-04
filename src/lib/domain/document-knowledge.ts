@@ -57,7 +57,7 @@ export const SemanticUnitSchema = z.object({
   text: z.string(),
 });
 
-const passageSchema = z.object({
+export const DocumentPassageSchema = z.object({
   workId: z.string().min(1).optional(),
   bookId: z.string().min(1),
   chapter: z.number().int().positive(),
@@ -98,7 +98,7 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     kind: z.literal("passage-relation"),
     rawReference: z.string().min(1),
     relationType: z.enum(["cites", "discusses", "alludes-to"]),
-    passage: passageSchema,
+    passage: DocumentPassageSchema,
   }),
   z.object({
     kind: z.literal("topic-assignment"),

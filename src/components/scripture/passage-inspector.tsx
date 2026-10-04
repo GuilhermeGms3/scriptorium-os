@@ -168,16 +168,23 @@ export function PassageInspector() {
       return;
     }
     const curated = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref);
-    void WorkspacePassageKnowledgeService.load(passageContext.ref, curated).then(
-      (layer) => {
-        if (active) setWorkspaceKnowledge(layer);
-      },
-      () => {
-        if (active) setWorkspaceKnowledge(null);
-      },
-    );
+    let generation = 0;
+    const reload = () => {
+      const requestGeneration = ++generation;
+      void WorkspacePassageKnowledgeService.load(passageContext.ref, curated).then(
+        (layer) => {
+          if (active && requestGeneration === generation) setWorkspaceKnowledge(layer);
+        },
+        () => {
+          if (active && requestGeneration === generation) setWorkspaceKnowledge(null);
+        },
+      );
+    };
+    reload();
+    window.addEventListener("scriptorium:knowledge-changed", reload);
     return () => {
       active = false;
+      window.removeEventListener("scriptorium:knowledge-changed", reload);
     };
   }, [passageContext]);
   const bundle = passageContext
@@ -449,7 +456,7 @@ export function PassageInspector() {
               </p>
               {workspaceKnowledge && workspaceKnowledge.items.length > 0 && (
                 <section>
-                  <p className="meta-label">Conhecimento aceito dos livros privados</p>
+                  <p className="meta-label">Conhecimento e ligações dos livros privados</p>
                   <ul className="mt-2 space-y-3">
                     {workspaceKnowledge.items.map((item) => {
                       const claims = item.proposals.filter(
@@ -475,6 +482,9 @@ export function PassageInspector() {
                           <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
                             {item.passageRelation.payload.rawReference} · páginas{" "}
                             {item.pages.map((page) => page + 1).join(", ")}
+                            {item.passageRelation.reviewStatus === "machine-proposed"
+                              ? " · Ligação de máquina, não revisão editorial"
+                              : " · Revisão humana"}
                           </p>
                           {claims.map((proposal) =>
                             proposal.payload.kind === "claim" ? (

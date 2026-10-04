@@ -105,7 +105,7 @@ export const WorkspacePassageKnowledgeService = {
     database?: WorkspaceDatabase,
   ): Promise<WorkspacePassageKnowledgeLayer> {
     const relations = (
-      await DocumentKnowledgeRepository.listAcceptedPassageRelations(passage, database)
+      await DocumentKnowledgeRepository.listVisiblePassageRelations(passage, database)
     ).filter(
       (proposal): proposal is PassageRelationProposal =>
         proposal.payload.kind === "passage-relation",
