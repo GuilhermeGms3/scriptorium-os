@@ -20,6 +20,14 @@ export interface WorkspacePassageKnowledgeItem {
   proposals: KnowledgeProposal[];
   translation: LocalTranslation | null;
   pages: number[];
+  context: {
+    sectionTitle?: string;
+    authors: string[];
+    attributions: string[];
+    citations: string[];
+    methods: string[];
+    perspectiveProfileIds: string[];
+  };
 }
 
 export const PASSAGE_COVERAGE_AREAS = [

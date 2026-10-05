@@ -55,12 +55,17 @@ class LinkDecision(Selection):
     evidenceEnd: int = Field(gt=0)
 
 
+class SelectionBatch(Contract):
+    selections: list[Selection] = Field(max_length=5)
+
+
 class LinkResponse(Contract):
     unitId: str
     retrieval: str
     candidates: list[Candidate] = Field(max_length=8)
     status: Literal["needs-review", "abstained"]
     decision: LinkDecision | None
+    decisions: list[LinkDecision] = Field(default_factory=list, max_length=5)
     model: str | None = None
     modelRevision: str | None = None
 

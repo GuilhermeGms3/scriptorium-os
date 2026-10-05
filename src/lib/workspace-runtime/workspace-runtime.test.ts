@@ -94,6 +94,46 @@ afterEach(() => {
 });
 
 describe("Phase 9.5 workspace schema", () => {
+  it("persists resumable library runs and enforces orchestration state", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const imported = await PrivateDocumentRepository.importDocument(
+      {
+        title: "Fila da biblioteca",
+        language: "pt-BR",
+        originalName: "fila.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 64,
+        checksum: "8".repeat(64),
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [{ pageIndex: 0, pageLabel: "1", text: "João 1:1", itemCount: 2 }],
+      },
+      "opfs:/queue.pdf",
+      workspace,
+    );
+    db.prepare(
+      `INSERT INTO library_pipeline_runs(
+        id,configuration_key,configuration_json,status,total_documents,started_at,updated_at
+      ) VALUES(?,?,?,'paused',1,?,?)`,
+    ).run("run:test", "config:test", "{}", "2026-10-05T00:00:00.000Z", "2026-10-05T00:00:00.000Z");
+    db.prepare(
+      `INSERT INTO library_pipeline_documents(
+        run_id,document_id,ordinal,stage,status,source_checksum,result_json,updated_at
+      ) VALUES(?,?,0,'structure','running',?,'{}',?)`,
+    ).run("run:test", imported.document.id, imported.document.checksum, "2026-10-05T00:00:00.000Z");
+    expect(
+      db.prepare("SELECT status FROM library_pipeline_runs WHERE id='run:test'").get(),
+    ).toMatchObject({ status: "paused" });
+    expect(() =>
+      db
+        .prepare("UPDATE library_pipeline_documents SET stage='invented' WHERE run_id='run:test'")
+        .run(),
+    ).toThrow();
+    expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+
   it("migrates reviewed v13 proposals and accepts the contextual proposal vocabulary", async () => {
     const db = databaseAtVersion13();
     const workspace = adapter(db);
@@ -178,7 +218,7 @@ describe("Phase 9.5 workspace schema", () => {
     );
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     expect(db.prepare("SELECT max(version) version FROM workspace_migrations").get()).toMatchObject(
-      { version: 15 },
+      { version: 16 },
     );
   });
 

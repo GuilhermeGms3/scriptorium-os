@@ -352,6 +352,7 @@ async function proposalsForUnit(
           ...(link.verseEnd !== undefined ? { verseEnd: link.verseEnd } : {}),
           versificationSchemeId: link.versificationSchemeId,
         },
+        additionalPassages: [],
       },
       confidence: link.confidence,
     });

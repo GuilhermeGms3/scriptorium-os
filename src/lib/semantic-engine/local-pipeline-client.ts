@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { DocumentPassageSchema } from "../domain/document-knowledge";
 
-export const PipelinePassageSchema = DocumentPassageSchema;
+export const PipelinePassageSchema = DocumentPassageSchema.and(
+  z.object({ chapter: z.number().int().positive() }),
+);
 export const PipelineSettingsSchema = z.object({
   editionId: z.string().min(1),
   useLlm: z.boolean(),
@@ -49,6 +51,21 @@ export const PipelineLinkSchema = z.object({
       editionId: z.string(),
     })
     .nullable(),
+  decisions: z
+    .array(
+      z.object({
+        candidateId: z.string(),
+        evidenceQuote: z.string().min(1),
+        evidenceStart: z.number().int().nonnegative(),
+        evidenceEnd: z.number().int().positive(),
+        relationType: z.enum(["discusses", "alludes-to"]),
+        rationale: z.string(),
+        passage: PipelinePassageSchema,
+        editionId: z.string(),
+      }),
+    )
+    .max(5)
+    .default([]),
 });
 export const OcrPageSchema = z.object({
   text: z.string().max(200_000),

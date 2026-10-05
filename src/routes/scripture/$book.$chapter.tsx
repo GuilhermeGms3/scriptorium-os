@@ -11,6 +11,9 @@ import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-k
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseExplanations } from "../../components/scripture/verse-explanations";
+import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
+import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
+import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
@@ -56,6 +59,10 @@ function ChapterReader() {
   );
   const [view, setView] = useState<ReaderView>("single");
   const [showExplanations, setShowExplanations] = useState(true);
+  const [privateKnowledge, setPrivateKnowledge] = useState<WorkspacePassageKnowledgeLayer>();
+  const [privateKnowledgeError, setPrivateKnowledgeError] = useState<string>();
+  const [sourceFilter, setSourceFilter] = useState("");
+  const [domainFilter, setDomainFilter] = useState("");
 
   const book = ScriptureKnowledgeEngine.getBook(bookId);
   const activeRef = useMemo(
@@ -80,7 +87,10 @@ function ChapterReader() {
   );
   const availableAnalyses = bundle && hasAvailableData(bundle.analyses) ? bundle.analyses.data : [];
   const availableClaims = bundle && hasAvailableData(bundle.claims) ? bundle.claims.data : [];
-  const explanationsAvailable = availableAnalyses.length > 0 || availableClaims.length > 0;
+  const explanationsAvailable =
+    availableAnalyses.length > 0 ||
+    availableClaims.length > 0 ||
+    Boolean(privateKnowledge?.items.length);
   const availableViews = useMemo<Record<ReaderView, boolean>>(
     () => ({
       single: true,
@@ -99,6 +109,50 @@ function ChapterReader() {
     setPassageContext(book ? { ref: activeRef, label: passageLabel(activeRef) } : null);
     selectWord(null);
   }, [activeRef, book, bundle?.identity.label, chapter, setPassageContext, selectWord]);
+
+  useEffect(() => {
+    let active = true;
+    const load = () => {
+      setPrivateKnowledgeError(undefined);
+      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null).then(
+        (value) => {
+          if (active) setPrivateKnowledge(value);
+        },
+        (cause: unknown) => {
+          if (active)
+            setPrivateKnowledgeError(cause instanceof Error ? cause.message : String(cause));
+        },
+      );
+    };
+    load();
+    window.addEventListener("scriptorium:knowledge-changed", load);
+    return () => {
+      active = false;
+      window.removeEventListener("scriptorium:knowledge-changed", load);
+    };
+  }, [activeRef, bundle]);
+
+  const privateSources = useMemo(
+    () => [
+      ...new Map(
+        (privateKnowledge?.items ?? []).map((item) => [item.document.id, item.document]),
+      ).values(),
+    ],
+    [privateKnowledge],
+  );
+  const privateDomains = useMemo(
+    () =>
+      [
+        ...new Set(
+          (privateKnowledge?.items ?? []).flatMap((item) =>
+            item.proposals.flatMap((proposal) =>
+              proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
+            ),
+          ),
+        ),
+      ].sort(),
+    [privateKnowledge],
+  );
 
   if (!book) {
     return <EmptyReader message={t("scripture.unknownBook")} />;
@@ -146,6 +200,47 @@ function ChapterReader() {
                 </h1>
               </header>
 
+              {showExplanations && privateKnowledge?.items.length ? (
+                <div className="mb-5 flex flex-wrap items-center gap-2 rounded border border-border bg-muted/20 p-2 text-xs">
+                  <span className="font-medium">Filtrar biblioteca conectada</span>
+                  <label>
+                    Fonte{" "}
+                    <select
+                      value={sourceFilter}
+                      onChange={(event) => setSourceFilter(event.target.value)}
+                      className="ml-1 rounded border border-input bg-background p-1"
+                    >
+                      <option value="">Todas</option>
+                      {privateSources.map((source) => (
+                        <option key={source.id} value={source.id}>
+                          {source.title}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Área{" "}
+                    <select
+                      value={domainFilter}
+                      onChange={(event) => setDomainFilter(event.target.value)}
+                      className="ml-1 rounded border border-input bg-background p-1"
+                    >
+                      <option value="">Todas</option>
+                      {privateDomains.map((domain) => (
+                        <option key={domain} value={domain}>
+                          {domain}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+              ) : null}
+              {privateKnowledgeError ? (
+                <p role="alert" className="mb-4 text-xs text-destructive">
+                  A biblioteca privada não pôde ser carregada: {privateKnowledgeError}
+                </p>
+              ) : null}
+
               {view === "single" && (
                 <div className="reading-text">
                   {bundle.passage.verses.map((v) => (
@@ -158,13 +253,23 @@ function ChapterReader() {
                         verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
                       />
                       {showExplanations && (
-                        <VerseExplanations
-                          bookId={book.id}
-                          chapter={chapter}
-                          verse={v.verse}
-                          analyses={availableAnalyses}
-                          claims={availableClaims}
-                        />
+                        <>
+                          <VerseExplanations
+                            bookId={book.id}
+                            chapter={chapter}
+                            verse={v.verse}
+                            analyses={availableAnalyses}
+                            claims={availableClaims}
+                          />
+                          <PrivateVerseKnowledge
+                            bookId={book.id}
+                            chapter={chapter}
+                            verse={v.verse}
+                            items={privateKnowledge?.items ?? []}
+                            {...(sourceFilter ? { sourceId: sourceFilter } : {})}
+                            {...(domainFilter ? { domain: domainFilter } : {})}
+                          />
+                        </>
                       )}
                     </div>
                   ))}

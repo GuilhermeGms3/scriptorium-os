@@ -1,4 +1,4 @@
-# Pipeline local de livros e conexões — implementação inicial
+# Pipeline local de livros e conexões
 
 Extensão do `DocumentKnowledgePipelineService`, não um segundo motor de documentos.
 O workspace SQLite/OPFS continua sendo a fonte canônica. O serviço Python contém
@@ -22,6 +22,17 @@ Não há publicação de livros/trechos privados para Git, servidor remoto ou co
 
 ## Uso no frontend
 
+### Biblioteca inteira
+
+A Biblioteca possui um orquestrador único que descobre todos os PDFs privados e executa, em ordem,
+OCR opcional, desmontagem contextual, indexação bíblica compartilhada e conexão. O estado de cada
+documento fica em `library_pipeline_runs` e `library_pipeline_documents`; repetir a mesma configuração
+retoma somente documentos incompletos ou cujo checksum mudou. Uma falha fica registrada por livro e
+não interrompe os demais. Pausar conserva os checkpoints estruturais e de conexão.
+
+O orquestrador não cria outra fonte de verdade: ele chama os serviços canônicos por documento. As
+tabelas de execução são operacionais e regeneráveis, sem copiar texto, claims ou evidências.
+
 Biblioteca → abrir documento → Conhecimento do livro:
 
 1. Importar inclusive PDF escaneado; agora ele permanece disponível para OCR posterior.
@@ -34,7 +45,18 @@ Biblioteca → abrir documento → Conhecimento do livro:
    as referências explícitas permanecem nas exceções.
 6. Conectar/retomar, opcionalmente com LLM. Pausa cancela requisições do cliente e
    preserva o checkpoint; uma requisição já recebida pelo servidor pode terminar.
-7. Examinar amostra/exceções e confirmar ou rejeitar selecionados.
+7. Examinar a amostra do lote e confirmar ou rejeitar os itens.
+
+Inferências são agrupadas deterministicamente em lotes de até 100 ligações. Até 20 itens distribuídos
+pelo lote formam a amostra. Somente quando toda a amostra é confirmada o restante recebe visibilidade
+`machine-visible`; uma rejeição bloqueia o lote. Isso reduz o trabalho manual, mas não transforma a
+amostra em prova estatística, revisão acadêmica ou verdade teológica. Referências explícitas continuam
+sob política separada e só ganham visibilidade automática quando a numeração da fonte foi declarada.
+
+Uma unidade pode carregar uma passagem principal e até 100 passagens adicionais, com escopo
+`verse`, `range`, `pericope`, `chapter` ou `book`. Assuntos continuam sendo relações próprias, não
+versículos inventados. O companion v2 pode selecionar até cinco candidatos reais e precisa citar
+evidência literal para cada um.
 
 A leitura consulta relações humanas e privadas `machine-visible`, distinguindo-as
 visualmente. Afirmações não revisadas não passam a ser “aceitas” por causa de uma
@@ -55,6 +77,15 @@ confirmação de esquema e configuração de modelos como chave de retomada.
 Mudanças invalidam decisões automáticas pendentes. A reconstrução estrutural
 apaga derivados em cascata e preserva as revisões de propostas pelo mecanismo
 canônico existente; auditorias privadas de ligações derivadas precisam ser refeitas.
+
+Migration **016** acrescenta a fila da biblioteca e os lotes de auditoria. O relatório de cobertura
+consulta os dados canônicos e informa PDFs com texto, OCR pendente, livros estruturados/conectados,
+ligações por origem, passagens alcançadas e lacunas por domínio. Ele mede presença de material, não
+qualidade nem completude acadêmica.
+
+Na leitura, ligações aceitas e lotes liberados aparecem abaixo do versículo com título do livro,
+página, seção, autor catalogado, assuntos, tradução disponível e acesso ao original local. Claims e
+argumentos continuam invisíveis até aceitação humana; metadados contextuais de máquina ficam rotulados.
 Não há ainda lease transacional entre múltiplas abas/processos: execute apenas um
 processamento por documento. O painel bloqueia processamento concorrente de
 estrutura/conexão dentro da mesma instância; Python serializa OCR/inferência/indexação.
@@ -89,4 +120,6 @@ Solicitação desta etapa: código e compilação, com testes funcionais posteri
 Ainda validar com modelos reais: precisão/abstenção por livro e regra, recall
 multilíngue, paginação de scans, layouts difíceis, reinício/retomada, backup
 roundtrip com as novas tabelas, cancelamento, consumo de memória e QA no navegador.
-Não existe promessa de cobertura de todos os versículos nem de precisão percentual.
+Não existe promessa de cobertura de todos os versículos nem de precisão percentual. A execução real
+dos PDFs depende do companion, do Tesseract e dos modelos locais configurados; o relatório é a fonte
+de verdade para saber o que foi efetivamente processado.

@@ -22,7 +22,7 @@ async function saveDecision(
   db: WorkspaceDatabase,
   proposal: KnowledgeProposal,
   origin: "explicit" | "inferred",
-  publication: "machine-visible" | "exception",
+  publication: "machine-visible" | "exception" | "withheld",
   evidence: unknown,
   key: string,
 ) {
@@ -33,6 +33,65 @@ async function saveDecision(
     publication=CASE WHEN pipeline_decisions.audit_status='pending' THEN excluded.publication ELSE pipeline_decisions.publication END,updated_at=excluded.updated_at`,
     [proposal.id, publication, origin, JSON.stringify(evidence), key, new Date().toISOString()],
   );
+}
+
+const REVIEW_BATCH_SIZE = 100;
+const REVIEW_SAMPLE_SIZE = 20;
+
+async function prepareInferenceReviewBatches(
+  db: WorkspaceDatabase,
+  documentId: string,
+  configurationKey: string,
+): Promise<void> {
+  const existing = await db.query(
+    "SELECT 1 FROM pipeline_review_batches WHERE document_id=? AND configuration_key=? LIMIT 1",
+    [documentId, configurationKey],
+  );
+  if (existing.length) return;
+  const members = await db.query(
+    `SELECT d.proposal_id FROM pipeline_decisions d
+     JOIN knowledge_proposals p ON p.id=d.proposal_id
+     JOIN semantic_units u ON u.id=p.semantic_unit_id
+     WHERE p.document_id=? AND d.configuration_key=? AND d.origin='inferred'
+     ORDER BY u.text_checksum,p.id`,
+    [documentId, configurationKey],
+  );
+  const now = new Date().toISOString();
+  for (
+    let offset = 0, ordinal = 0;
+    offset < members.length;
+    offset += REVIEW_BATCH_SIZE, ordinal += 1
+  ) {
+    const group = members.slice(offset, offset + REVIEW_BATCH_SIZE);
+    const sampleCount = Math.min(REVIEW_SAMPLE_SIZE, group.length);
+    const sampledIndexes = new Set(
+      Array.from({ length: sampleCount }, (_, index) =>
+        Math.floor((index * group.length) / sampleCount),
+      ),
+    );
+    const batchId = `${documentId}:review:${configurationKey}:${ordinal}`;
+    const statements: Parameters<WorkspaceDatabase["transaction"]>[0] = [
+      {
+        sql: `INSERT INTO pipeline_review_batches(
+          id,document_id,configuration_key,ordinal,member_count,sample_count,status,created_at,updated_at
+        ) VALUES(?,?,?,?,?,?,'pending',?,?)`,
+        bind: [batchId, documentId, configurationKey, ordinal, group.length, sampleCount, now, now],
+      },
+    ];
+    group.forEach((row, index) => {
+      const proposalId = String(row["proposal_id"]);
+      const isSample = sampledIndexes.has(index) ? 1 : 0;
+      statements.push({
+        sql: "INSERT INTO pipeline_review_batch_members(batch_id,proposal_id,is_sample) VALUES(?,?,?)",
+        bind: [batchId, proposalId, isSample],
+      });
+      statements.push({
+        sql: "UPDATE pipeline_decisions SET publication=?,updated_at=? WHERE proposal_id=? AND audit_status='pending'",
+        bind: [isSample ? "exception" : "withheld", now, proposalId],
+      });
+    });
+    await db.transaction(statements);
+  }
 }
 
 /** Canonical workspace pipeline extension; no parallel claim/document store. */
@@ -207,6 +266,7 @@ export const LocalKnowledgePipelineService = {
         "UPDATE pipeline_jobs SET status='complete',updated_at=? WHERE document_id=?",
         [new Date().toISOString(), documentId],
       );
+      await prepareInferenceReviewBatches(db, documentId, key);
       await db.execute(
         "UPDATE document_knowledge_indexes SET proposal_count=(SELECT count(*) FROM knowledge_proposals WHERE document_id=?) WHERE document_id=?",
         [documentId, documentId],
@@ -250,23 +310,38 @@ export const LocalKnowledgePipelineService = {
       signal,
     );
     if (result.unitId !== unit.id) throw new Error("Resposta aponta para unidade fora do lote.");
-    if (result.decision) {
-      const selection = result.decision;
-      const candidate = result.candidates.find((x) => x.id === selection.candidateId);
-      if (
-        !candidate ||
-        candidate.editionId !== editionId ||
-        JSON.stringify(candidate.passage) !== JSON.stringify(selection.passage) ||
-        unit.text.slice(selection.evidenceStart, selection.evidenceEnd) !==
-          selection.evidenceQuote ||
-        !result.modelRevision
-      )
-        throw new Error("Referência, edição ou evidência da inferência não confere com a fonte.");
+    const decisions = result.decisions ?? [];
+    const selections = decisions.length ? decisions : result.decision ? [result.decision] : [];
+    if (selections.length) {
+      const validated = selections.map((selection) => {
+        const candidate = result.candidates.find((x) => x.id === selection.candidateId);
+        if (
+          !candidate ||
+          candidate.editionId !== editionId ||
+          JSON.stringify(candidate.passage) !== JSON.stringify(selection.passage) ||
+          unit.text.slice(selection.evidenceStart, selection.evidenceEnd) !==
+            selection.evidenceQuote ||
+          !result.modelRevision
+        )
+          throw new Error("Referência, edição ou evidência da inferência não confere com a fonte.");
+        return selection;
+      });
+      const selection = validated[0]!;
       const payload = {
         kind: "passage-relation" as const,
-        rawReference: `${selection.passage.bookId} ${selection.passage.chapter}:${selection.passage.verseStart ?? ""}`,
+        rawReference: validated
+          .map(
+            (value) =>
+              `${value.passage.bookId} ${value.passage.chapter}:${value.passage.verseStart ?? ""}${value.passage.verseEnd !== value.passage.verseStart ? `-${value.passage.verseEnd}` : ""}`,
+          )
+          .join("; "),
         relationType: selection.relationType,
+        relationScope:
+          selection.passage.verseStart === selection.passage.verseEnd
+            ? ("verse" as const)
+            : ("range" as const),
         passage: selection.passage,
+        additionalPassages: validated.slice(1).map((value) => value.passage),
       };
       const hash = await digest(
         JSON.stringify({ unit: unit.id, payload, revision: result.modelRevision, key }),
@@ -289,9 +364,9 @@ export const LocalKnowledgePipelineService = {
         db,
         proposal,
         "inferred",
-        "exception",
+        "withheld",
         {
-          ...selection,
+          decisions: validated,
           textChecksum: unit.textChecksum,
           model: result.model,
           modelRevision: result.modelRevision,
@@ -304,7 +379,7 @@ export const LocalKnowledgePipelineService = {
     await db.execute("INSERT OR REPLACE INTO pipeline_unit_receipts VALUES(?,?,?,?,?)", [
       unit.id,
       key,
-      result.decision ? "inferred" : result.status === "abstained" ? "abstained" : "candidates",
+      selections.length ? "inferred" : result.status === "abstained" ? "abstained" : "candidates",
       JSON.stringify(result),
       new Date().toISOString(),
     ]);

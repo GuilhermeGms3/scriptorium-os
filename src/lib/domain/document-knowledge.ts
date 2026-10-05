@@ -57,14 +57,31 @@ export const SemanticUnitSchema = z.object({
   text: z.string(),
 });
 
-export const DocumentPassageSchema = z.object({
-  workId: z.string().min(1).optional(),
-  bookId: z.string().min(1),
-  chapter: z.number().int().positive(),
-  verseStart: z.number().int().positive().optional(),
-  verseEnd: z.number().int().positive().optional(),
-  versificationSchemeId: z.string().min(1),
-});
+export const DocumentPassageSchema = z
+  .object({
+    workId: z.string().min(1).optional(),
+    bookId: z.string().min(1),
+    chapter: z.number().int().positive().optional(),
+    verseStart: z.number().int().positive().optional(),
+    verseEnd: z.number().int().positive().optional(),
+    versificationSchemeId: z.string().min(1),
+  })
+  .superRefine((passage, context) => {
+    if (
+      (passage.verseStart !== undefined || passage.verseEnd !== undefined) &&
+      passage.chapter === undefined
+    )
+      context.addIssue({ code: z.ZodIssueCode.custom, message: "Versículos exigem capítulo." });
+    if (
+      passage.verseStart !== undefined &&
+      passage.verseEnd !== undefined &&
+      passage.verseEnd < passage.verseStart
+    )
+      context.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "O final do intervalo precede o início.",
+      });
+  });
 
 export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -98,7 +115,9 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     kind: z.literal("passage-relation"),
     rawReference: z.string().min(1),
     relationType: z.enum(["cites", "discusses", "alludes-to"]),
+    relationScope: z.enum(["verse", "range", "pericope", "chapter", "book"]).optional(),
     passage: DocumentPassageSchema,
+    additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
   }),
   z.object({
     kind: z.literal("topic-assignment"),

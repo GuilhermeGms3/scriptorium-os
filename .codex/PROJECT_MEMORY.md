@@ -244,6 +244,9 @@
 - 2026-09-22 — quarantine the Wikisource Tradução Brasileira from distributable runtime packages because US hosting does not establish Brazilian public-domain status; preserve the artifact only for rights review.
 - 2026-09-22 — pin the official eBible porbrbsl USFM ZIP (SHA-256 52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd) as the public-domain Portuguese expansion; label it as a draft in active revision and preserve all 81 works without treating its collection as a universal canon.
 - 2026-09-25 — ingest user-owned PDFs only into private browser storage: keep original bytes in OPFS, index page text in workspace SQLite/FTS5, derive stable IDs from SHA-256, make checksum reimports idempotent and never add protected files/text to Git or public corpus packages.
+- 2026-10-05 — orchestrate the complete private library through the existing canonical knowledge pipeline, persisting run/document state and continuing after isolated failures; do not introduce a competing analyzer or storage path.
+- 2026-10-05 — represent contextual passage reach as one primary target plus bounded additional targets, with explicit verse/range/pericope/chapter/book scope; keep source edition and versification provenance on every relation.
+- 2026-10-05 — release explicit reference links under their own policy and keep inferred links withheld behind deterministic distributed batch samples; accepting a sample is an operational publication gate, not proof of theological or statistical truth.
 
 ## Current state
 
@@ -257,6 +260,9 @@
 - Phase 10.1 continuation: imported the public-domain 1885 ANF IX OCR source for Origen's Commentary on John Books I-II as 65 stable primary-source units and a 1,908,736-byte work-sharded SQLite/FTS5 package. John 1:1 now links to exact unit II.2 through a source-backed reception-history analysis. Final verification passed 126 tests across 16 files, typecheck, focused ESLint and Node production build; a no-change corpus rebuild reused all six packages. Browser QA opened the exact II.2 unit, confirmed real global FTS results and a clean console. Repository-wide lint still reports 2,974 pre-existing formatting/CRLF problems.
 - Phase 10.1 content continuation: imported the public-domain eBible Bíblia Portuguesa Mundial draft as 81 works, 1,402 chapters, 38,029 text units and 2,311 detected editorial notes. Added 15 Portuguese deuterocanonical/other apocryphal works to navigation and work-sharded SQLite/FTS delivery. Wikisource TBB is blocked from the public registry pending Brazilian rights review.
 - Private library continuation (2026-09-25): six user-purchased Portuguese PDFs were imported locally as 4,280 physical pages, 4,261 with searchable text. Global search opens exact document pages; reload persistence and checksum-idempotent reimport were verified in the browser. The files and extracted content are not tracked by Git.
+- Private library orchestration (2026-10-05): schema 16 persists whole-library runs, per-document state and review batches; coverage reports text/OCR/structure/linking state, proposal policy and target/domain gaps. Reader integration can render source-backed private excerpts below the relevant verse with page/section/author metadata, domain/source filters and the existing explanations toggle.
+- Current browser workspace snapshot on 2026-10-05 contains 6 PDFs, 0 structured documents, 0 visible connections and 5 OCR-pending documents. The implementation was validated without triggering a destructive or expensive full-library/model run; actual OCR/LLM quality and end-to-end batch release still require a deliberate processing run with local model/OCR services available.
+- Verification for private library orchestration: TypeScript suite passed 198 tests across 27 files; Python 3.13 suite passed 11 tests; typecheck, repository lint, focused Ruff, production build and browser QA for Library/John 1 passed. Browser QA confirmed the coverage panel and explanations toggle with a clean console; no inline private card could appear because the current workspace has zero published connections.
 
 ## Next safe actions
 
@@ -264,4 +270,6 @@
 - If translation/original alignment is added later, use an explicit dataset and algorithm; never infer Portuguese↔Greek links by position.
 - Keep the 667 TAGNT residues unchanged unless explicit editorial evidence is introduced.
 - Build a compact cross-work search/lexeme index or range VFS before global operations span substantially larger corpora; preserve the `CorpusStorage` boundary.
-- Add OCR, EPUB, structural section detection, private citations and human-reviewed passage links without weakening local-only privacy or provenance.
+- Run the whole-library orchestrator with the local OCR/model services, inspect its distributed review samples and measure coverage/quality before declaring the six current PDFs semantically connected.
+- Reconcile the current browser workspace inventory of 6 PDFs with the larger local book folder before claiming that the full disk library has been imported.
+- Add EPUB support and improve structural section/citation extraction without weakening local-only privacy or provenance.

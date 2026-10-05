@@ -23,6 +23,7 @@ import {
 import type { PrivateDocument } from "../lib/domain/private-document";
 import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
 import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
+import { LibraryPipelineOverview } from "../components/library/library-pipeline-overview";
 
 interface LibrarySearch {
   source?: string;
@@ -177,6 +178,7 @@ export function LibraryPage() {
           </button>
         </div>
       </header>
+      <LibraryPipelineOverview />
       {showImport && <ImportPanel onClose={() => setShowImport(false)} onImported={refresh} />}
       <div className="grid min-h-0 flex-1 md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]">
         <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">

@@ -123,8 +123,8 @@ export function LocalPipelinePanel({
       <h3 className="text-sm font-medium">Conexão local e auditoria</h3>
       <p className="text-xs text-muted-foreground">
         OCR recupera páginas vazias sem alterar o original. Referências explícitas verificadas podem
-        aparecer na leitura como máquina; inferências vão para exceções, sem aprovação automática
-        baseada em confiança do modelo.
+        aparecer na leitura como máquina. Inferências ficam retidas em lotes de até 100; somente uma
+        amostra distribuída é revisada, e qualquer rejeição bloqueia o lote inteiro.
       </p>
       <div className="flex flex-wrap items-center gap-2">
         <button
@@ -262,10 +262,25 @@ export function LocalPipelinePanel({
             {audit.receiptCounts["oversized"] ?? 0}.
           </p>
           <p className="text-xs text-muted-foreground">
-            Amostra por livro: até 20 exceções e 20 ligações de máquina, ordenadas por checksum.
-            Examine fonte e referência antes de confirmar. Esta amostra não é uma estimativa de
-            precisão.
+            Cada lote usa até 20 itens distribuídos pelo conteúdo. Todos precisam ser confirmados
+            para liberar o restante como ligação de máquina; uma rejeição mantém o lote retido. Isso
+            é controle operacional, não prova de verdade ou precisão acadêmica.
           </p>
+          {audit.batches.length ? (
+            <ul className="grid gap-1 text-[10px] sm:grid-cols-2">
+              {audit.batches.map((batch) => (
+                <li key={String(batch["id"])} className="rounded border border-border px-2 py-1.5">
+                  Lote {Number(batch["ordinal"]) + 1}: {Number(batch["member_count"])} ligações ·
+                  amostra {Number(batch["sample_count"])} ·{" "}
+                  {batch["status"] === "released"
+                    ? "liberado"
+                    : batch["status"] === "rejected"
+                      ? "bloqueado"
+                      : `${Number(batch["pending_sample"])} pendente(s)`}
+                </li>
+              ))}
+            </ul>
+          ) : null}
           <div className="flex flex-wrap gap-2">
             <button
               className={button}

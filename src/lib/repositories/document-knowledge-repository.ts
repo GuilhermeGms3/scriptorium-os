@@ -537,25 +537,41 @@ export const DocumentKnowledgeRepository = {
            (?=1 AND review_status='machine-proposed' AND EXISTS(
              SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id AND d.publication='machine-visible'
            )))
-           AND json_extract(payload_json,'$.passage.bookId')=?
-           AND json_extract(payload_json,'$.passage.chapter')=?
-           AND json_extract(payload_json,'$.passage.versificationSchemeId')=?
            AND (
-             json_extract(payload_json,'$.passage.verseStart') IS NULL OR
              (
-               json_extract(payload_json,'$.passage.verseStart') <= ? AND
-               coalesce(
-                 json_extract(payload_json,'$.passage.verseEnd'),
-                 json_extract(payload_json,'$.passage.verseStart')
-               ) >= ?
+               json_extract(payload_json,'$.passage.bookId')=?
+               AND json_extract(payload_json,'$.passage.versificationSchemeId')=?
+               AND (
+                 json_extract(payload_json,'$.relationScope')='book' OR
+                 (json_extract(payload_json,'$.passage.chapter')=? AND (
+                   json_extract(payload_json,'$.passage.verseStart') IS NULL OR
+                   (json_extract(payload_json,'$.passage.verseStart') <= ? AND
+                    coalesce(json_extract(payload_json,'$.passage.verseEnd'),json_extract(payload_json,'$.passage.verseStart')) >= ?)
+                 ))
+               )
+             ) OR EXISTS(
+               SELECT 1 FROM json_each(payload_json,'$.additionalPassages') target
+               WHERE json_extract(target.value,'$.bookId')=?
+                 AND json_extract(target.value,'$.versificationSchemeId')=?
+                 AND (json_extract(target.value,'$.chapter') IS NULL OR
+                   (json_extract(target.value,'$.chapter')=? AND (
+                     json_extract(target.value,'$.verseStart') IS NULL OR
+                     (json_extract(target.value,'$.verseStart') <= ? AND
+                      coalesce(json_extract(target.value,'$.verseEnd'),json_extract(target.value,'$.verseStart')) >= ?)
+                   )))
              )
            )
          ORDER BY updated_at DESC,id LIMIT 200`,
         [
           includeMachineLinks ? 1 : 0,
           passage.bookId,
-          passage.chapter,
           passageRefScheme(passage),
+          passage.chapter,
+          end,
+          start,
+          passage.bookId,
+          passageRefScheme(passage),
+          passage.chapter,
           end,
           start,
         ],
@@ -585,6 +601,40 @@ export const DocumentKnowledgeRepository = {
             `SELECT * FROM knowledge_proposals
              WHERE review_status='accepted' AND semantic_unit_id IN (${placeholders})
              ORDER BY semantic_unit_id,proposal_kind,id`,
+            batch,
+          )
+        ).map(mapProposal),
+      );
+    }
+    return result;
+  },
+
+  async listVisibleContextProposalsForUnits(
+    unitIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    if (!unitIds.length) return [];
+    const db = database ?? (await getWorkspaceDatabase());
+    const result: KnowledgeProposal[] = [];
+    for (const batch of chunks([...new Set(unitIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      result.push(
+        ...(
+          await db.query(
+            `SELECT p.* FROM knowledge_proposals p
+             WHERE p.semantic_unit_id IN (${placeholders}) AND (
+               p.review_status='accepted' OR (
+                 p.review_status='machine-proposed'
+                 AND p.proposal_kind IN ('topic-assignment','citation','entity','bibliographic-reference','attribution','coreference')
+                 AND EXISTS(
+                   SELECT 1 FROM knowledge_proposals relation
+                   JOIN pipeline_decisions d ON d.proposal_id=relation.id
+                   WHERE relation.semantic_unit_id=p.semantic_unit_id
+                     AND relation.proposal_kind='passage-relation'
+                     AND d.publication='machine-visible'
+                 )
+               )
+             ) ORDER BY p.semantic_unit_id,p.proposal_kind,p.id`,
             batch,
           )
         ).map(mapProposal),

@@ -16,6 +16,7 @@ import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
 
 type PassageRelationProposal = KnowledgeProposal & {
   payload: Extract<KnowledgeProposalPayload, { kind: "passage-relation" }>;
@@ -104,15 +105,16 @@ export const WorkspacePassageKnowledgeService = {
     curatedBundle: PassageKnowledgeBundle | null,
     database?: WorkspaceDatabase,
   ): Promise<WorkspacePassageKnowledgeLayer> {
+    const db = database ?? (await getWorkspaceDatabase());
     const relations = (
-      await DocumentKnowledgeRepository.listVisiblePassageRelations(passage, database)
+      await DocumentKnowledgeRepository.listVisiblePassageRelations(passage, db)
     ).filter(
       (proposal): proposal is PassageRelationProposal =>
         proposal.payload.kind === "passage-relation",
     );
-    const proposals = await DocumentKnowledgeRepository.listAcceptedProposalsForUnits(
+    const proposals = await DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
       relations.map((proposal) => proposal.semanticUnitId),
-      database,
+      db,
     );
     const proposalsByUnit = new Map<string, KnowledgeProposal[]>();
     for (const proposal of proposals) {
@@ -125,12 +127,18 @@ export const WorkspacePassageKnowledgeService = {
     const documentIds = [...new Set(relations.map((proposal) => proposal.documentId))];
     for (const documentId of documentIds) {
       const documentRelations = relations.filter((proposal) => proposal.documentId === documentId);
-      const [document, units] = await Promise.all([
-        PrivateDocumentRepository.getDocument(documentId, database),
+      const [document, units, nodes, authorRows] = await Promise.all([
+        PrivateDocumentRepository.getDocument(documentId, db),
         DocumentKnowledgeRepository.listUnits(
           documentId,
           documentRelations.map((proposal) => proposal.semanticUnitId),
-          database,
+          db,
+        ),
+        DocumentKnowledgeRepository.listNodes(documentId, db),
+        db.query(
+          `SELECT a.canonical_name FROM authors a JOIN source_authors sa ON sa.author_id=a.id
+           JOIN private_documents d ON d.source_id=sa.source_id WHERE d.id=? ORDER BY sa.ordinal`,
+          [documentId],
         ),
       ]);
       if (!document) continue;
@@ -138,14 +146,20 @@ export const WorkspacePassageKnowledgeService = {
       const translations = await LocalTranslationRepository.listForSources(
         "private-segment",
         units.map((unit) => unit.id),
-        database,
+        db,
       );
+      const nodesById = new Map(nodes.map((node) => [node.id, node]));
+      const authors = authorRows.map((row) => String(row["canonical_name"]));
       const translationsBySource = new Map(
         translations.map((translation) => [translation.sourceId, translation]),
       );
       for (const relation of documentRelations) {
         const unit = unitsById.get(relation.semanticUnitId);
         if (!unit) continue;
+        const unitProposals = proposalsByUnit.get(unit.id) ?? [relation];
+        const sectionTitle = unit.documentNodeId
+          ? nodesById.get(unit.documentNodeId)?.title
+          : undefined;
         items.push({
           id: relation.id,
           document: {
@@ -156,9 +170,37 @@ export const WorkspacePassageKnowledgeService = {
           },
           unit,
           passageRelation: relation,
-          proposals: proposalsByUnit.get(unit.id) ?? [relation],
+          proposals: unitProposals,
           translation: translationsBySource.get(unit.id) ?? null,
           pages: [...new Set(unit.spans.map((span) => span.pageIndex))],
+          context: {
+            ...(sectionTitle ? { sectionTitle } : {}),
+            authors,
+            attributions: unitProposals.flatMap((proposal) =>
+              proposal.payload.kind === "attribution"
+                ? [`${proposal.payload.agentLabel}: ${proposal.payload.statement}`]
+                : [],
+            ),
+            citations: unitProposals.flatMap((proposal) =>
+              proposal.payload.kind === "citation" ? [proposal.payload.quotedText] : [],
+            ),
+            methods: [
+              ...new Set([
+                unit.method,
+                relation.method,
+                ...unitProposals.map((proposal) => proposal.method),
+              ]),
+            ],
+            perspectiveProfileIds: [
+              ...new Set(
+                unitProposals.flatMap((proposal) =>
+                  proposal.payload.kind === "claim" || proposal.payload.kind === "argument"
+                    ? proposal.payload.perspectiveProfileIds
+                    : [],
+                ),
+              ),
+            ],
+          },
         });
       }
     }

@@ -12,6 +12,7 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 - Source Engine com Author/Work/Edition/Source, citações estruturadas e importação CSL-JSON, RIS e um subconjunto básico de BibTeX.
 - Workspace pessoal persistente em SQLite/OPFS, separado dos corpora imutáveis, com exportação e reimportação JSON.
 - Motor semântico local para reconstruir a estrutura de documentos privados, manter unidades citáveis multi-página e propor assuntos, vínculos bíblicos, claims, argumentos, citações e entidades submetidos a revisão humana.
+- Orquestrador resumível da biblioteca privada, auditoria inferencial por lotes e relatório de cobertura por documento, passagem e área de estudo.
 - Camada privada por passagem que reúne unidades aceitas, claims, assuntos, páginas e traduções e mede lacunas em 15 áreas de conhecimento.
 - Promoção editorial em dois passos, com pacote de staging bloqueado por direitos/evidência e sem escrita automática no conhecimento público.
 - Serviço Python opcional para tradução local inglês→português e análise contextual em lotes,
@@ -96,8 +97,9 @@ Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e ger
 ## Limites atuais
 
 O pipeline opcional de livros agora inclui recuperação de páginas vazias por OCR local,
-preservação de geometria, candidatos FTS/vetoriais, inferência via LM Studio/llama.cpp,
-retomada e auditoria por livro. Configuração e limites efetivos:
+preservação de geometria, candidatos FTS/vetoriais, inferência multialvo via LM Studio/llama.cpp,
+retomada da biblioteca inteira, auditoria amostral por lote, cobertura e conteúdo privado inline.
+Configuração e limites efetivos:
 [pipeline local de conhecimento](docs/architecture/local-knowledge-pipeline.md).
 Modelos, Tesseract e validação funcional não são instalados/executados automaticamente.
 
