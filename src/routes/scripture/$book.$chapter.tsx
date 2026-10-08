@@ -12,8 +12,12 @@ import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseExplanations } from "../../components/scripture/verse-explanations";
 import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
+import { Button } from "@/components/ui/button";
 import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
-import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
+import {
+  knowledgeItemCoversVerse,
+  type WorkspacePassageKnowledgeLayer,
+} from "../../lib/domain/workspace-passage-knowledge";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
@@ -63,6 +67,7 @@ function ChapterReader() {
   const [privateKnowledgeError, setPrivateKnowledgeError] = useState<string>();
   const [sourceFilter, setSourceFilter] = useState("");
   const [domainFilter, setDomainFilter] = useState("");
+  const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
 
   const book = ScriptureKnowledgeEngine.getBook(bookId);
   const activeRef = useMemo(
@@ -111,10 +116,16 @@ function ChapterReader() {
   }, [activeRef, book, bundle?.identity.label, chapter, setPassageContext, selectWord]);
 
   useEffect(() => {
+    setOpenVerses(new Set());
+  }, [activeRef]);
+
+  useEffect(() => {
     let active = true;
     const load = () => {
       setPrivateKnowledgeError(undefined);
-      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null).then(
+      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null, undefined, {
+        includePending: true,
+      }).then(
         (value) => {
           if (active) setPrivateKnowledge(value);
         },
@@ -153,6 +164,39 @@ function ChapterReader() {
       ].sort(),
     [privateKnowledge],
   );
+  const unconfirmedItems = useMemo(
+    () => (privateKnowledge?.items ?? []).filter((item) => item.reviewState !== "confirmed"),
+    [privateKnowledge],
+  );
+  const unconfirmedVerses = useMemo(
+    () =>
+      (bundle?.passage.verses ?? [])
+        .map((verse) => verse.verse)
+        .filter((verse) =>
+          unconfirmedItems.some((item) => knowledgeItemCoversVerse(item, bookId, chapter, verse)),
+        ),
+    [bookId, bundle, chapter, unconfirmedItems],
+  );
+  const setVerseOpen = (verse: number, open: boolean) =>
+    setOpenVerses((current) => {
+      const next = new Set(current);
+      if (open) next.add(verse);
+      else next.delete(verse);
+      return next;
+    });
+  const confirmNow = () => {
+    setView("single");
+    setSourceFilter("");
+    setDomainFilter("");
+    setOpenVerses(new Set(unconfirmedVerses));
+    const first = unconfirmedVerses[0];
+    if (first !== undefined)
+      requestAnimationFrame(() =>
+        document
+          .getElementById(`verse-${first}`)
+          ?.scrollIntoView({ behavior: "smooth", block: "center" }),
+      );
+  };
 
   if (!book) {
     return <EmptyReader message={t("scripture.unknownBook")} />;
@@ -199,6 +243,29 @@ function ChapterReader() {
                   {bookLabel(book.id, book.name)} {chapter}
                 </h1>
               </header>
+
+              {unconfirmedItems.length > 0 && (
+                <div
+                  role="status"
+                  className="mb-5 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs"
+                >
+                  <p className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+                    Sua biblioteca tem {unconfirmedItems.length}{" "}
+                    {unconfirmedItems.length === 1 ? "ligação" : "ligações"} para confirmar neste
+                    capítulo
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={confirmNow}
+                  >
+                    Confirmar agora
+                  </Button>
+                </div>
+              )}
 
               {showExplanations && privateKnowledge?.items.length ? (
                 <div className="mb-5 flex flex-wrap items-center gap-2 rounded border border-border bg-muted/20 p-2 text-xs">
@@ -253,24 +320,24 @@ function ChapterReader() {
                         verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
                       />
                       {showExplanations && (
-                        <>
-                          <VerseExplanations
-                            bookId={book.id}
-                            chapter={chapter}
-                            verse={v.verse}
-                            analyses={availableAnalyses}
-                            claims={availableClaims}
-                          />
-                          <PrivateVerseKnowledge
-                            bookId={book.id}
-                            chapter={chapter}
-                            verse={v.verse}
-                            items={privateKnowledge?.items ?? []}
-                            {...(sourceFilter ? { sourceId: sourceFilter } : {})}
-                            {...(domainFilter ? { domain: domainFilter } : {})}
-                          />
-                        </>
+                        <VerseExplanations
+                          bookId={book.id}
+                          chapter={chapter}
+                          verse={v.verse}
+                          analyses={availableAnalyses}
+                          claims={availableClaims}
+                        />
                       )}
+                      <PrivateVerseKnowledge
+                        bookId={book.id}
+                        chapter={chapter}
+                        verse={v.verse}
+                        items={privateKnowledge?.items ?? []}
+                        open={openVerses.has(v.verse)}
+                        onOpenChange={(open) => setVerseOpen(v.verse, open)}
+                        {...(sourceFilter ? { sourceId: sourceFilter } : {})}
+                        {...(domainFilter ? { domain: domainFilter } : {})}
+                      />
                     </div>
                   ))}
                 </div>

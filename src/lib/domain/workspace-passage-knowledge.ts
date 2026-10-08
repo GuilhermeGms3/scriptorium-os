@@ -5,8 +5,15 @@ import type {
 } from "./document-knowledge";
 import type { LocalTranslation, SemanticDomain } from "./semantic-content";
 
+/**
+ * confirmed: a person accepted the link; auto-visible: the pipeline published it and nobody has
+ * reviewed it yet; pending: detected by the analyzer and still awaiting any decision.
+ */
+export type PassageLinkReviewState = "confirmed" | "auto-visible" | "pending";
+
 export interface WorkspacePassageKnowledgeItem {
   id: string;
+  reviewState: PassageLinkReviewState;
   document: {
     id: string;
     sourceId: string;
@@ -79,6 +86,23 @@ export const COVERAGE_LABELS: Record<PassageCoverageArea, string> = {
   "reception-history": "História da recepção",
   "religious-currents": "Correntes religiosas",
 };
+
+/** Whether any passage of the item's relation covers the given verse. */
+export function knowledgeItemCoversVerse(
+  item: WorkspacePassageKnowledgeItem,
+  bookId: string,
+  chapter: number,
+  verse: number,
+): boolean {
+  const payload = item.passageRelation.payload;
+  return [payload.passage, ...payload.additionalPassages].some((passage) => {
+    if (passage.bookId !== bookId) return false;
+    if (payload.relationScope === "book") return true;
+    if (passage.chapter !== chapter) return false;
+    if (passage.verseStart === undefined) return true;
+    return passage.verseStart <= verse && (passage.verseEnd ?? passage.verseStart) >= verse;
+  });
+}
 
 export function semanticDomainCoverage(domain: SemanticDomain): PassageCoverageArea | null {
   if (domain === "patristics" || domain === "liturgy") return "tradition";

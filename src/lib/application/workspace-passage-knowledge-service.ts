@@ -1,5 +1,6 @@
 import { hasAvailableData } from "../domain/availability";
 import type { KnowledgeProposal, KnowledgeProposalPayload } from "../domain/document-knowledge";
+import { bookLabel, passageLabel } from "../i18n";
 import type { PassageKnowledgeBundle } from "../domain/knowledge-bundle";
 import type { PassageRef } from "../domain/scripture";
 import type {
@@ -21,6 +22,7 @@ import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
 type PassageRelationProposal = KnowledgeProposal & {
   payload: Extract<KnowledgeProposalPayload, { kind: "passage-relation" }>;
 };
+type DocumentPassage = PassageRelationProposal["payload"]["passage"];
 
 function claimCoverage(proposal: KnowledgeProposal): PassageCoverageArea[] {
   if (proposal.payload.kind !== "claim") return [];
@@ -46,7 +48,7 @@ function claimCoverage(proposal: KnowledgeProposal): PassageCoverageArea[] {
 }
 
 function privateAreas(
-  items: readonly WorkspacePassageKnowledgeItem[],
+  entries: readonly { documentId: string; proposals: readonly KnowledgeProposal[] }[],
 ): Map<PassageCoverageArea, Set<string>> {
   const result = new Map<PassageCoverageArea, Set<string>>();
   const add = (area: PassageCoverageArea, documentId: string) => {
@@ -54,21 +56,38 @@ function privateAreas(
     sources.add(documentId);
     result.set(area, sources);
   };
-  for (const item of items) {
-    for (const proposal of item.proposals) {
+  for (const entry of entries) {
+    for (const proposal of entry.proposals) {
       if (proposal.payload.kind === "topic-assignment") {
         const area = semanticDomainCoverage(proposal.payload.domain);
-        if (area) add(area, item.document.id);
+        if (area) add(area, entry.documentId);
       }
-      for (const area of claimCoverage(proposal)) add(area, item.document.id);
+      for (const area of claimCoverage(proposal)) add(area, entry.documentId);
       if (
         (proposal.payload.kind === "claim" || proposal.payload.kind === "argument") &&
         proposal.payload.perspectiveProfileIds.length
       )
-        add("tradition", item.document.id);
+        add("tradition", entry.documentId);
     }
   }
   return result;
+}
+
+function documentPassageLabel(passage: DocumentPassage): string {
+  if (passage.chapter === undefined) return bookLabel(passage.bookId);
+  return passageLabel({
+    bookId: passage.bookId,
+    chapter: passage.chapter,
+    ...(passage.verseStart !== undefined ? { verseStart: passage.verseStart } : {}),
+    ...(passage.verseEnd !== undefined ? { verseEnd: passage.verseEnd } : {}),
+  });
+}
+
+export interface PassageLinkTarget {
+  bookId: string;
+  chapter: number;
+  verseStart: number;
+  verseEnd?: number;
 }
 
 function curatedAreas(bundle: PassageKnowledgeBundle | null): Set<PassageCoverageArea> {
@@ -100,22 +119,40 @@ function curatedAreas(bundle: PassageKnowledgeBundle | null): Set<PassageCoverag
 }
 
 export const WorkspacePassageKnowledgeService = {
+  /**
+   * Private-library knowledge for a passage. With `includePending`, links still awaiting any
+   * decision are returned too, as `reviewState: "pending"`; they never count as private coverage.
+   */
   async load(
     passage: PassageRef,
     curatedBundle: PassageKnowledgeBundle | null,
     database?: WorkspaceDatabase,
+    options: { includePending?: boolean } = {},
   ): Promise<WorkspacePassageKnowledgeLayer> {
     const db = database ?? (await getWorkspaceDatabase());
     const relations = (
-      await DocumentKnowledgeRepository.listVisiblePassageRelations(passage, db)
+      await DocumentKnowledgeRepository.listVisiblePassageRelations(
+        passage,
+        db,
+        true,
+        options.includePending ?? false,
+      )
     ).filter(
       (proposal): proposal is PassageRelationProposal =>
         proposal.payload.kind === "passage-relation",
     );
-    const proposals = await DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
-      relations.map((proposal) => proposal.semanticUnitId),
-      db,
-    );
+    const [proposals, machineVisibleIds] = await Promise.all([
+      DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
+        relations.map((proposal) => proposal.semanticUnitId),
+        db,
+      ),
+      DocumentKnowledgeRepository.listMachineVisibleProposalIds(
+        relations
+          .filter((proposal) => proposal.reviewStatus === "machine-proposed")
+          .map((proposal) => proposal.id),
+        db,
+      ),
+    ]);
     const proposalsByUnit = new Map<string, KnowledgeProposal[]>();
     for (const proposal of proposals) {
       const values = proposalsByUnit.get(proposal.semanticUnitId) ?? [];
@@ -162,6 +199,12 @@ export const WorkspacePassageKnowledgeService = {
           : undefined;
         items.push({
           id: relation.id,
+          reviewState:
+            relation.reviewStatus === "accepted"
+              ? "confirmed"
+              : machineVisibleIds.has(relation.id)
+                ? "auto-visible"
+                : "pending",
           document: {
             id: document.id,
             sourceId: document.sourceId,
@@ -205,13 +248,109 @@ export const WorkspacePassageKnowledgeService = {
       }
     }
 
+    const pendingItems = items.filter((item) => item.reviewState === "pending");
+    const unconfirmedProposals =
+      await DocumentKnowledgeRepository.listPendingCoverageProposalsForUnits(
+        pendingItems.map((item) => item.unit.id),
+        db,
+      );
     const curated = curatedAreas(curatedBundle);
-    const local = privateAreas(items);
-    const coverage: PassageCoverageEntry[] = PASSAGE_COVERAGE_AREAS.map((area) => ({
-      area,
-      status: curated.has(area) ? "available" : local.has(area) ? "private" : "missing",
-      sourceCount: local.get(area)?.size ?? (curated.has(area) ? 1 : 0),
-    }));
+    const local = privateAreas(
+      items
+        .filter((item) => item.reviewState !== "pending")
+        .map((item) => ({ documentId: item.document.id, proposals: item.proposals })),
+    );
+    const inReview = privateAreas(
+      pendingItems.map((item) => ({
+        documentId: item.document.id,
+        proposals: [
+          ...item.proposals,
+          ...unconfirmedProposals.filter((proposal) => proposal.semanticUnitId === item.unit.id),
+        ],
+      })),
+    );
+    const coverage: PassageCoverageEntry[] = PASSAGE_COVERAGE_AREAS.map((area) => {
+      const status = curated.has(area)
+        ? "available"
+        : local.has(area)
+          ? "private"
+          : inReview.has(area)
+            ? "in-review"
+            : "missing";
+      return {
+        area,
+        status,
+        sourceCount:
+          status === "in-review"
+            ? (inReview.get(area)?.size ?? 0)
+            : (local.get(area)?.size ?? (curated.has(area) ? 1 : 0)),
+      };
+    });
     return { items, coverage };
+  },
+
+  /** Confirms a detected link as it stands. */
+  async confirmLink(id: string, database?: WorkspaceDatabase): Promise<void> {
+    await DocumentKnowledgeRepository.reviewProposal(
+      id,
+      "accepted",
+      { note: "Confirmada no leitor da Bíblia" },
+      database,
+    );
+  },
+
+  /** Rejects a detected link: the passage of the book does not fit any verse. */
+  async rejectLink(id: string, database?: WorkspaceDatabase): Promise<void> {
+    await DocumentKnowledgeRepository.reviewProposal(
+      id,
+      "rejected",
+      { note: "Rejeitada no leitor da Bíblia" },
+      database,
+    );
+  },
+
+  /**
+   * Points the link at the verse a person chose and confirms it. The original rawReference is
+   * kept as evidence of what the book says; every previous target is replaced.
+   */
+  async moveLink(
+    relation: PassageRelationProposal,
+    target: PassageLinkTarget,
+    database?: WorkspaceDatabase,
+  ): Promise<void> {
+    const positive = (value: number | undefined) =>
+      value !== undefined && Number.isInteger(value) && value > 0;
+    if (!target.bookId || !positive(target.chapter) || !positive(target.verseStart))
+      throw new Error("Escolha um livro, um capítulo e um versículo válidos.");
+    if (target.verseEnd !== undefined && !positive(target.verseEnd))
+      throw new Error("O versículo final precisa ser um número inteiro positivo.");
+    if (target.verseEnd !== undefined && target.verseEnd < target.verseStart)
+      throw new Error("O versículo final não pode vir antes do inicial.");
+    const verseEnd =
+      target.verseEnd !== undefined && target.verseEnd > target.verseStart
+        ? target.verseEnd
+        : undefined;
+    const passage: DocumentPassage = {
+      workId: `work:${target.bookId}`,
+      bookId: target.bookId,
+      chapter: target.chapter,
+      verseStart: target.verseStart,
+      ...(verseEnd !== undefined ? { verseEnd } : {}),
+      versificationSchemeId: relation.payload.passage.versificationSchemeId,
+    };
+    await DocumentKnowledgeRepository.reviewProposal(
+      relation.id,
+      "accepted",
+      {
+        payload: {
+          ...relation.payload,
+          passage,
+          relationScope: verseEnd !== undefined ? "range" : "verse",
+          additionalPassages: [],
+        },
+        note: `Movida no leitor da Bíblia: de ${documentPassageLabel(relation.payload.passage)} para ${documentPassageLabel(passage)}`,
+      },
+      database,
+    );
   },
 };
