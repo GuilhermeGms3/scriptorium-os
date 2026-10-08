@@ -522,10 +522,16 @@ export const DocumentKnowledgeRepository = {
     ).map(mapProposal);
   },
 
+  /**
+   * Passage relations shown for a passage: accepted ones and, by default, machine-visible ones.
+   * `includePending` also returns machine-proposed relations that have no pipeline decision yet,
+   * so a reader can review them; rejected relations are never returned.
+   */
   async listVisiblePassageRelations(
     passage: PassageRef,
     database?: WorkspaceDatabase,
     includeMachineLinks = true,
+    includePending = false,
   ): Promise<KnowledgeProposal[]> {
     const db = database ?? (await getWorkspaceDatabase());
     const start = passage.verseStart ?? 1;
@@ -536,6 +542,9 @@ export const DocumentKnowledgeRepository = {
          WHERE proposal_kind='passage-relation' AND (review_status='accepted' OR
            (?=1 AND review_status='machine-proposed' AND EXISTS(
              SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id AND d.publication='machine-visible'
+           )) OR
+           (?=1 AND review_status='machine-proposed' AND NOT EXISTS(
+             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id
            )))
            AND (
              (
@@ -564,6 +573,7 @@ export const DocumentKnowledgeRepository = {
          ORDER BY updated_at DESC,id LIMIT 200`,
         [
           includeMachineLinks ? 1 : 0,
+          includePending ? 1 : 0,
           passage.bookId,
           passageRefScheme(passage),
           passage.chapter,
@@ -577,6 +587,79 @@ export const DocumentKnowledgeRepository = {
         ],
       )
     ).map(mapProposal);
+  },
+
+  /**
+   * Passage relations whose evidence unit has a span on a physical page, with the same visibility
+   * as the Bible reader: accepted, machine-visible and still-undecided ones; never rejected ones
+   * nor those held in the audit flow. Ordered by position in the book.
+   */
+  async listPassageRelationsForPage(
+    documentId: string,
+    pageIndex: number,
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    return (
+      await db.query(
+        `SELECT p.* FROM knowledge_proposals p
+         JOIN semantic_units u ON u.id=p.semantic_unit_id
+         WHERE p.document_id=? AND p.proposal_kind='passage-relation'
+           AND EXISTS(SELECT 1 FROM semantic_unit_spans s WHERE s.unit_id=p.semantic_unit_id AND s.page_index=?)
+           AND (p.review_status='accepted' OR (p.review_status='machine-proposed' AND (
+             EXISTS(SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id AND d.publication='machine-visible')
+             OR NOT EXISTS(SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id)
+           )))
+         ORDER BY u.ordinal,p.id`,
+        [documentId, pageIndex],
+      )
+    ).map(mapProposal);
+  },
+
+  /** Ids of proposals the pipeline published as `machine-visible`. */
+  async listMachineVisibleProposalIds(
+    proposalIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<Set<string>> {
+    if (!proposalIds.length) return new Set();
+    const db = database ?? (await getWorkspaceDatabase());
+    const result = new Set<string>();
+    for (const batch of chunks([...new Set(proposalIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      for (const row of await db.query(
+        `SELECT proposal_id FROM pipeline_decisions
+         WHERE publication='machine-visible' AND proposal_id IN (${placeholders})`,
+        batch,
+      ))
+        result.add(stringValue(row, "proposal_id"));
+    }
+    return result;
+  },
+
+  /** Unreviewed topic, claim and argument proposals of units, used only for in-review coverage. */
+  async listPendingCoverageProposalsForUnits(
+    unitIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    if (!unitIds.length) return [];
+    const db = database ?? (await getWorkspaceDatabase());
+    const result: KnowledgeProposal[] = [];
+    for (const batch of chunks([...new Set(unitIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      result.push(
+        ...(
+          await db.query(
+            `SELECT * FROM knowledge_proposals
+             WHERE review_status='machine-proposed'
+               AND proposal_kind IN ('topic-assignment','claim','argument')
+               AND semantic_unit_id IN (${placeholders})
+             ORDER BY semantic_unit_id,proposal_kind,id`,
+            batch,
+          )
+        ).map(mapProposal),
+      );
+    }
+    return result;
   },
 
   async listAcceptedPassageRelations(

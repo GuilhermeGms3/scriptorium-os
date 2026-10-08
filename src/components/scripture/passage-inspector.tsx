@@ -171,7 +171,9 @@ export function PassageInspector() {
     let generation = 0;
     const reload = () => {
       const requestGeneration = ++generation;
-      void WorkspacePassageKnowledgeService.load(passageContext.ref, curated).then(
+      void WorkspacePassageKnowledgeService.load(passageContext.ref, curated, undefined, {
+        includePending: true,
+      }).then(
         (layer) => {
           if (active && requestGeneration === generation) setWorkspaceKnowledge(layer);
         },
@@ -478,13 +480,26 @@ export function PassageInspector() {
                       );
                       return (
                         <li key={item.id} className="rounded border border-border bg-muted/30 p-3">
-                          <p className="text-xs font-medium">{item.document.title}</p>
+                          <div className="flex flex-wrap items-center justify-between gap-2">
+                            <p className="text-xs font-medium">{item.document.title}</p>
+                            {item.reviewState === "pending" && (
+                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px]">
+                                <span
+                                  aria-hidden="true"
+                                  className="size-1.5 rounded-full bg-amber-500"
+                                />
+                                Por confirmar
+                              </span>
+                            )}
+                          </div>
                           <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
                             {item.passageRelation.payload.rawReference} · páginas{" "}
                             {item.pages.map((page) => page + 1).join(", ")}
-                            {item.passageRelation.reviewStatus === "machine-proposed"
-                              ? " · Ligação de máquina, não revisão editorial"
-                              : " · Revisão humana"}
+                            {item.reviewState === "pending"
+                              ? " · Ligação detectada, ainda sem revisão"
+                              : item.reviewState === "auto-visible"
+                                ? " · Ligação de máquina, não revisão editorial"
+                                : " · Revisão humana"}
                           </p>
                           {claims.map((proposal) =>
                             proposal.payload.kind === "claim" ? (
