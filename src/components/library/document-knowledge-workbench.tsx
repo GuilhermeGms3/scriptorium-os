@@ -157,6 +157,27 @@ export function DocumentKnowledgeWorkbench({
     };
   }, [refresh]);
 
+  // Reviews made elsewhere (e.g. on the page being read) must show up in the lists right away.
+  // Bursts of events, such as pipeline batches, are coalesced into one refresh.
+  useEffect(() => {
+    let active = true;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const onChange = () => {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        void refresh().catch((cause: unknown) => {
+          if (active) setError(cause instanceof Error ? cause.message : String(cause));
+        });
+      }, 150);
+    };
+    window.addEventListener("scriptorium:knowledge-changed", onChange);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      window.removeEventListener("scriptorium:knowledge-changed", onChange);
+    };
+  }, [refresh]);
+
   const run = async () => {
     setError(undefined);
     setProgress("Preparando desmontagem…");

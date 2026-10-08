@@ -1,12 +1,17 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { ChevronLeft, ChevronRight, Library, LockKeyhole, Search } from "lucide-react";
-import { useEffect, useState } from "react";
+import { BookMarked, ChevronLeft, ChevronRight, Library, LockKeyhole, Search } from "lucide-react";
+import { useEffect, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
 import { DocumentKnowledgeWorkbench } from "../../../components/library/document-knowledge-workbench";
+import { PrivateLinkCard } from "../../../components/scripture/private-verse-knowledge";
+import { WorkspacePassageKnowledgeService } from "../../../lib/application/workspace-passage-knowledge-service";
 import type {
   PrivateDocument,
   PrivateDocumentPage,
   PrivateDocumentSearchHit,
 } from "../../../lib/domain/private-document";
+import type { WorkspacePassageKnowledgeItem } from "../../../lib/domain/workspace-passage-knowledge";
+import { DocumentKnowledgeRepository } from "../../../lib/repositories/document-knowledge-repository";
 import { PrivateDocumentRepository } from "../../../lib/repositories/private-document-repository";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
 
@@ -19,6 +24,83 @@ export const Route = createFileRoute("/library/document/$documentId")({
   head: () => ({ meta: [{ title: "Documento privado — Scriptorium" }] }),
 });
 
+interface PageLinks {
+  items?: WorkspacePassageKnowledgeItem[];
+  analyzed: boolean;
+  error?: string;
+}
+
+/** Bible references detected on the open page, reloaded after every knowledge change. */
+function usePageLinks(documentId: string, pageIndex: number): PageLinks {
+  const [state, setState] = useState<PageLinks>({ analyzed: false });
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    const load = () => {
+      const request = ++generation;
+      void Promise.all([
+        WorkspacePassageKnowledgeService.loadDocumentPage(documentId, pageIndex),
+        DocumentKnowledgeRepository.getSummary(documentId),
+      ]).then(
+        ([items, summary]) => {
+          if (active && request === generation)
+            setState({ items, analyzed: summary?.status === "ready" });
+        },
+        (cause: unknown) => {
+          if (active && request === generation)
+            setState({
+              analyzed: false,
+              error: cause instanceof Error ? cause.message : String(cause),
+            });
+        },
+      );
+    };
+    setState({ analyzed: false });
+    load();
+    window.addEventListener("scriptorium:knowledge-changed", load);
+    return () => {
+      active = false;
+      window.removeEventListener("scriptorium:knowledge-changed", load);
+    };
+  }, [documentId, pageIndex]);
+  return state;
+}
+
+function PageBibleLinks({ links, sectionId }: { links: PageLinks; sectionId: string }) {
+  return (
+    <section
+      id={sectionId}
+      aria-labelledby={`${sectionId}-title`}
+      className="mt-10 scroll-mt-16 border-t border-border pt-4"
+    >
+      <h2 id={`${sectionId}-title`} className="meta-label flex items-center gap-1.5">
+        <BookMarked className="size-3.5" aria-hidden="true" /> Referências bíblicas nesta página
+      </h2>
+      {links.error ? (
+        <p role="alert" className="mt-2 text-xs text-destructive">
+          As referências desta página não puderam ser carregadas: {links.error}
+        </p>
+      ) : links.items === undefined ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">Procurando referências…</p>
+      ) : !links.analyzed ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">
+          Use “Desmontar livro” em “Conhecimento do livro” para detectar as referências bíblicas.
+        </p>
+      ) : !links.items.length ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">
+          Nenhuma referência bíblica detectada nesta página.
+        </p>
+      ) : (
+        <div className="mt-3 space-y-2 border-l-2 border-amber-500/30 pl-3">
+          {links.items.map((item) => (
+            <PrivateLinkCard key={item.id} item={item} context="book-reader" />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
+
 function PrivateDocumentReaderPage() {
   const { documentId } = Route.useParams();
   const { page: requestedPage } = Route.useSearch();
@@ -30,6 +112,11 @@ function PrivateDocumentReaderPage() {
   const [results, setResults] = useState<PrivateDocumentSearchHit[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string>();
+  const pageLinks = usePageLinks(documentId, pageIndex);
+  const linksSectionId = useId();
+  const unconfirmedLinks = (pageLinks.items ?? []).filter(
+    (item) => item.reviewState !== "confirmed",
+  ).length;
 
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => {
@@ -207,6 +294,33 @@ function PrivateDocumentReaderPage() {
           ) : page ? (
             <article className="mx-auto max-w-3xl px-6 py-8 md:px-10">
               <p className="meta-label">Página física {page.pageLabel}</p>
+              {unconfirmedLinks > 0 && (
+                <div
+                  role="status"
+                  className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs"
+                >
+                  <p className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+                    Esta página tem {unconfirmedLinks}{" "}
+                    {unconfirmedLinks === 1
+                      ? "referência bíblica para confirmar"
+                      : "referências bíblicas para confirmar"}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() =>
+                      window.document
+                        .getElementById(linksSectionId)
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  >
+                    Confirmar agora
+                  </Button>
+                </div>
+              )}
               {page.text ? (
                 <div className="mt-5 whitespace-pre-wrap font-serif text-[var(--reading-size)] leading-[var(--reading-leading)]">
                   {page.text}
@@ -216,6 +330,7 @@ function PrivateDocumentReaderPage() {
                   Esta página não possui camada textual. OCR ainda não foi executado.
                 </p>
               )}
+              <PageBibleLinks links={pageLinks} sectionId={linksSectionId} />
             </article>
           ) : (
             <p className="p-8 text-sm text-destructive">Página não encontrada.</p>

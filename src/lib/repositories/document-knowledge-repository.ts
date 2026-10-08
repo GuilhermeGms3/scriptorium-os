@@ -589,6 +589,33 @@ export const DocumentKnowledgeRepository = {
     ).map(mapProposal);
   },
 
+  /**
+   * Passage relations whose evidence unit has a span on a physical page, with the same visibility
+   * as the Bible reader: accepted, machine-visible and still-undecided ones; never rejected ones
+   * nor those held in the audit flow. Ordered by position in the book.
+   */
+  async listPassageRelationsForPage(
+    documentId: string,
+    pageIndex: number,
+    database?: WorkspaceDatabase,
+  ): Promise<KnowledgeProposal[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    return (
+      await db.query(
+        `SELECT p.* FROM knowledge_proposals p
+         JOIN semantic_units u ON u.id=p.semantic_unit_id
+         WHERE p.document_id=? AND p.proposal_kind='passage-relation'
+           AND EXISTS(SELECT 1 FROM semantic_unit_spans s WHERE s.unit_id=p.semantic_unit_id AND s.page_index=?)
+           AND (p.review_status='accepted' OR (p.review_status='machine-proposed' AND (
+             EXISTS(SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id AND d.publication='machine-visible')
+             OR NOT EXISTS(SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id)
+           )))
+         ORDER BY u.ordinal,p.id`,
+        [documentId, pageIndex],
+      )
+    ).map(mapProposal);
+  },
+
   /** Ids of proposals the pipeline published as `machine-visible`. */
   async listMachineVisibleProposalIds(
     proposalIds: readonly string[],

@@ -24,6 +24,14 @@ type PassageRelationProposal = KnowledgeProposal & {
 };
 type DocumentPassage = PassageRelationProposal["payload"]["passage"];
 
+/** Where a person reviewed a link; recorded in the review note. */
+export type PassageLinkReviewContext = "bible-reader" | "book-reader";
+
+const REVIEW_PLACE: Record<PassageLinkReviewContext, string> = {
+  "bible-reader": "no leitor da Bíblia",
+  "book-reader": "na leitura do livro",
+};
+
 function claimCoverage(proposal: KnowledgeProposal): PassageCoverageArea[] {
   if (proposal.payload.kind !== "claim") return [];
   switch (proposal.payload.claimKind) {
@@ -73,7 +81,8 @@ function privateAreas(
   return result;
 }
 
-function documentPassageLabel(passage: DocumentPassage): string {
+/** Human label of a link target, e.g. "João 3:16"; a book-wide target is just the book. */
+export function passageLinkLabel(passage: DocumentPassage): string {
   if (passage.chapter === undefined) return bookLabel(passage.bookId);
   return passageLabel({
     bookId: passage.bookId,
@@ -118,6 +127,126 @@ function curatedAreas(bundle: PassageKnowledgeBundle | null): Set<PassageCoverag
   return result;
 }
 
+function passageRelations(proposals: readonly KnowledgeProposal[]): PassageRelationProposal[] {
+  return proposals.filter(
+    (proposal): proposal is PassageRelationProposal => proposal.payload.kind === "passage-relation",
+  );
+}
+
+/** Resolves passage relations into reader items with their evidence unit, context and state. */
+async function buildItems(
+  relations: readonly PassageRelationProposal[],
+  db: WorkspaceDatabase,
+): Promise<WorkspacePassageKnowledgeItem[]> {
+  const [proposals, machineVisibleIds] = await Promise.all([
+    DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
+      relations.map((proposal) => proposal.semanticUnitId),
+      db,
+    ),
+    DocumentKnowledgeRepository.listMachineVisibleProposalIds(
+      relations
+        .filter((proposal) => proposal.reviewStatus === "machine-proposed")
+        .map((proposal) => proposal.id),
+      db,
+    ),
+  ]);
+  const proposalsByUnit = new Map<string, KnowledgeProposal[]>();
+  for (const proposal of proposals) {
+    const values = proposalsByUnit.get(proposal.semanticUnitId) ?? [];
+    values.push(proposal);
+    proposalsByUnit.set(proposal.semanticUnitId, values);
+  }
+
+  const items: WorkspacePassageKnowledgeItem[] = [];
+  const documentIds = [...new Set(relations.map((proposal) => proposal.documentId))];
+  for (const documentId of documentIds) {
+    const documentRelations = relations.filter((proposal) => proposal.documentId === documentId);
+    const [document, units, nodes, authorRows] = await Promise.all([
+      PrivateDocumentRepository.getDocument(documentId, db),
+      DocumentKnowledgeRepository.listUnits(
+        documentId,
+        documentRelations.map((proposal) => proposal.semanticUnitId),
+        db,
+      ),
+      DocumentKnowledgeRepository.listNodes(documentId, db),
+      db.query(
+        `SELECT a.canonical_name FROM authors a JOIN source_authors sa ON sa.author_id=a.id
+         JOIN private_documents d ON d.source_id=sa.source_id WHERE d.id=? ORDER BY sa.ordinal`,
+        [documentId],
+      ),
+    ]);
+    if (!document) continue;
+    const unitsById = new Map(units.map((unit) => [unit.id, unit]));
+    const translations = await LocalTranslationRepository.listForSources(
+      "private-segment",
+      units.map((unit) => unit.id),
+      db,
+    );
+    const nodesById = new Map(nodes.map((node) => [node.id, node]));
+    const authors = authorRows.map((row) => String(row["canonical_name"]));
+    const translationsBySource = new Map(
+      translations.map((translation) => [translation.sourceId, translation]),
+    );
+    for (const relation of documentRelations) {
+      const unit = unitsById.get(relation.semanticUnitId);
+      if (!unit) continue;
+      const unitProposals = proposalsByUnit.get(unit.id) ?? [relation];
+      const sectionTitle = unit.documentNodeId
+        ? nodesById.get(unit.documentNodeId)?.title
+        : undefined;
+      items.push({
+        id: relation.id,
+        reviewState:
+          relation.reviewStatus === "accepted"
+            ? "confirmed"
+            : machineVisibleIds.has(relation.id)
+              ? "auto-visible"
+              : "pending",
+        document: {
+          id: document.id,
+          sourceId: document.sourceId,
+          title: document.title,
+          ...(document.language ? { language: document.language } : {}),
+        },
+        unit,
+        passageRelation: relation,
+        proposals: unitProposals,
+        translation: translationsBySource.get(unit.id) ?? null,
+        pages: [...new Set(unit.spans.map((span) => span.pageIndex))],
+        context: {
+          ...(sectionTitle ? { sectionTitle } : {}),
+          authors,
+          attributions: unitProposals.flatMap((proposal) =>
+            proposal.payload.kind === "attribution"
+              ? [`${proposal.payload.agentLabel}: ${proposal.payload.statement}`]
+              : [],
+          ),
+          citations: unitProposals.flatMap((proposal) =>
+            proposal.payload.kind === "citation" ? [proposal.payload.quotedText] : [],
+          ),
+          methods: [
+            ...new Set([
+              unit.method,
+              relation.method,
+              ...unitProposals.map((proposal) => proposal.method),
+            ]),
+          ],
+          perspectiveProfileIds: [
+            ...new Set(
+              unitProposals.flatMap((proposal) =>
+                proposal.payload.kind === "claim" || proposal.payload.kind === "argument"
+                  ? proposal.payload.perspectiveProfileIds
+                  : [],
+              ),
+            ),
+          ],
+        },
+      });
+    }
+  }
+  return items;
+}
+
 export const WorkspacePassageKnowledgeService = {
   /**
    * Private-library knowledge for a passage. With `includePending`, links still awaiting any
@@ -130,123 +259,17 @@ export const WorkspacePassageKnowledgeService = {
     options: { includePending?: boolean } = {},
   ): Promise<WorkspacePassageKnowledgeLayer> {
     const db = database ?? (await getWorkspaceDatabase());
-    const relations = (
-      await DocumentKnowledgeRepository.listVisiblePassageRelations(
-        passage,
-        db,
-        true,
-        options.includePending ?? false,
-      )
-    ).filter(
-      (proposal): proposal is PassageRelationProposal =>
-        proposal.payload.kind === "passage-relation",
-    );
-    const [proposals, machineVisibleIds] = await Promise.all([
-      DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
-        relations.map((proposal) => proposal.semanticUnitId),
-        db,
-      ),
-      DocumentKnowledgeRepository.listMachineVisibleProposalIds(
-        relations
-          .filter((proposal) => proposal.reviewStatus === "machine-proposed")
-          .map((proposal) => proposal.id),
-        db,
-      ),
-    ]);
-    const proposalsByUnit = new Map<string, KnowledgeProposal[]>();
-    for (const proposal of proposals) {
-      const values = proposalsByUnit.get(proposal.semanticUnitId) ?? [];
-      values.push(proposal);
-      proposalsByUnit.set(proposal.semanticUnitId, values);
-    }
-
-    const items: WorkspacePassageKnowledgeItem[] = [];
-    const documentIds = [...new Set(relations.map((proposal) => proposal.documentId))];
-    for (const documentId of documentIds) {
-      const documentRelations = relations.filter((proposal) => proposal.documentId === documentId);
-      const [document, units, nodes, authorRows] = await Promise.all([
-        PrivateDocumentRepository.getDocument(documentId, db),
-        DocumentKnowledgeRepository.listUnits(
-          documentId,
-          documentRelations.map((proposal) => proposal.semanticUnitId),
+    const items = await buildItems(
+      passageRelations(
+        await DocumentKnowledgeRepository.listVisiblePassageRelations(
+          passage,
           db,
+          true,
+          options.includePending ?? false,
         ),
-        DocumentKnowledgeRepository.listNodes(documentId, db),
-        db.query(
-          `SELECT a.canonical_name FROM authors a JOIN source_authors sa ON sa.author_id=a.id
-           JOIN private_documents d ON d.source_id=sa.source_id WHERE d.id=? ORDER BY sa.ordinal`,
-          [documentId],
-        ),
-      ]);
-      if (!document) continue;
-      const unitsById = new Map(units.map((unit) => [unit.id, unit]));
-      const translations = await LocalTranslationRepository.listForSources(
-        "private-segment",
-        units.map((unit) => unit.id),
-        db,
-      );
-      const nodesById = new Map(nodes.map((node) => [node.id, node]));
-      const authors = authorRows.map((row) => String(row["canonical_name"]));
-      const translationsBySource = new Map(
-        translations.map((translation) => [translation.sourceId, translation]),
-      );
-      for (const relation of documentRelations) {
-        const unit = unitsById.get(relation.semanticUnitId);
-        if (!unit) continue;
-        const unitProposals = proposalsByUnit.get(unit.id) ?? [relation];
-        const sectionTitle = unit.documentNodeId
-          ? nodesById.get(unit.documentNodeId)?.title
-          : undefined;
-        items.push({
-          id: relation.id,
-          reviewState:
-            relation.reviewStatus === "accepted"
-              ? "confirmed"
-              : machineVisibleIds.has(relation.id)
-                ? "auto-visible"
-                : "pending",
-          document: {
-            id: document.id,
-            sourceId: document.sourceId,
-            title: document.title,
-            ...(document.language ? { language: document.language } : {}),
-          },
-          unit,
-          passageRelation: relation,
-          proposals: unitProposals,
-          translation: translationsBySource.get(unit.id) ?? null,
-          pages: [...new Set(unit.spans.map((span) => span.pageIndex))],
-          context: {
-            ...(sectionTitle ? { sectionTitle } : {}),
-            authors,
-            attributions: unitProposals.flatMap((proposal) =>
-              proposal.payload.kind === "attribution"
-                ? [`${proposal.payload.agentLabel}: ${proposal.payload.statement}`]
-                : [],
-            ),
-            citations: unitProposals.flatMap((proposal) =>
-              proposal.payload.kind === "citation" ? [proposal.payload.quotedText] : [],
-            ),
-            methods: [
-              ...new Set([
-                unit.method,
-                relation.method,
-                ...unitProposals.map((proposal) => proposal.method),
-              ]),
-            ],
-            perspectiveProfileIds: [
-              ...new Set(
-                unitProposals.flatMap((proposal) =>
-                  proposal.payload.kind === "claim" || proposal.payload.kind === "argument"
-                    ? proposal.payload.perspectiveProfileIds
-                    : [],
-                ),
-              ),
-            ],
-          },
-        });
-      }
-    }
+      ),
+      db,
+    );
 
     const pendingItems = items.filter((item) => item.reviewState === "pending");
     const unconfirmedProposals =
@@ -289,22 +312,45 @@ export const WorkspacePassageKnowledgeService = {
     return { items, coverage };
   },
 
+  /** Links detected on one physical page of a private book, in reading order, for review. */
+  async loadDocumentPage(
+    documentId: string,
+    pageIndex: number,
+    database?: WorkspaceDatabase,
+  ): Promise<WorkspacePassageKnowledgeItem[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    return buildItems(
+      passageRelations(
+        await DocumentKnowledgeRepository.listPassageRelationsForPage(documentId, pageIndex, db),
+      ),
+      db,
+    );
+  },
+
   /** Confirms a detected link as it stands. */
-  async confirmLink(id: string, database?: WorkspaceDatabase): Promise<void> {
+  async confirmLink(
+    id: string,
+    database?: WorkspaceDatabase,
+    context: PassageLinkReviewContext = "bible-reader",
+  ): Promise<void> {
     await DocumentKnowledgeRepository.reviewProposal(
       id,
       "accepted",
-      { note: "Confirmada no leitor da Bíblia" },
+      { note: `Confirmada ${REVIEW_PLACE[context]}` },
       database,
     );
   },
 
   /** Rejects a detected link: the passage of the book does not fit any verse. */
-  async rejectLink(id: string, database?: WorkspaceDatabase): Promise<void> {
+  async rejectLink(
+    id: string,
+    database?: WorkspaceDatabase,
+    context: PassageLinkReviewContext = "bible-reader",
+  ): Promise<void> {
     await DocumentKnowledgeRepository.reviewProposal(
       id,
       "rejected",
-      { note: "Rejeitada no leitor da Bíblia" },
+      { note: `Rejeitada ${REVIEW_PLACE[context]}` },
       database,
     );
   },
@@ -317,6 +363,7 @@ export const WorkspacePassageKnowledgeService = {
     relation: PassageRelationProposal,
     target: PassageLinkTarget,
     database?: WorkspaceDatabase,
+    context: PassageLinkReviewContext = "bible-reader",
   ): Promise<void> {
     const positive = (value: number | undefined) =>
       value !== undefined && Number.isInteger(value) && value > 0;
@@ -348,7 +395,7 @@ export const WorkspacePassageKnowledgeService = {
           relationScope: verseEnd !== undefined ? "range" : "verse",
           additionalPassages: [],
         },
-        note: `Movida no leitor da Bíblia: de ${documentPassageLabel(relation.payload.passage)} para ${documentPassageLabel(passage)}`,
+        note: `Movida ${REVIEW_PLACE[context]}: de ${passageLinkLabel(relation.payload.passage)} para ${passageLinkLabel(passage)}`,
       },
       database,
     );

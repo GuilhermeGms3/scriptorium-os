@@ -4,8 +4,11 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
+import { Link } from "@tanstack/react-router";
 import {
+  passageLinkLabel,
   WorkspacePassageKnowledgeService,
+  type PassageLinkReviewContext,
   type PassageLinkTarget,
 } from "../../lib/application/workspace-passage-knowledge-service";
 import {
@@ -189,13 +192,23 @@ function LinkCorrectionPanel({
   );
 }
 
-/** One private-book link with its human review controls. Reused by the book reader. */
-export function PrivateLinkCard({ item }: { item: WorkspacePassageKnowledgeItem }) {
+/**
+ * One private-book link with its human review controls. In the Bible reader it shows which book
+ * it comes from; in the book reader it shows which verse it points to.
+ */
+export function PrivateLinkCard({
+  item,
+  context = "bible-reader",
+}: {
+  item: WorkspacePassageKnowledgeItem;
+  context?: PassageLinkReviewContext;
+}) {
   const [correcting, setCorrecting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const unconfirmed = item.reviewState !== "confirmed";
   const relation = item.passageRelation;
+  const target = relation.payload.passage;
   const topics = item.proposals.flatMap((proposal) =>
     proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
   );
@@ -221,12 +234,26 @@ export function PrivateLinkCard({ item }: { item: WorkspacePassageKnowledgeItem 
         unconfirmed ? "border-amber-500/30 bg-amber-500/5" : "border-border bg-muted/20",
       )}
     >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-xs font-medium">{item.document.title}</p>
-        <span className="inline-flex items-center gap-1 font-mono text-[9px] text-muted-foreground">
-          <LockKeyhole className="size-3" /> páginas {item.pages.map((page) => page + 1).join(", ")}
-        </span>
-      </div>
+      {context === "book-reader" ? (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-medium">Ligada a {passageLinkLabel(target)}</p>
+          <Link
+            to="/scripture/$book/$chapter"
+            params={{ book: target.bookId, chapter: String(target.chapter ?? 1) }}
+            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+          >
+            Abrir na Bíblia <ExternalLink className="size-3" aria-hidden="true" />
+          </Link>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs font-medium">{item.document.title}</p>
+          <span className="inline-flex items-center gap-1 font-mono text-[9px] text-muted-foreground">
+            <LockKeyhole className="size-3" /> páginas{" "}
+            {item.pages.map((page) => page + 1).join(", ")}
+          </span>
+        </div>
+      )}
       {(item.context.authors.length > 0 || item.context.sectionTitle) && (
         <p className="mt-1 text-[10px] text-muted-foreground">
           {item.context.authors.length ? item.context.authors.join(", ") : "Autor não catalogado"}
@@ -268,7 +295,11 @@ export function PrivateLinkCard({ item }: { item: WorkspacePassageKnowledgeItem 
               variant="outline"
               className="h-7 gap-1 px-2.5"
               disabled={busy}
-              onClick={() => void act(() => WorkspacePassageKnowledgeService.confirmLink(item.id))}
+              onClick={() =>
+                void act(() =>
+                  WorkspacePassageKnowledgeService.confirmLink(item.id, undefined, context),
+                )
+              }
             >
               <Check className="size-3.5" aria-hidden="true" /> Sim
             </Button>
@@ -289,10 +320,14 @@ export function PrivateLinkCard({ item }: { item: WorkspacePassageKnowledgeItem 
         <LinkCorrectionPanel
           item={item}
           busy={busy}
-          onMove={(target) =>
-            void act(() => WorkspacePassageKnowledgeService.moveLink(relation, target))
+          onMove={(destination) =>
+            void act(() =>
+              WorkspacePassageKnowledgeService.moveLink(relation, destination, undefined, context),
+            )
           }
-          onReject={() => void act(() => WorkspacePassageKnowledgeService.rejectLink(item.id))}
+          onReject={() =>
+            void act(() => WorkspacePassageKnowledgeService.rejectLink(item.id, undefined, context))
+          }
           onCancel={() => {
             setCorrecting(false);
             setError(undefined);
@@ -323,12 +358,14 @@ export function PrivateLinkCard({ item }: { item: WorkspacePassageKnowledgeItem 
             </button>
           )}
         </p>
-        <a
-          href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
-          className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
-        >
-          Abrir fonte <ExternalLink className="size-3" />
-        </a>
+        {context === "bible-reader" && (
+          <a
+            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
+            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+          >
+            Abrir fonte <ExternalLink className="size-3" />
+          </a>
+        )}
       </div>
     </article>
   );

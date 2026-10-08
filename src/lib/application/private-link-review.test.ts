@@ -55,7 +55,11 @@ const JOHN_1_1: PassageRef = { bookId: "john", chapter: 1, verseStart: 1 };
 const FIRST_JOHN_4_8: PassageRef = { bookId: "1-john", chapter: 4, verseStart: 8 };
 
 /** Imports a two-page private "book" citing Jo 3:16 and Jo 1:1 and disassembles it. */
-async function analyzedBook(): Promise<{ db: DatabaseSync; workspace: WorkspaceDatabase }> {
+async function analyzedBook(): Promise<{
+  db: DatabaseSync;
+  workspace: WorkspaceDatabase;
+  documentId: string;
+}> {
   const db = database();
   const workspace = adapter(db);
   const { document } = await PrivateDocumentRepository.importDocument(
@@ -88,7 +92,7 @@ async function analyzedBook(): Promise<{ db: DatabaseSync; workspace: WorkspaceD
     workspace,
   );
   await DocumentKnowledgePipelineService.analyzeDocument(document.id, undefined, workspace);
-  return { db, workspace };
+  return { db, workspace, documentId: document.id };
 }
 
 async function pendingItem(workspace: WorkspaceDatabase, passage: PassageRef) {
@@ -215,5 +219,84 @@ describe("reviewing private links while reading the Bible", () => {
     expect(
       await DocumentKnowledgeRepository.listVisiblePassageRelations(FIRST_JOHN_4_8, workspace),
     ).toEqual([]);
+  });
+});
+
+describe("reviewing Bible references while reading the private book", () => {
+  async function pageItems(workspace: WorkspaceDatabase, documentId: string, pageIndex: number) {
+    return WorkspacePassageKnowledgeService.loadDocumentPage(documentId, pageIndex, workspace);
+  }
+
+  it("lists only the references detected on the open page, still to be confirmed", async () => {
+    const { workspace, documentId } = await analyzedBook();
+    const first = await pageItems(workspace, documentId, 0);
+    const second = await pageItems(workspace, documentId, 1);
+    expect(
+      first.map((item) => [item.passageRelation.payload.rawReference, item.reviewState]),
+    ).toEqual([["Jo 3:16", "pending"]]);
+    expect(second.map((item) => item.passageRelation.payload.rawReference)).toEqual(["Jo 1:1"]);
+    expect(await pageItems(workspace, documentId, 5)).toEqual([]);
+  });
+
+  it("keeps references held by the audit flow out of the page, like the Bible reader", async () => {
+    const { db, workspace, documentId } = await analyzedBook();
+    const [item] = await pageItems(workspace, documentId, 0);
+    db.prepare(
+      `INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,updated_at)
+       VALUES(?,'exception','explicit','{}','test',?)`,
+    ).run(item!.id, new Date().toISOString());
+    expect(await pageItems(workspace, documentId, 0)).toEqual([]);
+  });
+
+  it("records decisions so the pending and accepted counts change at once", async () => {
+    const { db, workspace, documentId } = await analyzedBook();
+    const before = await DocumentKnowledgeRepository.aggregate(documentId, workspace);
+    const [onFirstPage] = await pageItems(workspace, documentId, 0);
+    const [onSecondPage] = await pageItems(workspace, documentId, 1);
+
+    await WorkspacePassageKnowledgeService.confirmLink(onFirstPage!.id, workspace, "book-reader");
+    await WorkspacePassageKnowledgeService.rejectLink(onSecondPage!.id, workspace, "book-reader");
+
+    const after = await DocumentKnowledgeRepository.aggregate(documentId, workspace);
+    expect(after.acceptedCount).toBe(before.acceptedCount + 1);
+    expect(after.rejectedCount).toBe(before.rejectedCount + 1);
+    expect(after.pendingCount).toBe(before.pendingCount - 2);
+    expect(after.acceptedProposals.map((proposal) => proposal.id)).toContain(onFirstPage!.id);
+    expect((await pageItems(workspace, documentId, 0)).map((item) => item.reviewState)).toEqual([
+      "confirmed",
+    ]);
+    expect(await pageItems(workspace, documentId, 1)).toEqual([]);
+    expect(await reviewNote(db, onFirstPage!.id)).toBe("Confirmada na leitura do livro");
+    expect(await reviewNote(db, onSecondPage!.id)).toBe("Rejeitada na leitura do livro");
+  });
+
+  it("moves a reference from the book page and shows it on the chosen verse", async () => {
+    const { db, workspace, documentId } = await analyzedBook();
+    const [item] = await pageItems(workspace, documentId, 0);
+    await WorkspacePassageKnowledgeService.moveLink(
+      item!.passageRelation,
+      { bookId: "1-john", chapter: 4, verseStart: 7, verseEnd: 8 },
+      workspace,
+      "book-reader",
+    );
+    const [moved] = await pageItems(workspace, documentId, 0);
+    expect(moved).toMatchObject({
+      reviewState: "confirmed",
+      passageRelation: {
+        payload: {
+          rawReference: "Jo 3:16",
+          relationScope: "range",
+          passage: { bookId: "1-john", chapter: 4, verseStart: 7, verseEnd: 8 },
+        },
+      },
+    });
+    expect(
+      (await WorkspacePassageKnowledgeService.load(FIRST_JOHN_4_8, null, workspace)).items.map(
+        (entry) => entry.id,
+      ),
+    ).toEqual([item!.id]);
+    expect(await reviewNote(db, item!.id)).toBe(
+      "Movida na leitura do livro: de João 3:16 para 1 João 4:7–8",
+    );
   });
 });
