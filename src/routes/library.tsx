@@ -20,7 +20,10 @@ import {
   type PrivateDocumentImportProgress,
   type PrivateDocumentImportResult,
 } from "../lib/application/private-document-import-service";
+import type { PrivateDocument } from "../lib/domain/private-document";
+import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
 import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
+import { LibraryPipelineOverview } from "../components/library/library-pipeline-overview";
 
 interface LibrarySearch {
   source?: string;
@@ -46,6 +49,7 @@ export function LibraryPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
   const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
+  const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
   const [showImport, setShowImport] = useState(false);
   const [newCollection, setNewCollection] = useState("");
 
@@ -53,11 +57,15 @@ export function LibraryPage() {
     setLoading(true);
     setError(undefined);
     try {
-      const [nextSources, nextCollections] = await Promise.all([
-        LibraryRepository.listSources(collectionId ? { collectionId } : {}),
-        LibraryRepository.listCollections(),
-      ]);
-      setPrimaryWorks(await PrimarySourceRepository.listWorks());
+      const [nextSources, nextCollections, nextPrimaryWorks, nextPrivateDocuments] =
+        await Promise.all([
+          LibraryRepository.listSources(collectionId ? { collectionId } : {}),
+          LibraryRepository.listCollections(),
+          PrimarySourceRepository.listWorks(),
+          PrivateDocumentRepository.listDocuments(),
+        ]);
+      setPrimaryWorks(nextPrimaryWorks);
+      setPrivateDocuments(nextPrivateDocuments);
       setSources(nextSources);
       setCollections(nextCollections);
       setSelectedId((current) =>
@@ -114,6 +122,17 @@ export function LibraryPage() {
     }
     return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "pt-BR"));
   }, [primaryWorks]);
+  const filteredPrivateDocuments = useMemo(() => {
+    const normalized = query.normalize("NFC").toLocaleLowerCase("pt-BR").trim();
+    return normalized
+      ? privateDocuments.filter((document) =>
+          `${document.title} ${document.language ?? ""}`
+            .normalize("NFC")
+            .toLocaleLowerCase("pt-BR")
+            .includes(normalized),
+        )
+      : privateDocuments;
+  }, [privateDocuments, query]);
   const installedPrimaryWorkIds = useMemo(
     () => new Set(primaryWorks.map((work) => work.id)),
     [primaryWorks],
@@ -159,6 +178,7 @@ export function LibraryPage() {
           </button>
         </div>
       </header>
+      <LibraryPipelineOverview />
       {showImport && <ImportPanel onClose={() => setShowImport(false)} onImported={refresh} />}
       <div className="grid min-h-0 flex-1 md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]">
         <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
@@ -211,6 +231,39 @@ export function LibraryPage() {
               className="w-full bg-transparent text-xs outline-none"
             />
           </label>
+          {filteredPrivateDocuments.length > 0 && (
+            <section className="border-b border-border p-3" aria-labelledby="private-library-title">
+              <div className="flex items-start justify-between gap-3">
+                <div>
+                  <h2 id="private-library-title" className="meta-label">
+                    Livros privados neste dispositivo · {filteredPrivateDocuments.length}
+                  </h2>
+                  <p className="mt-1 text-xs text-muted-foreground">
+                    Arquivos, texto extraído, revisões e traduções permanecem somente no workspace
+                    local.
+                  </p>
+                </div>
+                <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
+              </div>
+              <div className="mt-3 grid gap-1 sm:grid-cols-2">
+                {filteredPrivateDocuments.map((document) => (
+                  <a
+                    key={document.id}
+                    href={`/library/document/${encodeURIComponent(document.id)}`}
+                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  >
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <FileText className="size-3.5" /> {document.title}
+                    </span>
+                    <span className="mt-1 block text-[10px] text-muted-foreground">
+                      {document.textPageCount}/{document.pageCount} páginas com texto ·{" "}
+                      {document.language ?? "idioma não informado"}
+                    </span>
+                  </a>
+                ))}
+              </div>
+            </section>
+          )}
           {primaryWorks.length > 0 && !query.trim() && (
             <section className="border-b border-border p-3">
               <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
@@ -356,7 +409,7 @@ function ImportPanel({
   const [pdfFiles, setPdfFiles] = useState<File[]>([]);
   const [pdfProgress, setPdfProgress] = useState<PrivateDocumentImportProgress>();
   const [pdfResults, setPdfResults] = useState<PrivateDocumentImportResult[]>([]);
-  const [pdfError, setPdfError] = useState<string>();
+  const [pdfErrors, setPdfErrors] = useState<Array<{ filename: string; message: string }>>([]);
   const preview = input.trim() ? SourceImportService.preview(format, input) : null;
   const runImport = async () => {
     setBusy(true);
@@ -371,19 +424,30 @@ function ImportPanel({
   const importPdfs = async () => {
     if (!pdfFiles.length) return;
     setBusy(true);
-    setPdfError(undefined);
+    setPdfErrors([]);
     setPdfResults([]);
     const imported: PrivateDocumentImportResult[] = [];
+    const failures: Array<{ filename: string; message: string }> = [];
     try {
       for (const file of pdfFiles) {
         setPdfProgress({ phase: "validating", message: `Preparando ${file.name}…` });
-        imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
-        setPdfResults([...imported]);
+        try {
+          imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
+          setPdfResults([...imported]);
+        } catch (cause) {
+          failures.push({
+            filename: file.name,
+            message: cause instanceof Error ? cause.message : String(cause),
+          });
+          setPdfErrors([...failures]);
+        }
       }
       setPdfFiles([]);
-      await onImported();
-    } catch (cause) {
-      setPdfError(cause instanceof Error ? cause.message : String(cause));
+      if (imported.length) await onImported();
+      setPdfProgress({
+        phase: "complete",
+        message: `${imported.length} PDF${imported.length === 1 ? "" : "s"} indexado${imported.length === 1 ? "" : "s"}; ${failures.length} exige${failures.length === 1 ? "" : "m"} OCR ou correção.`,
+      });
     } finally {
       setBusy(false);
     }
@@ -455,17 +519,25 @@ function ImportPanel({
               {pdfProgress.message}
             </p>
           )}
-          {pdfError && (
-            <p role="alert" className="mt-2 text-xs text-destructive">
-              {pdfError}
-            </p>
+          {pdfErrors.length > 0 && (
+            <ul role="alert" className="mt-2 space-y-1 text-xs text-destructive">
+              {pdfErrors.map((failure) => (
+                <li key={failure.filename}>
+                  {failure.filename}: {failure.message}
+                </li>
+              ))}
+            </ul>
           )}
           {pdfResults.length > 0 && (
             <ul className="mt-2 space-y-1 text-xs">
               {pdfResults.map((result) => (
                 <li key={result.documentId}>
                   {result.title}: {result.textPageCount}/{result.pageCount} páginas{" "}
-                  {result.duplicate ? "já indexadas" : "indexadas"}.
+                  {result.duplicate ? "já indexadas" : "indexadas"} · idioma {result.language} ·{" "}
+                  {result.textLayerStatus === "complete"
+                    ? "camada textual completa"
+                    : "camada textual parcial; páginas vazias exigem OCR"}
+                  .
                 </li>
               ))}
             </ul>

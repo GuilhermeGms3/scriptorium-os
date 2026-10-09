@@ -1,10 +1,11 @@
 [project]
 name = "scriptorium-semantic-engine"
 version = "0.1.0"
-description = "Serviço local opcional de tradução do Scriptorium"
+description = "Serviço local opcional de tradução e análise contextual do Scriptorium"
 requires-python = ">=3.11,<3.14"
 dependencies = [
   "fastapi>=0.115,<1",
+  "huggingface-hub>=0.28,<1",
   "pydantic>=2.10,<3",
   "torch>=2.6,<3",
   "transformers>=4.48,<5",

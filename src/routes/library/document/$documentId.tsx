@@ -1,51 +1,19 @@
 import { createFileRoute } from "@tanstack/react-router";
-import {
-  BrainCircuit,
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Library,
-  LoaderCircle,
-  LockKeyhole,
-  Search,
-  X,
-} from "lucide-react";
-import { useEffect, useState } from "react";
-import { SemanticDocumentIndexingService } from "../../../lib/application/semantic-document-indexing-service";
+import { BookMarked, ChevronLeft, ChevronRight, Library, LockKeyhole, Search } from "lucide-react";
+import { useEffect, useId, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { DocumentKnowledgeWorkbench } from "../../../components/library/document-knowledge-workbench";
+import { PrivateLinkCard } from "../../../components/scripture/private-verse-knowledge";
+import { WorkspacePassageKnowledgeService } from "../../../lib/application/workspace-passage-knowledge-service";
 import type {
   PrivateDocument,
   PrivateDocumentPage,
   PrivateDocumentSearchHit,
 } from "../../../lib/domain/private-document";
-import type {
-  SemanticIndexSummary,
-  SemanticSegmentBundle,
-} from "../../../lib/domain/semantic-content";
+import type { WorkspacePassageKnowledgeItem } from "../../../lib/domain/workspace-passage-knowledge";
+import { DocumentKnowledgeRepository } from "../../../lib/repositories/document-knowledge-repository";
 import { PrivateDocumentRepository } from "../../../lib/repositories/private-document-repository";
-import { SemanticContentRepository } from "../../../lib/repositories/semantic-content-repository";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
-
-const SEMANTIC_DOMAIN_LABELS: Readonly<Record<string, string>> = {
-  exegesis: "Exegese",
-  hermeneutics: "Hermenêutica",
-  theology: "Teologia",
-  "historical-context": "Contexto histórico",
-  archaeology: "Arqueologia",
-  geography: "Geografia",
-  "textual-criticism": "Crítica textual",
-  linguistics: "Linguística",
-  patristics: "Patrística",
-  liturgy: "Liturgia",
-  "philosophy-of-religion": "Filosofia da religião",
-  science: "Ciência",
-  other: "Outro",
-};
-
-const REVIEW_STATUS_LABELS: Readonly<Record<string, string>> = {
-  "machine-proposed": "aguardando revisão",
-  accepted: "confirmado",
-  rejected: "rejeitado",
-};
 
 export const Route = createFileRoute("/library/document/$documentId")({
   validateSearch: (search: Record<string, unknown>): { page?: number } => {
@@ -55,6 +23,83 @@ export const Route = createFileRoute("/library/document/$documentId")({
   component: PrivateDocumentReaderPage,
   head: () => ({ meta: [{ title: "Documento privado — Scriptorium" }] }),
 });
+
+interface PageLinks {
+  items?: WorkspacePassageKnowledgeItem[];
+  analyzed: boolean;
+  error?: string;
+}
+
+/** Bible references detected on the open page, reloaded after every knowledge change. */
+function usePageLinks(documentId: string, pageIndex: number): PageLinks {
+  const [state, setState] = useState<PageLinks>({ analyzed: false });
+  useEffect(() => {
+    let active = true;
+    let generation = 0;
+    const load = () => {
+      const request = ++generation;
+      void Promise.all([
+        WorkspacePassageKnowledgeService.loadDocumentPage(documentId, pageIndex),
+        DocumentKnowledgeRepository.getSummary(documentId),
+      ]).then(
+        ([items, summary]) => {
+          if (active && request === generation)
+            setState({ items, analyzed: summary?.status === "ready" });
+        },
+        (cause: unknown) => {
+          if (active && request === generation)
+            setState({
+              analyzed: false,
+              error: cause instanceof Error ? cause.message : String(cause),
+            });
+        },
+      );
+    };
+    setState({ analyzed: false });
+    load();
+    window.addEventListener("scriptorium:knowledge-changed", load);
+    return () => {
+      active = false;
+      window.removeEventListener("scriptorium:knowledge-changed", load);
+    };
+  }, [documentId, pageIndex]);
+  return state;
+}
+
+function PageBibleLinks({ links, sectionId }: { links: PageLinks; sectionId: string }) {
+  return (
+    <section
+      id={sectionId}
+      aria-labelledby={`${sectionId}-title`}
+      className="mt-10 scroll-mt-16 border-t border-border pt-4"
+    >
+      <h2 id={`${sectionId}-title`} className="meta-label flex items-center gap-1.5">
+        <BookMarked className="size-3.5" aria-hidden="true" /> Referências bíblicas nesta página
+      </h2>
+      {links.error ? (
+        <p role="alert" className="mt-2 text-xs text-destructive">
+          As referências desta página não puderam ser carregadas: {links.error}
+        </p>
+      ) : links.items === undefined ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">Procurando referências…</p>
+      ) : !links.analyzed ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">
+          Use “Desmontar livro” em “Conhecimento do livro” para detectar as referências bíblicas.
+        </p>
+      ) : !links.items.length ? (
+        <p className="mt-2 text-xs italic text-muted-foreground">
+          Nenhuma referência bíblica detectada nesta página.
+        </p>
+      ) : (
+        <div className="mt-3 space-y-2 border-l-2 border-amber-500/30 pl-3">
+          {links.items.map((item) => (
+            <PrivateLinkCard key={item.id} item={item} context="book-reader" />
+          ))}
+        </div>
+      )}
+    </section>
+  );
+}
 
 function PrivateDocumentReaderPage() {
   const { documentId } = Route.useParams();
@@ -67,9 +112,11 @@ function PrivateDocumentReaderPage() {
   const [results, setResults] = useState<PrivateDocumentSearchHit[]>([]);
   const [searching, setSearching] = useState(false);
   const [error, setError] = useState<string>();
-  const [semanticSummary, setSemanticSummary] = useState<SemanticIndexSummary | null>();
-  const [semanticBundles, setSemanticBundles] = useState<SemanticSegmentBundle[]>([]);
-  const [semanticProgress, setSemanticProgress] = useState<string>();
+  const pageLinks = usePageLinks(documentId, pageIndex);
+  const linksSectionId = useId();
+  const unconfirmedLinks = (pageLinks.items ?? []).filter(
+    (item) => item.reviewState !== "confirmed",
+  ).length;
 
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => {
@@ -80,10 +127,7 @@ function PrivateDocumentReaderPage() {
     setDocument(undefined);
     void PrivateDocumentRepository.getDocument(documentId).then(
       (value) => {
-        if (active) {
-          setDocument(value);
-          void SemanticContentRepository.getIndexSummary(documentId).then(setSemanticSummary);
-        }
+        if (active) setDocument(value);
       },
       (cause: unknown) => {
         if (active) setError(cause instanceof Error ? cause.message : String(cause));
@@ -111,20 +155,6 @@ function PrivateDocumentReaderPage() {
     };
   }, [document, pageIndex]);
 
-  useEffect(() => {
-    if (!document || semanticSummary?.status !== "ready") {
-      setSemanticBundles([]);
-      return;
-    }
-    let active = true;
-    void SemanticContentRepository.listPageBundles(document.id, pageIndex).then((value) => {
-      if (active) setSemanticBundles(value);
-    });
-    return () => {
-      active = false;
-    };
-  }, [document, pageIndex, semanticSummary]);
-
   const runSearch = async () => {
     if (!document || !query.trim()) {
       setResults([]);
@@ -140,28 +170,6 @@ function PrivateDocumentReaderPage() {
       setSearching(false);
     }
   };
-  const runSemanticIndex = async () => {
-    if (!document) return;
-    setError(undefined);
-    setSemanticProgress("Preparando análise…");
-    try {
-      await SemanticDocumentIndexingService.indexDocument(document.id, (progress) =>
-        setSemanticProgress(progress.message),
-      );
-      setSemanticSummary(await SemanticContentRepository.getIndexSummary(document.id));
-      setSemanticBundles(await SemanticContentRepository.listPageBundles(document.id, pageIndex));
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setSemanticProgress(undefined);
-    }
-  };
-  const reviewLink = async (id: string, status: "accepted" | "rejected") => {
-    if (!document) return;
-    await SemanticContentRepository.reviewPassageLink(id, status);
-    setSemanticBundles(await SemanticContentRepository.listPageBundles(document.id, pageIndex));
-  };
-
   if (document === undefined)
     return <p className="p-8 text-sm italic text-muted-foreground">Abrindo documento local…</p>;
   if (!document)
@@ -209,20 +217,6 @@ function PrivateDocumentReaderPage() {
               {searching ? "Buscando…" : "Buscar"}
             </button>
           </form>
-          <button
-            type="button"
-            onClick={() => void runSemanticIndex()}
-            disabled={Boolean(semanticProgress)}
-            className="inline-flex h-9 items-center gap-2 rounded border border-input px-3 text-xs disabled:opacity-50"
-          >
-            {semanticProgress ? (
-              <LoaderCircle className="size-3.5 animate-spin" />
-            ) : (
-              <BrainCircuit className="size-3.5" />
-            )}
-            {semanticProgress ??
-              (semanticSummary?.status === "ready" ? "Reindexar conteúdo" : "Analisar conteúdo")}
-          </button>
         </div>
       </header>
       <div className="grid min-h-0 lg:grid-cols-[300px_1fr]">
@@ -250,72 +244,11 @@ function PrivateDocumentReaderPage() {
               ))}
             </ol>
           )}
-          <section className="mt-6 border-t border-border pt-4">
-            <p className="meta-label flex items-center gap-1.5">
-              <BrainCircuit className="size-3" /> Contexto desta página
-            </p>
-            {semanticSummary?.status !== "ready" ? (
-              <p className="mt-2 text-xs italic text-muted-foreground">
-                Execute a análise para separar assuntos e propor vínculos com passagens. Nada é
-                aceito automaticamente.
-              </p>
-            ) : semanticBundles.length === 0 ? (
-              <p className="mt-2 text-xs italic text-muted-foreground">
-                Nenhum segmento textual nesta página.
-              </p>
-            ) : (
-              <div className="mt-2 space-y-3">
-                {semanticBundles.map((bundle) => (
-                  <article key={bundle.segment.id} className="rounded border border-border p-2">
-                    <p className="line-clamp-3 text-xs leading-relaxed">{bundle.text}</p>
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {bundle.classifications.map((classification) => (
-                        <span
-                          key={classification.domain}
-                          className="rounded bg-muted px-1.5 py-0.5 font-mono text-[9px]"
-                        >
-                          {SEMANTIC_DOMAIN_LABELS[classification.domain] ?? classification.domain} ·{" "}
-                          {Math.round(classification.score * 100)}%
-                        </span>
-                      ))}
-                    </div>
-                    {bundle.passageLinks.map((link) => (
-                      <div key={link.id} className="mt-2 rounded bg-muted/40 p-2 text-[10px]">
-                        <a
-                          href={`/scripture/${link.bookId}/${link.chapter}`}
-                          className="font-medium underline-offset-2 hover:underline"
-                        >
-                          {link.rawReference}
-                        </a>
-                        <p className="mt-1 text-muted-foreground">
-                          Candidato · {Math.round(link.confidence * 100)}% ·{" "}
-                          {REVIEW_STATUS_LABELS[link.reviewStatus] ?? link.reviewStatus}
-                        </p>
-                        {link.reviewStatus === "machine-proposed" && (
-                          <div className="mt-2 flex gap-1">
-                            <button
-                              type="button"
-                              onClick={() => void reviewLink(link.id, "accepted")}
-                              className="inline-flex items-center gap-1 rounded border border-input px-1.5 py-1"
-                            >
-                              <Check className="size-3" /> Confirmar
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => void reviewLink(link.id, "rejected")}
-                              className="inline-flex items-center gap-1 rounded border border-input px-1.5 py-1"
-                            >
-                              <X className="size-3" /> Rejeitar
-                            </button>
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </article>
-                ))}
-              </div>
-            )}
-          </section>
+          <DocumentKnowledgeWorkbench
+            documentId={document.id}
+            {...(document.language ? { documentLanguage: document.language } : {})}
+            onNavigatePage={setPageIndex}
+          />
         </aside>
         <main className="min-h-0 overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-8">
@@ -361,6 +294,33 @@ function PrivateDocumentReaderPage() {
           ) : page ? (
             <article className="mx-auto max-w-3xl px-6 py-8 md:px-10">
               <p className="meta-label">Página física {page.pageLabel}</p>
+              {unconfirmedLinks > 0 && (
+                <div
+                  role="status"
+                  className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-xs"
+                >
+                  <p className="flex items-center gap-1.5">
+                    <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+                    Esta página tem {unconfirmedLinks}{" "}
+                    {unconfirmedLinks === 1
+                      ? "referência bíblica para confirmar"
+                      : "referências bíblicas para confirmar"}
+                  </p>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    className="h-7"
+                    onClick={() =>
+                      window.document
+                        .getElementById(linksSectionId)
+                        ?.scrollIntoView({ behavior: "smooth", block: "start" })
+                    }
+                  >
+                    Confirmar agora
+                  </Button>
+                </div>
+              )}
               {page.text ? (
                 <div className="mt-5 whitespace-pre-wrap font-serif text-[var(--reading-size)] leading-[var(--reading-leading)]">
                   {page.text}
@@ -370,6 +330,7 @@ function PrivateDocumentReaderPage() {
                   Esta página não possui camada textual. OCR ainda não foi executado.
                 </p>
               )}
+              <PageBibleLinks links={pageLinks} sectionId={linksSectionId} />
             </article>
           ) : (
             <p className="p-8 text-sm text-destructive">Página não encontrada.</p>

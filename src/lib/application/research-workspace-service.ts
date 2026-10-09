@@ -52,8 +52,59 @@ const BackupV2Schema = z.object({
   }),
 });
 
+const PrivateKnowledgeBackupSchema = z.object({
+  documents: rows,
+  pageAnchors: rows,
+  knowledgeIndexes: rows,
+  nodes: rows,
+  units: rows,
+  spans: rows,
+  proposals: rows,
+  translations: rows,
+  translationJobs: rows,
+  pipelineJobs: rows.optional(),
+  pipelineDecisions: rows.optional(),
+  pipelineReceipts: rows.optional(),
+  pageLayouts: rows.optional(),
+  documentProfiles: rows.optional(),
+  processingSteps: rows.optional(),
+  unitRoles: rows.optional(),
+  libraryPipelineRuns: rows.optional(),
+  libraryPipelineDocuments: rows.optional(),
+  reviewBatches: rows.optional(),
+  reviewBatchMembers: rows.optional(),
+});
+
+const BackupV3Schema = BackupV2Schema.omit({ schemaVersion: true, manifest: true }).extend({
+  schemaVersion: z.literal(3),
+  manifest: z.object({
+    backupVersion: z.literal("3.0"),
+    createdAt: z.string().datetime(),
+    applicationVersion: z.string(),
+    databaseSchemaVersion: z.number().int().positive(),
+    checksum: z.string().regex(/^[a-f0-9]{64}$/),
+    privateTextIncluded: z.literal(false),
+  }),
+  privateKnowledge: PrivateKnowledgeBackupSchema,
+});
+
 type BackupV2 = z.infer<typeof BackupV2Schema>;
+type BackupV3 = z.infer<typeof BackupV3Schema>;
 type BackupRows = Record<string, WorkspaceRow[]>;
+
+function serializableRows(tableRows: WorkspaceRow[]): z.infer<typeof rows> {
+  return tableRows.map((row) =>
+    Object.fromEntries(
+      Object.entries(row).map(([key, value]) => {
+        if (value instanceof Uint8Array)
+          throw new Error(
+            `A coluna ${key} contém dados binários que não podem entrar no backup JSON.`,
+          );
+        return [key, value];
+      }),
+    ),
+  );
+}
 
 const libraryTables = {
   authors: "authors",
@@ -105,15 +156,8 @@ async function exportTables(
   return Object.fromEntries(entries);
 }
 
-function contentForChecksum(
-  backup: Omit<BackupV2, "manifest"> & { manifest: Omit<BackupV2["manifest"], "checksum"> },
-): string {
-  return JSON.stringify({
-    schemaVersion: backup.schemaVersion,
-    manifest: backup.manifest,
-    library: backup.library,
-    research: backup.research,
-  });
+function contentForChecksum(backup: Record<string, unknown>): string {
+  return JSON.stringify(backup);
 }
 
 function insertStatements(
@@ -149,6 +193,102 @@ function rebuildFtsStatements(): { sql: string; bind?: WorkspaceSqlValue[] }[] {
     },
   ];
 }
+
+async function exportPrivateKnowledge(
+  database: WorkspaceDatabase,
+): Promise<BackupV3["privateKnowledge"]> {
+  const [
+    documents,
+    pageAnchors,
+    knowledgeIndexes,
+    nodes,
+    units,
+    spans,
+    proposals,
+    translations,
+    translationJobs,
+    pipelineJobs,
+    pipelineDecisions,
+    pipelineReceipts,
+    pageLayouts,
+    documentProfiles,
+    processingSteps,
+    unitRoles,
+    libraryPipelineRuns,
+    libraryPipelineDocuments,
+    reviewBatches,
+    reviewBatchMembers,
+  ] = await Promise.all([
+    database.query("SELECT * FROM private_documents ORDER BY id"),
+    database.query(`SELECT id,document_id,page_index,page_label,'' text,0 character_count,
+                             'empty' extraction_method,
+                             '{"needsReimport":true}' quality_json
+                      FROM private_document_pages ORDER BY document_id,page_index`),
+    database.query("SELECT * FROM document_knowledge_indexes ORDER BY document_id"),
+    database.query("SELECT * FROM document_nodes ORDER BY document_id,ordinal"),
+    database.query("SELECT * FROM semantic_units ORDER BY document_id,ordinal"),
+    database.query("SELECT * FROM semantic_unit_spans ORDER BY unit_id,ordinal"),
+    database.query("SELECT * FROM knowledge_proposals ORDER BY document_id,id"),
+    database.query("SELECT * FROM local_translations ORDER BY source_kind,source_id,id"),
+    database.query("SELECT * FROM private_translation_jobs ORDER BY document_id"),
+    database.query("SELECT * FROM pipeline_jobs ORDER BY document_id"),
+    database.query("SELECT * FROM pipeline_decisions ORDER BY proposal_id"),
+    database.query("SELECT * FROM pipeline_unit_receipts ORDER BY unit_id"),
+    database.query("SELECT * FROM document_page_layouts ORDER BY page_id"),
+    database.query("SELECT * FROM private_document_profiles ORDER BY document_id"),
+    database.query("SELECT * FROM document_processing_steps ORDER BY document_id,step"),
+    database.query("SELECT * FROM semantic_unit_roles ORDER BY document_id,unit_id"),
+    database.query("SELECT * FROM library_pipeline_runs ORDER BY started_at,id"),
+    database.query("SELECT * FROM library_pipeline_documents ORDER BY run_id,ordinal"),
+    database.query("SELECT * FROM pipeline_review_batches ORDER BY document_id,ordinal"),
+    database.query("SELECT * FROM pipeline_review_batch_members ORDER BY batch_id,proposal_id"),
+  ]);
+  return {
+    documents: serializableRows(documents),
+    pageAnchors: serializableRows(pageAnchors),
+    knowledgeIndexes: serializableRows(knowledgeIndexes),
+    nodes: serializableRows(nodes),
+    units: serializableRows(units),
+    spans: serializableRows(spans),
+    proposals: serializableRows(proposals),
+    translations: serializableRows(translations),
+    translationJobs: serializableRows(translationJobs),
+    pipelineJobs: serializableRows(pipelineJobs),
+    pipelineDecisions: serializableRows(pipelineDecisions),
+    pipelineReceipts: serializableRows(pipelineReceipts),
+    pageLayouts: serializableRows(pageLayouts),
+    documentProfiles: serializableRows(documentProfiles),
+    processingSteps: serializableRows(processingSteps),
+    unitRoles: serializableRows(unitRoles),
+    libraryPipelineRuns: serializableRows(libraryPipelineRuns),
+    libraryPipelineDocuments: serializableRows(libraryPipelineDocuments),
+    reviewBatches: serializableRows(reviewBatches),
+    reviewBatchMembers: serializableRows(reviewBatchMembers),
+  };
+}
+
+const privateKnowledgeTables = {
+  documents: "private_documents",
+  pageAnchors: "private_document_pages",
+  knowledgeIndexes: "document_knowledge_indexes",
+  nodes: "document_nodes",
+  units: "semantic_units",
+  spans: "semantic_unit_spans",
+  proposals: "knowledge_proposals",
+  translations: "local_translations",
+  translationJobs: "private_translation_jobs",
+  pipelineJobs: "pipeline_jobs",
+  pipelineDecisions: "pipeline_decisions",
+  pipelineReceipts: "pipeline_unit_receipts",
+  pageLayouts: "document_page_layouts",
+  documentProfiles: "private_document_profiles",
+  processingSteps: "document_processing_steps",
+  unitRoles: "semantic_unit_roles",
+  libraryPipelineRuns: "library_pipeline_runs",
+  libraryPipelineDocuments: "library_pipeline_documents",
+  reviewBatches: "pipeline_review_batches",
+  reviewBatchMembers: "pipeline_review_batch_members",
+} as const;
 
 async function importV1(
   raw: Record<string, unknown>,
@@ -224,23 +364,26 @@ async function importV1(
 export const ResearchWorkspaceService = {
   async exportJson(database?: WorkspaceDatabase): Promise<string> {
     const db = database ?? (await getWorkspaceDatabase());
-    const [library, research, versionRows] = await Promise.all([
+    const [library, research, privateKnowledge, versionRows] = await Promise.all([
       exportTables(db, libraryTables),
       exportTables(db, researchTables),
+      exportPrivateKnowledge(db),
       db.query("SELECT max(version) version FROM workspace_migrations"),
     ]);
     const withoutChecksum = {
-      schemaVersion: 2 as const,
+      schemaVersion: 3 as const,
       manifest: {
-        backupVersion: "2.0" as const,
+        backupVersion: "3.0" as const,
         createdAt: new Date().toISOString(),
-        applicationVersion: "0.0.0-phase9.5",
+        applicationVersion: "0.0.0-phase10.3",
         databaseSchemaVersion: Number(versionRows[0]?.["version"] ?? 0),
+        privateTextIncluded: false as const,
       },
-      library: library as BackupV2["library"],
-      research: research as BackupV2["research"],
+      library: library as BackupV3["library"],
+      research: research as BackupV3["research"],
+      privateKnowledge,
     };
-    const backup: BackupV2 = {
+    const backup: BackupV3 = {
       ...withoutChecksum,
       manifest: {
         ...withoutChecksum.manifest,
@@ -262,7 +405,42 @@ export const ResearchWorkspaceService = {
       if (!database) await StudyRepository.refresh();
       return result;
     }
-    const backup = BackupV2Schema.parse(parsed);
+    if ((parsed as { schemaVersion?: unknown }).schemaVersion === 2) {
+      const backup = BackupV2Schema.parse(parsed);
+      const expected = await sha256(
+        contentForChecksum({
+          schemaVersion: backup.schemaVersion,
+          manifest: {
+            backupVersion: backup.manifest.backupVersion,
+            createdAt: backup.manifest.createdAt,
+            applicationVersion: backup.manifest.applicationVersion,
+            databaseSchemaVersion: backup.manifest.databaseSchemaVersion,
+          },
+          library: backup.library,
+          research: backup.research,
+        }),
+      );
+      if (expected !== backup.manifest.checksum)
+        throw new Error("Workspace backup checksum mismatch.");
+      const statements: { sql: string; bind?: WorkspaceSqlValue[] }[] = [];
+      for (const [key, table] of Object.entries(libraryTables))
+        statements.push(
+          ...insertStatements(table, backup.library[key as keyof typeof backup.library]),
+        );
+      for (const [key, table] of Object.entries(researchTables))
+        statements.push(
+          ...insertStatements(table, backup.research[key as keyof typeof backup.research]),
+        );
+      statements.push(...rebuildFtsStatements());
+      await db.transaction(statements);
+      if (!database) await StudyRepository.refresh();
+      return {
+        studies: backup.research.studies.length,
+        notes: backup.research.notes.length,
+        researchQuestions: backup.research.researchQuestions.length,
+      };
+    }
+    const backup = BackupV3Schema.parse(parsed);
     const expected = await sha256(
       contentForChecksum({
         schemaVersion: backup.schemaVersion,
@@ -271,9 +449,11 @@ export const ResearchWorkspaceService = {
           createdAt: backup.manifest.createdAt,
           applicationVersion: backup.manifest.applicationVersion,
           databaseSchemaVersion: backup.manifest.databaseSchemaVersion,
+          privateTextIncluded: backup.manifest.privateTextIncluded,
         },
         library: backup.library,
         research: backup.research,
+        privateKnowledge: backup.privateKnowledge,
       }),
     );
     if (expected !== backup.manifest.checksum)
@@ -286,6 +466,13 @@ export const ResearchWorkspaceService = {
     for (const [key, table] of Object.entries(researchTables))
       statements.push(
         ...insertStatements(table, backup.research[key as keyof typeof backup.research]),
+      );
+    for (const [key, table] of Object.entries(privateKnowledgeTables))
+      statements.push(
+        ...insertStatements(
+          table,
+          backup.privateKnowledge[key as keyof typeof backup.privateKnowledge] ?? [],
+        ),
       );
     statements.push(...rebuildFtsStatements());
     await db.transaction(statements);

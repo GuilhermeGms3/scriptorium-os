@@ -21,6 +21,11 @@ export interface SemanticIndexResult {
   duplicate: boolean;
 }
 
+/**
+ * @deprecated Compatibility-only writer for workspaces created before schema 13.
+ * New application flows use DocumentKnowledgePipelineService; accepted legacy
+ * results are migrated by 013_canonical_document_knowledge.sql.
+ */
 export const SemanticDocumentIndexingService = {
   async indexDocument(
     documentId: string,

@@ -25,7 +25,7 @@ import {
   t,
 } from "../../lib/i18n";
 
-export const ENTITY_ICONS: Record<EntityType, typeof User> = {
+const ENTITY_ICONS: Record<EntityType, typeof User> = {
   person: User,
   place: MapPin,
   event: CalendarClock,

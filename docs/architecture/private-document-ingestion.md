@@ -2,13 +2,16 @@
 
 ## Estado atual
 
-O Scriptorium ingere **PDFs privados que possuam camada textual**. O arquivo original permanece no
-OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
+O Scriptorium ingere em lote **PDFs privados com ou sem camada textual**. O arquivo original permanece
+no OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
 índice FTS5. A Biblioteca e a busca global conseguem localizar os trechos e abrir a página física
 correspondente.
 
-EPUB, imagens e OCR ainda não foram implementados. Um PDF composto apenas por imagens é recusado
-com uma mensagem explícita, sem fingir que foi indexado.
+PDFs escaneados são preservados e entram em estado explícito de espera por OCR. Quando o companion
+local e o Tesseract com os idiomas necessários estão disponíveis, páginas vazias podem ser recuperadas
+sem bloquear os demais documentos; uma falha de OCR fica registrada por etapa e o pipeline continua
+com o texto já disponível. O sistema nunca apresenta uma página sem texto como se tivesse sido lida.
+EPUB e importação direta de imagens ainda não foram implementados.
 
 ## Objetivo
 
@@ -23,8 +26,12 @@ arquivo privado
   -> identificação de formato e checksum
   -> extração de texto por página
   -> identificação das páginas sem camada textual
+  -> OCR local opcional e retomável das páginas vazias
+  -> detecção conservadora de idioma (pt-BR, en, es, el, he ou und)
   -> normalização sem apagar o original
+  -> perfil documental determinístico
   -> blocos citáveis (página, seção e offsets)
+  -> estado persistido por etapa
   -> índice FTS local
   -> pesquisa no leitor privado e na busca global
   -> ligações humanas futuras com passagens, entidades, claims e estudos
@@ -40,6 +47,11 @@ Cada página mantém:
 
 Os IDs são derivados do SHA-256 do arquivo e do índice da página. Reimportar o mesmo PDF é
 idempotente: o registro existente é reutilizado.
+
+O limite atual é 256 MiB por arquivo e 5.000 páginas. A detecção de idioma usa uma amostra das
+primeiras páginas textuais; ela nunca traduz nem modifica o texto-fonte. Grego e hebraico são
+reconhecidos por escrita antes da heurística latina, impedindo seu envio implícito ao tradutor de
+inglês.
 
 ## Limites de direitos e segurança
 
@@ -61,7 +73,7 @@ O fluxo correto é:
 1. pesquisar o texto extraído;
 2. abrir o trecho na página original;
 3. criar uma citação com âncora exata;
-4. relacionar a citação a uma passagem, pergunta ou claim;
+4. revisar propostas de estrutura, citação, passagem, claim ou argumento;
 5. registrar se a interpretação é humana, assistida por máquina ou revisada.
 
 ## Persistência
@@ -72,11 +84,14 @@ O fluxo correto é:
 - `source_assets`: referência ao PDF armazenado no OPFS;
 - `bibliographic_sources`: registro visível na Biblioteca, marcado como privado e não
   redistribuível.
+- `private_document_profiles`: perfil, evidência e revisão do tipo documental;
+- `document_processing_steps`: estado, tentativa, progresso e erro de cada etapa;
+- `semantic_unit_roles`: função contextual das unidades derivadas.
 
 ## Entregas futuras
 
-1. fila local de OCR recuperável para páginas sem camada textual;
-2. seleção de trechos e criação direta de citações/links para estudos;
-3. identificação estrutural de cabeçalhos, notas e seções;
+1. seleção livre de trechos e criação direta de citações/links para estudos;
+2. detecção mais ampla de notas e bibliografias em layouts variados;
+3. instalador/diagnóstico guiado dos idiomas do Tesseract;
 4. exportação privada opcional e criptografada dos documentos;
 5. importadores EPUB e imagem depois da validação continuada do pipeline de PDF.

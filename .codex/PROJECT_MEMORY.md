@@ -1,5 +1,112 @@
 # Project Memory
 
+## Contextual private knowledge engine (2026-10-02)
+
+- Workspace schema 14 preserves reviewed proposals while adding explicit bibliographic reference,
+  attribution and coreference proposal kinds. The deterministic analyzer carries bibliography,
+  recent-person and recent-work context across its 50-page checkpoints.
+- The optional Python service now implements the same bounded `analyzeBatch()` contract and returns
+  a serializable provider checkpoint. The client accepts only loopback endpoints, validates output
+  with Zod, rejects proposals for units outside the submitted batch and keeps every result
+  `machine-proposed`.
+- Private PDF batch import continues after per-file failures, detects Portuguese/English/Spanish and
+  Greek/Hebrew script conservatively, reports partial text layers and accepts files up to 256 MiB.
+  OCR remains explicit future work; protected bytes/text remain OPFS-only.
+- Python development is pinned to 3.13.3 through `.python-version`; npm semantic commands prefer the
+  local venv or Windows `py -3.13`, avoiding the stale `python` 3.10 PATH alias.
+- Client chunking separates React runtime from the application entry. The final measured entry fell
+  from 550.03 kB to 372.11 kB (React runtime 189.73 kB) without raising the warning threshold.
+- Browser QA imported the 37 PDFs found in the user's private library into OPFS: 31 were indexed and
+  six were rejected explicitly because they have no extractable text layer and require OCR. Protected
+  bytes and extracted text remain local and are not tracked by Git. Checksum reimports corrected
+  metadata without duplicating documents.
+- The contextual analyzer was exercised end-to-end against the local Python service. Reprocessing a
+  21-page document produced 260 reviewable proposals; a detected lowercase false attribution was
+  eliminated by the deterministic guard, and the browser console remained clean.
+- Fast Refresh ESLint exceptions are restricted to known stable component helpers/hooks; all eight
+  previous warnings are gone while the rule remains active.
+
+## Local pipeline implementation milestone (2026-10-04)
+
+- Architecture: `docs/architecture/local-knowledge-pipeline.md`; local companion setup in
+  `services/semantic-engine/README.md`. Extension of canonical units/proposals, not a duplicate engine.
+- Workspace migration 15: jobs/configuration/checkpoints, unit receipts, publication/audit decisions,
+  OCR layouts. Optional backup-v3 fields preserve compatibility with older checksums.
+- Scanned originals can now be imported; Tesseract recovers only empty pages. Native PDF geometry is
+  retained on new text-layer imports. Existing text/evidence is never overwritten by OCR.
+- Companion: bounded loopback-only OCR/index/link endpoints; optional global multilingual CPU vector
+  retrieval plus FTS and cosine rerank; candidate-constrained JSON LLM output and literal UTF-16 spans.
+- Front: per-book preparation, OCR languages, model toggle, scheme confirmation, pause/resume, audit
+  sampling and bulk review/revocation. Inspector distinguishes private machine links from editorial review.
+- Inferential auto-publication remains blocked pending evaluation; explicit reference auto-visibility
+  requires verified source numbering and corpus resolution. Author/bibliography/coreference still heuristic.
+- Validation: typecheck, focused ESLint, Ruff, Python 3.13.3 syntax and production build passed;
+  migrations reapplied to an in-memory SQLite database at version 15 with zero FK violations.
+- Deferred at user request: automated suites, real OCR/model processing, performance and browser QA.
+  No new PDFs were processed during this code-only stage. Concurrent tabs/job leases, neural structure,
+  cross-encoder and calibration remain debt. Rebuilding canonical units invalidates private derived audits.
+
+## Canonical private knowledge consolidation details (2026-10-01)
+
+- Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
+  `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query
+  the legacy semantic engine; its service/repository remain deprecated compatibility surfaces.
+- Library now lists persisted private documents after reload. Backup schema v3 preserves private
+  document identity, structure, spans, review decisions, translations and translation-job state,
+  but deliberately exports empty page anchors rather than protected text. Reimport of the original
+  checksum rehydrates those page IDs without deleting derived knowledge.
+- Knowledge Explorer now consumes supporting/opposing arguments, evidence, objections, responses
+  and multidimensional perspectives. Private passage knowledge renders arguments, premises,
+  citations and entities in addition to claims/topics/translations.
+- Immutable knowledge builds use the epoch migration timestamp and a byte-for-byte reproducibility
+  test. Curated claims now include actual evidence and perspective links instead of schema-only
+  support.
+- Local English-to-Portuguese translation resolves Hugging Face aliases to a commit SHA, separates
+  model-info and inference timeouts, persists batch progress and supports pause/resume through the
+  checksum cache. `main` is rejected as cache identity.
+- The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
+  claim-kind and qualifier classification and processes 50-page batches with a serialized
+  hierarchy/ordinal checkpoint. Failed runs resume after the last committed batch with idempotent
+  inserts. Full author/citation/coreference understanding remains future work; optional providers
+  only gain resumability when they implement `analyzeBatch()`.
+
+## Passage aggregation and editorial gate (2026-10-01)
+
+- Workspace schema 12 keys local translations by provider model revision and expands controlled
+  semantic domains for social/political history, tradition, soteriology, eschatology and religious
+  currents.
+- Accepted private-book passage relations now resolve to their citeable semantic unit, sibling
+  accepted proposals, physical pages and optional local translation in Passage Inspector. This is
+  a private overlay; curated knowledge remains read-only and separate.
+- Passage Inspector exposes an honest 15-area coverage matrix. Pending links do not count as
+  coverage.
+- The deterministic resolver supports full pt/en references, same-chapter continuations and
+  context-bound relative verses; exact per-chapter verse counts remain future work.
+- Accepted English units can be translated in batch, without tokenizer truncation, and translations
+  have an explicit human-review action.
+- Claims and arguments can declare an interpretive perspective. Editorial staging always has
+  `publicationAllowed: false` and blocks private rights, missing passage or missing evidence before
+  any future curated import.
+
+## Book Decomposition Pipeline v1 (2026-10-01)
+
+- Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,
+  `semantic_unit_spans`, reviewable `knowledge_proposals` and versioned
+  `document_knowledge_indexes`. No proposal writes to the public knowledge snapshot.
+- `DocumentKnowledgeAnalyzer` is the provider boundary. The deterministic v1 implementation
+  detects book/part/chapter/section/bibliography structure, joins simple cross-page continuations
+  and proposes topics, passage relations, claims, arguments, quotations and controlled entities.
+- Proposal IDs include a payload fingerprint. Reprocessing is idempotent and preserves accepted or
+  rejected decisions, including edited claim text, when the semantic proposal remains the same.
+- The private document reader now exposes Structure, Review and Aggregate views. Export is explicit,
+  local-only JSON (`scriptorium-private-knowledge-export-v1`) marked as requiring rights review.
+- Verification: strict typecheck passed; focused ESLint passed; 24 focused tests passed; direct Vite
+  client/SSR/Nitro build passed. Direct full Vitest without `pretest` remained blocked by local
+  corpus SQLite files whose checksums differ from the committed registry after a Node 24 rebuild;
+  this is the previously identified cross-toolchain artifact reproducibility issue.
+- Next safe actions: browser QA with a real text-layer PDF; add golden-layout fixtures for footnotes,
+  bibliographies and complex tables of contents; pin the binary corpus build toolchain.
+
 ## Semantic content engine (2026-09-30)
 
 - Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,
@@ -137,6 +244,9 @@
 - 2026-09-22 — quarantine the Wikisource Tradução Brasileira from distributable runtime packages because US hosting does not establish Brazilian public-domain status; preserve the artifact only for rights review.
 - 2026-09-22 — pin the official eBible porbrbsl USFM ZIP (SHA-256 52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd) as the public-domain Portuguese expansion; label it as a draft in active revision and preserve all 81 works without treating its collection as a universal canon.
 - 2026-09-25 — ingest user-owned PDFs only into private browser storage: keep original bytes in OPFS, index page text in workspace SQLite/FTS5, derive stable IDs from SHA-256, make checksum reimports idempotent and never add protected files/text to Git or public corpus packages.
+- 2026-10-05 — orchestrate the complete private library through the existing canonical knowledge pipeline, persisting run/document state and continuing after isolated failures; do not introduce a competing analyzer or storage path.
+- 2026-10-05 — represent contextual passage reach as one primary target plus bounded additional targets, with explicit verse/range/pericope/chapter/book scope; keep source edition and versification provenance on every relation.
+- 2026-10-05 — release explicit reference links under their own policy and keep inferred links withheld behind deterministic distributed batch samples; accepting a sample is an operational publication gate, not proof of theological or statistical truth.
 
 ## Current state
 
@@ -145,11 +255,15 @@
 - Data: 142,096 TAGNT records processed; 137,074/137,741 targets aligned (99.5158%): 82,918 exact, 53,740 normalized, 416 positional, 75 ambiguous, 592 unmatched. 5,621 lexical identities; 27 books/260 chapters. John 7:53–8:11 retains all 187 textual tokens with no accepted TAGNT link.
 - Storage: SBL generated 74,746,655 → 23,829,469 bytes (-68.12%); generated TAGNT 33,726,686 bytes. Exact metrics and timing in `docs/corpora/phase5-metrics.json`.
 - Bíblia Livre: 68 artifacts, 4,582,764 source bytes; 66 books, 1,189 chapters, 31,101 verses; 1,167 notes, 116 psalm titles, zero explicit paragraphs; 8,472,398 generated bytes. One explicit anomaly: Mark 5:19 omitted in N4.
-- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, interlinear, Hebrew or LXX. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF text-layer ingestion works; OCR, EPUB, structural section detection and automatic passage linking remain future work.
+- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, LXX or aparato crítico. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF ingestion, deterministic structure/linking and optional OCR exist; OCR requires Tesseract/idiomas locais e EPUB permanece futuro.
 - Verification performed: Phase 9 passed 106 tests across 11 files, typecheck, focused lint, Node production build and Lovable sandbox Cloudflare build. Browser QA covered João 1, OPFS across reload/server restart, immediate source-list invalidation, duplicate import, λόγος with 328 paginated occurrences and a clean console. A byte-counting proxy observed 31,744,000 corpus bytes for João versus 358,256,640 monolithic bytes; concordance transferred only the 60,268,544-byte linguistic part. Direct SSR returned the client loading shell without SQLite/OPFS initialization. Repository-wide lint remains blocked by the pre-existing line-ending/Prettier debt snapshot.
 - Phase 10.1 continuation: imported the public-domain 1885 ANF IX OCR source for Origen's Commentary on John Books I-II as 65 stable primary-source units and a 1,908,736-byte work-sharded SQLite/FTS5 package. John 1:1 now links to exact unit II.2 through a source-backed reception-history analysis. Final verification passed 126 tests across 16 files, typecheck, focused ESLint and Node production build; a no-change corpus rebuild reused all six packages. Browser QA opened the exact II.2 unit, confirmed real global FTS results and a clean console. Repository-wide lint still reports 2,974 pre-existing formatting/CRLF problems.
 - Phase 10.1 content continuation: imported the public-domain eBible Bíblia Portuguesa Mundial draft as 81 works, 1,402 chapters, 38,029 text units and 2,311 detected editorial notes. Added 15 Portuguese deuterocanonical/other apocryphal works to navigation and work-sharded SQLite/FTS delivery. Wikisource TBB is blocked from the public registry pending Brazilian rights review.
 - Private library continuation (2026-09-25): six user-purchased Portuguese PDFs were imported locally as 4,280 physical pages, 4,261 with searchable text. Global search opens exact document pages; reload persistence and checksum-idempotent reimport were verified in the browser. The files and extracted content are not tracked by Git.
+- Private library orchestration (2026-10-09): schema 18 persists workspace identity, whole-library runs, per-document stage state, document profiles, semantic-unit roles and review batches; an indexed unit/proposal lookup keeps deterministic resumptions bounded. Coverage reports missing text/OCR/structure/linking state, profile distribution, proposal policy and target/domain gaps. Reader selection can narrow the inspector to one verse; accepted private excerpts appear below the relevant verse with page/section/author metadata and obey the explanations toggle.
+- Current browser workspace snapshot on 2026-10-09 contains 31 PDFs, 23,893 pages and 200 pages without text. The deterministic no-LLM run completed 31/31 with zero operational failures, 41,511 semantic units, 31 classified profiles and 107,773 explicit decisions retained as exceptions because source versification was not confirmed; therefore visible private passage coverage remains zero by design. Four Nag Hammadi volumes are structured. Six additional fully scanned PDFs remain to import and require OCR after Tesseract is installed.
+- The verified structural backup `scriptorium-workspace-2026-10-09.json` uses backup v3/database schema 18, excludes protected page text, contains 31 documents, 31 profiles, 186 processing-step rows, 41,511 units, 107,773 decisions and 24,630 unit receipts, and is 477,874,099 bytes. The six scanned PDFs could not be selected through the in-app browser automation because its native file chooser event did not surface; their files remain untouched on disk.
+- Verification for private library orchestration: TypeScript suite passed 198 tests across 27 files; Python 3.13 suite passed 11 tests; typecheck, repository lint, focused Ruff, production build and browser QA for Library/John 1 passed. Browser QA confirmed the coverage panel and explanations toggle with a clean console; no inline private card could appear because the current workspace has zero published connections.
 
 ## Next safe actions
 
@@ -157,4 +271,6 @@
 - If translation/original alignment is added later, use an explicit dataset and algorithm; never infer Portuguese↔Greek links by position.
 - Keep the 667 TAGNT residues unchanged unless explicit editorial evidence is introduced.
 - Build a compact cross-work search/lexeme index or range VFS before global operations span substantially larger corpora; preserve the `CorpusStorage` boundary.
-- Add OCR, EPUB, structural section detection, private citations and human-reviewed passage links without weakening local-only privacy or provenance.
+- Complete the active deterministic whole-library run, inspect its explicit-reference exceptions/samples and measure coverage before claiming the library semantically connected.
+- Install Tesseract with Portuguese/English/Spanish language data, then recover the six fully scanned PDFs without blocking the searchable collection.
+- Add EPUB support and improve structural section/citation extraction without weakening local-only privacy or provenance.

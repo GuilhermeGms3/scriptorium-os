@@ -27,9 +27,18 @@ describe("OSHB morphology decoder", () => {
   });
 
   it("decodes pronouns, particles and Aramaic forms without guessing unknown categories", () => {
-    expect(decodeOshbMorphology("HPp3ms")).toMatchObject({ partOfSpeech: "pronoun", subtype: "personal" });
-    expect(decodeOshbMorphology("HTd")).toMatchObject({ partOfSpeech: "particle", subtype: "definite-article" });
+    expect(decodeOshbMorphology("HPp3ms")).toMatchObject({
+      partOfSpeech: "pronoun",
+      subtype: "personal",
+    });
+    expect(decodeOshbMorphology("HTd")).toMatchObject({
+      partOfSpeech: "particle",
+      subtype: "definite-article",
+    });
     expect(decodeOshbMorphology("AVqp3ms")).toMatchObject({ language: "Aramaic", stem: "peal" });
-    expect(decodeOshbMorphology("HXzzz")).toMatchObject({ partOfSpeech: "unmapped", status: "unmapped" });
+    expect(decodeOshbMorphology("HXzzz")).toMatchObject({
+      partOfSpeech: "unmapped",
+      status: "unmapped",
+    });
   });
 });
