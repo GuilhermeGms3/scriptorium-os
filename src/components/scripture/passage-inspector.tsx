@@ -29,10 +29,10 @@ import {
 
 const TABS = [
   { id: "overview", label: t("scripture.tab.overview") },
+  { id: "literature", label: t("scripture.tab.literature") },
   { id: "cross-references", label: t("scripture.tab.crossReferences") },
   { id: "language", label: t("scripture.tab.language") },
   { id: "history", label: t("scripture.tab.history") },
-  { id: "literature", label: t("scripture.tab.literature") },
   { id: "notes", label: t("scripture.tab.notes") },
   { id: "sources", label: t("scripture.tab.sources") },
   { id: "research", label: "Pesquisa" },
@@ -277,6 +277,33 @@ export function PassageInspector() {
             <section>
               <h3 className="meta-label">Leituras por perspectiva</h3>
               <PassageViewpoints bundle={bundle} />
+            </section>
+            <section>
+              <h3 className="meta-label">Biblioteca conectada</h3>
+              {workspaceKnowledge?.items.length ? (
+                <div className="mt-2 rounded-md border border-border p-2.5">
+                  <p className="text-xs font-medium">
+                    {workspaceKnowledge.items.length}{" "}
+                    {workspaceKnowledge.items.length === 1
+                      ? "trecho relacionado"
+                      : "trechos relacionados"}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {workspaceKnowledge.items
+                      .slice(0, 3)
+                      .map((item) => item.document.title)
+                      .filter((title, index, titles) => titles.indexOf(title) === index)
+                      .join(" · ")}
+                  </p>
+                  <p className="mt-1.5 text-[10px] text-muted-foreground">
+                    Abra a aba Literatura para ver fonte, página, contexto e estado de revisão.
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-1 text-sm text-muted-foreground italic">
+                  Nenhum trecho publicado ou pendente para esta seleção.
+                </p>
+              )}
             </section>
             {workspaceKnowledge && (
               <section>

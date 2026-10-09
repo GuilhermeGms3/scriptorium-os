@@ -97,9 +97,10 @@ export function knowledgeItemCoversVerse(
   const payload = item.passageRelation.payload;
   return [payload.passage, ...payload.additionalPassages].some((passage) => {
     if (passage.bookId !== bookId) return false;
-    if (payload.relationScope === "book") return true;
+    // Book/chapter relations belong in the contextual inspector, never duplicated below every verse.
+    if (payload.relationScope === "book" || payload.relationScope === "chapter") return false;
     if (passage.chapter !== chapter) return false;
-    if (passage.verseStart === undefined) return true;
+    if (passage.verseStart === undefined) return false;
     return passage.verseStart <= verse && (passage.verseEnd ?? passage.verseStart) >= verse;
   });
 }

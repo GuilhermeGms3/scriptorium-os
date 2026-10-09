@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BarChart3, Pause, Play, RefreshCw } from "lucide-react";
+import { BarChart3, Download, Pause, Play, RefreshCw } from "lucide-react";
 import { LibraryCoverageService } from "../../lib/application/library-coverage-service";
 import { LibraryKnowledgeOrchestrator } from "../../lib/application/library-knowledge-orchestrator";
 import type {
@@ -7,6 +7,11 @@ import type {
   LibraryPipelineProgress,
 } from "../../lib/domain/library-pipeline";
 import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
+import {
+  DOCUMENT_PROFILE_LABELS,
+  type DocumentProfileKind,
+} from "../../lib/domain/document-profile";
+import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
 
 const DOMAIN_LABELS: Record<string, string> = {
   exegesis: "Exegese",
@@ -38,9 +43,12 @@ export function LibraryPipelineOverview() {
   const [progress, setProgress] = useState<LibraryPipelineProgress>();
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<string>();
-  const [useLlm, setUseLlm] = useState(true);
-  const [recoverEmptyPages, setRecoverEmptyPages] = useState(true);
-  const [contextual, setContextual] = useState(true);
+  const [failures, setFailures] = useState<
+    Array<{ documentId: string; title: string; message: string }>
+  >([]);
+  const [useLlm, setUseLlm] = useState(false);
+  const [recoverEmptyPages, setRecoverEmptyPages] = useState(false);
+  const [contextual, setContextual] = useState(false);
   const [sourceSchemeConfirmed, setSourceSchemeConfirmed] = useState(false);
   const controller = useRef<AbortController | null>(null);
   const refresh = useCallback(async () => setReport(await LibraryCoverageService.report()), []);
@@ -59,6 +67,7 @@ export function LibraryPipelineOverview() {
     if (!editionId || controller.current) return;
     setError(undefined);
     setResult(undefined);
+    setFailures([]);
     const abort = new AbortController();
     controller.current = abort;
     try {
@@ -77,6 +86,7 @@ export function LibraryPipelineOverview() {
       setResult(
         `${completed.completedDocuments}/${completed.totalDocuments} livros concluídos; ${completed.failedDocuments} com exceção registrada.`,
       );
+      setFailures(completed.failures);
     } catch (cause) {
       setError(
         abort.signal.aborted
@@ -92,6 +102,16 @@ export function LibraryPipelineOverview() {
     }
   };
   const busy = Boolean(progress);
+  const downloadBackup = async () => {
+    const content = await ResearchWorkspaceService.exportJson();
+    const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
+    const anchor = document.createElement("a");
+    anchor.href = url;
+    anchor.download = `scriptorium-workspace-${new Date().toISOString().slice(0, 10)}.json`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+    setResult("Backup estrutural baixado. Os PDFs privados originais continuam somente no OPFS.");
+  };
   return (
     <section
       className="border-b border-border bg-muted/10 px-5 py-4 md:px-6"
@@ -109,23 +129,42 @@ export function LibraryPipelineOverview() {
               inferências são retidas em lotes até a amostra ser auditada.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="inline-flex min-h-9 items-center gap-1.5 rounded border border-input px-3 text-xs"
-          >
-            <RefreshCw className="size-3.5" /> Atualizar cobertura
-          </button>
+          <div className="flex flex-wrap gap-2">
+            <button
+              type="button"
+              onClick={() =>
+                void downloadBackup().catch((cause) =>
+                  setError(cause instanceof Error ? cause.message : String(cause)),
+                )
+              }
+              className="inline-flex min-h-9 items-center gap-1.5 rounded border border-input px-3 text-xs"
+            >
+              <Download className="size-3.5" /> Baixar backup
+            </button>
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded border border-input px-3 text-xs"
+            >
+              <RefreshCw className="size-3.5" /> Atualizar cobertura
+            </button>
+          </div>
         </div>
+        {report && (
+          <p className="mt-2 font-mono text-[10px] text-muted-foreground">
+            Workspace {report.workspace.id.slice(0, 8)} · {report.workspace.origin} ·{" "}
+            {report.workspace.persistence.toUpperCase()}
+          </p>
+        )}
         {report && (
           <div className="mt-3 grid gap-2 sm:grid-cols-3 lg:grid-cols-6">
             {[
               ["PDFs", report.documents.total],
               ["Estruturados", report.documents.structured],
               ["Com conexões", report.documents.linked],
-              ["OCR pendente", report.documents.ocrPending],
+              ["Páginas sem texto", report.documents.missingTextPages],
               ["Versículos alcançados", report.connections.distinctVerses],
-              ["Aguardando amostra", report.connections.awaitingSample],
+              ["Em exceção/revisão", report.connections.awaitingSample],
             ].map(([label, value]) => (
               <div
                 key={String(label)}
@@ -160,7 +199,7 @@ export function LibraryPipelineOverview() {
               disabled={busy}
               onChange={(event) => setContextual(event.target.checked)}
             />{" "}
-            Contexto por autor/citação
+            Analisador contextual local (opcional)
           </label>
           <label className="flex items-center gap-1.5 text-xs">
             <input
@@ -169,7 +208,7 @@ export function LibraryPipelineOverview() {
               disabled={busy}
               onChange={(event) => setUseLlm(event.target.checked)}
             />{" "}
-            Conexões com LLM local
+            Inferência com LLM local (opcional)
           </label>
           <label className="flex items-center gap-1.5 text-xs">
             <input
@@ -222,6 +261,20 @@ export function LibraryPipelineOverview() {
             {result}
           </p>
         )}
+        {failures.length ? (
+          <details className="mt-2 rounded border border-destructive/30 bg-destructive/5 p-2 text-xs">
+            <summary className="cursor-pointer text-destructive">
+              Ver {failures.length} documento(s) com falha operacional
+            </summary>
+            <ul className="mt-2 space-y-1.5">
+              {failures.map((failure) => (
+                <li key={failure.documentId}>
+                  <span className="font-medium">{failure.title}:</span> {failure.message}
+                </li>
+              ))}
+            </ul>
+          </details>
+        ) : null}
         {error && (
           <p role="alert" className="mt-2 text-xs text-destructive">
             {error}
@@ -244,6 +297,21 @@ export function LibraryPipelineOverview() {
             </div>
           </details>
         )}
+        {report?.profiles.length ? (
+          <details className="mt-2 text-xs">
+            <summary className="cursor-pointer text-muted-foreground">
+              Ver perfis documentais detectados
+            </summary>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              {report.profiles.map((entry) => (
+                <span key={entry.profile} className="rounded border border-border px-2 py-1">
+                  {DOCUMENT_PROFILE_LABELS[entry.profile as DocumentProfileKind] ?? entry.profile}:{" "}
+                  {entry.documentCount}
+                </span>
+              ))}
+            </div>
+          </details>
+        ) : null}
       </div>
     </section>
   );

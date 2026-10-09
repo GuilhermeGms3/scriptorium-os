@@ -26,13 +26,31 @@ async function saveDecision(
   evidence: unknown,
   key: string,
 ) {
-  await db.execute(
-    `INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,updated_at)
+  const statement = decisionStatement(proposal, origin, publication, evidence, key);
+  await db.execute(statement.sql, statement.bind);
+}
+
+function decisionStatement(
+  proposal: KnowledgeProposal,
+  origin: "explicit" | "inferred",
+  publication: "machine-visible" | "exception" | "withheld",
+  evidence: unknown,
+  key: string,
+): Parameters<WorkspaceDatabase["transaction"]>[0][number] {
+  return {
+    sql: `INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,updated_at)
     VALUES(?,?,?,?,?,?) ON CONFLICT(proposal_id) DO UPDATE SET
     evidence_json=excluded.evidence_json,configuration_key=excluded.configuration_key,
     publication=CASE WHEN pipeline_decisions.audit_status='pending' THEN excluded.publication ELSE pipeline_decisions.publication END,updated_at=excluded.updated_at`,
-    [proposal.id, publication, origin, JSON.stringify(evidence), key, new Date().toISOString()],
-  );
+    bind: [
+      proposal.id,
+      publication,
+      origin,
+      JSON.stringify(evidence),
+      key,
+      new Date().toISOString(),
+    ],
+  };
 }
 
 const REVIEW_BATCH_SIZE = 100;
@@ -155,8 +173,10 @@ export const LocalKnowledgePipelineService = {
     const summary = await DocumentKnowledgeRepository.getSummary(documentId, db);
     if (summary?.status !== "ready")
       throw new Error("Desmonte o livro primeiro para obter unidades citáveis.");
-    const info = await pipelineRequest("info", PipelineInfoSchema, undefined, signal);
-    if (useLlm && !info.models.llm.configured)
+    const info = useLlm
+      ? await pipelineRequest("info", PipelineInfoSchema, undefined, signal)
+      : { mode: "deterministic-explicit-only", revision: "1" };
+    if (useLlm && "models" in info && !info.models.llm.configured)
       throw new Error("Configure o modelo e sua revisão no serviço Python antes de inferir.");
     const key = await digest(
       JSON.stringify({
@@ -190,27 +210,75 @@ export const LocalKnowledgePipelineService = {
         JSON.stringify({ editionId, useLlm, sourceSchemeConfirmed }),
       ],
     );
+    const explicitUnitIds = new Set(
+      (
+        await db.query(
+          `SELECT DISTINCT semantic_unit_id FROM knowledge_proposals
+           WHERE document_id=? AND proposal_kind='passage-relation'
+             AND method NOT LIKE 'local-llm:%'`,
+          [documentId],
+        )
+      ).map((row) => String(row["semantic_unit_id"])),
+    );
+    const resolvedReferenceCache = new Map<string, boolean>();
+    if (!useLlm)
+      await db.execute(
+        `INSERT OR REPLACE INTO pipeline_unit_receipts(unit_id,configuration_key,status,receipt_json,updated_at)
+         SELECT u.id,?,'abstained',?,? FROM semantic_units u
+         WHERE u.document_id=? AND u.ordinal>=?
+           AND NOT EXISTS(
+             SELECT 1 FROM knowledge_proposals p
+             WHERE p.semantic_unit_id=u.id AND p.proposal_kind='passage-relation'
+               AND p.method NOT LIKE 'local-llm:%'
+           )`,
+        [
+          key,
+          JSON.stringify({
+            policy: "deterministic-explicit-only-v1",
+            reason: "no-explicit-reference",
+          }),
+          new Date().toISOString(),
+          documentId,
+          ordinal,
+        ],
+      );
     try {
       while (true) {
         signal.throwIfAborted();
         const rows = await db.query(
-          "SELECT id FROM semantic_units WHERE document_id=? AND ordinal>=? ORDER BY ordinal LIMIT 10",
-          [documentId, ordinal],
+          `SELECT id FROM semantic_units WHERE document_id=? AND ordinal>=?
+           ${
+             useLlm
+               ? ""
+               : `AND EXISTS(
+                    SELECT 1 FROM knowledge_proposals p
+                    WHERE p.semantic_unit_id=semantic_units.id
+                      AND p.proposal_kind='passage-relation'
+                      AND p.method NOT LIKE 'local-llm:%'
+                  )`
+           }
+           ORDER BY ordinal LIMIT ?`,
+          [documentId, ordinal, useLlm ? 10 : 100],
         );
-        if (!rows.length) break;
+        if (!rows.length) {
+          if (!useLlm) ordinal = summary.unitCount;
+          break;
+        }
         const units = await DocumentKnowledgeRepository.listUnits(
           documentId,
           rows.map((row) => String(row["id"])),
           db,
         );
+        const deterministicStatements: Parameters<WorkspaceDatabase["transaction"]>[0] = [];
         for (const unit of units) {
           signal.throwIfAborted();
-          progress(`Conectando unidade ${unit.ordinal + 1} de ${summary.unitCount}…`);
-          const explicit = (
-            await DocumentKnowledgeRepository.listProposalsForUnit(unit.id, db)
-          ).filter(
-            (x) => x.proposalKind === "passage-relation" && !x.method.startsWith("local-llm:"),
-          );
+          if (useLlm || unit.ordinal % 25 === 0 || unit.ordinal + 1 === summary.unitCount)
+            progress(`Conectando unidade ${unit.ordinal + 1} de ${summary.unitCount}…`);
+          const explicit = explicitUnitIds.has(unit.id)
+            ? (await DocumentKnowledgeRepository.listProposalsForUnit(unit.id, db)).filter(
+                (x) => x.proposalKind === "passage-relation" && !x.method.startsWith("local-llm:"),
+              )
+            : [];
           for (const proposal of explicit) {
             if (
               !proposal ||
@@ -224,47 +292,74 @@ export const LocalKnowledgePipelineService = {
             };
             const start = unit.text.indexOf(proposal.payload.rawReference);
             if (start < 0) continue;
-            const storage = await corpusPackageRegistry.open(editionId, ref.workId);
-            const resolved = await storage.getTextUnits(ref, editionId);
-            const valid =
-              sourceSchemeConfirmed &&
-              resolved.length > 0 &&
-              (ref.verseStart === undefined ||
-                resolved.some((x) => x.address?.verseStart === ref.verseStart)) &&
-              (ref.verseEnd === undefined ||
-                resolved.some(
-                  (x) => (x.address?.verseEnd ?? x.address?.verseStart) === ref.verseEnd,
-                ));
-            await saveDecision(
-              db,
-              proposal,
-              "explicit",
-              valid ? "machine-visible" : "exception",
-              {
-                quote: proposal.payload.rawReference,
-                start,
-                end: start + proposal.payload.rawReference.length,
-                editionId,
-                textChecksum: unit.textChecksum,
-                policy: "explicit-only-v1",
-                sourceSchemeConfirmed,
-              },
-              key,
-            );
+            const referenceKey = JSON.stringify(ref);
+            let valid = resolvedReferenceCache.get(referenceKey);
+            if (valid === undefined) {
+              if (!sourceSchemeConfirmed) valid = false;
+              else {
+                const storage = await corpusPackageRegistry.open(editionId, ref.workId);
+                const resolved = await storage.getTextUnits(ref, editionId);
+                valid =
+                  resolved.length > 0 &&
+                  (ref.verseStart === undefined ||
+                    resolved.some((x) => x.address?.verseStart === ref.verseStart)) &&
+                  (ref.verseEnd === undefined ||
+                    resolved.some(
+                      (x) => (x.address?.verseEnd ?? x.address?.verseStart) === ref.verseEnd,
+                    ));
+              }
+              resolvedReferenceCache.set(referenceKey, valid);
+            }
+            const evidence = {
+              quote: proposal.payload.rawReference,
+              start,
+              end: start + proposal.payload.rawReference.length,
+              editionId,
+              textChecksum: unit.textChecksum,
+              policy: "explicit-only-v1",
+              sourceSchemeConfirmed,
+            };
+            if (useLlm)
+              await saveDecision(
+                db,
+                proposal,
+                "explicit",
+                valid ? "machine-visible" : "exception",
+                evidence,
+                key,
+              );
+            else
+              deterministicStatements.push(
+                decisionStatement(
+                  proposal,
+                  "explicit",
+                  valid ? "machine-visible" : "exception",
+                  evidence,
+                  key,
+                ),
+              );
           }
-          if (!explicit.length && !["heading", "bibliography-entry"].includes(unit.kind))
+          if (useLlm && !explicit.length && !["heading", "bibliography-entry"].includes(unit.kind))
             await this.inferUnit(db, documentId, unit, editionId, useLlm, key, signal);
           ordinal = unit.ordinal + 1;
-          await db.execute(
-            "UPDATE pipeline_jobs SET next_ordinal=?,updated_at=? WHERE document_id=?",
-            [ordinal, new Date().toISOString(), documentId],
-          );
+          if (useLlm)
+            await db.execute(
+              "UPDATE pipeline_jobs SET next_ordinal=?,updated_at=? WHERE document_id=?",
+              [ordinal, new Date().toISOString(), documentId],
+            );
+        }
+        if (!useLlm) {
+          deterministicStatements.push({
+            sql: "UPDATE pipeline_jobs SET next_ordinal=?,updated_at=? WHERE document_id=?",
+            bind: [ordinal, new Date().toISOString(), documentId],
+          });
+          await db.transaction(deterministicStatements);
         }
         notifyKnowledgeMutation();
       }
       await db.execute(
-        "UPDATE pipeline_jobs SET status='complete',updated_at=? WHERE document_id=?",
-        [new Date().toISOString(), documentId],
+        "UPDATE pipeline_jobs SET next_ordinal=?,status='complete',updated_at=? WHERE document_id=?",
+        [ordinal, new Date().toISOString(), documentId],
       );
       await prepareInferenceReviewBatches(db, documentId, key);
       await db.execute(

@@ -23,6 +23,12 @@ reconhece marcadores controlados em português/inglês e resolve referências b�
 idiomas. Esta camada deliberadamente simples fornece baseline reproduzível para comparar futuros
 extratores mais sofisticados.
 
+Antes da desmontagem, um classificador determinístico registra o perfil do documento (por exemplo,
+Bíblia de estudo, comentário, léxico, catecismo, monografia, fonte patrística ou antologia de Nag
+Hammadi). O perfil não afirma qualidade ou autoria: ele seleciona expectativas estruturais e funções
+semânticas auditáveis. Extração, OCR, estrutura, conexão, amostragem e publicação possuem estados
+separados e retomáveis.
+
 ## Book Decomposition Pipeline v1
 
 A desmontagem de livros privados acrescenta uma camada acima dos blocos de página:
@@ -112,6 +118,13 @@ compatibilidade e não são consultadas pelo Reader. A mesma migration cria
 progresso de leitura por página durante uma nova execução e contagens são recalculadas do banco ao
 concluir, incluindo unidades legadas migradas.
 
+A migration 017 cria uma identidade persistente para o workspace, perfis documentais, estados de
+processamento por etapa e funções semânticas por unidade. Importações existentes recebem estado de
+extração/OCR coerente com suas páginas sem texto, sem alegar que OCR foi executado.
+
+A migration 018 indexa propostas por unidade, tipo e método. Esse índice sustenta retomada e
+abstenção set-based sem fazer uma varredura completa das propostas para cada unidade do livro.
+
 O texto do segmento não é duplicado: ele é reconstruído pelos offsets da página privada. Exclusão
 do documento remove os derivados por foreign keys. Reindexação apaga somente os derivados daquele
 documento e recomeça dentro do mesmo workspace local.
@@ -172,7 +185,7 @@ aceitas sem revisão humana.
 
 1. melhorar detecção de notas e entradas bibliográficas em edições variadas;
 2. evoluir correferência para cadeias com múltiplos candidatos e autoria por metadados editoriais;
-3. OCR/EPUB local;
+3. EPUB local e diagnóstico/instalação guiada dos idiomas de OCR;
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
 5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
    separada, com decisão de direitos registrada e revisão de dois passos.

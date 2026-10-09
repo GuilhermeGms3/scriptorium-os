@@ -2,6 +2,7 @@ import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import type { ExtractedPrivateDocument } from "../domain/private-document";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { PrivateDocumentStorage } from "../private-documents/private-document-storage";
+import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 
 const MAX_FILE_BYTES = 256 * 1024 * 1024;
 const MAX_PAGES = 5_000;
@@ -229,6 +230,7 @@ export const PrivateDocumentImportService = {
           ? existing
           : await PrivateDocumentRepository.updateTitle(existing.id, preferredTitle);
       report(listener, { phase: "complete", message: `${current.title} já estava indexado.` });
+      await DocumentProcessingRepository.ensureProfile(current);
       return {
         ...current,
         documentId: current.id,
@@ -247,6 +249,27 @@ export const PrivateDocumentImportService = {
         message: `Indexando ${extracted.textPageCount} páginas pesquisáveis…`,
       });
       const result = await PrivateDocumentRepository.importDocument(extracted, storageReference);
+      await DocumentProcessingRepository.recordStep(
+        result.document.id,
+        "extraction",
+        result.document.textPageCount === result.document.pageCount ? "complete" : "partial",
+        {
+          completedUnits: result.document.textPageCount,
+          totalUnits: result.document.pageCount,
+          checkpoint: { sourceChecksum: result.document.checksum },
+        },
+      );
+      await DocumentProcessingRepository.recordStep(
+        result.document.id,
+        "ocr",
+        result.document.textPageCount === result.document.pageCount ? "skipped" : "pending",
+        {
+          completedUnits: result.document.textPageCount,
+          totalUnits: result.document.pageCount,
+          checkpoint: { missingPages: result.document.pageCount - result.document.textPageCount },
+        },
+      );
+      await DocumentProcessingRepository.ensureProfile(result.document);
       report(listener, {
         phase: "complete",
         message: `${extracted.title} foi indexado localmente.`,

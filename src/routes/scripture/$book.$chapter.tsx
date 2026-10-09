@@ -18,6 +18,7 @@ import {
   knowledgeItemCoversVerse,
   type WorkspacePassageKnowledgeLayer,
 } from "../../lib/domain/workspace-passage-knowledge";
+import { SEMANTIC_DOMAIN_LABELS, type SemanticDomain } from "../../lib/domain/semantic-content";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
@@ -68,6 +69,7 @@ function ChapterReader() {
   const [sourceFilter, setSourceFilter] = useState("");
   const [domainFilter, setDomainFilter] = useState("");
   const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
+  const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
 
   const book = ScriptureKnowledgeEngine.getBook(bookId);
   const activeRef = useMemo(
@@ -76,6 +78,13 @@ function ChapterReader() {
       chapter,
     }),
     [bookId, chapter],
+  );
+  const inspectorRef = useMemo(
+    () => ({
+      ...activeRef,
+      ...(selectedVerse !== null ? { verseStart: selectedVerse, verseEnd: selectedVerse } : {}),
+    }),
+    [activeRef, selectedVerse],
   );
   const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef) ?? loadedBundle;
   const editions = bundle?.passage.editions ?? ScriptureKnowledgeEngine.listEditions();
@@ -111,12 +120,13 @@ function ChapterReader() {
   }, [availableViews, view]);
 
   useEffect(() => {
-    setPassageContext(book ? { ref: activeRef, label: passageLabel(activeRef) } : null);
+    setPassageContext(book ? { ref: inspectorRef, label: passageLabel(inspectorRef) } : null);
     selectWord(null);
-  }, [activeRef, book, bundle?.identity.label, chapter, setPassageContext, selectWord]);
+  }, [book, bundle?.identity.label, chapter, inspectorRef, setPassageContext, selectWord]);
 
   useEffect(() => {
     setOpenVerses(new Set());
+    setSelectedVerse(null);
   }, [activeRef]);
 
   useEffect(() => {
@@ -295,7 +305,7 @@ function ChapterReader() {
                       <option value="">Todas</option>
                       {privateDomains.map((domain) => (
                         <option key={domain} value={domain}>
-                          {domain}
+                          {SEMANTIC_DOMAIN_LABELS[domain as SemanticDomain] ?? domain}
                         </option>
                       ))}
                     </select>
@@ -318,6 +328,8 @@ function ChapterReader() {
                         bookName={bookLabel(book.id, book.name)}
                         chapter={chapter}
                         verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
+                        selected={selectedVerse === v.verse}
+                        onSelect={() => setSelectedVerse(v.verse)}
                       />
                       {showExplanations && (
                         <VerseExplanations
@@ -328,16 +340,18 @@ function ChapterReader() {
                           claims={availableClaims}
                         />
                       )}
-                      <PrivateVerseKnowledge
-                        bookId={book.id}
-                        chapter={chapter}
-                        verse={v.verse}
-                        items={privateKnowledge?.items ?? []}
-                        open={openVerses.has(v.verse)}
-                        onOpenChange={(open) => setVerseOpen(v.verse, open)}
-                        {...(sourceFilter ? { sourceId: sourceFilter } : {})}
-                        {...(domainFilter ? { domain: domainFilter } : {})}
-                      />
+                      {showExplanations && (
+                        <PrivateVerseKnowledge
+                          bookId={book.id}
+                          chapter={chapter}
+                          verse={v.verse}
+                          items={privateKnowledge?.items ?? []}
+                          open={openVerses.has(v.verse)}
+                          onOpenChange={(open) => setVerseOpen(v.verse, open)}
+                          {...(sourceFilter ? { sourceId: sourceFilter } : {})}
+                          {...(domainFilter ? { domain: domainFilter } : {})}
+                        />
+                      )}
                     </div>
                   ))}
                 </div>

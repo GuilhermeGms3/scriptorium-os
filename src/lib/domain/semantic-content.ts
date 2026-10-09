@@ -26,6 +26,28 @@ export const SEMANTIC_DOMAINS = [
 export const SemanticDomainSchema = z.enum(SEMANTIC_DOMAINS);
 export type SemanticDomain = z.infer<typeof SemanticDomainSchema>;
 
+export const SEMANTIC_DOMAIN_LABELS: Record<SemanticDomain, string> = {
+  exegesis: "Exegese",
+  hermeneutics: "Hermenêutica",
+  theology: "Teologia",
+  "historical-context": "Contexto histórico",
+  "social-history": "História social",
+  "political-history": "História política",
+  archaeology: "Arqueologia",
+  geography: "Geografia",
+  "textual-criticism": "Crítica textual",
+  linguistics: "Linguística",
+  patristics: "Patrística",
+  liturgy: "Liturgia",
+  tradition: "Tradição",
+  soteriology: "Soteriologia",
+  eschatology: "Escatologia",
+  "religious-currents": "Correntes religiosas",
+  "philosophy-of-religion": "Filosofia da religião",
+  science: "Ciência",
+  other: "Outros",
+};
+
 export const SemanticSegmentSchema = z.object({
   id: z.string().min(1),
   documentId: z.string().min(1),

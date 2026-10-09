@@ -2,15 +2,16 @@
 
 ## Estado atual
 
-O Scriptorium ingere em lote **PDFs privados que possuam camada textual**. O arquivo original permanece no
-OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
+O Scriptorium ingere em lote **PDFs privados com ou sem camada textual**. O arquivo original permanece
+no OPFS do navegador e o texto extraído é persistido por página no SQLite privado do workspace, com
 índice FTS5. A Biblioteca e a busca global conseguem localizar os trechos e abrir a página física
 correspondente.
 
-EPUB, imagens e OCR ainda não foram implementados. Um PDF composto apenas por imagens é recusado
-com uma mensagem explícita, sem fingir que foi indexado. A fila continua com os demais arquivos e
-apresenta um diagnóstico por nome. PDFs parcialmente pesquisáveis são importados, mas exibem quantas
-páginas ainda dependem de OCR.
+PDFs escaneados são preservados e entram em estado explícito de espera por OCR. Quando o companion
+local e o Tesseract com os idiomas necessários estão disponíveis, páginas vazias podem ser recuperadas
+sem bloquear os demais documentos; uma falha de OCR fica registrada por etapa e o pipeline continua
+com o texto já disponível. O sistema nunca apresenta uma página sem texto como se tivesse sido lida.
+EPUB e importação direta de imagens ainda não foram implementados.
 
 ## Objetivo
 
@@ -25,9 +26,12 @@ arquivo privado
   -> identificação de formato e checksum
   -> extração de texto por página
   -> identificação das páginas sem camada textual
+  -> OCR local opcional e retomável das páginas vazias
   -> detecção conservadora de idioma (pt-BR, en, es, el, he ou und)
   -> normalização sem apagar o original
+  -> perfil documental determinístico
   -> blocos citáveis (página, seção e offsets)
+  -> estado persistido por etapa
   -> índice FTS local
   -> pesquisa no leitor privado e na busca global
   -> ligações humanas futuras com passagens, entidades, claims e estudos
@@ -80,11 +84,14 @@ O fluxo correto é:
 - `source_assets`: referência ao PDF armazenado no OPFS;
 - `bibliographic_sources`: registro visível na Biblioteca, marcado como privado e não
   redistribuível.
+- `private_document_profiles`: perfil, evidência e revisão do tipo documental;
+- `document_processing_steps`: estado, tentativa, progresso e erro de cada etapa;
+- `semantic_unit_roles`: função contextual das unidades derivadas.
 
 ## Entregas futuras
 
-1. fila local de OCR recuperável para páginas sem camada textual;
-2. seleção livre de trechos e criação direta de citações/links para estudos;
-3. detecção mais ampla de notas e bibliografias em layouts variados;
+1. seleção livre de trechos e criação direta de citações/links para estudos;
+2. detecção mais ampla de notas e bibliografias em layouts variados;
+3. instalador/diagnóstico guiado dos idiomas do Tesseract;
 4. exportação privada opcional e criptografada dos documentos;
 5. importadores EPUB e imagem depois da validação continuada do pipeline de PDF.

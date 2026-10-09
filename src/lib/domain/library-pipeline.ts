@@ -31,9 +31,13 @@ export interface LibraryPipelineResult {
 
 export interface LibraryCoverageReport {
   generatedAt: string;
+  workspace: { id: string; origin: string; persistence: "opfs" | "memory" };
   documents: {
     total: number;
     textReady: number;
+    partiallyTextReady: number;
+    scannedOnly: number;
+    missingTextPages: number;
     ocrPending: number;
     structured: number;
     linked: number;
@@ -56,5 +60,6 @@ export interface LibraryCoverageReport {
     rejected: number;
   };
   domains: Array<{ domain: SemanticDomain; proposalCount: number; visibleSourceCount: number }>;
+  profiles: Array<{ profile: string; documentCount: number }>;
   gaps: string[];
 }

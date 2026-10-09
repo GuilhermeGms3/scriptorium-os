@@ -234,6 +234,9 @@ async function sha256(value: string): Promise<string> {
 }
 
 function nodeKind(title: string): DocumentNode["kind"] {
+  if (/^(?:c[oó]dice|codex|nhc)\s+[\divxlcdm]+\b/iu.test(title)) return "part";
+  if (/^(?:evangelho|ap[oó]crifo|tratado|hip[oó]stase|livro)\s+(?:de|do|da)\b/iu.test(title))
+    return "chapter";
   if (/^(?:parte|part)\s+[\divxlcdm]+\b/iu.test(title)) return "part";
   if (/^(?:cap[ií]tulo|chapter)\s+[\divxlcdm]+\b/iu.test(title)) return "chapter";
   if (/^(?:referências|referencias|bibliografia|references|bibliography)\b/iu.test(title))
@@ -338,12 +341,18 @@ async function proposalsForUnit(
       confidence: domain.confidence,
     });
   }
-  for (const link of unit.passageLinks) {
+  for (const link of unit.kind === "bibliography-entry" ? [] : unit.passageLinks) {
     drafts.push({
       payload: {
         kind: "passage-relation",
         rawReference: link.rawReference,
         relationType: link.relationType,
+        relationScope:
+          link.verseStart === undefined
+            ? "chapter"
+            : link.verseEnd !== undefined && link.verseEnd !== link.verseStart
+              ? "range"
+              : "verse",
         passage: {
           workId: link.workId,
           bookId: link.bookId,

@@ -23,6 +23,7 @@ import { SemanticContentRepository } from "../repositories/semantic-content-repo
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import { PrivateTranslationJobRepository } from "../repositories/private-translation-job-repository";
+import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 import {
   DeterministicDocumentKnowledgeAnalyzer,
   type DocumentKnowledgeAnalyzer,
@@ -218,7 +219,7 @@ describe("Phase 9.5 workspace schema", () => {
     );
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     expect(db.prepare("SELECT max(version) version FROM workspace_migrations").get()).toMatchObject(
-      { version: 16 },
+      { version: 18 },
     );
   });
 
@@ -603,6 +604,7 @@ describe("Phase 9.5 workspace schema", () => {
       },
       workspace,
     );
+
     const reviewed = await LocalTranslationRepository.listForSources(
       "primary-text-unit",
       [request.sourceId],
@@ -681,6 +683,25 @@ describe("Phase 9.5 workspace schema", () => {
       workspace,
     );
 
+    const profileBeforeBackup = await DocumentProcessingRepository.ensureProfile(
+      imported.document,
+      workspace,
+    );
+    await DocumentProcessingRepository.recordStep(
+      imported.document.id,
+      "structure",
+      "complete",
+      { completedUnits: 1, totalUnits: 1 },
+      workspace,
+    );
+    expect(profileBeforeBackup).toMatchObject({ profile: "commentary" });
+    expect(await DocumentProcessingRepository.listStates(imported.document.id, workspace)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ step: "classification", status: "complete" }),
+        expect.objectContaining({ step: "structure", status: "complete" }),
+      ]),
+    );
+
     const backup = await ResearchWorkspaceService.exportJson(workspace);
     expect(backup).not.toContain(input.pages[0]!.text);
     expect(JSON.parse(backup)).toMatchObject({
@@ -708,6 +729,15 @@ describe("Phase 9.5 workspace schema", () => {
         reviewStatus: "human-reviewed",
       }),
     ]);
+    expect(await DocumentProcessingRepository.getProfile(imported.document.id, workspace)).toEqual(
+      profileBeforeBackup,
+    );
+    expect(await DocumentProcessingRepository.listStates(imported.document.id, workspace)).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ step: "classification", status: "complete" }),
+        expect.objectContaining({ step: "structure", status: "complete" }),
+      ]),
+    );
     expect(
       await PrivateDocumentRepository.search(
         "Logos",

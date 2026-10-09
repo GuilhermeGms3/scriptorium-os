@@ -9,6 +9,7 @@ import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
 import { DocumentKnowledgePipelineService } from "./document-knowledge-pipeline-service";
 import { LocalKnowledgePipelineService } from "./local-knowledge-pipeline-service";
 import { PrivateDocumentOcrService } from "./private-document-ocr-service";
+import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 
 async function sha256(value: string): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -54,35 +55,37 @@ export const LibraryKnowledgeOrchestrator = {
         [runId, document.id, ordinal, document.checksum, startedAt],
       );
 
-    listener({
-      documentIndex: 0,
-      totalDocuments: documents.length,
-      stage: "queued",
-      message: "Preparando uma única vez o índice bíblico usado por toda a biblioteca…",
-    });
-    try {
-      await LocalKnowledgePipelineService.indexEdition(
-        options.editionId,
-        (message) =>
-          listener({
-            documentIndex: 0,
-            totalDocuments: documents.length,
-            stage: "queued",
-            message,
-          }),
-        signal,
-      );
-    } catch (cause) {
-      await db.execute(
-        "UPDATE library_pipeline_runs SET status=?,error=?,updated_at=? WHERE id=?",
-        [
-          signal.aborted ? "paused" : "failed",
-          errorMessage(cause),
-          new Date().toISOString(),
-          runId,
-        ],
-      );
-      throw cause;
+    if (options.useLlm) {
+      listener({
+        documentIndex: 0,
+        totalDocuments: documents.length,
+        stage: "queued",
+        message: "Preparando uma única vez o índice bíblico usado pela inferência local…",
+      });
+      try {
+        await LocalKnowledgePipelineService.indexEdition(
+          options.editionId,
+          (message) =>
+            listener({
+              documentIndex: 0,
+              totalDocuments: documents.length,
+              stage: "queued",
+              message,
+            }),
+          signal,
+        );
+      } catch (cause) {
+        await db.execute(
+          "UPDATE library_pipeline_runs SET status=?,error=?,updated_at=? WHERE id=?",
+          [
+            signal.aborted ? "paused" : "failed",
+            errorMessage(cause),
+            new Date().toISOString(),
+            runId,
+          ],
+        );
+        throw cause;
+      }
     }
 
     const failures: LibraryPipelineResult["failures"] = [];
@@ -118,25 +121,69 @@ export const LibraryKnowledgeOrchestrator = {
       };
       try {
         let document = initialDocument;
+        const profile = await DocumentProcessingRepository.ensureProfile(document, db);
         if (options.recoverEmptyPages && document.textPageCount < document.pageCount) {
           await update("ocr", `Recuperando páginas vazias de ${document.title}…`);
-          await PrivateDocumentOcrService.recover(
+          await DocumentProcessingRepository.recordStep(
             document.id,
-            (message) =>
-              listener({
-                documentId: document.id,
-                documentTitle: document.title,
-                documentIndex: index + 1,
-                totalDocuments: documents.length,
-                stage: "ocr",
-                message,
-              }),
-            signal,
-            options.ocrLanguage,
+            "ocr",
+            "running",
+            { completedUnits: document.textPageCount, totalUnits: document.pageCount },
+            db,
           );
-          document = (await PrivateDocumentRepository.getDocument(document.id, db)) ?? document;
+          try {
+            await PrivateDocumentOcrService.recover(
+              document.id,
+              (message) =>
+                listener({
+                  documentId: document.id,
+                  documentTitle: document.title,
+                  documentIndex: index + 1,
+                  totalDocuments: documents.length,
+                  stage: "ocr",
+                  message,
+                }),
+              signal,
+              options.ocrLanguage,
+            );
+            document = (await PrivateDocumentRepository.getDocument(document.id, db)) ?? document;
+            await DocumentProcessingRepository.recordStep(
+              document.id,
+              "ocr",
+              document.textPageCount === document.pageCount ? "complete" : "partial",
+              {
+                completedUnits: document.textPageCount,
+                totalUnits: document.pageCount,
+                checkpoint: { missingPages: document.pageCount - document.textPageCount },
+              },
+              db,
+            );
+          } catch (cause) {
+            if (signal.aborted) throw cause;
+            await DocumentProcessingRepository.recordStep(
+              document.id,
+              "ocr",
+              "partial",
+              {
+                completedUnits: document.textPageCount,
+                totalUnits: document.pageCount,
+                checkpoint: { missingPages: document.pageCount - document.textPageCount },
+                error: errorMessage(cause),
+              },
+              db,
+            );
+            listener({
+              documentId: document.id,
+              documentTitle: document.title,
+              documentIndex: index + 1,
+              totalDocuments: documents.length,
+              stage: "ocr",
+              message: "OCR indisponível; continuando com as páginas que já possuem texto.",
+            });
+          }
         }
         await update("structure", `Desmontando e contextualizando ${document.title}…`);
+        await DocumentProcessingRepository.recordStep(document.id, "structure", "running", {}, db);
         const analyzer =
           options.analyzer === "contextual"
             ? (await import("../semantic-engine/python-document-knowledge-analyzer"))
@@ -156,7 +203,16 @@ export const LibraryKnowledgeOrchestrator = {
           db,
           analyzer ? { analyzer } : {},
         );
+        await DocumentProcessingRepository.recordStep(
+          document.id,
+          "structure",
+          "complete",
+          { completedUnits: analysis.unitCount, totalUnits: analysis.unitCount },
+          db,
+        );
+        await DocumentProcessingRepository.annotateUnits(document, profile, db);
         await update("linking", `Conectando unidades de ${document.title} às passagens…`);
+        await DocumentProcessingRepository.recordStep(document.id, "linking", "running", {}, db);
         await LocalKnowledgePipelineService.run(
           document.id,
           options.editionId,
@@ -173,6 +229,7 @@ export const LibraryKnowledgeOrchestrator = {
           signal,
           options.sourceSchemeConfirmed,
         );
+        await DocumentProcessingRepository.recordStep(document.id, "linking", "complete", {}, db);
         await db.execute(
           `UPDATE library_pipeline_documents SET stage='complete',status='complete',result_json=?,error=NULL,updated_at=?
            WHERE run_id=? AND document_id=?`,

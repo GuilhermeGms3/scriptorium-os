@@ -265,9 +265,14 @@ export function PrivateLinkCard({
           {[...new Set(topics)].join(" · ")}
         </p>
       )}
-      <p className="mt-2 text-xs leading-relaxed text-foreground/90">
+      <p className="mt-2 line-clamp-6 text-xs leading-relaxed text-foreground/90">
         {item.translation?.translatedText ?? item.unit.text}
       </p>
+      {(item.translation?.translatedText ?? item.unit.text).length > 700 && (
+        <p className="mt-1 text-[10px] text-muted-foreground">
+          Trecho abreviado. Abra a fonte para ler a unidade completa no contexto da página.
+        </p>
+      )}
       {item.context.attributions.length > 0 && (
         <details className="mt-2 text-[10px] text-muted-foreground">
           <summary className="cursor-pointer">Atribuições detectadas</summary>

@@ -105,4 +105,23 @@ describe("parseBiblicalReferences", () => {
       parseBiblicalReferences("Os 11:1 e At 2:1").map((reference) => reference.bookId),
     ).toEqual(["hosea", "acts"]);
   });
+
+  it("does not turn a canonical book list into John chapter 2", () => {
+    expect(
+      parseBiblicalReferences(
+        "Mateus Marcos Lucas João Atos Romanos 1 Coríntios 2 Coríntios 1 João 2 João 3 João Judas",
+      ),
+    ).toEqual([]);
+  });
+
+  it("suppresses references in structural negative zones", () => {
+    expect(parseBiblicalReferences("João 2", { zone: "toc" })).toEqual([]);
+    expect(parseBiblicalReferences("João 2:1", { zone: "body" })).toHaveLength(1);
+  });
+
+  it("resolves common Spanish references", () => {
+    expect(
+      parseBiblicalReferences("Juan 1:1; Hechos 2:1; Génesis 1:1").map((item) => item.bookId),
+    ).toEqual(["john", "acts", "genesis"]);
+  });
 });

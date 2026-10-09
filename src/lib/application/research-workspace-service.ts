@@ -66,6 +66,13 @@ const PrivateKnowledgeBackupSchema = z.object({
   pipelineDecisions: rows.optional(),
   pipelineReceipts: rows.optional(),
   pageLayouts: rows.optional(),
+  documentProfiles: rows.optional(),
+  processingSteps: rows.optional(),
+  unitRoles: rows.optional(),
+  libraryPipelineRuns: rows.optional(),
+  libraryPipelineDocuments: rows.optional(),
+  reviewBatches: rows.optional(),
+  reviewBatchMembers: rows.optional(),
 });
 
 const BackupV3Schema = BackupV2Schema.omit({ schemaVersion: true, manifest: true }).extend({
@@ -204,6 +211,13 @@ async function exportPrivateKnowledge(
     pipelineDecisions,
     pipelineReceipts,
     pageLayouts,
+    documentProfiles,
+    processingSteps,
+    unitRoles,
+    libraryPipelineRuns,
+    libraryPipelineDocuments,
+    reviewBatches,
+    reviewBatchMembers,
   ] = await Promise.all([
     database.query("SELECT * FROM private_documents ORDER BY id"),
     database.query(`SELECT id,document_id,page_index,page_label,'' text,0 character_count,
@@ -221,6 +235,13 @@ async function exportPrivateKnowledge(
     database.query("SELECT * FROM pipeline_decisions ORDER BY proposal_id"),
     database.query("SELECT * FROM pipeline_unit_receipts ORDER BY unit_id"),
     database.query("SELECT * FROM document_page_layouts ORDER BY page_id"),
+    database.query("SELECT * FROM private_document_profiles ORDER BY document_id"),
+    database.query("SELECT * FROM document_processing_steps ORDER BY document_id,step"),
+    database.query("SELECT * FROM semantic_unit_roles ORDER BY document_id,unit_id"),
+    database.query("SELECT * FROM library_pipeline_runs ORDER BY started_at,id"),
+    database.query("SELECT * FROM library_pipeline_documents ORDER BY run_id,ordinal"),
+    database.query("SELECT * FROM pipeline_review_batches ORDER BY document_id,ordinal"),
+    database.query("SELECT * FROM pipeline_review_batch_members ORDER BY batch_id,proposal_id"),
   ]);
   return {
     documents: serializableRows(documents),
@@ -236,6 +257,13 @@ async function exportPrivateKnowledge(
     pipelineDecisions: serializableRows(pipelineDecisions),
     pipelineReceipts: serializableRows(pipelineReceipts),
     pageLayouts: serializableRows(pageLayouts),
+    documentProfiles: serializableRows(documentProfiles),
+    processingSteps: serializableRows(processingSteps),
+    unitRoles: serializableRows(unitRoles),
+    libraryPipelineRuns: serializableRows(libraryPipelineRuns),
+    libraryPipelineDocuments: serializableRows(libraryPipelineDocuments),
+    reviewBatches: serializableRows(reviewBatches),
+    reviewBatchMembers: serializableRows(reviewBatchMembers),
   };
 }
 
@@ -253,6 +281,13 @@ const privateKnowledgeTables = {
   pipelineDecisions: "pipeline_decisions",
   pipelineReceipts: "pipeline_unit_receipts",
   pageLayouts: "document_page_layouts",
+  documentProfiles: "private_document_profiles",
+  processingSteps: "document_processing_steps",
+  unitRoles: "semantic_unit_roles",
+  libraryPipelineRuns: "library_pipeline_runs",
+  libraryPipelineDocuments: "library_pipeline_documents",
+  reviewBatches: "pipeline_review_batches",
+  reviewBatchMembers: "pipeline_review_batch_members",
 } as const;
 
 async function importV1(

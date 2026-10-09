@@ -17,16 +17,44 @@ export interface ParsedBiblicalReference {
 }
 
 const EXTRA_ALIASES: Readonly<Record<string, readonly string[]>> = {
-  psalms: ["Psalm", "Salmo"],
-  "song-of-songs": ["Cantares", "Cântico", "Song of Solomon"],
+  genesis: ["Génesis"],
+  exodus: ["Éxodo"],
+  leviticus: ["Levítico"],
+  numbers: ["Números"],
+  deuteronomy: ["Deuteronomio"],
+  joshua: ["Josué"],
+  judges: ["Jueces"],
+  ruth: ["Rut"],
+  psalms: ["Psalm", "Salmo", "Salmos"],
+  proverbs: ["Proverbios"],
   ecclesiastes: ["Qohelet", "Eclesiastes"],
-  john: ["Evangelho de João", "Gospel of John", "Jhn"], // Jn pode ser confundido com "Jonas"
+  isaiah: ["Isaías"],
+  jeremiah: ["Jeremías"],
+  lamentations: ["Lamentaciones"],
+  ezekiel: ["Ezequiel"],
+  hosea: ["Oseas"],
+  obadiah: ["Abdías"],
+  jonah: ["Jonás"],
+  micah: ["Miqueas"],
+  nahum: ["Nahúm"],
+  habakkuk: ["Habacuc"],
+  zephaniah: ["Sofonías"],
+  haggai: ["Hageo"],
+  zechariah: ["Zacarías"],
+  malachi: ["Malaquías"],
+  matthew: ["Mateo"],
+  mark: ["Marcos"],
+  luke: ["Lucas"],
+  john: ["Evangelho de João", "Gospel of John", "Jhn", "Juan"], // Jn pode ser confundido com "Jonas"
+  acts: ["Hechos", "Hechos de los Apóstoles"],
+  romans: ["Romanos"],
+  "song-of-songs": ["Cantares", "Cântico", "Song of Solomon"],
   revelation: ["Revelação", "Revelations"],
   "1-corinthians": ["I Coríntios", "1 Cor", "I Corinthians"],
   "2-corinthians": ["II Coríntios", "2 Cor", "II Corinthians"],
-  "1-john": ["I João", "I John"],
-  "2-john": ["II João", "II John"],
-  "3-john": ["III João", "III John"],
+  "1-john": ["I João", "I John", "1 Juan", "I Juan"],
+  "2-john": ["II João", "II John", "2 Juan", "II Juan"],
+  "3-john": ["III João", "III John", "3 Juan", "III Juan"],
   "1-samuel": ["I Samuel"],
   "2-samuel": ["II Samuel"],
   "1-kings": ["I Reis", "I Kings"],
@@ -222,9 +250,19 @@ function parsedReference(
 
 export function parseBiblicalReferences(
   text: string,
-  options: { context?: PassageRef } = {},
+  options: {
+    context?: PassageRef;
+    zone?: "body" | "toc" | "index" | "bibliography" | "canon-list";
+  } = {},
 ): ParsedBiblicalReference[] {
   const references: ParsedBiblicalReference[] = [];
+  const suppressBareChapter =
+    options.zone === "toc" ||
+    options.zone === "index" ||
+    options.zone === "bibliography" ||
+    options.zone === "canon-list" ||
+    ((text.match(new RegExp(`(?:${BOOK_PATTERN})`, "giu")) ?? []).length >= 5 &&
+      !text.includes(":"));
   REFERENCE_PATTERN.lastIndex = 0;
   for (const match of text.matchAll(REFERENCE_PATTERN)) {
     const rawReference = match[0];
@@ -237,6 +275,11 @@ export function parseBiblicalReferences(
     if (!bookId || !Number.isInteger(chapter)) continue;
     // "Os 12 apóstolos", "At 2 horas", "Os 2,5 milhões": ambiguous words need chapter:verse.
     if (AMBIGUOUS_ALIASES.has(key) && (verseStart === undefined || separator !== ":")) continue;
+    const startOffset = match.index ?? 0;
+    const prefix = text.slice(Math.max(0, startOffset - 8), startOffset);
+    // Em listas como "1 João, 2 João, 3 João", o trecho interno "João 2" não é João capítulo 2.
+    if (verseStart === undefined && /(?:^|\s)(?:[123]|i{1,3})\s+$/iu.test(prefix)) continue;
+    if (verseStart === undefined && suppressBareChapter) continue;
     // Single-chapter books are cited by verse: "Jd 5", "Fm 10".
     if (BOOK_CHAPTER_LIMITS[bookId] === 1 && verseStart === undefined) {
       verseStart = chapter;
@@ -244,7 +287,6 @@ export function parseBiblicalReferences(
       chapter = 1;
     }
     if (!validAddress(bookId, chapter, verseStart, verseEnd)) continue;
-    const startOffset = match.index ?? 0;
     references.push(
       parsedReference(
         rawReference,
