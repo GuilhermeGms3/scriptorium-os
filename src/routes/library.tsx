@@ -1,6 +1,15 @@
 import { createFileRoute, Outlet } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileText, FileUp, LockKeyhole, RefreshCw, Search, X } from "lucide-react";
+import {
+  ChevronRight,
+  FileText,
+  FileUp,
+  LockKeyhole,
+  RefreshCw,
+  Search,
+  Settings2,
+  X,
+} from "lucide-react";
 import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
 import type { BibliographicSource } from "../lib/domain/bibliography";
 import {
@@ -178,7 +187,26 @@ export function LibraryPage() {
           </button>
         </div>
       </header>
-      <LibraryPipelineOverview />
+      <details className="group border-b border-border bg-muted/10">
+        <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3 md:px-6">
+          <span className="flex size-8 shrink-0 items-center justify-center rounded border border-border bg-background text-muted-foreground">
+            <Settings2 className="size-4" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs font-medium">Processamento da biblioteca</span>
+            <span className="mt-0.5 block text-[11px] text-muted-foreground">
+              Importação em lote, OCR, conexão de passagens, auditoria e cobertura.
+            </span>
+          </span>
+          <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
+            Ferramentas avançadas
+          </span>
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
+        </summary>
+        <div className="border-t border-border">
+          <LibraryPipelineOverview />
+        </div>
+      </details>
       {showImport && <ImportPanel onClose={() => setShowImport(false)} onImported={refresh} />}
       <div className="grid min-h-0 flex-1 md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]">
         <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">

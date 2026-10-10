@@ -1,5 +1,21 @@
 # Project Memory
 
+## Front-end experience foundation (2026-10-10)
+
+- Canonical UX direction: `docs/architecture/frontend-experience.md`. Preserve the dense academic
+  workstation identity, but organize the product into reading, library and investigation contexts.
+- The passage/word inspector is now route-scoped to chapter reading. Library, Study, Knowledge,
+  Search and other general routes no longer sacrifice space to an empty biblical inspector.
+- Library pipeline controls use progressive disclosure; the catalog remains the primary surface.
+- Knowledge Explorer now filters entities and omits empty relation cards, replacing an entirely
+  empty graph with one honest explanatory state.
+- Translation is already exposed for English primary-source units, accepted English private units
+  and eligible word definitions. Private batch translation and the configured Docker model remain
+  English-to-Portuguese only; Spanish-to-Portuguese is not implemented yet.
+- Verification: 229 tests across 31 files, typecheck, repository lint, Node production build and
+  desktop/mobile browser QA passed. Browser QA covered contextual inspector visibility, pipeline
+  disclosure, Knowledge filtering, 390 px overflow and clean-console fresh-page loads.
+
 ## Contextual private knowledge engine (2026-10-02)
 
 - Workspace schema 14 preserves reviewed proposals while adding explicit bibliographic reference,

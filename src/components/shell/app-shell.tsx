@@ -11,6 +11,7 @@
 
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { Drawer } from "vaul";
+import { useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { useIsMobile } from "../../hooks/use-mobile";
@@ -21,10 +22,13 @@ import { MobileNav } from "./mobile-nav";
 import { InspectorPanel } from "./inspector-panel";
 import { CommandPalette } from "../search/command-palette";
 import { t } from "../../lib/i18n";
+import { supportsPassageInspector } from "./shell-route-context";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { inspectorOpen, wordSelection, selectWord } = useWorkbench();
   const isMobile = useIsMobile();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const passageInspectorAvailable = supportsPassageInspector(pathname);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -47,7 +51,7 @@ export function AppShell({ children }: { children: ReactNode }) {
               </main>
             </Panel>
 
-            {inspectorOpen && (
+            {passageInspectorAvailable && inspectorOpen && (
               <>
                 <Separator
                   className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
@@ -73,7 +77,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
       {/* Mobile inspector as bottom sheet */}
       <Drawer.Root
-        open={isMobile && !!wordSelection}
+        open={isMobile && passageInspectorAvailable && !!wordSelection}
         onOpenChange={(open) => {
           if (!open) selectWord(null);
         }}

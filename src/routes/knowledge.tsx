@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
+import { Search } from "lucide-react";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import {
   KnowledgeQueryService,
@@ -87,6 +88,7 @@ function KnowledgePage() {
   const [bundle, setBundle] = useState<KnowledgeExplorerBundle | null>(null);
   const [focusedClaim, setFocusedClaim] = useState<KnowledgeClaim | null>(null);
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
+  const [entityQuery, setEntityQuery] = useState("");
   useEffect(() => setPassageContext(null), [setPassageContext]);
 
   useEffect(() => {
@@ -134,10 +136,21 @@ function KnowledgePage() {
 
   const grouped = useMemo(() => {
     const map = new Map<string, ExplorerEntity[]>();
-    for (const item of entities)
+    const normalizedQuery = entityQuery.normalize("NFC").toLocaleLowerCase("pt-BR").trim();
+    for (const item of entities) {
+      if (
+        normalizedQuery &&
+        !`${entityName(item)} ${kindLabel(entityKind(item))}`
+          .normalize("NFC")
+          .toLocaleLowerCase("pt-BR")
+          .includes(normalizedQuery)
+      ) {
+        continue;
+      }
       map.set(entityKind(item), [...(map.get(entityKind(item)) ?? []), item]);
+    }
     return [...map.entries()];
-  }, [entities]);
+  }, [entities, entityQuery]);
   const select = (id: string) => navigate({ search: { entity: id } });
 
   return (
@@ -146,6 +159,16 @@ function KnowledgePage() {
         className="hidden w-60 shrink-0 overflow-y-auto border-r border-border py-2 md:block"
         aria-label="Entidades do conhecimento"
       >
+        <label className="mx-2 mb-3 flex h-8 items-center gap-2 rounded border border-input bg-background px-2">
+          <Search className="size-3.5 shrink-0 text-muted-foreground" />
+          <span className="sr-only">Filtrar entidades</span>
+          <input
+            value={entityQuery}
+            onChange={(event) => setEntityQuery(event.target.value)}
+            placeholder="Filtrar o mapa…"
+            className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+          />
+        </label>
         {grouped.map(([kind, items]) => (
           <div key={kind} className="mb-3 px-2">
             <p className="meta-label px-1 py-1">{kindLabel(kind)}</p>
@@ -160,6 +183,11 @@ function KnowledgePage() {
             ))}
           </div>
         ))}
+        {!grouped.length && (
+          <p className="px-4 py-6 text-xs italic text-muted-foreground">
+            Nenhuma entidade corresponde ao filtro.
+          </p>
+        )}
       </aside>
 
       <main className="min-w-0 flex-1 overflow-y-auto px-5 py-6 md:px-8">
@@ -250,6 +278,21 @@ function ExplorerContent({
     if (kind === "theory") return knowledgeLabel(id, id);
     return id;
   };
+  const hasRelatedMaterial = Boolean(
+    bundle.arguments.length ||
+    bundle.supportingArguments.length ||
+    bundle.opposingArguments.length ||
+    bundle.evidence.length ||
+    bundle.perspectives.length ||
+    citations.length ||
+    sourceLinks.length ||
+    bundle.relatedTheories.length ||
+    bundle.argumentRelations.length ||
+    bundle.objections.length ||
+    bundle.responses.length ||
+    bundle.ontologyRelations.length ||
+    bundle.knowledgeRelations.length,
+  );
   return (
     <div className="mt-5 grid gap-6 lg:grid-cols-[1.4fr_1fr]">
       <section>
@@ -295,9 +338,9 @@ function ExplorerContent({
         </section>
       </section>
       <aside className="space-y-4">
-        <section className="rounded-lg border border-border bg-card p-4">
-          <h3 className="meta-label">Argumentos</h3>
-          {bundle.arguments.length ? (
+        {bundle.arguments.length > 0 && (
+          <section className="rounded-lg border border-border bg-card p-4">
+            <h3 className="meta-label">Argumentos</h3>
             <div className="mt-2 space-y-2">
               {bundle.arguments.map((argument) => (
                 <article key={argument.id} className="rounded bg-muted/40 p-2.5 text-xs">
@@ -316,10 +359,8 @@ function ExplorerContent({
                 </article>
               ))}
             </div>
-          ) : (
-            <p className="mt-2 text-xs italic text-muted-foreground">Nenhuma relação registrada.</p>
-          )}
-        </section>
+          </section>
+        )}
         <RelationCard
           title="Argumentos favoráveis"
           items={bundle.supportingArguments.map((argument) =>
@@ -412,26 +453,32 @@ function ExplorerContent({
             argumentRelationLabel(relation.relation.value),
           )}
         />
+        {!hasRelatedMaterial && (
+          <section className="rounded-lg border border-dashed border-border bg-muted/15 p-4">
+            <h3 className="text-sm font-medium">Ainda sem conexões publicadas</h3>
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+              Esta entidade existe na taxonomia, mas ainda não possui argumentos, evidências ou
+              fontes relacionadas. O Scriptorium não preenche essas relações com conteúdo fictício.
+            </p>
+          </section>
+        )}
       </aside>
     </div>
   );
 }
 
 function RelationCard({ title, items }: { title: string; items: string[] }) {
+  if (!items.length) return null;
   return (
     <section className="rounded-lg border border-border bg-card p-4">
       <h3 className="meta-label">{title}</h3>
-      {items.length ? (
-        <ul className="mt-2 space-y-1.5 text-xs">
-          {items.map((item, index) => (
-            <li key={`${item}:${index}`} className="rounded bg-muted/40 p-2">
-              {item}
-            </li>
-          ))}
-        </ul>
-      ) : (
-        <p className="mt-2 text-xs italic text-muted-foreground">Nenhuma relação registrada.</p>
-      )}
+      <ul className="mt-2 space-y-1.5 text-xs">
+        {items.map((item, index) => (
+          <li key={`${item}:${index}`} className="rounded bg-muted/40 p-2">
+            {item}
+          </li>
+        ))}
+      </ul>
     </section>
   );
 }

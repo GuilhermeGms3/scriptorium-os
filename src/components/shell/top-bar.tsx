@@ -2,14 +2,18 @@
  * TopBar — product identity, global search / command trigger, inspector toggle.
  */
 
+import { useLocation } from "@tanstack/react-router";
 import { BookMarked, Moon, PanelRight, Search, Sun } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { cn } from "../../lib/utils";
 import { t } from "../../lib/i18n";
+import { supportsPassageInspector } from "./shell-route-context";
 
 export function TopBar() {
   const { setPaletteOpen, resolvedTheme, setTheme, inspectorOpen, setInspectorOpen } =
     useWorkbench();
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const passageInspectorAvailable = supportsPassageInspector(pathname);
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
@@ -50,20 +54,22 @@ export function TopBar() {
             <Moon className="size-4" strokeWidth={1.75} />
           )}
         </button>
-        <button
-          onClick={() => setInspectorOpen(!inspectorOpen)}
-          className={cn(
-            "hidden size-7 items-center justify-center rounded-md transition-colors lg:flex",
-            inspectorOpen
-              ? "bg-accent text-foreground"
-              : "text-muted-foreground hover:bg-accent hover:text-foreground",
-          )}
-          aria-label={t("shell.toggleInspector")}
-          aria-pressed={inspectorOpen}
-          title={t("shell.toggleInspector")}
-        >
-          <PanelRight className="size-4" strokeWidth={1.75} />
-        </button>
+        {passageInspectorAvailable && (
+          <button
+            onClick={() => setInspectorOpen(!inspectorOpen)}
+            className={cn(
+              "hidden size-7 items-center justify-center rounded-md transition-colors lg:flex",
+              inspectorOpen
+                ? "bg-accent text-foreground"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+            )}
+            aria-label={t("shell.toggleInspector")}
+            aria-pressed={inspectorOpen}
+            title={t("shell.toggleInspector")}
+          >
+            <PanelRight className="size-4" strokeWidth={1.75} />
+          </button>
+        )}
       </div>
     </header>
   );
