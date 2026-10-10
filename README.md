@@ -47,6 +47,13 @@ npm run semantic:test
 npm run preview
 ```
 
+`npm run dev` fixa deliberadamente a origem local em `http://127.0.0.1:5173`.
+O workspace privado usa OPFS e pertence à origem completa do navegador; trocar
+host, protocolo ou porta cria outro armazenamento isolado, mesmo com o mesmo
+código. Use `npm run dev:flexible` somente quando esse isolamento for desejado.
+Docker (`http://localhost:3000`), previews do Lovable e produção continuam com
+suas próprias origens e não têm o target de build alterado por essa convenção local.
+
 No Windows, os comandos `semantic:*` procuram a `.venv` e depois `py -3.13`; assim, uma instalação
 antiga chamada apenas `python` no `PATH` não mascara o Python 3.13.3. Consulte o
 [README do motor semântico](services/semantic-engine/README.md).

@@ -17,6 +17,7 @@ import { LocalTranslationService } from "../application/local-translation-servic
 import { PrivateDocumentTranslationService } from "../application/private-document-translation-service";
 import { ResearchWorkspaceService } from "../application/research-workspace-service";
 import { WorkspacePassageKnowledgeService } from "../application/workspace-passage-knowledge-service";
+import { reserveLibraryRunOrdinals } from "../application/library-knowledge-orchestrator";
 import { CitationSchema, SourceLocatorSchema } from "../domain/bibliography";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { SemanticContentRepository } from "../repositories/semantic-content-repository";
@@ -133,6 +134,69 @@ describe("Phase 9.5 workspace schema", () => {
         .run(),
     ).toThrow();
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    expect(
+      db
+        .prepare(
+          "SELECT name FROM sqlite_master WHERE type='index' AND name='idx_knowledge_proposals_passage_lookup'",
+        )
+        .get(),
+    ).toMatchObject({ name: "idx_knowledge_proposals_passage_lookup" });
+  });
+
+  it("reorders an existing run before newly imported books reuse canonical ordinals", async () => {
+    const db = database();
+    const workspace = adapter(db);
+    const importBook = (checksum: string, title: string) =>
+      PrivateDocumentRepository.importDocument(
+        {
+          title,
+          language: "pt-BR",
+          originalName: `${title}.pdf`,
+          mimeType: "application/pdf",
+          sizeBytes: 64,
+          checksum,
+          pageCount: 1,
+          textPageCount: 1,
+          extractionMethod: "pdf-text-layer",
+          pages: [{ pageIndex: 0, pageLabel: "1", text: "João 1:1", itemCount: 2 }],
+        },
+        `opfs:/${title}.pdf`,
+        workspace,
+      );
+    const first = await importBook("a".repeat(64), "Primeiro");
+    const second = await importBook("b".repeat(64), "Segundo");
+    db.prepare(
+      `INSERT INTO library_pipeline_runs(
+        id,configuration_key,configuration_json,status,total_documents,started_at,updated_at
+      ) VALUES('run:expanded','config:expanded','{}','complete',1,?,?)`,
+    ).run("2026-10-05T00:00:00.000Z", "2026-10-05T00:00:00.000Z");
+    db.prepare(
+      `INSERT INTO library_pipeline_documents(
+        run_id,document_id,ordinal,stage,status,source_checksum,result_json,updated_at
+      ) VALUES('run:expanded',?,0,'complete','complete',?,'{}',?)`,
+    ).run(first.document.id, first.document.checksum, "2026-10-05T00:00:00.000Z");
+
+    await reserveLibraryRunOrdinals(workspace, "run:expanded", 2);
+    const upsert = db.prepare(
+      `INSERT INTO library_pipeline_documents(
+        run_id,document_id,ordinal,stage,status,source_checksum,result_json,updated_at
+      ) VALUES('run:expanded',?,?,'queued','pending',?,'{}',?)
+      ON CONFLICT(run_id,document_id) DO UPDATE SET ordinal=excluded.ordinal`,
+    );
+    expect(() => {
+      upsert.run(first.document.id, 0, first.document.checksum, "2026-10-05T00:00:01.000Z");
+      upsert.run(second.document.id, 1, second.document.checksum, "2026-10-05T00:00:01.000Z");
+    }).not.toThrow();
+    expect(
+      db
+        .prepare(
+          "SELECT document_id,ordinal FROM library_pipeline_documents WHERE run_id='run:expanded' ORDER BY ordinal",
+        )
+        .all(),
+    ).toEqual([
+      { document_id: first.document.id, ordinal: 0 },
+      { document_id: second.document.id, ordinal: 1 },
+    ]);
   });
 
   it("migrates reviewed v13 proposals and accepts the contextual proposal vocabulary", async () => {
@@ -219,7 +283,7 @@ describe("Phase 9.5 workspace schema", () => {
     );
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     expect(db.prepare("SELECT max(version) version FROM workspace_migrations").get()).toMatchObject(
-      { version: 18 },
+      { version: 19 },
     );
   });
 
@@ -663,6 +727,7 @@ describe("Phase 9.5 workspace schema", () => {
     )[0];
     expect(unit).toBeTruthy();
     if (!unit) throw new Error("Expected an evidence unit.");
+    expect(unit.text).toContain("John 1:1 means that the Logos is central");
     const now = new Date().toISOString();
     await LocalTranslationRepository.save(
       {

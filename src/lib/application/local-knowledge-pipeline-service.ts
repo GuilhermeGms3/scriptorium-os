@@ -2,6 +2,8 @@ import { z } from "zod";
 import { corpusPackageRegistry } from "../corpus-runtime/corpus-package-registry";
 import type { KnowledgeProposal, SemanticUnit } from "../domain/document-knowledge";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
+import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
+import type { DocumentProfileKind } from "../domain/document-profile";
 import {
   PipelineInfoSchema,
   PipelineLinkSchema,
@@ -55,6 +57,31 @@ function decisionStatement(
 
 const REVIEW_BATCH_SIZE = 100;
 const REVIEW_SAMPLE_SIZE = 20;
+
+const EXPLICIT_AUTO_VISIBILITY_PROFILES = new Set<DocumentProfileKind>([
+  "study-bible",
+  "commentary",
+  "confession",
+  "catechism",
+  "systematic-theology",
+  "biblical-theology",
+  "academic-monograph",
+  "exegesis-method",
+  "patristic-work",
+  "archaeology",
+  "church-history",
+]);
+
+/** Dense reference works remain sampled because numeric entries produce many false positives. */
+export function explicitPublicationForProfile(
+  profile: DocumentProfileKind,
+  referenceValid: boolean,
+  sourceSchemeConfirmed: boolean,
+): "machine-visible" | "exception" {
+  return referenceValid && sourceSchemeConfirmed && EXPLICIT_AUTO_VISIBILITY_PROFILES.has(profile)
+    ? "machine-visible"
+    : "exception";
+}
 
 async function prepareInferenceReviewBatches(
   db: WorkspaceDatabase,
@@ -173,6 +200,8 @@ export const LocalKnowledgePipelineService = {
     const summary = await DocumentKnowledgeRepository.getSummary(documentId, db);
     if (summary?.status !== "ready")
       throw new Error("Desmonte o livro primeiro para obter unidades citáveis.");
+    const profile = await DocumentProcessingRepository.getProfile(documentId, db);
+    if (!profile) throw new Error("Classifique o perfil documental antes de conectar o livro.");
     const info = useLlm
       ? await pipelineRequest("info", PipelineInfoSchema, undefined, signal)
       : { mode: "deterministic-explicit-only", revision: "1" };
@@ -188,7 +217,8 @@ export const LocalKnowledgePipelineService = {
         checksum: summary.sourceChecksum,
         indexedAt: summary.indexedAt,
         sourceSchemeConfirmed,
-        policy: "explicit-only-v1",
+        policy: "profile-aware-explicit-v2",
+        profile: profile.profile,
       }),
     );
     const saved = (
@@ -234,7 +264,7 @@ export const LocalKnowledgePipelineService = {
         [
           key,
           JSON.stringify({
-            policy: "deterministic-explicit-only-v1",
+            policy: "deterministic-profile-aware-explicit-v2",
             reason: "no-explicit-reference",
           }),
           new Date().toISOString(),
@@ -316,27 +346,19 @@ export const LocalKnowledgePipelineService = {
               end: start + proposal.payload.rawReference.length,
               editionId,
               textChecksum: unit.textChecksum,
-              policy: "explicit-only-v1",
+              policy: "profile-aware-explicit-v2",
+              documentProfile: profile.profile,
               sourceSchemeConfirmed,
             };
-            if (useLlm)
-              await saveDecision(
-                db,
-                proposal,
-                "explicit",
-                valid ? "machine-visible" : "exception",
-                evidence,
-                key,
-              );
+            const publication = explicitPublicationForProfile(
+              profile.profile,
+              valid,
+              sourceSchemeConfirmed,
+            );
+            if (useLlm) await saveDecision(db, proposal, "explicit", publication, evidence, key);
             else
               deterministicStatements.push(
-                decisionStatement(
-                  proposal,
-                  "explicit",
-                  valid ? "machine-visible" : "exception",
-                  evidence,
-                  key,
-                ),
+                decisionStatement(proposal, "explicit", publication, evidence, key),
               );
           }
           if (useLlm && !explicit.length && !["heading", "bibliography-entry"].includes(unit.kind))

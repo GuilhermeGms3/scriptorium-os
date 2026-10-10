@@ -31,7 +31,10 @@ retoma somente documentos incompletos ou cujo checksum mudou. Uma falha fica reg
 não interrompe os demais. Pausar conserva os checkpoints estruturais e de conexão.
 
 O orquestrador não cria outra fonte de verdade: ele chama os serviços canônicos por documento. As
-tabelas de execução são operacionais e regeneráveis, sem copiar texto, claims ou evidências.
+tabelas de execução são operacionais e regeneráveis, sem copiar texto, claims ou evidências. Ao
+adicionar documentos a uma execução existente, os ordinais atuais são primeiro reservados fora da
+faixa canônica e depois reatribuídos; assim, ampliar ou reordenar a biblioteca não viola a unicidade
+de `(run_id, ordinal)` e a retomada continua idempotente.
 
 Biblioteca → abrir documento → Conhecimento do livro:
 
@@ -52,6 +55,17 @@ pelo lote formam a amostra. Somente quando toda a amostra é confirmada o restan
 `machine-visible`; uma rejeição bloqueia o lote. Isso reduz o trabalho manual, mas não transforma a
 amostra em prova estatística, revisão acadêmica ou verdade teológica. Referências explícitas continuam
 sob política separada e só ganham visibilidade automática quando a numeração da fonte foi declarada.
+Mesmo nesse caso, a publicação automática é limitada a perfis discursivos, como comentário, Bíblia
+de estudo, teologia, exegese, patrística, história e arqueologia. Léxicos, dicionários, enciclopédias,
+interlineares e perfis desconhecidos permanecem em exceção para auditoria por amostragem, pois a alta
+densidade de referências nesses gêneros gera falsos positivos sem contexto suficiente.
+
+O leitor consulta primeiro relações publicadas (`accepted` ou `machine-visible`); sugestões pendentes
+continuam disponíveis nos fluxos de auditoria, mas não ocupam o limite do capítulo nem exigem aprovação
+versículo por versículo durante a leitura. A migração 019 indexa o endereço principal da passagem. A
+resolução de contexto reutiliza o conjunto de relações já aprovado pelo pipeline e carrega somente os
+nós e as páginas necessários às unidades retornadas, evitando varrer o grafo inteiro ou repetir o texto
+integral de uma página para cada span.
 
 Uma unidade pode carregar uma passagem principal e até 100 passagens adicionais, com escopo
 `verse`, `range`, `pericope`, `chapter` ou `book`. Assuntos continuam sendo relações próprias, não

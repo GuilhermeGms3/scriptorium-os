@@ -138,18 +138,21 @@ async function buildItems(
   relations: readonly PassageRelationProposal[],
   db: WorkspaceDatabase,
 ): Promise<WorkspacePassageKnowledgeItem[]> {
-  const [proposals, machineVisibleIds] = await Promise.all([
-    DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
-      relations.map((proposal) => proposal.semanticUnitId),
-      db,
-    ),
-    DocumentKnowledgeRepository.listMachineVisibleProposalIds(
-      relations
-        .filter((proposal) => proposal.reviewStatus === "machine-proposed")
-        .map((proposal) => proposal.id),
-      db,
-    ),
-  ]);
+  const machineVisibleIds = await DocumentKnowledgeRepository.listMachineVisibleProposalIds(
+    relations
+      .filter((proposal) => proposal.reviewStatus === "machine-proposed")
+      .map((proposal) => proposal.id),
+    db,
+  );
+  const proposals = await DocumentKnowledgeRepository.listVisibleContextProposalsForUnits(
+    relations.map((proposal) => proposal.semanticUnitId),
+    relations
+      .filter(
+        (proposal) => proposal.reviewStatus === "accepted" || machineVisibleIds.has(proposal.id),
+      )
+      .map((proposal) => proposal.semanticUnitId),
+    db,
+  );
   const proposalsByUnit = new Map<string, KnowledgeProposal[]>();
   for (const proposal of proposals) {
     const values = proposalsByUnit.get(proposal.semanticUnitId) ?? [];
@@ -161,14 +164,13 @@ async function buildItems(
   const documentIds = [...new Set(relations.map((proposal) => proposal.documentId))];
   for (const documentId of documentIds) {
     const documentRelations = relations.filter((proposal) => proposal.documentId === documentId);
-    const [document, units, nodes, authorRows] = await Promise.all([
+    const [document, units, authorRows] = await Promise.all([
       PrivateDocumentRepository.getDocument(documentId, db),
       DocumentKnowledgeRepository.listUnits(
         documentId,
         documentRelations.map((proposal) => proposal.semanticUnitId),
         db,
       ),
-      DocumentKnowledgeRepository.listNodes(documentId, db),
       db.query(
         `SELECT a.canonical_name FROM authors a JOIN source_authors sa ON sa.author_id=a.id
          JOIN private_documents d ON d.source_id=sa.source_id WHERE d.id=? ORDER BY sa.ordinal`,
@@ -177,11 +179,18 @@ async function buildItems(
     ]);
     if (!document) continue;
     const unitsById = new Map(units.map((unit) => [unit.id, unit]));
-    const translations = await LocalTranslationRepository.listForSources(
-      "private-segment",
-      units.map((unit) => unit.id),
-      db,
-    );
+    const [nodes, translations] = await Promise.all([
+      DocumentKnowledgeRepository.listNodesByIds(
+        documentId,
+        units.flatMap((unit) => (unit.documentNodeId ? [unit.documentNodeId] : [])),
+        db,
+      ),
+      LocalTranslationRepository.listForSources(
+        "private-segment",
+        units.map((unit) => unit.id),
+        db,
+      ),
+    ]);
     const nodesById = new Map(nodes.map((node) => [node.id, node]));
     const authors = authorRows.map((row) => String(row["canonical_name"]));
     const translationsBySource = new Map(

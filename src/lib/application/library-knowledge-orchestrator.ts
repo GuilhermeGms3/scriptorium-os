@@ -5,11 +5,16 @@ import type {
 } from "../domain/library-pipeline";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
-import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import {
+  getWorkspaceDatabase,
+  type WorkspaceDatabase,
+} from "../workspace-runtime/workspace-database";
 import { DocumentKnowledgePipelineService } from "./document-knowledge-pipeline-service";
 import { LocalKnowledgePipelineService } from "./local-knowledge-pipeline-service";
 import { PrivateDocumentOcrService } from "./private-document-ocr-service";
 import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
+
+const LIBRARY_PIPELINE_REVISION = 2;
 
 async function sha256(value: string): Promise<string> {
   const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
@@ -18,6 +23,18 @@ async function sha256(value: string): Promise<string> {
 
 function errorMessage(cause: unknown): string {
   return cause instanceof Error ? cause.message.slice(0, 1_000) : String(cause).slice(0, 1_000);
+}
+
+/** @internal Frees the canonical ordinal range before an idempotent run is expanded. */
+export async function reserveLibraryRunOrdinals(
+  db: WorkspaceDatabase,
+  runId: string,
+  documentCount: number,
+): Promise<void> {
+  await db.execute("UPDATE library_pipeline_documents SET ordinal=ordinal+? WHERE run_id=?", [
+    1_000_000 + documentCount,
+    runId,
+  ]);
 }
 
 /** Coordinates the existing canonical per-document services; it does not own document knowledge. */
@@ -30,7 +47,9 @@ export const LibraryKnowledgeOrchestrator = {
     const db = await getWorkspaceDatabase();
     const documents = await PrivateDocumentRepository.listDocuments({ limit: 1_000 }, db);
     if (!documents.length) throw new Error("Nenhum PDF privado foi importado.");
-    const configurationKey = await sha256(JSON.stringify(options));
+    const configurationKey = await sha256(
+      JSON.stringify({ revision: LIBRARY_PIPELINE_REVISION, ...options }),
+    );
     const runId = `library-pipeline:${configurationKey}`;
     const startedAt = new Date().toISOString();
     await db.execute(
@@ -40,8 +59,19 @@ export const LibraryKnowledgeOrchestrator = {
       ) VALUES(?,?,?,'running',?,0,0,?,?,NULL,NULL)
       ON CONFLICT(id) DO UPDATE SET status='running',total_documents=excluded.total_documents,
         updated_at=excluded.updated_at,completed_at=NULL,error=NULL`,
-      [runId, configurationKey, JSON.stringify(options), documents.length, startedAt, startedAt],
+      [
+        runId,
+        configurationKey,
+        JSON.stringify({ revision: LIBRARY_PIPELINE_REVISION, ...options }),
+        documents.length,
+        startedAt,
+        startedAt,
+      ],
     );
+    // A biblioteca pode crescer depois de uma execução concluída. Libere primeiro o
+    // intervalo ordinal canônico para que os upserts abaixo não colidam entre si ao
+    // reordenar documentos antigos e inserir os novos na mesma configuração.
+    await reserveLibraryRunOrdinals(db, runId, documents.length);
     for (const [ordinal, document] of documents.entries())
       await db.execute(
         `INSERT INTO library_pipeline_documents(

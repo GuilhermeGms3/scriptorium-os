@@ -206,7 +206,7 @@ export function PrivateLinkCard({
   const [correcting, setCorrecting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
-  const unconfirmed = item.reviewState !== "confirmed";
+  const unconfirmed = item.reviewState === "pending";
   const relation = item.passageRelation;
   const target = relation.payload.passage;
   const topics = item.proposals.flatMap((proposal) =>
@@ -390,10 +390,10 @@ export function PrivateLinkCard({
           {item.reviewState === "confirmed"
             ? "Confirmada por você"
             : item.reviewState === "auto-visible"
-              ? "Publicada automaticamente · lote auditado"
+              ? "Publicada automaticamente · política documental"
               : "Detectada automaticamente"}{" "}
           · {RELATION_LABELS[relation.payload.relationType]}
-          {item.reviewState === "confirmed" && !correcting && (
+          {item.reviewState !== "pending" && !correcting && (
             <button
               type="button"
               onClick={() => setCorrecting(true)}
@@ -451,8 +451,8 @@ export function PrivateVerseKnowledge({
     return true;
   });
   if (!matching.length) return null;
-  const unconfirmed = matching.filter((item) => item.reviewState !== "confirmed").length;
-  const confirmed = matching.length - unconfirmed;
+  const unconfirmed = matching.filter((item) => item.reviewState === "pending").length;
+  const published = matching.length - unconfirmed;
   return (
     <div className="mb-4 ml-4">
       <button
@@ -467,7 +467,9 @@ export function PrivateVerseKnowledge({
         )}
         <BookMarked className="size-3.5" aria-hidden="true" />
         <span>
-          {unconfirmed} por confirmar · {confirmed} {confirmed === 1 ? "confirmada" : "confirmadas"}
+          {unconfirmed > 0
+            ? `${unconfirmed} por confirmar · ${published} ${published === 1 ? "publicado" : "publicados"}`
+            : `${published} ${published === 1 ? "trecho publicado" : "trechos publicados"}`}
         </span>
         <ChevronDown
           className={cn("size-3 transition-transform", open && "rotate-180")}

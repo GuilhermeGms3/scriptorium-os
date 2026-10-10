@@ -405,6 +405,29 @@ export const DocumentKnowledgeRepository = {
     ).map(mapNode);
   },
 
+  async listNodesByIds(
+    documentId: string,
+    nodeIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<DocumentNode[]> {
+    if (!nodeIds.length) return [];
+    const db = database ?? (await getWorkspaceDatabase());
+    const result: DocumentNode[] = [];
+    for (const batch of chunks([...new Set(nodeIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      result.push(
+        ...(
+          await db.query(
+            `SELECT * FROM document_nodes
+             WHERE document_id=? AND id IN (${placeholders}) ORDER BY ordinal`,
+            [documentId, ...batch],
+          )
+        ).map(mapNode),
+      );
+    }
+    return result;
+  },
+
   async listUnits(
     documentId: string,
     unitIds: readonly string[],
@@ -425,12 +448,21 @@ export const DocumentKnowledgeRepository = {
       );
       spanRows.push(
         ...(await db.query(
-          `SELECT s.*,p.text page_text FROM semantic_unit_spans s
-           JOIN private_document_pages p ON p.id=s.page_id
+          `SELECT s.* FROM semantic_unit_spans s
            WHERE s.unit_id IN (${placeholders}) ORDER BY s.unit_id,s.ordinal`,
           batch,
         )),
       );
+    }
+    const pageTextById = new Map<string, string>();
+    const pageIds = [...new Set(spanRows.map((row) => stringValue(row, "page_id")))];
+    for (const batch of chunks(pageIds, 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      for (const row of await db.query(
+        `SELECT id,text FROM private_document_pages WHERE id IN (${placeholders})`,
+        batch,
+      ))
+        pageTextById.set(stringValue(row, "id"), stringValue(row, "text"));
     }
     const spansByUnit = new Map<string, WorkspaceRow[]>();
     for (const row of spanRows) {
@@ -453,7 +485,7 @@ export const DocumentKnowledgeRepository = {
         }));
         const text = spanValues
           .map((span) =>
-            stringValue(span, "page_text").slice(
+            (pageTextById.get(stringValue(span, "page_id")) ?? "").slice(
               numberValue(span, "start_offset"),
               numberValue(span, "end_offset"),
             ),
@@ -694,31 +726,31 @@ export const DocumentKnowledgeRepository = {
 
   async listVisibleContextProposalsForUnits(
     unitIds: readonly string[],
+    machineVisibleUnitIds: readonly string[],
     database?: WorkspaceDatabase,
   ): Promise<KnowledgeProposal[]> {
     if (!unitIds.length) return [];
     const db = database ?? (await getWorkspaceDatabase());
     const result: KnowledgeProposal[] = [];
+    const machineVisibleUnits = new Set(machineVisibleUnitIds);
     for (const batch of chunks([...new Set(unitIds)], 400)) {
       const placeholders = batch.map(() => "?").join(",");
+      const visibleBatch = batch.filter((unitId) => machineVisibleUnits.has(unitId));
+      const visibleClause = visibleBatch.length
+        ? `OR (
+          p.review_status='machine-proposed'
+          AND p.proposal_kind IN ('topic-assignment','citation','entity','bibliographic-reference','attribution','coreference')
+          AND p.semantic_unit_id IN (${visibleBatch.map(() => "?").join(",")})
+        )`
+        : "";
       result.push(
         ...(
           await db.query(
             `SELECT p.* FROM knowledge_proposals p
              WHERE p.semantic_unit_id IN (${placeholders}) AND (
-               p.review_status='accepted' OR (
-                 p.review_status='machine-proposed'
-                 AND p.proposal_kind IN ('topic-assignment','citation','entity','bibliographic-reference','attribution','coreference')
-                 AND EXISTS(
-                   SELECT 1 FROM knowledge_proposals relation
-                   JOIN pipeline_decisions d ON d.proposal_id=relation.id
-                   WHERE relation.semantic_unit_id=p.semantic_unit_id
-                     AND relation.proposal_kind='passage-relation'
-                     AND d.publication='machine-visible'
-                 )
-               )
+               p.review_status='accepted' ${visibleClause}
              ) ORDER BY p.semantic_unit_id,p.proposal_kind,p.id`,
-            batch,
+            [...batch, ...visibleBatch],
           )
         ).map(mapProposal),
       );

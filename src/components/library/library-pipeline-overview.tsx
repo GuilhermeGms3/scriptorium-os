@@ -227,8 +227,9 @@ export function LibraryPipelineOverview() {
               onChange={(event) => setSourceSchemeConfirmed(event.target.checked)}
             />
             <span>
-              Confirmei que estes livros usam a numeração da edição escolhida. Se desmarcado,
-              referências explícitas divergentes ficam nas exceções.
+              Validar as referências explícitas contra a numeração da edição escolhida. Somente
+              comentários, Bíblias de estudo e perfis discursivos passam a ficar visíveis; léxicos,
+              dicionários, enciclopédias e interlineares continuam em revisão por amostragem.
             </span>
           </label>
           {busy ? (

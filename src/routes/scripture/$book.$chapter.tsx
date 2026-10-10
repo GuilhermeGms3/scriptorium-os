@@ -134,9 +134,7 @@ function ChapterReader() {
     let active = true;
     const load = () => {
       setPrivateKnowledgeError(undefined);
-      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null, undefined, {
-        includePending: true,
-      }).then(
+      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null).then(
         (value) => {
           if (active) setPrivateKnowledge(value);
         },
@@ -176,7 +174,7 @@ function ChapterReader() {
     [privateKnowledge],
   );
   const unconfirmedItems = useMemo(
-    () => (privateKnowledge?.items ?? []).filter((item) => item.reviewState !== "confirmed"),
+    () => (privateKnowledge?.items ?? []).filter((item) => item.reviewState === "pending"),
     [privateKnowledge],
   );
   const unconfirmedVerses = useMemo(
