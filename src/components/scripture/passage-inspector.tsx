@@ -208,6 +208,27 @@ export function PassageInspector() {
           return source && isPassageRelation ? [{ relation, source }] : [];
         })
       : [];
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "overview") return true;
+    if (tab.id === "cross-references")
+      return Boolean(bundle && hasAvailableData(bundle.crossReferences));
+    if (tab.id === "language") return Boolean(bundle && hasAvailableData(bundle.originals));
+    if (tab.id === "history")
+      return historicalAnalyses.length > 0 || primarySourceRelations.length > 0;
+    if (tab.id === "literature")
+      return Boolean(bundle?.sources.references.length || workspaceKnowledge?.items.length);
+    if (tab.id === "notes") return Boolean(bundle?.user.notes.length);
+    if (tab.id === "sources") return Boolean(bundle?.sources.references.length);
+    if (tab.id === "research") return researchQuestions.length > 0;
+    return false;
+  });
+  const hasOverviewContent = Boolean(
+    (bundle && hasAvailableData(bundle.analyses)) ||
+    (bundle && hasAvailableData(bundle.claims)) ||
+    (bundle && hasAvailableData(bundle.viewpoints)) ||
+    (bundle && hasAvailableData(bundle.lemmas)) ||
+    workspaceKnowledge?.items.length,
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -226,7 +247,7 @@ export function PassageInspector() {
           className="flex gap-0.5 overflow-x-auto border-b border-border px-2 py-1.5"
           aria-label={t("scripture.inspector.sections")}
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
@@ -239,48 +260,79 @@ export function PassageInspector() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <Tabs.Content value="overview" className="space-y-4">
-            <section>
-              <h3 className="meta-label">{t("scripture.analysis")}</h3>
-              <p className="mt-1 text-sm text-muted-foreground italic">
-                {bundle && hasAvailableData(bundle.analyses)
-                  ? t("scripture.analysisCount", {
-                      count: formatNumber(bundle.analyses.data.length),
-                    })
-                  : bundle
-                    ? statusLabel(bundle.analyses.status)
-                    : t("scripture.openPassageBundle")}
-              </p>
-            </section>
-            <section>
-              <h3 className="meta-label">Afirmações ligadas à passagem</h3>
-              {bundle && hasAvailableData(bundle.claims) ? (
-                <ul className="mt-2 space-y-2">
-                  {bundle.claims.data.map((claim) => (
-                    <li key={claim.id} className="rounded-md border border-border p-2.5">
-                      <p className="text-sm leading-relaxed">{claim.proposition}</p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
-                        <span>{claimKindLabel(claim.kind)}</span>
-                        <span>·</span>
-                        <span>{reviewStatusLabel(claim.reviewStatus)}</span>
-                        <span>·</span>
-                        <span>{supportLevelLabel(claim.supportLevel)}</span>
-                      </div>
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <p className="mt-1 text-sm text-muted-foreground italic">
-                  {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
+            {!hasOverviewContent && (
+              <section className="rounded-md border border-dashed border-border p-3">
+                <h3 className="text-sm font-medium">
+                  Texto disponível, estudo contextual pendente
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Ainda não há análise, afirmação ou trecho de biblioteca publicado para esta
+                  seleção. Isso é uma lacuna de conteúdo, não uma falha no texto bíblico.
                 </p>
-              )}
-            </section>
-            <section>
-              <h3 className="meta-label">Leituras por perspectiva</h3>
-              <PassageViewpoints bundle={bundle} />
-            </section>
-            <section>
-              <h3 className="meta-label">Biblioteca conectada</h3>
-              {workspaceKnowledge?.items.length ? (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    to="/study"
+                    className="rounded border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
+                  >
+                    Iniciar um estudo
+                  </Link>
+                  <Link
+                    to="/library"
+                    className="rounded border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
+                  >
+                    Consultar biblioteca
+                  </Link>
+                </div>
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.analyses) && (
+              <section>
+                <h3 className="meta-label">{t("scripture.analysis")}</h3>
+                <p className="mt-1 text-sm text-muted-foreground italic">
+                  {bundle && hasAvailableData(bundle.analyses)
+                    ? t("scripture.analysisCount", {
+                        count: formatNumber(bundle.analyses.data.length),
+                      })
+                    : bundle
+                      ? statusLabel(bundle.analyses.status)
+                      : t("scripture.openPassageBundle")}
+                </p>
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.claims) && (
+              <section>
+                <h3 className="meta-label">Afirmações ligadas à passagem</h3>
+                {bundle && hasAvailableData(bundle.claims) ? (
+                  <ul className="mt-2 space-y-2">
+                    {bundle.claims.data.map((claim) => (
+                      <li key={claim.id} className="rounded-md border border-border p-2.5">
+                        <p className="text-sm leading-relaxed">{claim.proposition}</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
+                          <span>{claimKindLabel(claim.kind)}</span>
+                          <span>·</span>
+                          <span>{reviewStatusLabel(claim.reviewStatus)}</span>
+                          <span>·</span>
+                          <span>{supportLevelLabel(claim.supportLevel)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
+                  </p>
+                )}
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.viewpoints) && (
+              <section>
+                <h3 className="meta-label">Leituras por perspectiva</h3>
+                <PassageViewpoints bundle={bundle} />
+              </section>
+            )}
+            {workspaceKnowledge?.items.length ? (
+              <section>
+                <h3 className="meta-label">Biblioteca conectada</h3>
                 <div className="mt-2 rounded-md border border-border p-2.5">
                   <p className="text-xs font-medium">
                     {workspaceKnowledge.items.length}{" "}
@@ -299,12 +351,8 @@ export function PassageInspector() {
                     Abra a aba Literatura para ver fonte, página, contexto e estado de revisão.
                   </p>
                 </div>
-              ) : (
-                <p className="mt-1 text-sm text-muted-foreground italic">
-                  Nenhum trecho publicado ou pendente para esta seleção.
-                </p>
-              )}
-            </section>
+              </section>
+            ) : null}
             {workspaceKnowledge && (
               <section>
                 <h3 className="meta-label">Cobertura desta passagem</h3>
@@ -339,39 +387,43 @@ export function PassageInspector() {
                 </ul>
               </section>
             )}
-            <section>
-              <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {bundle && hasAvailableData(bundle.lemmas) ? (
-                  bundle.lemmas.data.map((lemma) => {
-                    const entity = hasAvailableData(bundle.entities)
-                      ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
-                      : undefined;
-                    return entity ? (
-                      <Link
-                        key={lemma.id}
-                        to="/knowledge"
-                        search={{ entity: entity.id }}
-                        className="original-text rounded border border-border bg-muted/50 px-2 py-0.5 text-sm hover:bg-accent"
-                      >
-                        {lemma.lemma}
-                      </Link>
-                    ) : (
-                      <span
-                        key={lemma.id}
-                        className="original-text rounded border border-border px-2 py-0.5 text-sm"
-                      >
-                        {lemma.lemma}
-                      </span>
-                    );
-                  })
-                ) : (
-                  <span className="text-sm text-muted-foreground italic">
-                    {bundle ? statusLabel(bundle.lemmas.status) : t("scripture.noPassageSelected")}
-                  </span>
-                )}
-              </div>
-            </section>
+            {bundle && hasAvailableData(bundle.lemmas) && (
+              <section>
+                <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {bundle && hasAvailableData(bundle.lemmas) ? (
+                    bundle.lemmas.data.map((lemma) => {
+                      const entity = hasAvailableData(bundle.entities)
+                        ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
+                        : undefined;
+                      return entity ? (
+                        <Link
+                          key={lemma.id}
+                          to="/knowledge"
+                          search={{ entity: entity.id }}
+                          className="original-text rounded border border-border bg-muted/50 px-2 py-0.5 text-sm hover:bg-accent"
+                        >
+                          {lemma.lemma}
+                        </Link>
+                      ) : (
+                        <span
+                          key={lemma.id}
+                          className="original-text rounded border border-border px-2 py-0.5 text-sm"
+                        >
+                          {lemma.lemma}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">
+                      {bundle
+                        ? statusLabel(bundle.lemmas.status)
+                        : t("scripture.noPassageSelected")}
+                    </span>
+                  )}
+                </div>
+              </section>
+            )}
           </Tabs.Content>
 
           <Tabs.Content value="cross-references">

@@ -52,3 +52,23 @@ mas tornar essas capacidades descobríveis no contexto correto.
 4. Estudos orientados a perguntas e materiais, sem exposição de estruturas internas.
 5. Mapa de Conhecimento com busca, filtros e visualização somente de relações reais.
 6. Revisão responsiva e navegação móvel para os fluxos principais.
+
+## Reestruturação funcional de outubro de 2026
+
+- A tela inicial usa uma rotação diária determinística entre todos os capítulos instalados e mostra
+  somente exegese, hermenêutica e contexto realmente vinculados à passagem. A última leitura fica
+  no navegador; João 1 não é mais um destino fixo.
+- A navegação bíblica agrupa Pentateuco, históricos, poéticos, profetas, evangelhos, cartas,
+  apocalíptico e textos adicionais. “Deuterocanônico” descreve a coleção de navegação, não uma
+  identidade textual universal.
+- Estudos é a porta de entrada para trilhas teológicas, históricas, literárias e hermenêuticas. O
+  mapa de conhecimento continua acessível ali para investigação profunda, mas deixou de competir
+  como módulo primário sem propósito claro.
+- Biblioteca é o catálogo de leitura. Importação, OCR, desmontagem, conexão e auditoria vivem na
+  Oficina da Biblioteca (`/library/process`). PDFs privados continuam vinculados à origem OPFS do
+  navegador, portanto trocar porta, domínio ou navegador exige reimportar os originais.
+- Busca apresenta exemplos por intenção e filtros por grupo, sem alterar o índice SQLite/FTS real.
+- Inspetores exibem apenas abas com conteúdo ou ação útil. Trechos privados conectados mostram
+  afirmações e argumentos primeiro; a evidência textual completa permanece recolhida e citável.
+- O tradutor local aparece junto às definições lexicais inglesas e preserva o original. A cobertura
+  atual continua inglês→português; outros idiomas não recebem um botão enganoso.

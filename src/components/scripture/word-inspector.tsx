@@ -90,6 +90,13 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
         ["Estado da análise", morph.status],
       ] as [string, string | undefined][],
   );
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "lexicon" || tab.id === "notes") return true;
+    if (tab.id === "morphology") return morphRows.some(([, value]) => Boolean(value));
+    if (tab.id === "occurrences") return Boolean(annotation?.normalized.lexemeId);
+    if (tab.id === "sources") return Boolean(annotation || wordBundle?.sources.references.length);
+    return false;
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -124,7 +131,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           className="flex gap-0.5 overflow-x-auto border-b border-border px-2 py-1.5"
           aria-label={t("scripture.word.sections")}
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
@@ -435,19 +442,9 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
           <span className="font-mono text-xs text-muted-foreground">{entry.transliteration}</span>
         )}
       </div>
-      <div>
-        <p className="meta-label">Glosa breve da fonte (em inglês)</p>
-        <p className="mt-1 font-medium">{entry.gloss}</p>
-      </div>
-      {entry.definition && (
-        <div>
-          <p className="meta-label">Definição da fonte (em inglês)</p>
-          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{entry.definition}</p>
-        </div>
-      )}
       {translation ? (
-        <div className="rounded border border-border bg-muted/20 p-2">
-          <p className="meta-label">Tradução automática auxiliar</p>
+        <div className="rounded border border-primary/30 bg-primary/5 p-2.5">
+          <p className="meta-label">Em português · tradução automática auxiliar</p>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{translation}</p>
           <p className="mt-2 text-[10px] text-muted-foreground">Não revisada academicamente.</p>
         </div>
@@ -463,6 +460,21 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
         </button>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
+      <details open={!translation} className="border-t border-border pt-2">
+        <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">
+          Consultar texto original da definição em inglês
+        </summary>
+        <div className="mt-2">
+          <p className="meta-label">Glosa breve da fonte</p>
+          <p className="mt-1 font-medium">{entry.gloss}</p>
+        </div>
+        {entry.definition && (
+          <div className="mt-2">
+            <p className="meta-label">Definição da fonte</p>
+            <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{entry.definition}</p>
+          </div>
+        )}
+      </details>
       <p className="text-[11px] text-muted-foreground">
         {entry.language === "hbo"
           ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"

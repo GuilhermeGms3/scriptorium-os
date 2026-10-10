@@ -1,5 +1,19 @@
 # Project Memory
 
+## Functional front-end restructuring (2026-10-10)
+
+- Home rotates a real daily passage across all installed chapters and persists the last chapter in
+  localStorage. It never fabricates exegesis/hermeneutics for uncovered passages.
+- Scripture navigation is grouped by literary/canonical blocks; additional traditions remain an
+  explicit group rather than being mixed into the 66-book order.
+- Study is the primary learning tree and links to Knowledge as a deeper concept map. Knowledge was
+  removed from primary navigation but its route and graph remain available.
+- Library catalog has focused views for private books, installed primary sources, Nag Hammadi and
+  bibliographic records. PDF import/OCR/linking/audit moved to `/library/process`.
+- Passage and word inspectors hide empty tabs. Private passage cards foreground extracted claims
+  and arguments and collapse the source excerpt. English lexicon translation is now foregrounded.
+- Search offers intent examples and result-group filters over the existing SQLite-backed service.
+
 ## Front-end experience foundation (2026-10-10)
 
 - Canonical UX direction: `docs/architecture/frontend-experience.md`. Preserve the dense academic

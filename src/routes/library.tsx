@@ -1,15 +1,6 @@
-import { createFileRoute, Outlet } from "@tanstack/react-router";
+import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import {
-  ChevronRight,
-  FileText,
-  FileUp,
-  LockKeyhole,
-  RefreshCw,
-  Search,
-  Settings2,
-  X,
-} from "lucide-react";
+import { FileText, FileUp, LockKeyhole, RefreshCw, Search, X } from "lucide-react";
 import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
 import type { BibliographicSource } from "../lib/domain/bibliography";
 import {
@@ -32,11 +23,11 @@ import {
 import type { PrivateDocument } from "../lib/domain/private-document";
 import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
 import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
-import { LibraryPipelineOverview } from "../components/library/library-pipeline-overview";
 
 interface LibrarySearch {
   source?: string;
 }
+type LibraryView = "all" | "private" | "primary" | "nag-hammadi" | "references";
 export const Route = createFileRoute("/library")({
   validateSearch: (search: Record<string, unknown>): LibrarySearch =>
     typeof search["source"] === "string" ? { source: search["source"] } : {},
@@ -59,8 +50,8 @@ export function LibraryPage() {
   const [error, setError] = useState<string>();
   const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
   const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
-  const [showImport, setShowImport] = useState(false);
   const [newCollection, setNewCollection] = useState("");
+  const [view, setView] = useState<LibraryView>("all");
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -178,77 +169,83 @@ export function LibraryPage() {
           >
             <RefreshCw className="size-3.5" /> Atualizar
           </button>
-          <button
-            type="button"
-            onClick={() => setShowImport((value) => !value)}
+          <Link
+            to="/library/process"
             className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
           >
-            <FileUp className="size-3.5" /> Importar
-          </button>
+            <FileUp className="size-3.5" /> Importar e processar
+          </Link>
         </div>
       </header>
-      <details className="group border-b border-border bg-muted/10">
-        <summary className="flex cursor-pointer list-none items-center gap-3 px-5 py-3 md:px-6">
-          <span className="flex size-8 shrink-0 items-center justify-center rounded border border-border bg-background text-muted-foreground">
-            <Settings2 className="size-4" />
-          </span>
-          <span className="min-w-0 flex-1">
-            <span className="block text-xs font-medium">Processamento da biblioteca</span>
-            <span className="mt-0.5 block text-[11px] text-muted-foreground">
-              Importação em lote, OCR, conexão de passagens, auditoria e cobertura.
-            </span>
-          </span>
-          <span className="hidden font-mono text-[10px] uppercase tracking-wider text-muted-foreground sm:inline">
-            Ferramentas avançadas
-          </span>
-          <ChevronRight className="size-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-90" />
-        </summary>
-        <div className="border-t border-border">
-          <LibraryPipelineOverview />
-        </div>
-      </details>
-      {showImport && <ImportPanel onClose={() => setShowImport(false)} onImported={refresh} />}
-      <div className="grid min-h-0 flex-1 md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]">
-        <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
-          <p className="meta-label px-2 py-1">Coleções</p>
+      <nav
+        aria-label="Seções da biblioteca"
+        className="flex gap-1 overflow-x-auto border-b border-border px-5 py-2 md:px-6"
+      >
+        {[
+          { id: "all", label: "Visão geral", count: privateDocuments.length + primaryWorks.length },
+          { id: "private", label: "Meus livros", count: privateDocuments.length },
+          { id: "primary", label: "Fontes primárias", count: primaryWorks.length },
+          { id: "nag-hammadi", label: "Nag Hammadi", count: 52 },
+          { id: "references", label: "Referências", count: sources.length },
+        ].map((item) => (
           <button
-            onClick={() => setCollectionId(undefined)}
-            className={`block w-full rounded px-2 py-1.5 text-left text-xs ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
+            key={item.id}
+            type="button"
+            onClick={() => setView(item.id as LibraryView)}
+            aria-current={view === item.id ? "page" : undefined}
+            className={`shrink-0 rounded px-2.5 py-1.5 text-xs transition-colors ${view === item.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"}`}
           >
-            Todas <span className="float-right font-mono text-[9px]">{sources.length}</span>
+            {item.label} <span className="ml-1 font-mono text-[9px]">{item.count}</span>
           </button>
-          {collections.map((collection) => (
+        ))}
+      </nav>
+      <div
+        className={`grid min-h-0 flex-1 ${view === "all" || view === "references" ? "md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]" : "grid-cols-1"}`}
+      >
+        {(view === "all" || view === "references") && (
+          <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
+            <p className="meta-label px-2 py-1">Coleções</p>
             <button
-              key={collection.id}
-              onClick={() => setCollectionId(collection.id)}
-              className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collectionId === collection.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
+              onClick={() => setCollectionId(undefined)}
+              className={`block w-full rounded px-2 py-1.5 text-left text-xs ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
             >
-              {collection.name}
-              <span className="float-right font-mono text-[9px]">{collection.itemCount}</span>
+              Todas <span className="float-right font-mono text-[9px]">{sources.length}</span>
             </button>
-          ))}
-          <div className="mt-3 border-t border-border pt-3">
-            <label className="meta-label px-2" htmlFor="new-library-collection">
-              Nova coleção
-            </label>
-            <input
-              id="new-library-collection"
-              value={newCollection}
-              onChange={(event) => setNewCollection(event.target.value)}
-              placeholder="Nome"
-              className="mt-1 h-8 w-full rounded border border-input bg-background px-2 text-xs"
-            />
-            <button
-              type="button"
-              onClick={() => void createCollection()}
-              disabled={!newCollection.trim()}
-              className="mt-1 h-8 w-full rounded bg-primary text-xs text-primary-foreground disabled:opacity-50"
-            >
-              Criar{selectedId ? " e adicionar" : ""}
-            </button>
-          </div>
-        </aside>
-        <main className="min-w-0 overflow-y-auto border-r border-border">
+            {collections.map((collection) => (
+              <button
+                key={collection.id}
+                onClick={() => setCollectionId(collection.id)}
+                className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collectionId === collection.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
+              >
+                {collection.name}
+                <span className="float-right font-mono text-[9px]">{collection.itemCount}</span>
+              </button>
+            ))}
+            <div className="mt-3 border-t border-border pt-3">
+              <label className="meta-label px-2" htmlFor="new-library-collection">
+                Nova coleção
+              </label>
+              <input
+                id="new-library-collection"
+                value={newCollection}
+                onChange={(event) => setNewCollection(event.target.value)}
+                placeholder="Nome"
+                className="mt-1 h-8 w-full rounded border border-input bg-background px-2 text-xs"
+              />
+              <button
+                type="button"
+                onClick={() => void createCollection()}
+                disabled={!newCollection.trim()}
+                className="mt-1 h-8 w-full rounded bg-primary text-xs text-primary-foreground disabled:opacity-50"
+              >
+                Criar{selectedId ? " e adicionar" : ""}
+              </button>
+            </div>
+          </aside>
+        )}
+        <main
+          className={`min-w-0 overflow-y-auto ${view === "all" || view === "references" ? "border-r border-border" : ""}`}
+        >
           <label className="flex h-10 items-center gap-2 border-b border-border px-3">
             <Search className="size-3.5 text-muted-foreground" />
             <span className="sr-only">Pesquisar biblioteca</span>
@@ -259,7 +256,7 @@ export function LibraryPage() {
               className="w-full bg-transparent text-xs outline-none"
             />
           </label>
-          {filteredPrivateDocuments.length > 0 && (
+          {(view === "all" || view === "private") && filteredPrivateDocuments.length > 0 && (
             <section className="border-b border-border p-3" aria-labelledby="private-library-title">
               <div className="flex items-start justify-between gap-3">
                 <div>
@@ -292,7 +289,25 @@ export function LibraryPage() {
               </div>
             </section>
           )}
-          {primaryWorks.length > 0 && !query.trim() && (
+          {view === "private" && filteredPrivateDocuments.length === 0 && (
+            <section className="m-4 rounded-md border border-dashed border-border p-5">
+              <h2 className="font-serif text-lg font-semibold">
+                Nenhum livro privado nesta origem
+              </h2>
+              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
+                PDFs privados ficam no OPFS deste endereço. Se você abriu o Scriptorium em outra
+                porta, domínio ou navegador, reimporte os originais aqui; o Git e o Docker não
+                transportam esses arquivos protegidos automaticamente.
+              </p>
+              <Link
+                to="/library/process"
+                className="mt-3 inline-flex rounded border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"
+              >
+                Abrir importação e processamento
+              </Link>
+            </section>
+          )}
+          {(view === "all" || view === "primary") && primaryWorks.length > 0 && !query.trim() && (
             <section className="border-b border-border p-3">
               <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
               <p className="mt-1 text-xs text-muted-foreground">
@@ -324,7 +339,12 @@ export function LibraryPage() {
               </div>
             </section>
           )}
-          {!query.trim() && (
+          {view === "primary" && primaryWorks.length === 0 && !loading && (
+            <p className="p-6 text-sm text-muted-foreground">
+              Nenhuma fonte primária está instalada neste build.
+            </p>
+          )}
+          {(view === "all" || view === "nag-hammadi") && !query.trim() && (
             <section className="border-b border-border p-3">
               <details>
                 <summary className="cursor-pointer list-none">
@@ -382,7 +402,7 @@ export function LibraryPage() {
               </details>
             </section>
           )}
-          {loading ? (
+          {view !== "all" && view !== "references" ? null : loading ? (
             <p className="p-6 text-sm italic text-muted-foreground">Abrindo índice local…</p>
           ) : error ? (
             <p role="alert" className="p-6 text-sm text-destructive">
@@ -411,23 +431,25 @@ export function LibraryPage() {
             </div>
           )}
         </main>
-        <aside className="hidden overflow-y-auto xl:block">
-          {details ? (
-            <ResourceDetails details={details} onChanged={refreshDetails} />
-          ) : (
-            <p className="p-5 text-xs italic text-muted-foreground">Selecione uma fonte.</p>
-          )}
-        </aside>
+        {(view === "all" || view === "references") && (
+          <aside className="hidden overflow-y-auto xl:block">
+            {details ? (
+              <ResourceDetails details={details} onChanged={refreshDetails} />
+            ) : (
+              <p className="p-5 text-xs italic text-muted-foreground">Selecione uma fonte.</p>
+            )}
+          </aside>
+        )}
       </div>
     </div>
   );
 }
 
-function ImportPanel({
+export function ImportPanel({
   onClose,
   onImported,
 }: {
-  onClose: () => void;
+  onClose?: () => void;
   onImported: () => Promise<void>;
 }) {
   const [format, setFormat] = useState<BibliographicImportFormat>("csl-json");
@@ -494,14 +516,16 @@ function ImportPanel({
               somente metadados.
             </p>
           </div>
-          <button
-            type="button"
-            onClick={onClose}
-            aria-label="Fechar importação"
-            className="rounded p-1 hover:bg-accent"
-          >
-            <X className="size-4" />
-          </button>
+          {onClose && (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Fechar importação"
+              className="rounded p-1 hover:bg-accent"
+            >
+              <X className="size-4" />
+            </button>
+          )}
         </div>
         <section className="mt-4 rounded border border-border bg-background p-3">
           <div className="flex items-start gap-2">

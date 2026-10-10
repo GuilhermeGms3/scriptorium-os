@@ -212,6 +212,12 @@ export function PrivateLinkCard({
   const topics = item.proposals.flatMap((proposal) =>
     proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
   );
+  const claims = item.proposals.flatMap((proposal) =>
+    proposal.payload.kind === "claim" ? [proposal.payload.proposition] : [],
+  );
+  const argumentsForUnit = item.proposals.flatMap((proposal) =>
+    proposal.payload.kind === "argument" ? [proposal.payload] : [],
+  );
 
   // reviewProposal notifies "scriptorium:knowledge-changed", which reloads reader and inspector.
   const act = async (action: () => Promise<void>) => {
@@ -265,14 +271,48 @@ export function PrivateLinkCard({
           {[...new Set(topics)].join(" · ")}
         </p>
       )}
-      <p className="mt-2 line-clamp-6 text-xs leading-relaxed text-foreground/90">
-        {item.translation?.translatedText ?? item.unit.text}
-      </p>
-      {(item.translation?.translatedText ?? item.unit.text).length > 700 && (
-        <p className="mt-1 text-[10px] text-muted-foreground">
-          Trecho abreviado. Abra a fonte para ler a unidade completa no contexto da página.
-        </p>
+      {claims.length > 0 && (
+        <section className="mt-2 rounded border border-border bg-background/60 p-2.5">
+          <p className="meta-label">Afirmações extraídas deste trecho</p>
+          <ul className="mt-1.5 space-y-1.5">
+            {claims.map((claim, index) => (
+              <li
+                key={`${item.id}:claim:${index}`}
+                className="border-l-2 border-primary/40 pl-2 text-xs leading-relaxed"
+              >
+                {claim}
+              </li>
+            ))}
+          </ul>
+        </section>
       )}
+      {argumentsForUnit.map((argument, index) => (
+        <section
+          key={`${item.id}:argument:${index}`}
+          className="mt-2 rounded border border-border p-2.5"
+        >
+          <p className="meta-label">Argumento detectado</p>
+          <p className="mt-1 text-xs font-medium">{argument.conclusion}</p>
+          <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
+            {argument.premises.map((premise) => (
+              <li key={premise}>{premise}</li>
+            ))}
+          </ol>
+        </section>
+      ))}
+      <details className="mt-2 rounded border border-border/70 px-2.5 py-2">
+        <summary className="cursor-pointer text-[11px] font-medium">
+          Ler trecho-fonte {item.translation ? "em português" : "no idioma original"}
+        </summary>
+        <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-foreground/90">
+          {item.translation?.translatedText ?? item.unit.text}
+        </p>
+        {(item.translation?.translatedText ?? item.unit.text).length > 700 && (
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            Trecho abreviado. Abra a fonte para ler a unidade completa no contexto da página.
+          </p>
+        )}
+      </details>
       {item.context.attributions.length > 0 && (
         <details className="mt-2 text-[10px] text-muted-foreground">
           <summary className="cursor-pointer">Atribuições detectadas</summary>
@@ -440,6 +480,10 @@ export function PrivateVerseKnowledge({
           className="mt-2 space-y-2 border-l-2 border-amber-500/30 pl-3"
           aria-label={`Biblioteca conectada ao versículo ${verse}`}
         >
+          <p className="rounded border border-border bg-muted/20 p-2 text-[11px] leading-relaxed text-muted-foreground">
+            Conteúdo organizado por fonte e página. Afirmações e argumentos são extrações
+            revisáveis; os trechos completos permanecem recolhidos para não interromper a leitura.
+          </p>
           {matching.map((item) => (
             <PrivateLinkCard key={item.id} item={item} />
           ))}

@@ -122,7 +122,8 @@ function ChapterReader() {
   useEffect(() => {
     setPassageContext(book ? { ref: inspectorRef, label: passageLabel(inspectorRef) } : null);
     selectWord(null);
-  }, [book, bundle?.identity.label, chapter, inspectorRef, setPassageContext, selectWord]);
+    window.localStorage.setItem("scriptorium:last-reading", JSON.stringify({ bookId, chapter }));
+  }, [book, bookId, bundle?.identity.label, chapter, inspectorRef, setPassageContext, selectWord]);
 
   useEffect(() => {
     setOpenVerses(new Set());

@@ -9,7 +9,6 @@ import {
   HelpCircle,
   Home,
   Library,
-  Network,
   NotebookPen,
   Search,
   Settings,
@@ -22,16 +21,14 @@ const MAIN_NAV = [
   { to: "/scripture", label: t("navigation.scripture"), icon: BookOpen },
   { to: "/study", label: t("navigation.study"), icon: NotebookPen },
   { to: "/library", label: t("navigation.library"), icon: Library },
-  { to: "/knowledge", label: t("navigation.knowledge"), icon: Network },
   { to: "/search", label: t("navigation.search"), icon: Search },
 ] as const;
 
 const UTILITY_NAV = [
   {
-    to: "/library",
-    label: t("navigation.downloads"),
+    to: "/library/process",
+    label: "Importar e processar",
     icon: Download,
-    search: { tab: "collections" },
   },
   { to: "/settings", label: t("navigation.settings"), icon: Settings },
   { to: "/about", label: t("navigation.helpAbout"), icon: HelpCircle },
