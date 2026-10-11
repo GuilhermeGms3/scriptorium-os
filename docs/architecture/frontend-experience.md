@@ -72,3 +72,19 @@ mas tornar essas capacidades descobríveis no contexto correto.
   afirmações e argumentos primeiro; a evidência textual completa permanece recolhida e citável.
 - O tradutor local aparece junto às definições lexicais inglesas e preserva o original. A cobertura
   atual continua inglês→português; outros idiomas não recebem um botão enganoso.
+
+## Árvore visual de estudos
+
+- A entrada de Estudos é um mapa pedagógico navegável, não uma grade de categorias. Um nó central
+  se ramifica em Bíblia e interpretação, Teologia, História e tradições e Literatura e fontes; as
+  etapas seguintes reutilizam as trilhas e obras realmente registradas em `STUDY_PATHS`.
+- Linhas representam organização pedagógica, não dependência dogmática nem inferência do grafo de
+  conhecimento. O mapa livre continua sendo o Knowledge Explorer e as investigações pessoais
+  continuam sendo workspaces locais distintos.
+- O estado de uma etapa é derivado do workspace e do acervo: disponível, investigação iniciada ou
+  acervo insuficiente. A interface não produz XP, domínio ou conclusão automática. Quantidades
+  exibidas medem atividade registrada e materiais reunidos.
+- Selecionar uma etapa abre contexto, fontes de partida e uma única próxima ação. Iniciar uma etapa
+  cria um estudo real; continuar abre o estudo já existente; uma lacuna leva à Biblioteca.
+- No desktop, jornadas, mapa e contexto formam três regiões. Em viewport estreita, essas regiões se
+  empilham e o canvas permanece navegável sem reduzir a densidade visual da estação acadêmica.

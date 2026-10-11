@@ -1,5 +1,20 @@
 # Project Memory
 
+## Gamified visual study tree (2026-10-11)
+
+- `/study` now opens a visual learning map inspired by a skill tree, while preserving the academic
+  workstation identity. Four journeys connect eleven existing source-backed study paths.
+- Node state is honest and derived from current data: an exact matching local study means started;
+  a path with sources is available; a path without source resources is an explicit collection gap.
+  No XP, mastery score or completion is fabricated.
+- Selecting a node shows contextual description, real starting works and the next action. Starting
+  creates the existing SQLite-backed `Study`; continuing opens its current workspace. Personal
+  investigations and workspace backup remain available in a dedicated view.
+- The Knowledge route remains the free graph mode. Study-map edges are pedagogical organization,
+  not theological truth claims or ontology relations.
+- Canonical graph content and derivation live in `src/lib/content/study-learning-map.ts`; rendering
+  lives in `src/components/study/study-learning-map.tsx`.
+
 ## Functional front-end restructuring (2026-10-10)
 
 - Home rotates a real daily passage across all installed chapters and persists the last chapter in
