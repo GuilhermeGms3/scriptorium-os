@@ -19,6 +19,8 @@ import migration16 from "./migrations/016_library_orchestration.sql?raw";
 import migration17 from "./migrations/017_document_processing_foundation.sql?raw";
 import migration18 from "./migrations/018_knowledge_proposal_unit_index.sql?raw";
 import migration19 from "./migrations/019_passage_relation_lookup.sql?raw";
+import migration20 from "./migrations/020_knowledge_trace.sql?raw";
+import migration21 from "./migrations/021_trace_lookup_indexes.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -41,6 +43,8 @@ const migrations = [
   migration17,
   migration18,
   migration19,
+  migration20,
+  migration21,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

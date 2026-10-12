@@ -260,6 +260,13 @@ export function PrivateLinkCard({
           </span>
         </div>
       )}
+      <Link
+        to="/trace"
+        search={{ proposal: item.id, state: "all", offset: 0 }}
+        className="mt-2 inline-block text-xs text-primary underline underline-offset-4"
+      >
+        Ver rastro desta ligação
+      </Link>
       {(item.context.authors.length > 0 || item.context.sectionTitle) && (
         <p className="mt-1 text-[10px] text-muted-foreground">
           {item.context.authors.length ? item.context.authors.join(", ") : "Autor não catalogado"}

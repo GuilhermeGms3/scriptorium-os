@@ -14,6 +14,14 @@ mas tornar essas capacidades descobríveis no contexto correto.
 
 ## Modelo de experiência
 
+### Rastro
+
+- Módulo principal `/trace`, acessível também nos cartões de conhecimento do leitor.
+- Filtros por fonte/passagem/estado e detalhe progressivo: motivo, evidência, original, histórico.
+- Consultas reais sobre propostas e decisões do workspace, sem mocks ou novos corpora.
+- Dados técnicos ficam recolhidos. Estados antigos sem justificativa detalhada são explícitos.
+- Histórico persistente descrito em [knowledge-trace.md](knowledge-trace.md).
+
 ### Leitura
 
 - A Bíblia é o centro visual.

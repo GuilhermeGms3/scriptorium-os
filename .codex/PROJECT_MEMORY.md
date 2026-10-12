@@ -1,5 +1,21 @@
 # Project Memory
 
+## Knowledge trace module (2026-10-12)
+
+- `/trace` joins real proposals/decisions/private document spans; paginated filters and detail with
+  rationale, source page, scheme, original unit and timeline. Private Reader cards link directly.
+- Migration 020 captures proposal/decision changes with SQL triggers; legacy records get an honest
+  baseline snapshot. Reprocessing retains history by old proposal ID; deleting a document cascades it.
+- Backup v3 optional traceEvents preserves history and suppresses artificial restore events within
+  the transaction. No book corpus was newly analyzed by this UI delivery.
+- Canonical spec: `docs/architecture/knowledge-trace.md`. Migration 021 indexes paginated queries.
+- Verification: 256 tests in 37 files, strict typecheck, full lint and production build passed.
+  Browser QA recovered the persistent collection after a transient memory fallback, opened a real
+  Shedd link to physical page 935, and filtered Genebra references at Genesis 1:1. No editorial
+  analysis, acceptance, rejection or book reprocessing was performed during this read-only QA.
+- OPFS baseline history survived closing/reopening the browser tab on the same origin. Final
+  clean-tab console had no warnings/errors; mobile 390 px and desktop 1280 px had no global overflow.
+
 ## Gamified visual study tree (2026-10-11)
 
 - Follow-up: every map node now navigates to its own `/study/guide/$topic` page; the center is

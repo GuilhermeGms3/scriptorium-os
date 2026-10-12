@@ -8,6 +8,7 @@ import {
   Download,
   HelpCircle,
   Home,
+  GitBranch,
   Library,
   NotebookPen,
   Search,
@@ -21,6 +22,7 @@ const MAIN_NAV = [
   { to: "/scripture", label: t("navigation.scripture"), icon: BookOpen },
   { to: "/study", label: t("navigation.study"), icon: NotebookPen },
   { to: "/library", label: t("navigation.library"), icon: Library },
+  { to: "/trace", label: "Rastro", icon: GitBranch },
   { to: "/search", label: t("navigation.search"), icon: Search },
 ] as const;
 

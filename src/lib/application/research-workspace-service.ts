@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { StudyRepository } from "../repositories/study-repository";
+import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
 import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
@@ -64,6 +65,7 @@ const PrivateKnowledgeBackupSchema = z.object({
   translationJobs: rows,
   pipelineJobs: rows.optional(),
   pipelineDecisions: rows.optional(),
+  traceEvents: rows.optional(),
   pipelineReceipts: rows.optional(),
   pageLayouts: rows.optional(),
   documentProfiles: rows.optional(),
@@ -209,6 +211,7 @@ async function exportPrivateKnowledge(
     translationJobs,
     pipelineJobs,
     pipelineDecisions,
+    traceEvents,
     pipelineReceipts,
     pageLayouts,
     documentProfiles,
@@ -233,6 +236,7 @@ async function exportPrivateKnowledge(
     database.query("SELECT * FROM private_translation_jobs ORDER BY document_id"),
     database.query("SELECT * FROM pipeline_jobs ORDER BY document_id"),
     database.query("SELECT * FROM pipeline_decisions ORDER BY proposal_id"),
+    database.query("SELECT * FROM knowledge_trace_events ORDER BY rowid"),
     database.query("SELECT * FROM pipeline_unit_receipts ORDER BY unit_id"),
     database.query("SELECT * FROM document_page_layouts ORDER BY page_id"),
     database.query("SELECT * FROM private_document_profiles ORDER BY document_id"),
@@ -255,6 +259,7 @@ async function exportPrivateKnowledge(
     translationJobs: serializableRows(translationJobs),
     pipelineJobs: serializableRows(pipelineJobs),
     pipelineDecisions: serializableRows(pipelineDecisions),
+    traceEvents: serializableRows(traceEvents),
     pipelineReceipts: serializableRows(pipelineReceipts),
     pageLayouts: serializableRows(pageLayouts),
     documentProfiles: serializableRows(documentProfiles),
@@ -288,6 +293,7 @@ const privateKnowledgeTables = {
   libraryPipelineDocuments: "library_pipeline_documents",
   reviewBatches: "pipeline_review_batches",
   reviewBatchMembers: "pipeline_review_batch_members",
+  traceEvents: "knowledge_trace_events",
 } as const;
 
 async function importV1(
@@ -467,6 +473,9 @@ export const ResearchWorkspaceService = {
       statements.push(
         ...insertStatements(table, backup.research[key as keyof typeof backup.research]),
       );
+    // Restoring captured history must not generate a second, fictitious history.
+    if (backup.privateKnowledge.traceEvents !== undefined)
+      statements.push({ sql: "UPDATE knowledge_trace_control SET enabled=0 WHERE id=1" });
     for (const [key, table] of Object.entries(privateKnowledgeTables))
       statements.push(
         ...insertStatements(
@@ -474,12 +483,14 @@ export const ResearchWorkspaceService = {
           backup.privateKnowledge[key as keyof typeof backup.privateKnowledge] ?? [],
         ),
       );
+    statements.push({ sql: "UPDATE knowledge_trace_control SET enabled=1 WHERE id=1" });
     statements.push(...rebuildFtsStatements());
     await db.transaction(statements);
     const violations = await db.query("PRAGMA foreign_key_check");
     if (violations.length)
       throw new Error(`Workspace restore produced ${violations.length} foreign-key violations.`);
     if (!database) await StudyRepository.refresh();
+    notifyKnowledgeMutation();
     return {
       studies: backup.research.studies.length,
       notes: backup.research.notes.length,

@@ -7,18 +7,18 @@ Não há publicação de livros/trechos privados para Git, servidor remoto ou co
 
 ## Camadas e limites reais
 
-| Camada                | Código entregue                                                                                               | Limite atual                                                                                                       |
-| --------------------- | ------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
-| 1. Extração           | pdf.js; PDF original imutável em OPFS; geometria nativa em novas importações; Tesseract TSV em páginas vazias | OCR exige instalação do executável/idiomas; documentos antigos precisam de reimportação para geometria nativa      |
-| 2. Estrutura          | árvore e unidades citáveis do motor canônico existente; páginas, offsets UTF-16 e checksums                   | reconstrução de colunas, tabelas e notas complexas ainda heurística; não há Docling/GROBID                         |
-| 3. Referências        | parser determinístico existente + resolução contra corpus/edição/esquema                                      | esquema da fonte deve ser confirmado por livro antes de visibilidade automática; nada de alinhar LXX/MT por número |
-| 4. Entidades/contexto | entidades, temas, atribuições e bibliografia dos analisadores existentes                                      | não há novo modelo de correferência ou extração bibliográfica neural                                               |
-| 5. Candidatos         | FTS5 e embeddings multilíngues globais opcionais em SQLite no companion                                       | indexação vetorial inicial custa inferência; índice regenerável não é backup do workspace                          |
-| 6. Reordenação        | união de até 32 candidatos FTS e 24 vetoriais; similaridade cosseno; 8 candidatos enviados ao LLM             | não há cross-encoder treinado/calibrado; busca vetorial exata CPU, sem ANN                                         |
-| 7. Inferência         | LM Studio/llama.cpp via API OpenAI-compatible local, JSON Schema, opção de abstenção                          | servidor/modelos/revisões são configuração do operador, não downloads automáticos                                  |
-| 8. Validação          | Zod/Pydantic, candidato permitido, edição/esquema e trecho literal com offsets                                | validação estrutural não prova relevância exegética nem verdade teológica                                          |
-| 9. Visibilidade       | referências explícitas verificadas podem ficar `machine-visible`; inferências ficam `exception` até auditoria | inferência automática generalizada bloqueada enquanto não houver avaliação/calibração                              |
-| 10. Auditoria         | amostra determinística por documento e classe, confirmação/rejeição em lote, revogação por livro              | não é estimativa estatística de precisão; histórico de todas as revisões e feedback de treinamento ainda ausentes  |
+| Camada                | Código entregue                                                                                                                          | Limite atual                                                                                                       |
+| --------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| 1. Extração           | pdf.js; PDF original imutável em OPFS; geometria nativa em novas importações; Tesseract TSV em páginas vazias                            | OCR exige instalação do executável/idiomas; documentos antigos precisam de reimportação para geometria nativa      |
+| 2. Estrutura          | árvore e unidades citáveis do motor canônico existente; páginas, offsets UTF-16 e checksums                                              | reconstrução de colunas, tabelas e notas complexas ainda heurística; não há Docling/GROBID                         |
+| 3. Referências        | parser determinístico existente + resolução contra corpus/edição/esquema                                                                 | esquema da fonte deve ser confirmado por livro antes de visibilidade automática; nada de alinhar LXX/MT por número |
+| 4. Entidades/contexto | entidades, temas, atribuições e bibliografia dos analisadores existentes                                                                 | não há novo modelo de correferência ou extração bibliográfica neural                                               |
+| 5. Candidatos         | FTS5 e embeddings multilíngues globais opcionais em SQLite no companion                                                                  | indexação vetorial inicial custa inferência; índice regenerável não é backup do workspace                          |
+| 6. Reordenação        | união de até 32 candidatos FTS e 24 vetoriais; similaridade cosseno; 8 candidatos enviados ao LLM                                        | não há cross-encoder treinado/calibrado; busca vetorial exata CPU, sem ANN                                         |
+| 7. Inferência         | LM Studio/llama.cpp via API OpenAI-compatible local, JSON Schema, opção de abstenção                                                     | servidor/modelos/revisões são configuração do operador, não downloads automáticos                                  |
+| 8. Validação          | Zod/Pydantic, candidato permitido, edição/esquema e trecho literal com offsets                                                           | validação estrutural não prova relevância exegética nem verdade teológica                                          |
+| 9. Visibilidade       | referências explícitas verificadas podem ficar `machine-visible`; inferências ficam `exception` até auditoria                            | inferência automática generalizada bloqueada enquanto não houver avaliação/calibração                              |
+| 10. Auditoria         | amostra determinística por documento e classe, confirmação/rejeição em lote, revogação por livro; Rastro persistente desde migration 020 | não é estimativa estatística de precisão; histórico anterior não reconstruído; feedback de treinamento ausente     |
 
 ## Uso no frontend
 
@@ -78,6 +78,10 @@ ligação automática. O trecho original da unidade permanece acessível. Os exp
 editoriais continuam restritos a propostas humanas e direitos previamente revisados.
 
 ## Persistência e retomada
+
+O módulo [Rastro](knowledge-trace.md) consulta ligações reais e preserva mudanças de propostas e
+decisões desde a migration 020. Evidências e justificativas só são mostradas quando registradas;
+o estado inicial de ligações anteriores é rotulado como snapshot, não histórico reconstruído.
 
 Migration **015** acrescenta `pipeline_jobs`, `pipeline_decisions`,
 `pipeline_unit_receipts` e `document_page_layouts`, com FKs e constraints.
