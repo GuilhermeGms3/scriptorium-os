@@ -23,6 +23,72 @@ reconhece marcadores controlados em português/inglês e resolve referências b�
 idiomas. Esta camada deliberadamente simples fornece baseline reproduzível para comparar futuros
 extratores mais sofisticados.
 
+Antes da desmontagem, um classificador determinístico registra o perfil do documento (por exemplo,
+Bíblia de estudo, comentário, léxico, catecismo, monografia, fonte patrística ou antologia de Nag
+Hammadi). O perfil não afirma qualidade ou autoria: ele seleciona expectativas estruturais e funções
+semânticas auditáveis. Extração, OCR, estrutura, conexão, amostragem e publicação possuem estados
+separados e retomáveis.
+
+## Book Decomposition Pipeline v1
+
+A desmontagem de livros privados acrescenta uma camada acima dos blocos de página:
+
+```text
+PDF privado
+  -> nós estruturais (livro/parte/capítulo/seção/bibliografia)
+  -> unidades semânticas com um ou mais spans físicos
+  -> propostas tipadas de conhecimento
+  -> revisão humana
+  -> agregação privada
+  -> exportação editorial explícita
+```
+
+`DocumentKnowledgeAnalyzer` é o contrato substituível. A implementação inicial,
+`deterministic-document-knowledge:2`, detecta estrutura, reúne continuações simples entre páginas e
+propõe assuntos, referências bíblicas, afirmações, argumentos, citações e entidades de um
+vocabulário controlado. A versão 2 classifica claims por sinais linguísticos, textuais, históricos,
+filosóficos, teológicos e exegéticos e conserva qualificadores de negação, atribuição e modalidade;
+isso continua sendo classificação heurística, não compreensão autônoma de autoria ou correferência.
+Heurísticas e escores medem somente a força do padrão que disparou a
+proposta; não medem verdade, importância ou concordância teológica.
+
+As tabelas `document_nodes`, `semantic_units`, `semantic_unit_spans` e `knowledge_proposals` ficam
+exclusivamente no workspace privado. Uma unidade pode conservar vários spans de página, de modo que
+uma frase interrompida pela paginação continue citável sem apagar a localização física. IDs de
+propostas incluem fingerprint do payload; reprocessar o mesmo livro não cria duplicatas e preserva
+decisões humanas quando a proposta permanece semanticamente igual.
+
+Propostas começam como `machine-proposed`. Aceitar ou rejeitar é uma decisão local do pesquisador.
+A exportação `scriptorium-private-knowledge-export-v1` contém somente a estrutura e as propostas
+aceitas, permanece marcada como `localOnly` e `requiresRightsReview`, e não é importada
+automaticamente em `content/packs` nem em `public/knowledge`.
+
+### Ponte livro → passagem
+
+Uma relação bíblica aceita não é mais somente um marcador isolado. O
+`WorkspacePassageKnowledgeService` resolve a relação para sua unidade citável, reúne as demais
+propostas aceitas da mesma unidade, a tradução local disponível e as páginas físicas. O Passage
+Inspector apresenta essa camada como **conhecimento privado**, separada do snapshot curado e sem
+copiar o texto do livro para o banco público.
+
+O resolvedor aceita referências completas em português/inglês, continuação compacta no mesmo
+capítulo (`João 1:1, 3-5`) e referências relativas (`vv. 3-5`) quando existe contexto bíblico
+explícito. Ele valida capítulo por livro e limites estruturais básicos; não substitui um índice
+canônico exato de quantidade de versículos por capítulo.
+
+### Cobertura e promoção editorial
+
+Cada passagem expõe uma matriz que distingue conteúdo curado, conteúdo privado aceito e lacuna em
+15 áreas: texto, crítica textual, linguística, exegese, hermenêutica, contexto histórico, política,
+arqueologia, geografia, tradição, teologia, soteriologia, escatologia, recepção e correntes
+religiosas. Ausência permanece `missing`; uma simples proposta pendente não conta como cobertura.
+
+Claims e argumentos podem receber um perfil de perspectiva durante a revisão. O pacote
+`scriptorium-editorial-staging-v1` é somente uma pré-promoção: `publicationAllowed` é sempre falso.
+Ele bloqueia material privado sem decisão documentada de direitos ou sem vínculo/evidência e avisa
+sobre perspectivas ausentes e traduções não revisadas. Não existe escrita automática em
+`public/knowledge`.
+
 ## Persistência
 
 A migration 010 acrescenta:
@@ -33,15 +99,42 @@ A migration 010 acrescenta:
 - `semantic_passage_links`: endereço com versificação, relação, método e revisão;
 - `local_translations`: cache local por origem, checksum, idioma e modelo.
 
+A migration 011 acrescenta:
+
+- `document_knowledge_indexes`: versão do analisador, estado e contagens da desmontagem;
+- `document_nodes`: hierarquia estrutural proposta para o livro;
+- `semantic_units` e `semantic_unit_spans`: unidades citáveis e suas âncoras físicas;
+- `knowledge_proposals`: candidatos tipados, editáveis e revisáveis.
+
+A migration 012 fixa a revisão do modelo na identidade do cache de tradução e amplia o vocabulário
+de domínios para história social/política, tradição, soteriologia, escatologia e correntes
+religiosas.
+
+A migration 013 torna o pipeline de desmontagem a única fonte de verdade usada pela aplicação.
+Relações e domínios já aceitos no motor legado são convertidos em `semantic_units` e
+`knowledge_proposals` com revisão preservada; as tabelas antigas permanecem apenas como janela de
+compatibilidade e não são consultadas pelo Reader. A mesma migration cria
+`private_translation_jobs`, que registra lotes pausados, concluídos ou falhos. O índice grava
+progresso de leitura por página durante uma nova execução e contagens são recalculadas do banco ao
+concluir, incluindo unidades legadas migradas.
+
+A migration 017 cria uma identidade persistente para o workspace, perfis documentais, estados de
+processamento por etapa e funções semânticas por unidade. Importações existentes recebem estado de
+extração/OCR coerente com suas páginas sem texto, sem alegar que OCR foi executado.
+
+A migration 018 indexa propostas por unidade, tipo e método. Esse índice sustenta retomada e
+abstenção set-based sem fazer uma varredura completa das propostas para cada unidade do livro.
+
 O texto do segmento não é duplicado: ele é reconstruído pelos offsets da página privada. Exclusão
 do documento remove os derivados por foreign keys. Reindexação apaga somente os derivados daquele
 documento e recomeça dentro do mesmo workspace local.
 
 ## Domínios controlados
 
-Exegese, hermenêutica, teologia, contexto histórico, arqueologia, geografia, crítica textual,
-linguística, patrística, liturgia, filosofia da religião, ciência e `other`. Esses rótulos organizam
-material; não afirmam autoria, qualidade acadêmica ou concordância com uma tradição.
+Exegese, hermenêutica, teologia, contexto e história social/política, arqueologia, geografia,
+crítica textual, linguística, patrística, liturgia, tradição, soteriologia, escatologia, correntes
+religiosas, filosofia da religião, ciência e `other`. Esses rótulos organizam material; não afirmam
+autoria, qualidade acadêmica ou concordância com uma tradição.
 
 ## Repertórios avaliados
 
@@ -57,10 +150,42 @@ material; não afirmam autoria, qualidade acadêmica ou concordância com uma tr
   `SYSTEM_EXTRACTED -> revisão explícita`; `Resume-Matcher`, validação estruturada de saída e
   provider substituível. Nenhum código ou histórico foi copiado automaticamente.
 
+## Processamento incremental e retomada
+
+O analisador determinístico processa no máximo 50 páginas por lote. Depois de cada lote, o runtime
+persiste nós, unidades, propostas e um checkpoint que contém os próximos ordinais, a quantidade de
+caracteres processada e o contexto hierárquico atual (parte, capítulo e seção). Se o processo falhar,
+a próxima execução com o mesmo checksum, analisador e versão retoma da primeira página ainda não
+confirmada, sem carregar novamente o livro inteiro.
+
+As gravações derivadas usam IDs determinísticos e `INSERT OR IGNORE`. Assim, uma interrupção entre
+a escrita de um lote e a atualização do checkpoint pode repetir o lote sem duplicar resultados. O
+checkpoint só avança depois que todas as entidades do lote foram gravadas. A contagem final é lida
+novamente do banco.
+
+Continuações de parágrafo são reunidas dentro de cada lote. Uma continuação exatamente na fronteira
+entre dois lotes permanece dividida em duas unidades citáveis, sem perder os offsets das páginas.
+Providers opcionais que implementem apenas `analyze()` continuam compatíveis, mas usam o caminho
+legado em memória e não oferecem retomada. O provider Python contextual implementa
+`analyzeBatch()`, limita o lote, devolve checkpoint serializável e é carregado dinamicamente apenas
+quando selecionado no painel do documento. O cliente rejeita propostas para IDs de unidades que não
+pertencem ao lote enviado.
+
+Além das propostas determinísticas, o contrato atual representa explicitamente:
+
+- `attribution`: agente, enunciado, relação e resolução explícita ou por correferência;
+- `coreference`: menção pronominal, entidade resolvida e base da resolução;
+- `bibliographic-reference`: texto bruto, autores, título, ano, locator e tipo documental.
+
+O contexto recente de pessoa/obra e o estado de bibliografia atravessam lotes pelo checkpoint. Essas
+relações são heurísticas, permanecem `machine-proposed` e não se transformam em fatos ou citações
+aceitas sem revisão humana.
+
 ## Próximos incrementos seguros
 
-1. detecção estrutural de capítulos, notas e citações bibliográficas;
-2. criação assistida de entidades/conceitos, sempre como candidato revisável;
-3. OCR/EPUB local;
+1. melhorar detecção de notas e entradas bibliográficas em edições variadas;
+2. evoluir correferência para cadeias com múltiplos candidatos e autoria por metadados editoriais;
+3. EPUB local e diagnóstico/instalação guiada dos idiomas de OCR;
 4. embeddings opcionais como mecanismo de recuperação, nunca como substituto de proveniência;
-5. conexão aceita com Claim/Evidence/Argument por IDs explícitos.
+5. converter o pacote editorial aprovado em `Claim`/`Evidence`/`Argument` curado por uma ferramenta
+   separada, com decisão de direitos registrada e revisão de dois passos.

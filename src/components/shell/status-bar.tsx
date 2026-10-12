@@ -2,12 +2,14 @@
  * StatusBar — contextual status: active passage, editions, data locality.
  */
 
-import { AlertTriangle, Database, Wifi } from "lucide-react";
+import { AlertTriangle, Database, Globe, Wifi } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { t } from "../../lib/i18n";
+import { useCurrentOrigin } from "../../lib/workspace-runtime/use-secure-context";
 
 export function StatusBar() {
   const { passageContext, wordSelection, workspacePersistence } = useWorkbench();
+  const origin = useCurrentOrigin();
 
   return (
     <footer className="hidden h-6 shrink-0 items-center gap-4 border-t border-border bg-muted/40 px-3 font-mono text-[11px] text-muted-foreground md:flex">
@@ -35,6 +37,14 @@ export function StatusBar() {
         >
           <AlertTriangle className="size-3" /> Armazenamento temporário: notas e estudos podem ser
           perdidos ao fechar.
+        </span>
+      )}
+      {origin && (
+        <span
+          className="flex items-center gap-1.5"
+          title="Os livros e estudos locais pertencem a este endereço (protocolo, nome e porta)."
+        >
+          <Globe className="size-3" aria-hidden="true" /> {origin}
         </span>
       )}
       <span className="hidden items-center gap-1.5 lg:flex">

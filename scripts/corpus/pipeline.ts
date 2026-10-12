@@ -1,6 +1,16 @@
 import { spawn } from "node:child_process";
 import { createHash } from "node:crypto";
-import { copyFile, mkdir, mkdtemp, readFile, rename, rm, stat, writeFile } from "node:fs/promises";
+import {
+  copyFile,
+  mkdir,
+  mkdtemp,
+  open,
+  readFile,
+  rename,
+  rm,
+  stat,
+  writeFile,
+} from "node:fs/promises";
 import { basename, dirname, extname, relative, resolve, sep } from "node:path";
 import { z } from "zod";
 import {
@@ -15,22 +25,17 @@ import type {
   GeneratedCorpusManifest,
 } from "../../src/lib/domain/generated-corpus";
 import { CORPUS_PACKAGE_CANDIDATES } from "../../src/lib/fixtures/corpus-registry.fixture";
-import type { CorpusAdapter, DiscoveredCorpusArtifact } from "./adapter";
+import type { CorpusAdapter, DiscoveredCorpusArtifact, NormalizedCorpusBook } from "./adapter";
 import { emptyImportStatistics } from "./adapter";
 import { SblgntXmlAdapter } from "./adapters/sblgnt-xml-adapter";
 import { BibliaLivreAdapter } from "./adapters/biblia-livre-adapter";
 import { OshbOsisAdapter } from "./adapters/oshb-osis-adapter";
 import { compactChapter } from "../../src/lib/domain/compact-corpus";
 
-const PROJECT_ROOT = resolve(import.meta.dirname, "../..");
-const SOURCE_ROOT = resolve(PROJECT_ROOT, "corpora/source");
-const SOURCE_STAGING_ROOT = resolve(PROJECT_ROOT, "corpora/.staging");
-const GENERATED_ROOT = resolve(PROJECT_ROOT, "generated/corpora");
-const ADAPTERS: CorpusAdapter[] = [
-  new SblgntXmlAdapter(),
-  new BibliaLivreAdapter(),
-  new OshbOsisAdapter(),
-];
+const DEFAULT_PROJECT_ROOT = resolve(import.meta.dirname, "../..");
+const MUTABLE_REVISIONS = new Set(["HEAD", "master", "latest"]);
+const LOCK_MAX_AGE_MS = 6 * 60 * 60 * 1000;
+const UNWRITTEN_LOCK_GRACE_MS = 60 * 1000;
 
 export const acquiredPackageSchema = z.object({
   schemaVersion: z.literal(1),
@@ -45,6 +50,86 @@ export const acquiredPackageSchema = z.object({
 });
 
 export type AcquiredPackage = z.infer<typeof acquiredPackageSchema>;
+
+export type CorpusPipelineErrorCode =
+  | "not-registered"
+  | "rights-denied"
+  | "mutable-revision"
+  | "locked"
+  | "integrity"
+  | "validation"
+  | "incomplete"
+  | "git";
+
+export class CorpusPipelineError extends Error {
+  readonly code: CorpusPipelineErrorCode;
+  readonly details: string[];
+
+  constructor(code: CorpusPipelineErrorCode, message: string, details: string[] = []) {
+    super(message);
+    this.name = "CorpusPipelineError";
+    this.code = code;
+    this.details = details;
+  }
+}
+
+export interface CorpusGit {
+  clone(repository: string, destination: string): Promise<void>;
+  checkout(directory: string, commitSha: string): Promise<void>;
+  revParse(directory: string): Promise<string>;
+}
+
+export interface CorpusPipelineEvent {
+  type: "lock-recovered" | "acquisition-reused" | "acquired" | "import-reused" | "imported";
+  corpusId: string;
+  detail: string;
+}
+
+export interface CorpusPipelineOptions {
+  projectRoot?: string;
+  registry?: readonly CorpusPackageManifest[];
+  adapters?: readonly CorpusAdapter[];
+  git?: CorpusGit;
+  now?: () => Date;
+  onEvent?: (event: CorpusPipelineEvent) => void;
+}
+
+export interface CorpusRunOptions {
+  force?: boolean;
+}
+
+export interface CorpusStatus {
+  corpusId: string;
+  registered: boolean;
+  packageId: string | null;
+  rights: { eligible: boolean; reasons: string[] };
+  acquisition: { state: "missing" | "verified" | "corrupt"; reason: string | null };
+  dataset: { state: "missing" | "up-to-date" | "stale"; reason: string | null };
+}
+
+export interface RegisteredCorpus {
+  corpusId: string;
+  packageId: string;
+  editionId: string;
+  version: string | null;
+  commitSha: string;
+  adapterId: string | null;
+  rightsEligible: boolean;
+}
+
+export interface CorpusPipeline {
+  acquire(corpusId: string, options?: CorpusRunOptions): Promise<AcquiredPackage>;
+  verify(corpusId: string): Promise<AcquiredPackage>;
+  import(corpusId: string, options?: CorpusRunOptions): Promise<GeneratedCorpusManifest>;
+  build(corpusId: string, options?: CorpusRunOptions): Promise<GeneratedCorpusManifest>;
+  status(corpusId: string): Promise<CorpusStatus>;
+  list(): RegisteredCorpus[];
+}
+
+type DatasetState =
+  | { state: "missing"; reason: string }
+  | { state: "stale"; reason: string }
+  | { state: "up-to-date"; manifest: GeneratedCorpusManifest };
 
 function assertInside(parent: string, child: string): void {
   const path = relative(resolve(parent), resolve(child));
@@ -61,16 +146,57 @@ async function safeRemove(target: string, allowedRoot: string): Promise<void> {
   await rm(target, { recursive: true, force: true });
 }
 
-async function run(command: string, args: string[], cwd: string): Promise<void> {
-  await new Promise<void>((resolvePromise, reject) => {
-    const child = spawn(command, args, { cwd, shell: false, stdio: "inherit" });
+async function exists(path: string): Promise<boolean> {
+  try {
+    await stat(path);
+    return true;
+  } catch (error) {
+    if ((error as NodeJS.ErrnoException).code === "ENOENT") return false;
+    throw error;
+  }
+}
+
+function errorMessage(error: unknown): string {
+  return error instanceof Error ? error.message : String(error);
+}
+
+function processAlive(pid: number): boolean {
+  try {
+    process.kill(pid, 0);
+    return true;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === "EPERM";
+  }
+}
+
+function runGit(args: string[], cwd: string): Promise<string> {
+  return new Promise<string>((resolvePromise, reject) => {
+    const child = spawn("git", args, { cwd, shell: false, stdio: ["ignore", "pipe", "inherit"] });
+    let output = "";
+    child.stdout.on("data", (chunk: Buffer) => (output += chunk.toString("utf8")));
     child.once("error", reject);
     child.once("exit", (code) => {
-      if (code === 0) resolvePromise();
-      else reject(new Error(`${command} exited with code ${code ?? "unknown"}.`));
+      if (code === 0) resolvePromise(output.trim());
+      else reject(new Error(`git ${args.join(" ")} exited with code ${code ?? "unknown"}.`));
     });
   });
 }
+
+const defaultGit: CorpusGit = {
+  async clone(repository, destination) {
+    await runGit(
+      ["clone", "--filter=blob:none", "--no-checkout", repository, destination],
+      dirname(destination),
+    );
+  },
+  async checkout(directory, commitSha) {
+    await runGit(["-C", directory, "checkout", "--detach", commitSha], directory);
+  },
+  revParse: (directory) => runGit(["-C", directory, "rev-parse", "HEAD"], directory),
+};
+
+// Reentrant per process: build() holds the lock while it calls acquire() and import().
+const heldLocks = new Map<string, number>();
 
 function sha256(bytes: Uint8Array | string): string {
   return createHash("sha256").update(bytes).digest("hex");
@@ -86,42 +212,20 @@ export function calculatePackageDigest(artifacts: SourceArtifact[]): string {
   return sha256(identity);
 }
 
-function packageFor(corpusId: string): CorpusPackageManifest {
-  const matches = CORPUS_PACKAGE_CANDIDATES.filter(
-    (manifest) => manifest.corpusId === corpusId,
-  ).filter(
-    (manifest) => manifest.acquisitionPlan && CorpusRightsGate.evaluate(manifest.rights).eligible,
-  );
-  if (matches.length !== 1) {
-    throw new Error(`Expected exactly one registered package for corpus ${corpusId}.`);
-  }
-  const manifest = matches[0]!;
-  if (!manifest.acquisitionPlan) throw new Error(`Package ${manifest.id} has no acquisition plan.`);
-  return manifest;
-}
-
-function adapterFor(manifest: CorpusPackageManifest): CorpusAdapter {
-  const matches = ADAPTERS.filter((adapter) => adapter.supports(manifest));
-  if (matches.length !== 1) throw new Error(`Expected exactly one adapter for ${manifest.id}.`);
-  return matches[0]!;
-}
-
 function assertRights(manifest: CorpusPackageManifest): void {
   const decision = CorpusRightsGate.evaluate(manifest.rights);
   if (!decision.eligible) {
-    throw new Error(`Rights gate denied ${manifest.id}: ${decision.reasons.join(", ")}.`);
+    throw new CorpusPipelineError(
+      "rights-denied",
+      `Rights gate denied ${manifest.id}.`,
+      decision.reasons,
+    );
   }
   if (manifest.rights.license.attributionRequired && !manifest.rights.attribution) {
-    throw new Error(`Rights gate denied ${manifest.id}: attribution is missing.`);
+    throw new CorpusPipelineError("rights-denied", `Rights gate denied ${manifest.id}.`, [
+      "attribution is missing",
+    ]);
   }
-}
-
-function snapshotRoot(manifest: CorpusPackageManifest): string {
-  return resolve(SOURCE_ROOT, manifest.corpusId, manifest.acquisitionPlan!.commitSha);
-}
-
-function artifactManifestPath(manifest: CorpusPackageManifest): string {
-  return resolve(snapshotRoot(manifest), "artifact-manifest.json");
 }
 
 function sourceUrlFor(manifest: CorpusPackageManifest, sourcePath: string): string {
@@ -165,182 +269,390 @@ async function artifactFrom(
   });
 }
 
-async function readAcquired(manifest: CorpusPackageManifest): Promise<AcquiredPackage> {
-  const raw = await readFile(artifactManifestPath(manifest), "utf8");
-  return acquiredPackageSchema.parse(JSON.parse(raw) as unknown);
-}
-
-export async function acquireCorpus(corpusId: string): Promise<AcquiredPackage> {
-  const manifest = packageFor(corpusId);
-  const adapter = adapterFor(manifest);
-  const plan = manifest.acquisitionPlan!;
-  assertRights(manifest);
-  if (plan.commitSha === "HEAD" || plan.commitSha === "master" || plan.commitSha === "latest") {
-    throw new Error(`Mutable revision is forbidden for ${manifest.id}.`);
-  }
-
+/**
+ * Replaces `target` with `next`. An existing target is moved to `previous` first and is restored
+ * if the swap fails; it is deleted only after the new directory is in place.
+ */
+async function installDirectory(
+  next: string,
+  target: string,
+  previous: string,
+  cleanupRoot: string,
+): Promise<void> {
+  await mkdir(dirname(target), { recursive: true });
+  const hadPrevious = await exists(target);
+  if (hadPrevious) await rename(target, previous);
   try {
-    const existing = await readAcquired(manifest);
-    await verifyCorpus(corpusId);
-    return existing;
+    await rename(next, target);
   } catch (error) {
-    if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
-  }
-
-  await mkdir(SOURCE_STAGING_ROOT, { recursive: true });
-  const staging = await mkdtemp(resolve(SOURCE_STAGING_ROOT, `${manifest.corpusId}-`));
-  const checkout = resolve(staging, "checkout");
-  const target = snapshotRoot(manifest);
-  assertInside(SOURCE_ROOT, target);
-
-  try {
-    const repositoryUrl = new URL(plan.repository);
-    if (repositoryUrl.protocol !== "https:" || repositoryUrl.username || repositoryUrl.password) {
-      throw new Error(`Only credential-free HTTPS repositories are allowed.`);
+    if (hadPrevious) {
+      try {
+        await rename(previous, target);
+      } catch {
+        throw new CorpusPipelineError("incomplete", `Could not install ${target}.`, [
+          errorMessage(error),
+          `previous version preserved at ${previous}`,
+        ]);
+      }
     }
-    await run(
-      "git",
-      ["clone", "--filter=blob:none", "--no-checkout", plan.repository, checkout],
-      PROJECT_ROOT,
-    );
-    await run("git", ["-C", checkout, "checkout", "--detach", plan.commitSha], PROJECT_ROOT);
-    const resolvedCommit = (await new Promise<string>((resolvePromise, reject) => {
-      const child = spawn("git", ["-C", checkout, "rev-parse", "HEAD"], {
-        cwd: PROJECT_ROOT,
-        shell: false,
-      });
-      let output = "";
-      child.stdout.on("data", (chunk: Buffer) => (output += chunk.toString("utf8")));
-      child.once("error", reject);
-      child.once("exit", (code) =>
-        code === 0
-          ? resolvePromise(output.trim())
-          : reject(new Error("Unable to resolve Git commit.")),
-      );
-    })) as string;
-    if (resolvedCommit !== plan.commitSha) {
-      throw new Error(`Git resolved ${resolvedCommit}, expected ${plan.commitSha}.`);
-    }
-
-    const discovered = await adapter.discover(checkout, manifest);
-    const retrievedAt = new Date().toISOString();
-    const artifacts: SourceArtifact[] = [];
-    for (const item of discovered) artifacts.push(await artifactFrom(item, manifest, retrievedAt));
-
-    await mkdir(target, { recursive: true });
-    for (const item of discovered) {
-      const destination = resolve(target, item.sourcePath);
-      assertInside(target, destination);
-      await mkdir(dirname(destination), { recursive: true });
-      await copyFile(item.absolutePath, destination);
-    }
-
-    const acquired: AcquiredPackage = {
-      schemaVersion: 1,
-      packageId: manifest.id,
-      corpusId: manifest.corpusId,
-      editionId: manifest.editionId,
-      repository: plan.repository,
-      commitSha: plan.commitSha,
-      retrievedAt,
-      packageDigest: { algorithm: "SHA-256", value: calculatePackageDigest(artifacts) },
-      artifacts,
-    };
-    await writeFile(
-      artifactManifestPath(manifest),
-      `${JSON.stringify(acquired, null, 2)}\n`,
-      "utf8",
-    );
-    return await verifyCorpus(corpusId);
-  } catch (error) {
-    await safeRemove(target, SOURCE_ROOT);
     throw error;
-  } finally {
-    await safeRemove(staging, SOURCE_STAGING_ROOT);
   }
+  if (hadPrevious) await safeRemove(previous, cleanupRoot);
 }
 
-export async function verifyCorpus(corpusId: string): Promise<AcquiredPackage> {
-  const manifest = packageFor(corpusId);
-  const adapter = adapterFor(manifest);
-  const plan = manifest.acquisitionPlan!;
-  assertRights(manifest);
-  const acquired = await readAcquired(manifest);
-  if (
-    acquired.packageId !== manifest.id ||
-    acquired.commitSha !== plan.commitSha ||
-    acquired.repository !== plan.repository
-  ) {
-    throw new Error(`Acquired package identity does not match ${manifest.id}.`);
+export function createCorpusPipeline(options: CorpusPipelineOptions = {}): CorpusPipeline {
+  const projectRoot = resolve(options.projectRoot ?? DEFAULT_PROJECT_ROOT);
+  const sourceRoot = resolve(projectRoot, "corpora/source");
+  const stagingRoot = resolve(projectRoot, "corpora/.staging");
+  const generatedRoot = resolve(projectRoot, "generated/corpora");
+  const registry = options.registry ?? CORPUS_PACKAGE_CANDIDATES;
+  const adapters = options.adapters ?? [
+    new SblgntXmlAdapter(),
+    new BibliaLivreAdapter(),
+    new OshbOsisAdapter(),
+  ];
+  const git = options.git ?? defaultGit;
+  const now = options.now ?? (() => new Date());
+  const emit = options.onEvent ?? (() => undefined);
+
+  function registrationsFor(corpusId: string): CorpusPackageManifest[] {
+    return registry.filter(
+      (manifest) => manifest.corpusId === corpusId && manifest.acquisitionPlan,
+    );
   }
 
-  const source = snapshotRoot(manifest);
-  const discovered = await adapter.discover(source, manifest);
-  const discoveredPaths = new Set(discovered.map((artifact) => artifact.sourcePath));
-  if (discoveredPaths.size !== acquired.artifacts.length) {
-    throw new Error(`Artifact count changed after acquisition.`);
-  }
-  for (const artifact of acquired.artifacts) {
-    if (!discoveredPaths.has(artifact.sourcePath)) {
-      throw new Error(`Registered artifact is no longer discoverable: ${artifact.sourcePath}.`);
-    }
-    const path = resolve(source, artifact.sourcePath);
-    assertInside(source, path);
-    const bytes = await readFile(path);
-    if (bytes.byteLength !== artifact.byteSize || sha256(bytes) !== artifact.checksum.value) {
-      throw new Error(`Integrity verification failed for ${artifact.sourcePath}.`);
-    }
-  }
-  const digest = calculatePackageDigest(acquired.artifacts);
-  if (digest !== acquired.packageDigest.value)
-    throw new Error(`Package digest verification failed.`);
-  return acquired;
-}
-
-export async function importCorpus(corpusId: string): Promise<GeneratedCorpusManifest> {
-  const manifest = packageFor(corpusId);
-  const adapter = adapterFor(manifest);
-  const acquired = await verifyCorpus(corpusId);
-  const source = snapshotRoot(manifest);
-  const discovered = await adapter.discover(source, manifest);
-  const artifactByPath = new Map(
-    acquired.artifacts.map((artifact) => [artifact.sourcePath, artifact]),
-  );
-  const datasetId = `dataset:${manifest.corpusId}:${manifest.version}:${acquired.packageDigest.value}`;
-  const statistics = emptyImportStatistics();
-  statistics.artifacts = acquired.artifacts.length;
-  statistics.bytesProcessed = acquired.artifacts.reduce(
-    (total, artifact) => total + artifact.byteSize,
-    0,
-  );
-
-  const corpusOutputRoot = resolve(GENERATED_ROOT, manifest.corpusId);
-  const finalOutput = resolve(
-    corpusOutputRoot,
-    manifest.version ?? manifest.revision ?? "unversioned",
-  );
-  await mkdir(resolve(corpusOutputRoot, ".staging"), { recursive: true });
-  const staging = await mkdtemp(resolve(corpusOutputRoot, ".staging", "import-"));
-  const books: GeneratedCorpusBookIndex[] = [];
-  const versificationAnomalies: string[] = [];
-  const bookArtifacts = discovered.filter((artifact) => artifact.classification === "book");
-
-  try {
-    for (const discoveredArtifact of bookArtifacts) {
-      const sourceArtifact = artifactByPath.get(discoveredArtifact.sourcePath);
-      if (!sourceArtifact)
-        throw new Error(`Missing custody record for ${discoveredArtifact.sourcePath}.`);
-      const normalized = await adapter.parseAndNormalize(
-        discoveredArtifact,
-        sourceArtifact,
-        manifest,
-        datasetId,
+  function packageFor(corpusId: string): CorpusPackageManifest {
+    const registered = registrationsFor(corpusId);
+    if (!registered.length) {
+      throw new CorpusPipelineError(
+        "not-registered",
+        `No acquirable package is registered for corpus ${corpusId}.`,
+        [`registered corpora: ${[...new Set(list().map((item) => item.corpusId))].join(", ")}`],
       );
+    }
+    const eligible = registered.filter(
+      (manifest) => CorpusRightsGate.evaluate(manifest.rights).eligible,
+    );
+    if (!eligible.length) {
+      throw new CorpusPipelineError(
+        "rights-denied",
+        `Rights gate denied every package registered for corpus ${corpusId}.`,
+        registered.map(
+          (manifest) =>
+            `${manifest.id}: ${CorpusRightsGate.evaluate(manifest.rights).reasons.join(", ")}`,
+        ),
+      );
+    }
+    if (eligible.length > 1) {
+      throw new CorpusPipelineError(
+        "not-registered",
+        `Expected exactly one registered package for corpus ${corpusId}.`,
+        eligible.map((manifest) => manifest.id),
+      );
+    }
+    return eligible[0]!;
+  }
+
+  function adapterFor(manifest: CorpusPackageManifest): CorpusAdapter {
+    const matches = adapters.filter((adapter) => adapter.supports(manifest));
+    if (matches.length !== 1) {
+      throw new CorpusPipelineError(
+        "not-registered",
+        `Expected exactly one adapter for ${manifest.id}.`,
+        matches.map((adapter) => adapter.id),
+      );
+    }
+    return matches[0]!;
+  }
+
+  function snapshotRoot(manifest: CorpusPackageManifest): string {
+    return resolve(sourceRoot, manifest.corpusId, manifest.acquisitionPlan!.commitSha);
+  }
+
+  function outputRoot(manifest: CorpusPackageManifest): string {
+    return resolve(
+      generatedRoot,
+      manifest.corpusId,
+      manifest.version ?? manifest.revision ?? "unversioned",
+    );
+  }
+
+  async function readLock(lockPath: string): Promise<{ holder: string; live: boolean }> {
+    let pid: number | null = null;
+    let createdAt: Date | null = null;
+    try {
+      const parsed = JSON.parse(await readFile(lockPath, "utf8")) as {
+        pid?: unknown;
+        createdAt?: unknown;
+      };
+      if (typeof parsed.pid === "number") pid = parsed.pid;
+      if (typeof parsed.createdAt === "string") createdAt = new Date(parsed.createdAt);
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT")
+        return { holder: "released", live: false };
+    }
+    if (!createdAt || Number.isNaN(createdAt.getTime())) {
+      try {
+        createdAt = (await stat(lockPath)).mtime;
+      } catch {
+        return { holder: "released", live: false };
+      }
+    }
+    const age = now().getTime() - createdAt.getTime();
+    // A lock without a readable pid may still be in the middle of being written.
+    const live =
+      age < LOCK_MAX_AGE_MS && (pid === null ? age < UNWRITTEN_LOCK_GRACE_MS : processAlive(pid));
+    return { holder: `pid ${pid ?? "unknown"} since ${createdAt.toISOString()}`, live };
+  }
+
+  async function takeLock(corpusId: string, lockPath: string): Promise<void> {
+    await mkdir(stagingRoot, { recursive: true });
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        const handle = await open(lockPath, "wx");
+        try {
+          await handle.writeFile(
+            `${JSON.stringify({ pid: process.pid, createdAt: now().toISOString() })}\n`,
+            "utf8",
+          );
+        } finally {
+          await handle.close();
+        }
+        return;
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "EEXIST") throw error;
+      }
+      const lock = await readLock(lockPath);
+      if (lock.live) {
+        throw new CorpusPipelineError("locked", `Corpus ${corpusId} is locked by another run.`, [
+          `lock: ${lockPath}`,
+          `holder: ${lock.holder}`,
+        ]);
+      }
+      await rm(lockPath, { force: true });
+      emit({
+        type: "lock-recovered",
+        corpusId,
+        detail: `Recovered stale lock ${lockPath} (${lock.holder}).`,
+      });
+    }
+    throw new CorpusPipelineError("locked", `Corpus ${corpusId} lock could not be acquired.`, [
+      `lock: ${lockPath}`,
+    ]);
+  }
+
+  async function withLock<T>(corpusId: string, task: () => Promise<T>): Promise<T> {
+    const lockPath = resolve(stagingRoot, `${corpusId}.lock`);
+    assertInside(stagingRoot, lockPath);
+    const depth = heldLocks.get(lockPath) ?? 0;
+    if (depth === 0) await takeLock(corpusId, lockPath);
+    heldLocks.set(lockPath, depth + 1);
+    try {
+      return await task();
+    } finally {
+      const remaining = (heldLocks.get(lockPath) ?? 1) - 1;
+      if (remaining > 0) heldLocks.set(lockPath, remaining);
+      else {
+        heldLocks.delete(lockPath);
+        await rm(lockPath, { force: true });
+      }
+    }
+  }
+
+  async function readAcquiredAt(
+    root: string,
+    manifest: CorpusPackageManifest,
+  ): Promise<AcquiredPackage> {
+    const path = resolve(root, "artifact-manifest.json");
+    let raw: string;
+    try {
+      raw = await readFile(path, "utf8");
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+      throw new CorpusPipelineError(
+        "incomplete",
+        `Corpus ${manifest.corpusId} has not been acquired.`,
+        [`missing ${path}`],
+      );
+    }
+    let parsed: unknown;
+    try {
+      parsed = JSON.parse(raw) as unknown;
+    } catch (error) {
+      throw new CorpusPipelineError("integrity", `Invalid artifact manifest for ${manifest.id}.`, [
+        `${path}: ${errorMessage(error)}`,
+      ]);
+    }
+    const result = acquiredPackageSchema.safeParse(parsed);
+    if (!result.success) {
+      throw new CorpusPipelineError(
+        "integrity",
+        `Invalid artifact manifest for ${manifest.id}.`,
+        result.error.issues.map((issue) => `${issue.path.join(".") || "(root)"}: ${issue.message}`),
+      );
+    }
+    return result.data;
+  }
+
+  async function integrityIssues(
+    root: string,
+    manifest: CorpusPackageManifest,
+    adapter: CorpusAdapter,
+  ): Promise<{ acquired: AcquiredPackage; issues: string[] }> {
+    const acquired = await readAcquiredAt(root, manifest);
+    const plan = manifest.acquisitionPlan!;
+    const issues: string[] = [];
+    if (acquired.packageId !== manifest.id)
+      issues.push(`packageId is ${acquired.packageId}, expected ${manifest.id}`);
+    if (acquired.commitSha !== plan.commitSha)
+      issues.push(`commitSha is ${acquired.commitSha}, expected ${plan.commitSha}`);
+    if (acquired.repository !== plan.repository)
+      issues.push(`repository is ${acquired.repository}, expected ${plan.repository}`);
+
+    let discovered: DiscoveredCorpusArtifact[] | null = null;
+    try {
+      discovered = await adapter.discover(root, manifest);
+    } catch (error) {
+      issues.push(`artifact discovery failed: ${errorMessage(error)}`);
+    }
+    const registered = new Set(acquired.artifacts.map((artifact) => artifact.sourcePath));
+    const discoveredPaths = new Set(discovered?.map((artifact) => artifact.sourcePath));
+    for (const path of discoveredPaths)
+      if (!registered.has(path)) issues.push(`${path}: artifact is not registered`);
+
+    for (const artifact of acquired.artifacts) {
+      const path = resolve(root, artifact.sourcePath);
+      assertInside(root, path);
+      let bytes: Buffer;
+      try {
+        bytes = await readFile(path);
+      } catch (error) {
+        if ((error as NodeJS.ErrnoException).code !== "ENOENT") throw error;
+        issues.push(`${artifact.sourcePath}: file is missing`);
+        continue;
+      }
+      if (discovered && !discoveredPaths.has(artifact.sourcePath))
+        issues.push(`${artifact.sourcePath}: registered artifact is no longer discoverable`);
+      if (bytes.byteLength !== artifact.byteSize)
+        issues.push(
+          `${artifact.sourcePath}: size is ${bytes.byteLength} bytes, expected ${artifact.byteSize}`,
+        );
+      const checksum = sha256(bytes);
+      if (checksum !== artifact.checksum.value)
+        issues.push(
+          `${artifact.sourcePath}: SHA-256 is ${checksum}, expected ${artifact.checksum.value}`,
+        );
+    }
+    const digest = calculatePackageDigest(acquired.artifacts);
+    if (digest !== acquired.packageDigest.value)
+      issues.push(`package digest is ${digest}, expected ${acquired.packageDigest.value}`);
+    return { acquired, issues };
+  }
+
+  async function verifySnapshot(
+    root: string,
+    manifest: CorpusPackageManifest,
+    adapter: CorpusAdapter,
+  ): Promise<AcquiredPackage> {
+    const { acquired, issues } = await integrityIssues(root, manifest, adapter);
+    if (issues.length) {
+      throw new CorpusPipelineError(
+        "integrity",
+        `Integrity verification failed for ${manifest.id} (${issues.length} problem(s)).`,
+        issues,
+      );
+    }
+    return acquired;
+  }
+
+  async function datasetState(
+    output: string,
+    adapter: CorpusAdapter,
+    acquired: AcquiredPackage | null,
+  ): Promise<DatasetState> {
+    let current: Partial<GeneratedCorpusManifest>;
+    try {
+      current = JSON.parse(
+        await readFile(resolve(output, "manifest.json"), "utf8"),
+      ) as Partial<GeneratedCorpusManifest>;
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code === "ENOENT")
+        return { state: "missing", reason: "manifest.json not found" };
+      return { state: "stale", reason: `manifest.json is unreadable: ${errorMessage(error)}` };
+    }
+    if (current.importer?.adapter !== adapter.id)
+      return {
+        state: "stale",
+        reason: `adapter is ${current.importer?.adapter}, expected ${adapter.id}`,
+      };
+    if (current.importer.version !== adapter.importerVersion)
+      return {
+        state: "stale",
+        reason: `importer version is ${current.importer.version}, expected ${adapter.importerVersion}`,
+      };
+    if (!acquired) return { state: "stale", reason: "source snapshot is not available" };
+    if (current.sourcePackageDigest?.value !== acquired.packageDigest.value)
+      return { state: "stale", reason: "source package digest changed" };
+    for (const book of current.books ?? [])
+      for (const relativePath of Object.values(book.chapterFiles)) {
+        const path = resolve(output, relativePath);
+        assertInside(output, path);
+        if (!(await exists(path)))
+          return { state: "stale", reason: `chapter file ${relativePath} is missing` };
+      }
+    return { state: "up-to-date", manifest: current as GeneratedCorpusManifest };
+  }
+
+  async function generateDataset(
+    manifest: CorpusPackageManifest,
+    adapter: CorpusAdapter,
+    acquired: AcquiredPackage,
+    staging: string,
+  ): Promise<GeneratedCorpusManifest> {
+    const discovered = await adapter.discover(snapshotRoot(manifest), manifest);
+    const artifactByPath = new Map(
+      acquired.artifacts.map((artifact) => [artifact.sourcePath, artifact]),
+    );
+    const datasetId = `dataset:${manifest.corpusId}:${manifest.version}:${acquired.packageDigest.value}`;
+    const statistics = emptyImportStatistics();
+    statistics.artifacts = acquired.artifacts.length;
+    statistics.bytesProcessed = acquired.artifacts.reduce(
+      (total, artifact) => total + artifact.byteSize,
+      0,
+    );
+    const books: GeneratedCorpusBookIndex[] = [];
+    const versificationAnomalies: string[] = [];
+    const problems: string[] = [];
+    const attemptedBookIds = new Set<string>();
+
+    for (const discoveredArtifact of discovered.filter((item) => item.classification === "book")) {
+      const where = discoveredArtifact.sourcePath;
+      if (discoveredArtifact.canonicalBookId)
+        attemptedBookIds.add(discoveredArtifact.canonicalBookId);
+      const sourceArtifact = artifactByPath.get(where);
+      if (!sourceArtifact) {
+        problems.push(`${where} › missing custody record`);
+        continue;
+      }
+      let normalized: NormalizedCorpusBook | null;
+      try {
+        normalized = await adapter.parseAndNormalize(
+          discoveredArtifact,
+          sourceArtifact,
+          manifest,
+          datasetId,
+        );
+      } catch (error) {
+        problems.push(`${where} › ${errorMessage(error)}`);
+        continue;
+      }
       if (!normalized) continue;
+      attemptedBookIds.add(normalized.book.id);
       const validationErrors = adapter.validate(normalized, manifest);
       if (validationErrors.length) {
         statistics.errors += validationErrors.length;
-        throw new Error(validationErrors.join("\n"));
+        problems.push(...validationErrors.map((message) => `${where} › ${message}`));
+        continue;
       }
       statistics.warnings += normalized.warnings.length;
       versificationAnomalies.push(...normalized.warnings);
@@ -349,6 +661,7 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       statistics.notes = (statistics.notes ?? 0) + (normalized.structuralCounts?.notes ?? 0);
       statistics.versificationAnomalies =
         (statistics.versificationAnomalies ?? 0) + normalized.warnings.length;
+      // Created after headings/notes/versificationAnomalies so the manifest key order is stable.
       statistics.missingCanonicalMappings ??= 0;
       statistics.books += 1;
       statistics.chapters += normalized.chapters.length;
@@ -378,15 +691,25 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
 
     books.sort((left, right) => left.order - right.order);
     const expected = manifest.acquisitionPlan!.expectedBookIds;
-    if (
-      books.length !== expected.length ||
-      expected.some((id) => !books.some((book) => book.id === id))
-    ) {
-      throw new Error(`Generated dataset does not contain the complete expected book set.`);
+    for (const id of expected)
+      if (!attemptedBookIds.has(id) && !books.some((book) => book.id === id))
+        problems.push(`${id} › expected book is missing from the source`);
+    for (const book of books)
+      if (!expected.includes(book.id)) problems.push(`${book.id} › unexpected book`);
+    if (problems.length) {
+      throw new CorpusPipelineError(
+        "validation",
+        `Validation failed for ${manifest.id} (${problems.length} problem(s)).`,
+        problems,
+      );
     }
     const attribution =
       manifest.rights.attribution?.requiredText ?? manifest.rights.attribution?.recommendedCitation;
-    if (!attribution) throw new Error(`Attribution text is required before dataset generation.`);
+    if (!attribution) {
+      throw new CorpusPipelineError("rights-denied", `Rights gate denied ${manifest.id}.`, [
+        "attribution text is required before dataset generation",
+      ]);
+    }
 
     const generated: GeneratedCorpusManifest = {
       schemaVersion: 1,
@@ -406,12 +729,7 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       transformations: [
         {
           id: `transformation:${manifest.corpusId}:${adapter.importerVersion}:parse-source`,
-          type:
-            adapter.id === "biblia-livre-f4"
-              ? "parse-f4"
-              : adapter.id === "oshb-osis"
-                ? "parse-osis"
-                : "parse-xml",
+          type: adapter.transformationType,
           inputArtifactIds: acquired.artifacts.map((artifact) => artifact.id),
           outputDatasetId: datasetId,
         },
@@ -425,31 +743,7 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       datasetId,
       books,
       statistics,
-      structuralDecisions:
-        adapter.id === "biblia-livre-f4"
-          ? [
-              "Official UTF-8 F4 files are parsed directly; no opaque conversion tool is used.",
-              "Footnotes and psalm titles are counted and excluded from the visible verse string; added text remains visible.",
-              "No paragraph markers exist in this N4 source revision, so no paragraphs are invented.",
-              "Canonical passage references are shared, but no Portuguese-to-Greek word alignment is created.",
-              "Generated storage is partitioned by book and chapter.",
-            ]
-          : adapter.id === "oshb-osis"
-            ? [
-                "Each OSIS <w> is preserved as a token; slash-delimited source segmentation is not fabricated into word alignments.",
-                "Hebrew surface text, niqqud and cantillation are preserved verbatim; normalization is search-only.",
-                "OSHB lemma and morphology codes are retained verbatim and decoded fields are additive.",
-                "WLC text is public domain; OSHB lemma and morphology data are attributed under CC BY 4.0.",
-                "Generated storage is partitioned by book and chapter.",
-              ]
-            : [
-                "Storage schema v2 omits only token editionId, textUnitId, ref and language inherited from chapter/verse; repository restores the v1 domain exactly. JSON whitespace is removed.",
-                "Each source <w> is preserved as one TokenOccurrence; no whitespace retokenization is performed.",
-                "Source <prefix> and <suffix> values are preserved on the adjacent token.",
-                "Source <p> boundaries are preserved as paragraph IDs and chapter-local boundary ranges.",
-                "Lexeme, gloss, morphology and Strong identifiers remain absent because the SBLGNT XML does not supply them.",
-                "Generated storage is partitioned by book and chapter; no per-verse files are created.",
-              ],
+      structuralDecisions: [...adapter.structuralDecisions],
       versificationAnomalies,
     };
     await writeFile(
@@ -457,18 +751,277 @@ export async function importCorpus(corpusId: string): Promise<GeneratedCorpusMan
       `${JSON.stringify(generated, null, 2)}\n`,
       "utf8",
     );
-    await safeRemove(finalOutput, corpusOutputRoot);
-    await mkdir(dirname(finalOutput), { recursive: true });
-    await rename(staging, finalOutput);
     return generated;
-  } catch (error) {
-    await safeRemove(staging, resolve(corpusOutputRoot, ".staging"));
-    throw error;
   }
+
+  async function acquire(
+    corpusId: string,
+    runOptions: CorpusRunOptions = {},
+  ): Promise<AcquiredPackage> {
+    const manifest = packageFor(corpusId);
+    const adapter = adapterFor(manifest);
+    const plan = manifest.acquisitionPlan!;
+    assertRights(manifest);
+    if (MUTABLE_REVISIONS.has(plan.commitSha) || !/^[a-f0-9]{40}$/.test(plan.commitSha)) {
+      throw new CorpusPipelineError(
+        "mutable-revision",
+        `Mutable revision is forbidden for ${manifest.id}.`,
+        [plan.commitSha],
+      );
+    }
+    return withLock(corpusId, async () => {
+      const target = snapshotRoot(manifest);
+      assertInside(sourceRoot, target);
+      if (!runOptions.force) {
+        if (await exists(resolve(target, "artifact-manifest.json"))) {
+          // An installed snapshot is reused when intact and never replaced silently when not.
+          const acquired = await verifySnapshot(target, manifest, adapter);
+          emit({
+            type: "acquisition-reused",
+            corpusId,
+            detail: `${manifest.id} @ ${plan.commitSha}`,
+          });
+          return acquired;
+        }
+        if (await exists(target)) {
+          throw new CorpusPipelineError(
+            "incomplete",
+            `Snapshot directory exists without artifact-manifest.json: ${target}.`,
+            ["inspect it, then acquire again with --force to replace it atomically"],
+          );
+        }
+      }
+
+      await mkdir(stagingRoot, { recursive: true });
+      const staging = await mkdtemp(resolve(stagingRoot, `${manifest.corpusId}-`));
+      const checkout = resolve(staging, "checkout");
+      const snapshot = resolve(staging, "snapshot");
+      try {
+        const repositoryUrl = new URL(plan.repository);
+        if (
+          repositoryUrl.protocol !== "https:" ||
+          repositoryUrl.username ||
+          repositoryUrl.password
+        ) {
+          throw new CorpusPipelineError(
+            "git",
+            "Only credential-free HTTPS repositories are allowed.",
+            [plan.repository],
+          );
+        }
+        let resolvedCommit: string;
+        try {
+          await git.clone(plan.repository, checkout);
+          await git.checkout(checkout, plan.commitSha);
+          resolvedCommit = await git.revParse(checkout);
+        } catch (error) {
+          throw new CorpusPipelineError("git", `Git acquisition failed for ${manifest.id}.`, [
+            errorMessage(error),
+          ]);
+        }
+        if (resolvedCommit !== plan.commitSha) {
+          throw new CorpusPipelineError(
+            "git",
+            `Git resolved ${resolvedCommit}, expected ${plan.commitSha}.`,
+            [`repository: ${plan.repository}`],
+          );
+        }
+
+        const discovered = await adapter.discover(checkout, manifest);
+        const retrievedAt = now().toISOString();
+        const artifacts: SourceArtifact[] = [];
+        for (const item of discovered)
+          artifacts.push(await artifactFrom(item, manifest, retrievedAt));
+        for (const item of discovered) {
+          const destination = resolve(snapshot, item.sourcePath);
+          assertInside(snapshot, destination);
+          await mkdir(dirname(destination), { recursive: true });
+          await copyFile(item.absolutePath, destination);
+        }
+        const acquired: AcquiredPackage = {
+          schemaVersion: 1,
+          packageId: manifest.id,
+          corpusId: manifest.corpusId,
+          editionId: manifest.editionId,
+          repository: plan.repository,
+          commitSha: plan.commitSha,
+          retrievedAt,
+          packageDigest: { algorithm: "SHA-256", value: calculatePackageDigest(artifacts) },
+          artifacts,
+        };
+        await writeFile(
+          resolve(snapshot, "artifact-manifest.json"),
+          `${JSON.stringify(acquired, null, 2)}\n`,
+          "utf8",
+        );
+        const verified = await verifySnapshot(snapshot, manifest, adapter);
+        await installDirectory(snapshot, target, `${staging}-previous`, stagingRoot);
+        emit({ type: "acquired", corpusId, detail: `${manifest.id} @ ${plan.commitSha}` });
+        return verified;
+      } finally {
+        await safeRemove(staging, stagingRoot);
+      }
+    });
+  }
+
+  async function verify(corpusId: string): Promise<AcquiredPackage> {
+    const manifest = packageFor(corpusId);
+    const adapter = adapterFor(manifest);
+    assertRights(manifest);
+    return verifySnapshot(snapshotRoot(manifest), manifest, adapter);
+  }
+
+  async function importDataset(
+    corpusId: string,
+    runOptions: CorpusRunOptions = {},
+  ): Promise<GeneratedCorpusManifest> {
+    const manifest = packageFor(corpusId);
+    const adapter = adapterFor(manifest);
+    assertRights(manifest);
+    return withLock(corpusId, async () => {
+      const acquired = await verifySnapshot(snapshotRoot(manifest), manifest, adapter);
+      const finalOutput = outputRoot(manifest);
+      if (!runOptions.force) {
+        const current = await datasetState(finalOutput, adapter, acquired);
+        if (current.state === "up-to-date") {
+          emit({ type: "import-reused", corpusId, detail: current.manifest.datasetId });
+          return current.manifest;
+        }
+      }
+      const importStagingRoot = resolve(generatedRoot, manifest.corpusId, ".staging");
+      await mkdir(importStagingRoot, { recursive: true });
+      const staging = await mkdtemp(resolve(importStagingRoot, "import-"));
+      try {
+        const generated = await generateDataset(manifest, adapter, acquired, staging);
+        const previous = resolve(
+          importStagingRoot,
+          `previous-${basename(staging).slice("import-".length)}`,
+        );
+        await installDirectory(staging, finalOutput, previous, importStagingRoot);
+        emit({ type: "imported", corpusId, detail: generated.datasetId });
+        return generated;
+      } catch (error) {
+        await safeRemove(staging, importStagingRoot);
+        throw error;
+      }
+    });
+  }
+
+  async function build(
+    corpusId: string,
+    runOptions: CorpusRunOptions = {},
+  ): Promise<GeneratedCorpusManifest> {
+    packageFor(corpusId);
+    return withLock(corpusId, async () => {
+      await acquire(corpusId);
+      return importDataset(corpusId, runOptions);
+    });
+  }
+
+  async function status(corpusId: string): Promise<CorpusStatus> {
+    const registered = registrationsFor(corpusId);
+    if (!registered.length) {
+      return {
+        corpusId,
+        registered: false,
+        packageId: null,
+        rights: { eligible: false, reasons: ["not-registered"] },
+        acquisition: { state: "missing", reason: "corpus is not registered" },
+        dataset: { state: "missing", reason: "corpus is not registered" },
+      };
+    }
+    const eligible = registered.filter(
+      (manifest) => CorpusRightsGate.evaluate(manifest.rights).eligible,
+    );
+    const manifest = eligible.length === 1 ? eligible[0]! : registered[0]!;
+    const rights =
+      eligible.length > 1
+        ? {
+            eligible: false,
+            reasons: [`ambiguous packages: ${eligible.map((m) => m.id).join(", ")}`],
+          }
+        : CorpusRightsGate.evaluate(manifest.rights);
+    const matches = adapters.filter((adapter) => adapter.supports(manifest));
+    if (matches.length !== 1) {
+      const reason = `expected exactly one adapter for ${manifest.id}`;
+      return {
+        corpusId,
+        registered: true,
+        packageId: manifest.id,
+        rights,
+        acquisition: { state: "missing", reason },
+        dataset: { state: "missing", reason },
+      };
+    }
+    const adapter = matches[0]!;
+    let acquired: AcquiredPackage | null = null;
+    let acquisition: CorpusStatus["acquisition"];
+    try {
+      const result = await integrityIssues(snapshotRoot(manifest), manifest, adapter);
+      acquired = result.acquired;
+      acquisition = result.issues.length
+        ? { state: "corrupt", reason: `${result.issues.length} problem(s): ${result.issues[0]}` }
+        : { state: "verified", reason: null };
+    } catch (error) {
+      acquisition =
+        error instanceof CorpusPipelineError && error.code === "incomplete"
+          ? { state: "missing", reason: error.details[0] ?? error.message }
+          : { state: "corrupt", reason: errorMessage(error) };
+    }
+    const dataset = await datasetState(outputRoot(manifest), adapter, acquired);
+    return {
+      corpusId,
+      registered: true,
+      packageId: manifest.id,
+      rights: { eligible: rights.eligible, reasons: rights.reasons },
+      acquisition,
+      dataset:
+        dataset.state === "up-to-date"
+          ? { state: "up-to-date", reason: null }
+          : { state: dataset.state, reason: dataset.reason },
+    };
+  }
+
+  function list(): RegisteredCorpus[] {
+    return registry
+      .filter((manifest) => manifest.acquisitionPlan)
+      .map((manifest) => ({
+        corpusId: manifest.corpusId,
+        packageId: manifest.id,
+        editionId: manifest.editionId,
+        version: manifest.version ?? null,
+        commitSha: manifest.acquisitionPlan!.commitSha,
+        adapterId: adapters.find((adapter) => adapter.supports(manifest))?.id ?? null,
+        rightsEligible: CorpusRightsGate.evaluate(manifest.rights).eligible,
+      }));
+  }
+
+  return { acquire, verify, import: importDataset, build, status, list };
 }
 
-export async function buildCorpus(corpusId: string): Promise<GeneratedCorpusManifest> {
-  await acquireCorpus(corpusId);
-  await verifyCorpus(corpusId);
-  return importCorpus(corpusId);
+const defaultPipeline = createCorpusPipeline();
+
+export function acquireCorpus(
+  corpusId: string,
+  options: CorpusRunOptions = {},
+): Promise<AcquiredPackage> {
+  return defaultPipeline.acquire(corpusId, options);
+}
+
+export function verifyCorpus(corpusId: string): Promise<AcquiredPackage> {
+  return defaultPipeline.verify(corpusId);
+}
+
+export function importCorpus(
+  corpusId: string,
+  options: CorpusRunOptions = {},
+): Promise<GeneratedCorpusManifest> {
+  return defaultPipeline.import(corpusId, options);
+}
+
+export function buildCorpus(
+  corpusId: string,
+  options: CorpusRunOptions = {},
+): Promise<GeneratedCorpusManifest> {
+  return defaultPipeline.build(corpusId, options);
 }

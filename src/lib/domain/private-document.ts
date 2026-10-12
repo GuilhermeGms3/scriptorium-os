@@ -46,6 +46,16 @@ export const ExtractedPrivateDocumentSchema = z.object({
       pageLabel: z.string().min(1),
       text: z.string(),
       itemCount: z.number().int().nonnegative(),
+      layout: z
+        .array(
+          z.object({
+            text: z.string(),
+            transform: z.array(z.number().finite()).length(6),
+            width: z.number().finite(),
+            height: z.number().finite(),
+          }),
+        )
+        .optional(),
     }),
   ),
 });

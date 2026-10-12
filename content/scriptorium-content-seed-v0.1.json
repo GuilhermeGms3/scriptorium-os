@@ -456,7 +456,7 @@
   "perspectives": [
     {
       "id": "perspective:reformed-hg-covenant",
-      "label": "Reformed · historical-grammatical · covenant",
+      "label": "Reformada · histórico-gramatical · teologia da aliança",
       "methodIds": ["method:historical-grammatical"],
       "stanceIds": ["stance:confessional"],
       "traditionIds": ["tradition:reformed"],
@@ -464,13 +464,13 @@
     },
     {
       "id": "perspective:textual-nonconfessional",
-      "label": "Textual criticism · non-confessional",
+      "label": "Crítica textual · não confessional",
       "methodIds": ["method:textual-criticism"],
       "stanceIds": ["stance:non-confessional"]
     },
     {
       "id": "perspective:historical-critical-nonconfessional",
-      "label": "Historical-critical · non-confessional",
+      "label": "Histórico-crítica · não confessional",
       "methodIds": ["method:historical-critical"],
       "stanceIds": ["stance:non-confessional"]
     }
@@ -490,6 +490,13 @@
         }
       },
       "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "perspectives": [
+        {
+          "profileId": "perspective:textual-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [{ "evidenceId": "evidence:john-1-1-sblgnt", "relation": "supports" }],
       "supportLevel": "direct",
       "reviewStatus": "verified"
     },
@@ -507,6 +514,13 @@
         }
       },
       "sourceIds": ["source:sblgnt:1.2", "source:stepbible:tagnt:efe428a"],
+      "perspectives": [
+        {
+          "profileId": "perspective:textual-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [{ "evidenceId": "evidence:john-1-1-sblgnt", "relation": "supports" }],
       "supportLevel": "direct",
       "reviewStatus": "verified"
     },
@@ -532,6 +546,16 @@
       "proposition": "Marcos foi composto antes de Mateus e Lucas.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:streeter:four-gospels:1924", "source:farrer:dispensing-with-q:1955"],
+      "perspectives": [
+        {
+          "profileId": "perspective:historical-critical-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [
+        { "evidenceId": "evidence:streeter-four-gospels", "relation": "supports" },
+        { "evidenceId": "evidence:farrer-dispensing-q", "relation": "qualifies" }
+      ],
       "supportLevel": "moderate",
       "reviewStatus": "imported"
     },
@@ -540,6 +564,13 @@
       "proposition": "Mateus e Lucas utilizaram de modo independente uma fonte hipotética de ditos, convencionalmente chamada Q.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:streeter:four-gospels:1924"],
+      "perspectives": [
+        {
+          "profileId": "perspective:historical-critical-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [{ "evidenceId": "evidence:streeter-four-gospels", "relation": "supports" }],
       "supportLevel": "disputed",
       "reviewStatus": "imported"
     },
@@ -548,6 +579,13 @@
       "proposition": "Lucas utilizou Mateus diretamente; portanto, uma fonte Q separada não é necessária.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:farrer:dispensing-with-q:1955"],
+      "perspectives": [
+        {
+          "profileId": "perspective:historical-critical-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [{ "evidenceId": "evidence:farrer-dispensing-q", "relation": "supports" }],
       "supportLevel": "disputed",
       "reviewStatus": "imported"
     },
@@ -556,6 +594,13 @@
       "proposition": "Mateus foi composto antes de Marcos.",
       "kind": "academic-hypothesis",
       "sourceIds": ["source:farmer:synoptic-problem:1964"],
+      "perspectives": [
+        {
+          "profileId": "perspective:historical-critical-nonconfessional",
+          "association": "interpretive-context"
+        }
+      ],
+      "evidence": [{ "evidenceId": "evidence:farmer-synoptic-problem", "relation": "supports" }],
       "supportLevel": "disputed",
       "reviewStatus": "imported"
     }
@@ -618,12 +663,45 @@
       "sourceIds": ["source:sblgnt:1.2"],
       "reviewStatus": "verified",
       "authorship": "human-reviewed"
+    },
+    {
+      "id": "evidence:streeter-four-gospels",
+      "label": "Estudo histórico de Streeter sobre as origens dos Evangelhos",
+      "target": {
+        "kind": "academic-source",
+        "sourceId": "source:streeter:four-gospels:1924"
+      },
+      "sourceIds": ["source:streeter:four-gospels:1924"],
+      "reviewStatus": "imported",
+      "authorship": "human-authored"
+    },
+    {
+      "id": "evidence:farrer-dispensing-q",
+      "label": "Artigo de Farrer sobre a hipótese Q",
+      "target": {
+        "kind": "academic-source",
+        "sourceId": "source:farrer:dispensing-with-q:1955"
+      },
+      "sourceIds": ["source:farrer:dispensing-with-q:1955"],
+      "reviewStatus": "imported",
+      "authorship": "human-authored"
+    },
+    {
+      "id": "evidence:farmer-synoptic-problem",
+      "label": "Análise de Farmer sobre o problema sinótico",
+      "target": {
+        "kind": "academic-source",
+        "sourceId": "source:farmer:synoptic-problem:1964"
+      },
+      "sourceIds": ["source:farmer:synoptic-problem:1964"],
+      "reviewStatus": "imported",
+      "authorship": "human-authored"
     }
   ],
   "arguments": [
     {
       "id": "argument:two-source",
-      "title": "Two-Source model",
+      "title": "Modelo das duas fontes",
       "conclusionClaimId": "claim:q-source",
       "premiseClaimIds": ["claim:markan-priority"],
       "argumentType": "abductive",
@@ -632,7 +710,7 @@
     },
     {
       "id": "argument:farrer-alternative",
-      "title": "Farrer alternative",
+      "title": "Alternativa de Farrer",
       "conclusionClaimId": "claim:luke-used-matthew",
       "premiseClaimIds": ["claim:markan-priority"],
       "argumentType": "abductive",
@@ -641,7 +719,7 @@
     },
     {
       "id": "argument:griesbach-alternative",
-      "title": "Griesbach/Farmer alternative",
+      "title": "Alternativa de Griesbach/Farmer",
       "conclusionClaimId": "claim:matthean-priority",
       "premiseClaimIds": ["claim:matthean-priority"],
       "argumentType": "abductive",

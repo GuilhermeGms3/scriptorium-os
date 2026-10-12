@@ -33,7 +33,16 @@ export const EvidenceRecordSchema = z.object({
   label: z.string().min(1),
   target: EvidenceTargetSchema,
   sourceIds: z.array(z.string().min(1)).default([]),
-  reviewStatus: z.enum(["draft", "reviewed", "verified", "disputed", "deprecated"]),
+  reviewStatus: z.enum([
+    "imported",
+    "machine-linked",
+    "source-checked",
+    "draft",
+    "reviewed",
+    "verified",
+    "disputed",
+    "deprecated",
+  ]),
   authorship: z.enum(["human-authored", "machine-assisted", "machine-generated", "human-reviewed"]),
   notes: z.string().optional(),
 });
