@@ -3,6 +3,7 @@ import { BookMarked, ChevronLeft, ChevronRight, Library, LockKeyhole, Search } f
 import { useEffect, useId, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { DocumentKnowledgeWorkbench } from "../../../components/library/document-knowledge-workbench";
+import { DocumentProfileControl } from "../../../components/library/document-profile-control";
 import { PrivateLinkCard } from "../../../components/scripture/private-verse-knowledge";
 import { WorkspacePassageKnowledgeService } from "../../../lib/application/workspace-passage-knowledge-service";
 import type {
@@ -191,6 +192,7 @@ function PrivateDocumentReaderPage() {
               <LockKeyhole className="size-3" /> Documento privado · {document.pageCount} páginas ·
               OPFS local
             </p>
+            <DocumentProfileControl document={document} />
           </div>
           <form
             className="flex min-w-64 flex-1 items-center gap-2 md:max-w-xl"

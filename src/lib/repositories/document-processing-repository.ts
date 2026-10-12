@@ -126,6 +126,38 @@ export const DocumentProcessingRepository = {
     return saved;
   },
 
+  /** The researcher's choice: accepted, so `ensureProfile` never replaces it with its own guess. */
+  async correctProfile(
+    documentId: string,
+    profile: DocumentProfile["profile"],
+    database?: WorkspaceDatabase,
+  ): Promise<DocumentProfile> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const updatedAt = new Date().toISOString();
+    await db.transaction([
+      {
+        sql: `INSERT INTO private_document_profiles(
+          document_id,profile,method,confidence,review_status,signals_json,updated_at
+        ) VALUES(?,?,'researcher-review',1,'accepted','[]',?)
+        ON CONFLICT(document_id) DO UPDATE SET
+          profile=excluded.profile,method=excluded.method,confidence=excluded.confidence,
+          review_status=excluded.review_status,updated_at=excluded.updated_at`,
+        bind: [documentId, profile, updatedAt],
+      },
+      {
+        sql: `INSERT INTO document_processing_steps(
+          document_id,step,status,completed_units,total_units,checkpoint_json,last_error,updated_at
+        ) VALUES(?,'classification','complete',1,1,?,NULL,?)
+        ON CONFLICT(document_id,step) DO UPDATE SET status='complete',completed_units=1,total_units=1,
+          checkpoint_json=excluded.checkpoint_json,last_error=NULL,updated_at=excluded.updated_at`,
+        bind: [documentId, JSON.stringify({ profile, reviewStatus: "accepted" }), updatedAt],
+      },
+    ]);
+    const saved = await this.getProfile(documentId, db);
+    if (!saved) throw new Error("O perfil corrigido não pôde ser salvo.");
+    return saved;
+  },
+
   async recordStep(
     documentId: string,
     step: DocumentProcessingStep,

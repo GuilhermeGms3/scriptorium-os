@@ -8,91 +8,141 @@ export interface DocumentProfileClassification {
 
 interface ProfileRule {
   profile: DocumentProfileKind;
+  /** Written for normalized text: lowercase, no accents, words separated by single spaces. */
   patterns: RegExp[];
 }
 
 const PROFILE_RULES: ProfileRule[] = [
   {
     profile: "nag-hammadi-anthology",
-    patterns: [/nag\s+hammadi/iu, /textos?\s+gn[oó]sticos?/iu, /c[oó]dice\s+(?:i|v|x|\d)/iu],
+    patterns: [/nag hammadi/u, /textos? gnosticos?/u, /codice (?:i|v|x|\d)/u],
   },
   {
     profile: "study-bible",
-    patterns: [/b[ií]blia\s+(?:de\s+)?estudo/iu, /b[ií]blia\s+(?:shedd|genebra|comentada)/iu],
+    patterns: [
+      /biblia (?:de )?estudo/u,
+      /biblia (?:shedd|genebra|comentada)/u,
+      /biblia de jerusalem/u,
+      /study bible/u,
+    ],
   },
-  { profile: "interlinear", patterns: [/interlinear/iu, /texto\s+hebraico.*tradu[cç][aã]o/iu] },
+  { profile: "interlinear", patterns: [/interlinear/u, /texto hebraico.*traducao/u] },
   {
     profile: "lexicon",
-    patterns: [/l[eé]xico/iu, /lexicon/iu, /strong['’]?s/iu, /hebraico\s+e\s+aramaico/iu],
+    patterns: [/lexico/u, /lexicon/u, /strong['’]?s/u, /hebraico e aramaico/u],
   },
   {
     profile: "dictionary",
     patterns: [
-      /dicion[aá]rio/iu,
-      /dictionary/iu,
-      /teologia\s+do\s+antigo\s+testamento.*(?:ditat|palavra|verbete)/iu,
+      /dicionario/u,
+      /dictionary/u,
+      /teologia do antigo testamento.*(?:ditat|palavra|verbete)/u,
     ],
   },
-  { profile: "encyclopedia", patterns: [/enciclop[eé]dia/iu, /encyclop/iu] },
-  { profile: "catechism", patterns: [/catecismo/iu, /catechism/iu] },
-  { profile: "confession", patterns: [/confiss[aã]o/iu, /confession/iu, /westminster/iu] },
+  { profile: "encyclopedia", patterns: [/enciclopedia/u, /encyclop/u] },
+  { profile: "catechism", patterns: [/catecismo/u, /catechism/u] },
+  // "confiss" also catches file names that mangled "ã", such as "confissu-o-de-augsburgo".
+  { profile: "confession", patterns: [/\bconfiss/u, /confession/u, /westminster/u] },
   {
     profile: "systematic-theology",
-    patterns: [/teologia\s+sistem[aá]tica/iu, /systematic\s+theology/iu],
+    patterns: [
+      /teologia sistematica/u,
+      /systematic theology/u,
+      /\binstitutas/u,
+      /\bsumm?a teologica\b/u,
+      /\bsumma\b/u,
+    ],
   },
   {
     profile: "biblical-theology",
-    patterns: [/teologia\s+(?:do\s+)?(?:novo|antigo)\s+testamento/iu, /biblical\s+theology/iu],
+    patterns: [
+      // "teologiado-novo-testamento" lost the space before "do".
+      /\bteologia ?(?:do )?(?:novo|antigo) testamento\b/u,
+      /\bteologia (?:do )?(?:at|nt)\b/u,
+      /\btheology of the (?:old|new) testament\b/u,
+      /biblical theology/u,
+    ],
   },
   {
     profile: "exegesis-method",
-    patterns: [/exegese\s+e\s+hermen[eê]utica/iu, /m[eé]todo.*exeg/iu, /exegese\s+do/iu],
+    patterns: [
+      /exegese e hermeneutica/u,
+      /metodo.*exeg/u,
+      /exegese do/u,
+      /\bexegese\b.*\b(?:manual|metodologia)\b|\b(?:manual|metodologia)\b.*\bexegese\b/u,
+    ],
   },
   {
     profile: "patristic-work",
     patterns: [
-      /santo\s+agostinho/iu,
-      /agostinho/iu,
-      /tom[aá]s\s+de\s+aquino/iu,
-      /or[ií]genes/iu,
-      /pais\s+da\s+igreja/iu,
-      /patr[ií]stic/iu,
+      /santo agostinho/u,
+      /agostinho/u,
+      // Augustine's "Confissões" is not a confession of faith.
+      /\bconfissoes de (?:santo )?agostinho\b/u,
+      /tomas de aquino/u,
+      /origenes/u,
+      /pais da igreja/u,
+      /patristic/u,
     ],
   },
   {
     profile: "archaeology",
-    patterns: [/arqueologia/iu, /archaeolog/iu, /escava[cç][aã]o/iu],
+    patterns: [/arqueologia/u, /archaeolog/u, /escavacao/u],
   },
   {
     profile: "church-history",
-    patterns: [/hist[oó]ria\s+da\s+igreja/iu, /church\s+history/iu, /cristianismo\s+antigo/iu],
+    patterns: [/historia da igreja/u, /church history/u, /cristianismo antigo/u],
   },
   {
     profile: "commentary",
-    patterns: [
-      /coment[aá]rio/iu,
-      /commentary/iu,
-      /manual\s+b[ií]blico/iu,
-      /exposi[cç][aã]o\s+b[ií]blica/iu,
-    ],
+    patterns: [/comentario/u, /commentary/u, /manual biblico/u, /exposicao biblica/u],
   },
   {
     profile: "ancient-primary-source",
-    patterns: [
-      /ap[oó]crif/iu,
-      /pseudep[ií]graf/iu,
-      /evangelho\s+de\s+tom[eé]/iu,
-      /fonte\s+prim[aá]ria/iu,
-    ],
+    patterns: [/apocrif/u, /pseudepigraf/u, /evangelho de tome/u, /fonte primaria/u],
   },
 ];
+
+/** Lowercase words without accents, separated by single spaces. */
+function plainWords(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/\p{M}+/gu, "")
+    .toLowerCase()
+    .replace(/[\s_.–—-]+/gu, " ")
+    .trim();
+}
+
+/** A UTF-8 lead byte of Latin-1 or Latin Extended-A followed by a continuation byte, in hex. */
+const HEX_UTF8_LETTER = /c[345][89ab][0-9a-f]/giu;
+
+/**
+ * Title of a file as the classifier reads it: "suma-teolc3b3gica" becomes "suma teologica" and
+ * "Confiss%C3%A3o_de_F%C3%A9" becomes "confissao de fe".
+ */
+export function normalizeProfileTitle(title: string): string {
+  const decoded = title
+    .replace(/(?:%[0-9a-f]{2})+/giu, (encoded) => {
+      try {
+        return decodeURIComponent(encoded);
+      } catch {
+        return encoded;
+      }
+    })
+    .replace(HEX_UTF8_LETTER, (hex) => {
+      const lead = Number.parseInt(hex.slice(0, 2), 16);
+      const continuation = Number.parseInt(hex.slice(2), 16);
+      return String.fromCodePoint(((lead & 0x1f) << 6) | (continuation & 0x3f));
+    });
+  return plainWords(decoded);
+}
 
 export function classifyDocumentProfile(
   title: string,
   sampleText = "",
 ): DocumentProfileClassification {
-  const titleText = title.normalize("NFC");
-  const sample = sampleText.normalize("NFC").slice(0, 30_000);
+  const titleText = normalizeProfileTitle(title);
+  const sample = plainWords(sampleText.slice(0, 30_000));
   let best: DocumentProfileClassification = {
     profile: "academic-monograph",
     confidence: 0.42,
