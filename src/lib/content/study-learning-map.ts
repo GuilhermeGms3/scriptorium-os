@@ -48,7 +48,7 @@ export const STUDY_JOURNEYS: readonly StudyJourney[] = [
   },
   {
     id: "teologia",
-    title: "Teologia",
+    title: "Teologia sistemática",
     eyebrow: "Doutrina e debate",
     description:
       "Doutrinas relacionadas sem confundir tradição, método, posição e evidência textual.",
@@ -110,8 +110,8 @@ export const STUDY_MAP_NODES: readonly StudyMapNode[] = [
   {
     id: "study-origin",
     kind: "origin",
-    title: "Formação bíblica",
-    shortTitle: "Comece aqui",
+    title: "Teologia",
+    shortTitle: "Teologia",
     description:
       "Escolha uma direção. O mapa organiza fontes e perguntas; ele não presume domínio nem conclusão teológica.",
     x: 520,
@@ -165,7 +165,9 @@ export function studyPathById(pathId: string): StudyPath | undefined {
 
 export function studyPathProgress(path: StudyPath, studies: readonly Study[]): StudyPathProgress {
   const study = studies.find(
-    (candidate) => normalizeStudyTitle(candidate.title) === normalizeStudyTitle(path.title),
+    (candidate) =>
+      candidate.items.some((item) => item.refId === `study-guide:${path.id}`) ||
+      normalizeStudyTitle(candidate.title) === normalizeStudyTitle(path.title),
   );
   if (study) return { state: "started", study, collectedItems: study.items.length };
   if (path.resources.length === 0) return { state: "collection-gap", collectedItems: 0 };

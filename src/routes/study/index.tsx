@@ -42,8 +42,9 @@ function StudyIndex() {
             <p className="meta-label">Formação e investigação</p>
             <h1 className="mt-1 font-serif text-2xl font-semibold">Árvore de estudos</h1>
             <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-              Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. O
-              mapa mostra disponibilidade real do acervo — não progresso inventado.
+              Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações.
+              Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso
+              inventado.
             </p>
           </div>
           <div
@@ -82,7 +83,7 @@ function StudyIndex() {
       </header>
 
       {view === "journey" ? (
-        <StudyLearningMap studies={studies} onStartPath={createAndOpenStudy} />
+        <StudyLearningMap studies={studies} />
       ) : (
         <PersonalInvestigations
           studies={studies}

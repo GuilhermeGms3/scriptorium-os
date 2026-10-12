@@ -84,7 +84,24 @@ mas tornar essas capacidades descobríveis no contexto correto.
 - O estado de uma etapa é derivado do workspace e do acervo: disponível, investigação iniciada ou
   acervo insuficiente. A interface não produz XP, domínio ou conclusão automática. Quantidades
   exibidas medem atividade registrada e materiais reunidos.
-- Selecionar uma etapa abre contexto, fontes de partida e uma única próxima ação. Iniciar uma etapa
-  cria um estudo real; continuar abre o estudo já existente; uma lacuna leva à Biblioteca.
-- No desktop, jornadas, mapa e contexto formam três regiões. Em viewport estreita, essas regiões se
-  empilham e o canvas permanece navegável sem reduzir a densidade visual da estação acadêmica.
+- O centro se chama **Teologia**. Cada um dos 16 nós abre uma página própria em
+  `/study/guide/$topic`; o mapa não possui inspetor direito. Jornadas e canvas ocupam duas regiões
+  no desktop e se empilham em viewport estreita, com rolagem interna do canvas.
+- `study-guides.ts` define roteiros editoriais originais, módulos, perguntas, passagens e relações
+  pedagógicas. O guia central oferece uma formação panorâmica; os temas têm roteiros específicos.
+  Roteiro não significa enciclopédia completa nem conteúdo extraído automaticamente de livros.
+- `StudyGuideService` consulta manifestos (sem abrir corpora completos), FTS privado e índice de
+  conhecimento. Há até três consultas por índice, seis resultados por consulta e doze páginas
+  deduplicadas por documento/página. Resultados textuais não são links semânticos aprovados.
+- Falhas de um índice não eliminam os resultados dos demais. Loading, consulta vazia, catálogo
+  incompleto e repetição da consulta são explícitos. Os índices são consultados novamente ao
+  reabrir o guia; não há cache próprio adicional que esconda mutações do workspace.
+- A investigação pessoal reutiliza Study/ResearchQuestion, com marcador estável
+  `study-guide:<id>` em StudyItem. Retoma por marcador ou, para estudos antigos, pelo título.
+  Perguntas repetidas no mesmo estudo não são inseridas novamente pela ação do guia. O workspace
+  oferece retorno ao roteiro; não foram introduzidos novos bancos, endpoints ou migrations.
+- O roteador reinicia o scroller interno somente quando o destino contém `data-study-guide`.
+  Isso impede abrir um guia no meio da página sem alterar a restauração de posição do Reader.
+- QA desta entrega: navegação centro → Teologia, tema → Hermenêutica, pergunta → investigação
+  existente (sem duplicação ao repetir a ação), retorno ao guia e abertura de PDF na página 29.
+  Verificados desktop e viewport de 390 px, sem overflow global no guia e com console limpo.

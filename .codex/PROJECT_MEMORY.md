@@ -2,6 +2,17 @@
 
 ## Gamified visual study tree (2026-10-11)
 
+- Follow-up: every map node now navigates to its own `/study/guide/$topic` page; the center is
+  Teologia and the former right node inspector is removed. The previous inspector behavior below
+  describes the first iteration and is superseded by this navigation contract.
+- Sixteen distinct guides use editorial curricula plus bounded private-page FTS and verified
+  manifest resources. Search occurrences are not presented as approved semantic knowledge.
+- Personal investigations resume via stable `study-guide:<id>` markers, with legacy title fallback;
+  guide questions use existing ResearchQuestion persistence and workspaces link back to their guide.
+- Follow-up verification: 247 tests in 36 files; strict typecheck, full lint and Node production
+  build passed. Browser QA verified real PDF pages, duplicate-question prevention, guide/workspace
+  navigation, clean console and 390 px layout. Guide-only router scroll reset preserves Reader.
+
 - `/study` now opens a visual learning map inspired by a skill tree, while preserving the academic
   workstation identity. Four journeys connect eleven existing source-backed study paths.
 - Node state is honest and derived from current data: an exact matching local study means started;

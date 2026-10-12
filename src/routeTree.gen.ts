@@ -23,6 +23,7 @@ import { Route as StudySlugRouteImport } from './routes/study/$slug'
 import { Route as LibraryDocumentDocumentIdRouteImport } from './routes/library/document/$documentId'
 import { Route as LibraryReadWorkIdRouteImport } from './routes/library/read/$workId'
 import { Route as ScriptureBookChapterRouteImport } from './routes/scripture/$book.$chapter'
+import { Route as StudyGuideTopicRouteImport } from './routes/study/guide/$topic'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -95,6 +96,11 @@ const ScriptureBookChapterRoute = ScriptureBookChapterRouteImport.update({
   path: '/scripture/$book/$chapter',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudyGuideTopicRoute = StudyGuideTopicRouteImport.update({
+  id: '/study/guide/$topic',
+  path: '/study/guide/$topic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -111,6 +117,7 @@ export interface FileRoutesByFullPath {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -126,6 +133,7 @@ export interface FileRoutesByTo {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -143,6 +151,7 @@ export interface FileRoutesById {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -161,6 +170,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -176,6 +186,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   id:
     | '__root__'
     | '/'
@@ -192,6 +203,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -205,6 +217,7 @@ export interface RootRouteChildren {
   ScriptureIndexRoute: typeof ScriptureIndexRoute
   StudyIndexRoute: typeof StudyIndexRoute
   ScriptureBookChapterRoute: typeof ScriptureBookChapterRoute
+  StudyGuideTopicRoute: typeof StudyGuideTopicRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -307,6 +320,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScriptureBookChapterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/study/guide/$topic': {
+      id: '/study/guide/$topic'
+      path: '/study/guide/$topic'
+      fullPath: '/study/guide/$topic'
+      preLoaderRoute: typeof StudyGuideTopicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
@@ -338,6 +358,7 @@ const rootRouteChildren: RootRouteChildren = {
   ScriptureIndexRoute: ScriptureIndexRoute,
   StudyIndexRoute: StudyIndexRoute,
   ScriptureBookChapterRoute: ScriptureBookChapterRoute,
+  StudyGuideTopicRoute: StudyGuideTopicRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
