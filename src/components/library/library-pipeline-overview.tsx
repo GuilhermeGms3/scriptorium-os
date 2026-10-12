@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { BarChart3, Download, Pause, Play, RefreshCw } from "lucide-react";
+import { BarChart3, Pause, Play, RefreshCw } from "lucide-react";
 import { LibraryCoverageService } from "../../lib/application/library-coverage-service";
 import { LibraryKnowledgeOrchestrator } from "../../lib/application/library-knowledge-orchestrator";
 import type {
@@ -11,7 +11,9 @@ import {
   DOCUMENT_PROFILE_LABELS,
   type DocumentProfileKind,
 } from "../../lib/domain/document-profile";
-import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
+import { useSecureContextProblem } from "../../lib/workspace-runtime/use-secure-context";
+import { SecureContextNotice } from "../common/secure-context-notice";
+import { WorkspaceBackupButton } from "../common/workspace-backup-button";
 
 const DOMAIN_LABELS: Record<string, string> = {
   exegesis: "Exegese",
@@ -102,16 +104,7 @@ export function LibraryPipelineOverview() {
     }
   };
   const busy = Boolean(progress);
-  const downloadBackup = async () => {
-    const content = await ResearchWorkspaceService.exportJson();
-    const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
-    const anchor = document.createElement("a");
-    anchor.href = url;
-    anchor.download = `scriptorium-workspace-${new Date().toISOString().slice(0, 10)}.json`;
-    anchor.click();
-    URL.revokeObjectURL(url);
-    setResult("Backup estrutural baixado. Os PDFs privados originais continuam somente no OPFS.");
-  };
+  const backupProblem = useSecureContextProblem("O backup");
   return (
     <section
       className="border-b border-border bg-muted/10 px-5 py-4 md:px-6"
@@ -130,17 +123,17 @@ export function LibraryPipelineOverview() {
             </p>
           </div>
           <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                void downloadBackup().catch((cause) =>
-                  setError(cause instanceof Error ? cause.message : String(cause)),
+            <WorkspaceBackupButton
+              fileName={`scriptorium-workspace-${new Date().toISOString().slice(0, 10)}.json`}
+              disabled={Boolean(backupProblem)}
+              onDownloaded={() =>
+                setResult(
+                  "Backup estrutural baixado. Os PDFs privados originais continuam somente no OPFS.",
                 )
               }
-              className="inline-flex min-h-9 items-center gap-1.5 rounded border border-input px-3 text-xs"
-            >
-              <Download className="size-3.5" /> Baixar backup
-            </button>
+              onError={setError}
+              className="inline-flex min-h-9 items-center gap-1.5 rounded border border-input px-3 text-xs disabled:opacity-50"
+            />
             <button
               type="button"
               onClick={() => void refresh()}
@@ -150,6 +143,11 @@ export function LibraryPipelineOverview() {
             </button>
           </div>
         </div>
+        {backupProblem && (
+          <div className="mt-3">
+            <SecureContextNotice problem={backupProblem} />
+          </div>
+        )}
         {report && (
           <p className="mt-2 font-mono text-[10px] text-muted-foreground">
             Workspace {report.workspace.id.slice(0, 8)} · {report.workspace.origin} ·{" "}

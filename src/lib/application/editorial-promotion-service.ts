@@ -1,11 +1,26 @@
 import type {
   EditorialKnowledgeExport,
   EditorialReadinessIssue,
+  EvidenceLocation,
+  SemanticUnit,
 } from "../domain/document-knowledge";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
+
+function evidenceLocation(unit: SemanticUnit): EvidenceLocation {
+  return {
+    id: unit.id,
+    kind: unit.kind,
+    textChecksum: unit.textChecksum,
+    locations: unit.spans.map((span) => ({
+      page: span.pageIndex + 1,
+      startOffset: span.startOffset,
+      endOffset: span.endOffset,
+    })),
+  };
+}
 
 export const EditorialPromotionService = {
   async prepare(
@@ -86,7 +101,7 @@ export const EditorialPromotionService = {
         checksum: document.checksum,
       },
       structure: await DocumentKnowledgeRepository.listNodes(documentId, database),
-      evidenceUnits,
+      evidenceUnits: evidenceUnits.map(evidenceLocation),
       proposals,
     };
   },

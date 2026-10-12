@@ -225,10 +225,12 @@ describe("Phase 9.5 workspace schema", () => {
       "opfs:/migration-v13.pdf",
       workspace,
     );
+    // A v13 workspace predates document profiles (migration 017), so the profile is given.
     await DocumentKnowledgePipelineService.analyzeDocument(
       imported.document.id,
       undefined,
       workspace,
+      { profile: "academic-monograph" },
     );
     const before = await DocumentKnowledgeRepository.listProposals(
       imported.document.id,

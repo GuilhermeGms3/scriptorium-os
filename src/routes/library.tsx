@@ -23,6 +23,11 @@ import {
 import type { PrivateDocument } from "../lib/domain/private-document";
 import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
 import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
+import {
+  useCurrentOrigin,
+  useSecureContextProblem,
+} from "../lib/workspace-runtime/use-secure-context";
+import { SecureContextNotice } from "../components/common/secure-context-notice";
 
 interface LibrarySearch {
   source?: string;
@@ -52,6 +57,7 @@ export function LibraryPage() {
   const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
   const [newCollection, setNewCollection] = useState("");
   const [view, setView] = useState<LibraryView>("all");
+  const origin = useCurrentOrigin();
 
   const refresh = useCallback(async () => {
     setLoading(true);
@@ -295,9 +301,18 @@ export function LibraryPage() {
                 Nenhum livro privado nesta origem
               </h2>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                PDFs privados ficam no OPFS deste endereço. Se você abriu o Scriptorium em outra
-                porta, domínio ou navegador, reimporte os originais aqui; o Git e o Docker não
-                transportam esses arquivos protegidos automaticamente.
+                Seus livros podem estar em outro endereço (ex.: localhost:8080). Abra-o, exporte o
+                backup e importe aqui.
+              </p>
+              {origin && (
+                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                  Endereço atual: {origin}
+                </p>
+              )}
+              <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
+                PDFs privados ficam no OPFS de cada endereço (protocolo, nome e porta). O backup
+                leva as revisões e os estudos; os PDFs originais precisam ser importados de novo
+                aqui, e o Git e o Docker não os transportam.
               </p>
               <Link
                 to="/library/process"
@@ -460,6 +475,7 @@ export function ImportPanel({
   const [pdfProgress, setPdfProgress] = useState<PrivateDocumentImportProgress>();
   const [pdfResults, setPdfResults] = useState<PrivateDocumentImportResult[]>([]);
   const [pdfErrors, setPdfErrors] = useState<Array<{ filename: string; message: string }>>([]);
+  const importProblem = useSecureContextProblem();
   const preview = input.trim() ? SourceImportService.preview(format, input) : null;
   const runImport = async () => {
     setBusy(true);
@@ -527,6 +543,11 @@ export function ImportPanel({
             </button>
           )}
         </div>
+        {importProblem && (
+          <div className="mt-4">
+            <SecureContextNotice problem={importProblem} />
+          </div>
+        )}
         <section className="mt-4 rounded border border-border bg-background p-3">
           <div className="flex items-start gap-2">
             <LockKeyhole className="mt-0.5 size-4 text-muted-foreground" />
@@ -545,14 +566,14 @@ export function ImportPanel({
                 type="file"
                 accept="application/pdf,.pdf"
                 multiple
-                disabled={busy}
+                disabled={busy || Boolean(importProblem)}
                 onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
                 className="sr-only"
               />
             </label>
             <button
               type="button"
-              disabled={!pdfFiles.length || busy}
+              disabled={!pdfFiles.length || busy || Boolean(importProblem)}
               onClick={() => void importPdfs()}
               className="h-9 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
             >
@@ -620,6 +641,7 @@ export function ImportPanel({
             disabled={
               !input.trim() ||
               busy ||
+              Boolean(importProblem) ||
               Boolean(preview?.issues.some((issue) => issue.severity === "error"))
             }
             onClick={() => void runImport()}

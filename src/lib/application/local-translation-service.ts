@@ -2,6 +2,7 @@ import { z } from "zod";
 import type { LocalTranslation } from "../domain/semantic-content";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const TranslationResponseSchema = z.object({
   translatedText: z.string().min(1),
@@ -63,8 +64,7 @@ function abortScope(
 }
 
 async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A tradução local" });
 }
 
 function endpoint(): string {

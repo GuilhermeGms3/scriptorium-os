@@ -114,9 +114,85 @@ describe("parseBiblicalReferences", () => {
     ).toEqual([]);
   });
 
+  it("does not read a canon list in a column as a chapter of the next book", () => {
+    expect(parseBiblicalReferences("1 João\n2 João\n3 João\nJudas")).toEqual([]);
+    expect(parseBiblicalReferences("1 João\r\n2 João\r\n3 João")).toEqual([]);
+  });
+
+  it("keeps a reference wrapped at the end of a line and a bare chapter inside a sentence", () => {
+    const refs = (text: string) =>
+      parseBiblicalReferences(text).map(({ bookId, chapter, verseStart, verseEnd }) => ({
+        bookId,
+        chapter,
+        verseStart,
+        verseEnd,
+      }));
+    expect(refs("Mt\n2:15")).toEqual([
+      { bookId: "matthew", chapter: 2, verseStart: 15, verseEnd: 15 },
+    ]);
+    expect(refs("Jo\n3:16-18")).toEqual([
+      { bookId: "john", chapter: 3, verseStart: 16, verseEnd: 18 },
+    ]);
+    expect(refs("Leia João 2 com atenção")).toEqual([
+      { bookId: "john", chapter: 2, verseStart: undefined, verseEnd: undefined },
+    ]);
+  });
+
+  it("keeps a bare chapter whose book name ends a prose line of the PDF", () => {
+    expect(
+      parseBiblicalReferences(
+        "como mostra o evangelho de João\n3, o novo nascimento é necessário",
+      ).map(({ bookId, chapter, verseStart }) => [bookId, chapter, verseStart]),
+    ).toEqual([["john", 3, undefined]]);
+    expect(parseBiblicalReferences("1 Samuel\n2 Samuel\n1 Reis\n2 Reis")).toEqual([]);
+  });
+
   it("suppresses references in structural negative zones", () => {
     expect(parseBiblicalReferences("João 2", { zone: "toc" })).toEqual([]);
     expect(parseBiblicalReferences("João 2:1", { zone: "body" })).toHaveLength(1);
+  });
+
+  it("reads Spanish abbreviations in a Spanish document", () => {
+    const books = (text: string) =>
+      parseBiblicalReferences(text, { language: "es" }).map((reference) => reference.bookId);
+    expect(books("Jn 3:16")).toEqual(["john"]);
+    expect(books("Hch 2:1")).toEqual(["acts"]);
+    expect(books("Sal 23:1")).toEqual(["psalms"]);
+    expect(books("1 Jn 4:8")).toEqual(["1-john"]);
+    expect(books("Juan 1:1; Hechos 2:1; Génesis 1:1")).toEqual(["john", "acts", "genesis"]);
+  });
+
+  it("keeps the Portuguese meanings in a Portuguese document", () => {
+    const books = (text: string) =>
+      parseBiblicalReferences(text, { language: "pt-BR" }).map((reference) => reference.bookId);
+    expect(books("Jn 1:1")).toEqual(["jonah"]);
+    expect(books("Jo 3:16")).toEqual(["john"]);
+  });
+
+  it("does not change the behaviour when the language is unknown", () => {
+    const books = (text: string) =>
+      parseBiblicalReferences(text).map((reference) => reference.bookId);
+    expect(books("Jn 1:1")).toEqual(["jonah"]);
+    expect(books("Jo 3:16")).toEqual(["john"]);
+    expect(books("Hch 2:1")).toEqual([]);
+    expect(books("Sal 23:1")).toEqual([]);
+  });
+
+  it("does not read the numeral of the next book as a verse of the previous one", () => {
+    const refs = (text: string) =>
+      parseBiblicalReferences(text).map(
+        (item) =>
+          `${item.bookId} ${item.chapter}:${item.verseStart ?? ""}${item.verseEnd !== undefined && item.verseEnd !== item.verseStart ? `-${item.verseEnd}` : ""}`,
+      );
+    expect(refs("Rm 5,8; 1Jo 4,9")).toEqual(["romans 5:8", "1-john 4:9"]);
+    expect(refs("cf. Jo 3:16; Rm 5:8; 1Co 13:4-7; 1 Jo 4:8.")).toEqual([
+      "john 3:16",
+      "romans 5:8",
+      "1-corinthians 13:4-7",
+      "1-john 4:8",
+    ]);
+    // A bare verse after a semicolon still continues the chapter.
+    expect(refs("Rm 5,8; 10")).toEqual(["romans 5:8", "romans 5:10"]);
   });
 
   it("resolves common Spanish references", () => {

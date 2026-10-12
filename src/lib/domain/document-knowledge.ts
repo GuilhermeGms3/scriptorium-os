@@ -1,6 +1,14 @@
 import { z } from "zod";
 import { CLAIM_KINDS } from "./knowledge";
-import { SEMANTIC_DOMAINS } from "./semantic-content";
+import { NEGATIVE_REFERENCE_ZONES, SEMANTIC_DOMAINS } from "./semantic-content";
+
+/**
+ * How a reference work, a primary source or a confession uses a verse, set from the document
+ * profile: a dictionary only mentions it, an ancient text echoes it, a confession cites it as a
+ * proof text. Absent in ordinary prose.
+ */
+export const REFERENCE_ROLES = ["lexical-mention", "intertextual", "proof-text"] as const;
+export type ReferenceRole = (typeof REFERENCE_ROLES)[number];
 
 export const DOCUMENT_NODE_KINDS = [
   "book",
@@ -116,6 +124,9 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     rawReference: z.string().min(1),
     relationType: z.enum(["cites", "discusses", "alludes-to"]),
     relationScope: z.enum(["verse", "range", "pericope", "chapter", "book"]).optional(),
+    /** Set only outside prose: the reference locates the passage and is never auto-published. */
+    referenceZone: z.enum(NEGATIVE_REFERENCE_ZONES).optional(),
+    referenceRole: z.enum(REFERENCE_ROLES).optional(),
     passage: DocumentPassageSchema,
     additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
   }),
@@ -231,8 +242,21 @@ export interface EditorialReadinessIssue {
   message: string;
 }
 
-export interface EditorialKnowledgeExport extends Omit<DocumentKnowledgeExport, "format"> {
+/** Where evidence sits in a private book (physical page and character range), without its words. */
+export interface EvidenceLocation {
+  id: string;
+  kind: SemanticUnit["kind"];
+  textChecksum: string;
+  locations: { page: number; startOffset: number; endOffset: number }[];
+}
+
+export interface EditorialKnowledgeExport extends Omit<
+  DocumentKnowledgeExport,
+  "format" | "evidenceUnits"
+> {
   format: "scriptorium-editorial-staging-v1";
+  /** Leaves the private library: locations and checksums only, never the text of a page. */
+  evidenceUnits: EvidenceLocation[];
   publicationAllowed: false;
   readiness: {
     status: "blocked" | "needs-review";

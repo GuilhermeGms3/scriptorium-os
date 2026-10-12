@@ -13,6 +13,7 @@ import {
 } from "../../lib/application/workspace-passage-knowledge-service";
 import {
   knowledgeItemCoversVerse,
+  REFERENCE_ROLE_LABELS,
   type WorkspacePassageKnowledgeItem,
 } from "../../lib/domain/workspace-passage-knowledge";
 import { bookLabel } from "../../lib/i18n";
@@ -400,6 +401,8 @@ export function PrivateLinkCard({
               ? "Publicada automaticamente · política documental"
               : "Detectada automaticamente"}{" "}
           · {RELATION_LABELS[relation.payload.relationType]}
+          {relation.payload.referenceRole &&
+            ` · ${REFERENCE_ROLE_LABELS[relation.payload.referenceRole]}`}
           {item.reviewState !== "pending" && !correcting && (
             <button
               type="button"

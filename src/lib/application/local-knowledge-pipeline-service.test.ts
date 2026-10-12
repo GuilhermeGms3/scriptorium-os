@@ -18,4 +18,10 @@ describe("profile-aware explicit passage publication", () => {
     expect(explicitPublicationForProfile("commentary", false, true)).toBe("exception");
     expect(explicitPublicationForProfile("commentary", true, false)).toBe("exception");
   });
+
+  it("never publishes a reference found in a table of contents, index, bibliography or canon list", () => {
+    for (const zone of ["toc", "index", "bibliography", "canon-list"] as const)
+      expect(explicitPublicationForProfile("commentary", true, true, zone)).toBe("exception");
+    expect(explicitPublicationForProfile("commentary", true, true, "body")).toBe("machine-visible");
+  });
 });

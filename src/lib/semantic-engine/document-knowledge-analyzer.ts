@@ -7,6 +7,8 @@ import type {
 } from "../domain/document-knowledge";
 import type { ClaimKind } from "../domain/knowledge";
 import { analyzePrivateDocumentPage } from "./deterministic-semantic-analyzer";
+import { isBibliographyTitle } from "./reference-zone";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 export interface DocumentKnowledgeAnalysis {
   nodes: DocumentNode[];
@@ -21,6 +23,7 @@ export interface DocumentKnowledgeAnalyzerCheckpoint {
   currentPartId?: string;
   currentChapterId?: string;
   currentSectionId?: string;
+  currentSectionTitle?: string;
   bibliographyMode?: boolean;
   lastPersonLabel?: string;
   lastWorkLabel?: string;
@@ -46,6 +49,8 @@ export interface DocumentKnowledgeAnalyzer {
 }
 
 export const DETERMINISTIC_DOCUMENT_ANALYZER_ID = "deterministic-document-knowledge";
+// Kept at 3 on purpose: a new version would make the library queue re-disassemble every book and
+// invalidate its audits. Books pick up the reference-zone fixes when the user reprocesses them.
 export const DETERMINISTIC_DOCUMENT_ANALYZER_VERSION = "3";
 
 interface UnitDraft extends SemanticUnit {
@@ -105,6 +110,8 @@ const CONTROLLED_ENTITIES = [
 
 interface DiscourseContext {
   bibliographyMode: boolean;
+  /** Last heading seen; decides whether references sit in a table of contents, index, etc. */
+  sectionTitle?: string;
   lastPersonLabel?: string;
   lastWorkLabel?: string;
 }
@@ -229,8 +236,7 @@ function normalizeTitle(value: string): string {
 }
 
 async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A análise do livro" });
 }
 
 function nodeKind(title: string): DocumentNode["kind"] {
@@ -239,8 +245,7 @@ function nodeKind(title: string): DocumentNode["kind"] {
     return "chapter";
   if (/^(?:parte|part)\s+[\divxlcdm]+\b/iu.test(title)) return "part";
   if (/^(?:cap[ií]tulo|chapter)\s+[\divxlcdm]+\b/iu.test(title)) return "chapter";
-  if (/^(?:referências|referencias|bibliografia|references|bibliography)\b/iu.test(title))
-    return "bibliography";
+  if (isBibliographyTitle(title)) return "bibliography";
   if (/^(?:prefácio|prefacio|introdução|introducao|foreword|preface|introduction)\b/iu.test(title))
     return "front-matter";
   if (
@@ -353,6 +358,8 @@ async function proposalsForUnit(
             : link.verseEnd !== undefined && link.verseEnd !== link.verseStart
               ? "range"
               : "verse",
+        // Absent in prose, so ordinary payloads (and their proposal ids) are unchanged.
+        ...(link.referenceZone ? { referenceZone: link.referenceZone } : {}),
         passage: {
           workId: link.workId,
           bookId: link.bookId,
@@ -527,14 +534,23 @@ async function analyzeDeterministically(
   let processedCharacters = checkpoint?.processedCharacters ?? 0;
   const discourse: DiscourseContext = {
     bibliographyMode: checkpoint?.bibliographyMode ?? false,
+    ...(checkpoint?.currentSectionTitle ? { sectionTitle: checkpoint.currentSectionTitle } : {}),
     ...(checkpoint?.lastPersonLabel ? { lastPersonLabel: checkpoint.lastPersonLabel } : {}),
     ...(checkpoint?.lastWorkLabel ? { lastWorkLabel: checkpoint.lastWorkLabel } : {}),
   };
 
   for (const page of pages) {
     processedCharacters += page.text.length;
-    const bundles = page.text ? await analyzePrivateDocumentPage(document, page) : [];
+    const bundles = page.text
+      ? await analyzePrivateDocumentPage(document, page, {
+          ...(discourse.sectionTitle ? { sectionTitle: discourse.sectionTitle } : {}),
+          bibliographyMode: discourse.bibliographyMode,
+        })
+      : [];
     for (const bundle of bundles) {
+      // The page analyzer owns the title: it changes at headings and ends with a listing.
+      if (bundle.sectionTitle) discourse.sectionTitle = bundle.sectionTitle;
+      else delete discourse.sectionTitle;
       const baseKind = unitKind(bundle.segment.structuralKind, bundle.text);
       if (baseKind === "heading") {
         const title = normalizeTitle(bundle.text);
@@ -662,6 +678,7 @@ async function analyzeDeterministically(
       ...(currentPartId ? { currentPartId } : {}),
       ...(currentChapterId ? { currentChapterId } : {}),
       ...(currentSectionId ? { currentSectionId } : {}),
+      ...(discourse.sectionTitle ? { currentSectionTitle: discourse.sectionTitle } : {}),
       ...(discourse.bibliographyMode ? { bibliographyMode: true } : {}),
       ...(discourse.lastPersonLabel ? { lastPersonLabel: discourse.lastPersonLabel } : {}),
       ...(discourse.lastWorkLabel ? { lastWorkLabel: discourse.lastWorkLabel } : {}),

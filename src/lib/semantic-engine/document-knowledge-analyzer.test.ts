@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { PrivateDocument, PrivateDocumentPage } from "../domain/private-document";
 import { DeterministicDocumentKnowledgeAnalyzer } from "./document-knowledge-analyzer";
 
@@ -157,5 +157,105 @@ describe("Portuguese sentence handling", () => {
       "Segundo o seu sábio e santo conselho, foi Deus servido permitir este acontecimento.",
     );
     expect(proposals.filter((payload) => payload.kind === "attribution")).toEqual([]);
+  });
+});
+
+describe("reference zones end where the listing ends", () => {
+  const passagePayloads = (proposals: { payload: { kind: string } }[]) =>
+    proposals
+      .filter((proposal) => proposal.payload.kind === "passage-relation")
+      .map((proposal) => proposal.payload);
+  const tocPage = page(
+    0,
+    "SUMÁRIO\n\nCapítulo 1 ....... 12\nCapítulo 2 ....... 30\nCapítulo 3 ....... 45",
+  );
+  // "Capítulo 1 — A criação" has a digit and mixed case, so it is not detected as a heading.
+  const bodyPage = page(
+    1,
+    "Capítulo 1 — A criação\n\nA criação em Gênesis 1 é narrada com grande cuidado literário, e o autor retoma o tema em Jo 1:1-3 de modo deliberado.",
+  );
+
+  it("does not carry a table-of-contents zone into the first prose paragraph", async () => {
+    const result = await DeterministicDocumentKnowledgeAnalyzer.analyze(document, [
+      tocPage,
+      bodyPage,
+    ]);
+    const payloads = passagePayloads(result.proposals);
+    expect(payloads).toEqual([
+      expect.objectContaining({
+        passage: expect.objectContaining({ bookId: "genesis", chapter: 1 }),
+      }),
+      expect.objectContaining({ rawReference: "Jo 1:1-3" }),
+    ]);
+    expect(payloads.some((payload) => "referenceZone" in payload)).toBe(false);
+  });
+
+  it("does not carry it across incremental batches either", async () => {
+    const first = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(document, [tocPage]);
+    const second = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+      document,
+      [bodyPage],
+      first.checkpoint,
+    );
+    expect(passagePayloads(second.proposals)).toHaveLength(2);
+    expect(second.checkpoint.currentSectionTitle).toBeUndefined();
+  });
+
+  it("treats entries under “Obras citadas” as bibliography entries", async () => {
+    const result = await DeterministicDocumentKnowledgeAnalyzer.analyze(document, [
+      page(0, "OBRAS CITADAS\n\nBRUCE, F. F. O evangelho de João. São Paulo: Vida Nova, 1987."),
+    ]);
+    expect(result.units).toEqual(
+      expect.arrayContaining([expect.objectContaining({ kind: "bibliography-entry" })]),
+    );
+  });
+});
+
+describe("insecure browser context", () => {
+  it("tells the reader which address to open instead of failing on digest", async () => {
+    vi.stubGlobal("crypto", {});
+    try {
+      await expect(
+        DeterministicDocumentKnowledgeAnalyzer.analyze(document, [page(0, "Texto sobre Jo 3:16.")]),
+      ).rejects.toThrow(
+        "Abra o Scriptorium em http://127.0.0.1:5173. A análise do livro precisa de um endereço seguro.",
+      );
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+});
+
+describe("reference zones in passage-relation proposals", () => {
+  const relations = (proposals: { payload: { kind: string }; confidence: number }[]) =>
+    proposals.filter((proposal) => proposal.payload.kind === "passage-relation");
+
+  it("flags a table-of-contents reference and leaves body payloads unchanged", async () => {
+    const result = await DeterministicDocumentKnowledgeAnalyzer.analyze(document, [
+      page(
+        0,
+        "SUMÁRIO\n\nCapítulo 1: Jo 3:16 e o amor de Deus ...... 78\nCapítulo 2: A graça ...... 90\nCapítulo 3: A fé ...... 99",
+      ),
+      page(1, "CAPÍTULO 1\n\nO amor de Deus aparece em Jo 3:16 com toda a clareza."),
+    ]);
+    const [toc, body] = relations(result.proposals);
+    expect(toc?.payload).toMatchObject({ rawReference: "Jo 3:16", referenceZone: "toc" });
+    expect(toc!.confidence).toBeLessThanOrEqual(0.6);
+    expect(body?.payload).toMatchObject({ rawReference: "Jo 3:16" });
+    expect(body?.payload).not.toHaveProperty("referenceZone");
+  });
+
+  it("keeps the section title across incremental batches", async () => {
+    const first = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(document, [
+      page(0, "SUMÁRIO"),
+    ]);
+    const second = await DeterministicDocumentKnowledgeAnalyzer.analyzeBatch!(
+      document,
+      [page(1, "Capítulo 1: Jo 3:16 e o amor de Deus ...... 78")],
+      first.checkpoint,
+    );
+    expect(relations(second.proposals).map((proposal) => proposal.payload)).toEqual([
+      expect.objectContaining({ rawReference: "Jo 3:16", referenceZone: "toc" }),
+    ]);
   });
 });

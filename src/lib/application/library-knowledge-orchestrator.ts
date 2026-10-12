@@ -13,12 +13,12 @@ import { DocumentKnowledgePipelineService } from "./document-knowledge-pipeline-
 import { LocalKnowledgePipelineService } from "./local-knowledge-pipeline-service";
 import { PrivateDocumentOcrService } from "./private-document-ocr-service";
 import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const LIBRARY_PIPELINE_REVISION = 2;
 
 async function sha256(value: string): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A análise da biblioteca" });
 }
 
 function errorMessage(cause: unknown): string {
@@ -231,7 +231,7 @@ export const LibraryKnowledgeOrchestrator = {
               message: progress.message,
             }),
           db,
-          analyzer ? { analyzer } : {},
+          { profile: profile.profile, ...(analyzer ? { analyzer } : {}) },
         );
         await DocumentProcessingRepository.recordStep(
           document.id,

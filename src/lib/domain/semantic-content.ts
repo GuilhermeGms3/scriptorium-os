@@ -70,6 +70,14 @@ export const SemanticClassificationSchema = z.object({
   reviewStatus: z.enum(["machine-proposed", "accepted", "rejected"]),
 });
 
+/**
+ * Structural zones where a biblical reference locates a passage instead of discussing it: a table
+ * of contents, an index, a bibliography or a list of canonical books. Prose is the "body" zone.
+ */
+export const NEGATIVE_REFERENCE_ZONES = ["toc", "index", "bibliography", "canon-list"] as const;
+export type NegativeReferenceZone = (typeof NEGATIVE_REFERENCE_ZONES)[number];
+export type ReferenceZone = "body" | NegativeReferenceZone;
+
 export const SemanticPassageLinkSchema = z.object({
   id: z.string().min(1),
   segmentId: z.string().min(1),
@@ -83,6 +91,7 @@ export const SemanticPassageLinkSchema = z.object({
   verseEnd: z.number().int().positive().optional(),
   versificationSchemeId: z.string().min(1).default(DEFAULT_BIBLICAL_VERSIFICATION),
   relationType: z.enum(["cites", "discusses", "alludes-to"]),
+  referenceZone: z.enum(NEGATIVE_REFERENCE_ZONES).optional(),
   confidence: z.number().min(0).max(1),
   method: z.string().min(1),
   reviewStatus: z.enum(["machine-proposed", "accepted", "rejected"]),
@@ -115,6 +124,8 @@ export interface SemanticSegmentBundle {
   text: string;
   classifications: SemanticClassification[];
   passageLinks: SemanticPassageLink[];
+  /** Section title still in effect after this segment; absent once a listing has ended. */
+  sectionTitle?: string;
 }
 
 export interface SemanticIndexSummary {

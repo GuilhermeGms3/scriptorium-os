@@ -1,5 +1,6 @@
 import sqlite3InitModule, { type Database, type SqlValue } from "@sqlite.org/sqlite-wasm";
 import { CorruptDatabaseError, UnsupportedDatabaseVersionError } from "../domain/errors";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 export type KnowledgeRow = Record<string, SqlValue>;
 
@@ -53,8 +54,7 @@ async function asset(path: string): Promise<Uint8Array> {
 }
 
 async function digest(bytes: Uint8Array): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer);
-  return [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(bytes, { operation: "A verificação da base de conhecimento" });
 }
 
 /** Opens knowledge database bytes as a read-only in-memory SQLite WASM database. */

@@ -1,6 +1,8 @@
 import type { DocumentKnowledgeExport, KnowledgeProposal } from "../domain/document-knowledge";
+import type { DocumentProfileKind } from "../domain/document-profile";
 import type { PrivateDocumentPage } from "../domain/private-document";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
+import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import {
   DeterministicDocumentKnowledgeAnalyzer,
@@ -8,6 +10,7 @@ import {
   type DocumentKnowledgeAnalyzerCheckpoint,
 } from "../semantic-engine/document-knowledge-analyzer";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import { applyDocumentProfilePolicy } from "./document-profile-policy";
 
 const MAX_ANALYZABLE_CHARACTERS = 50_000_000;
 const ANALYSIS_BATCH_SIZE = 50;
@@ -124,7 +127,12 @@ export const DocumentKnowledgePipelineService = {
     documentId: string,
     listener?: (progress: DocumentKnowledgeProgress) => void,
     database?: WorkspaceDatabase,
-    options: { force?: boolean; analyzer?: DocumentKnowledgeAnalyzer } = {},
+    options: {
+      force?: boolean;
+      analyzer?: DocumentKnowledgeAnalyzer;
+      /** Already resolved by the caller; otherwise the stored or classified profile is used. */
+      profile?: DocumentProfileKind;
+    } = {},
   ): Promise<DocumentKnowledgePipelineResult> {
     const analyzer = options.analyzer ?? DeterministicDocumentKnowledgeAnalyzer;
     const document = await PrivateDocumentRepository.getDocument(documentId, database);
@@ -147,6 +155,10 @@ export const DocumentKnowledgePipelineService = {
       };
     }
 
+    // The profile decides what the references of the book mean; a corrected profile is kept.
+    const profile =
+      options.profile ??
+      (await DocumentProcessingRepository.ensureProfile(document, database)).profile;
     const previous = new Map(
       (await allProposals(documentId, undefined, database)).map((proposal) => [
         proposal.id,
@@ -214,7 +226,12 @@ export const DocumentKnowledgePipelineService = {
             throw new Error(
               "O texto extraído ultrapassa o limite de 50 milhões de caracteres para uma análise local.",
             );
-          const proposals = batch.proposals.map((proposal) => preserveReview(proposal, previous));
+          const proposals = applyDocumentProfilePolicy(
+            profile,
+            batch.units,
+            batch.proposals,
+            document.language,
+          ).map((proposal) => preserveReview(proposal, previous));
           preservedReviewCount += proposals.filter(
             (proposal) => proposal.reviewStatus !== "machine-proposed",
           ).length;
@@ -268,10 +285,16 @@ export const DocumentKnowledgePipelineService = {
         listener?.({ phase: "structure", message: "Reconstruindo capítulos e seções…" });
         const analysis = await analyzer.analyze(document, pages);
         listener?.({ phase: "proposals", message: "Preparando propostas auditáveis…" });
+        const profiled = applyDocumentProfilePolicy(
+          profile,
+          analysis.units,
+          analysis.proposals,
+          document.language,
+        );
         const proposals = [
-          ...analysis.proposals.map((proposal) => preserveReview(proposal, previous)),
+          ...profiled.map((proposal) => preserveReview(proposal, previous)),
           ...carryOverOrphanedReviews(
-            new Set(analysis.proposals.map((proposal) => proposal.id)),
+            new Set(profiled.map((proposal) => proposal.id)),
             analysis.units.map((unit) => unit.id),
             previous,
           ),
