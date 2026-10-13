@@ -165,6 +165,17 @@ export const DocumentKnowledgePipelineService = {
         proposal,
       ]),
     );
+    // A destructive structure rebuild cannot yet reconcile assistant-authored spans with the
+    // analyzer's new units. Refuse before begin() instead of silently deleting contextual notes.
+    if (
+      [...previous.values()].some(
+        (proposal) =>
+          proposal.payload.kind === "passage-relation" && proposal.payload.contextualAnalysis,
+      )
+    )
+      throw new Error(
+        "Este livro possui leitura contextual incorporada. O reprocessamento estrutural foi bloqueado para preservar suas notas e revisões; é necessária reconciliação das unidades antes de reconstruí-lo.",
+      );
     try {
       let preservedReviewCount = 0;
       let analyzedNodeCount = 0;

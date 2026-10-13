@@ -58,6 +58,30 @@ O módulo torna os registros existentes auditáveis; não significa que as dezen
 páginas tenham sido lidas contextual e integralmente por um modelo. Essa operação editorial deve
 alimentar propostas e evidências canônicas, com identificação verdadeira do método e revisão.
 
+## Integração de perfis e leitura contextual
+
+A integração de `melhoria/confiabilidade-perfis` preserva os campos opcionais `referenceZone`,
+`referenceRole` e `contextualAnalysis` no mesmo payload canônico. Papéis lexicais/intertextuais
+organizam o inspetor; não transformam uma ocorrência em comentário. Corrigir o perfil não
+reprocessa silenciosamente o acervo: as novas heurísticas entram quando o livro é reprocessado.
+
+O importador recolhido no Rastro recebe lotes privados `scriptorium-contextual-reading-v1` e valida
+checksum da fonte, página física e trecho literal (tolerando somente diferenças de whitespace)
+antes de uma transação única. Reimportações idênticas preservam as revisões individuais. A análise
+fica identificada como assistida por máquina, nunca como revisão humana. Não há leitura integral
+automática do acervo pela existência desse importador.
+
+Limite de segurança: a reconstrução estrutural de um livro com `contextualAnalysis` é recusada
+antes de apagar unidades. A reconciliação dos spans contextuais com uma nova desmontagem ainda
+precisa ser implementada; não se deve perder notas/revisões para aplicar um novo perfil. Livros
+sem essas notas continuam usando o reprocessamento existente.
+
+O backup estrutural remove citações da evidência operacional, mantendo a análise contextual no
+payload. O Rastro usa sua justificativa canônica quando a evidência foi redigida no backup.
+O arquivo ainda pode conter análises, propostas e traduções privadas: não é um pacote público
+redistribuível e não substitui o backup dos PDFs/páginas originais. A integração não executa
+reprocessamento, importação contextual ou alterações editoriais no workspace real.
+
 Migration aditiva: não altera textos, propostas ou decisões existentes. Rollback requer backup e
 remoção dos cinco triggers, duas tabelas e entrada de versão 20; nunca executar automaticamente,
 pois removeria o histórico capturado.

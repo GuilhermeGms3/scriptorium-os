@@ -32,8 +32,11 @@ export function explainKnowledgeTrace(row: TraceRow): KnowledgeTraceItem {
   const inferred = row.origin === "inferred" || row.method.startsWith("local-llm:");
   const explanation: string[] = [];
   if (inferred) {
+    // The structural backup removes quoted evidence, not the canonical contextual analysis.
+    if (payload.contextualAnalysis) explanation.push(payload.contextualAnalysis.rationale);
     for (const decision of data.decisions ?? [])
-      if (decision.rationale) explanation.push(decision.rationale);
+      if (decision.rationale && !explanation.includes(decision.rationale))
+        explanation.push(decision.rationale);
     if (!explanation.length)
       explanation.push(
         "Associação inferida. Este registro não preservou uma justificativa contextual detalhada.",

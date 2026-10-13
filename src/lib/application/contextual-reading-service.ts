@@ -8,10 +8,10 @@ import {
   type WorkspaceDatabase,
 } from "../workspace-runtime/workspace-database";
 import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 async function digest(value: string) {
-  const result = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(result)].map((v) => v.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A leitura contextual" });
 }
 
 /** Ignore whitespace differences between PDF extractors, never punctuation, words or accents. */
@@ -25,6 +25,7 @@ export function locateReadingQuote(text: string, quote: string): [number, number
     }
   }
   const wanted = quote.replace(/\s/gu, "");
+  if (!wanted) throw new Error("Evidência vazia: informe um trecho da página.");
   const start = compact.indexOf(wanted);
   if (start < 0)
     throw new Error("Evidência não encontrada na página original. Nenhuma ligação foi gravada.");
@@ -68,9 +69,13 @@ export const ContextualReadingService = {
       const document = await PrivateDocumentRepository.findByChecksum(note.sourceChecksum, db);
       if (!document)
         throw new Error(`Fonte ${note.sourceChecksum.slice(0, 12)} não instalada neste workspace.`);
-      const running = await db.query(`SELECT 1 FROM document_knowledge_indexes WHERE document_id=? AND status='processing'
-        UNION ALL SELECT 1 FROM pipeline_jobs WHERE document_id=? AND status='running' LIMIT 1`, [document.id,document.id]);
-      if (running.length) throw new Error("Pause o processamento da fonte antes de incorporar a leitura contextual.");
+      const running = await db.query(
+        `SELECT 1 FROM document_knowledge_indexes WHERE document_id=? AND status='processing'
+        UNION ALL SELECT 1 FROM pipeline_jobs WHERE document_id=? AND status='running' LIMIT 1`,
+        [document.id, document.id],
+      );
+      if (running.length)
+        throw new Error("Pause o processamento da fonte antes de incorporar a leitura contextual.");
       const spans: {
         pageId: string;
         pageIndex: number;
@@ -125,7 +130,9 @@ export const ContextualReadingService = {
       }
       const unitText = spans.map((s) => s.text).join(" ");
       // Reuse an exact existing unit span; a page range cannot belong to two units.
-      const spanKey = JSON.stringify(spans.map(({pageId,start,end}) => ({pageId,start,end})));
+      const spanKey = JSON.stringify(
+        spans.map(({ pageId, start, end }) => ({ pageId, start, end })),
+      );
       let unitId = plannedUnits.get(spanKey);
       if (!unitId && spans.length === 1) {
         const s = spans[0]!;

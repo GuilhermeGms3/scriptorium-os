@@ -1,5 +1,25 @@
 # Project Memory
 
+## Profile reliability integration (2026-10-12)
+
+- Integrated coworker branch `origin/melhoria/confiabilidade-perfis` into
+  `melhoria/verificacao-no-versiculo` with a merge, preserving published history and seven local
+  contextual-reading files in checkpoint `e45cafe`; merge commit `c305963`.
+- Canonical payload keeps reference zones, profile-specific roles and optional contextual analysis.
+  Contextual importer uses the shared secure-context hashing helper; trace explanations recover
+  from the canonical analysis after quote-redacted structural backup restore.
+- Five synthetic integration tests cover evidence offsets/errors, idempotent import and human
+  rejection preservation, profile/analysis coexistence, backup restore and atomic prevalidation.
+- Verification: 339 tests / 43 files, typecheck, full lint and production build passed. Browser QA
+  opened the real 37-book OPFS catalog, contextual-import disclosure, Shedd's profile selector and
+  Genesis 1; explanations toggled off/on and console had no warnings/errors. No private content
+  was imported, reprocessed or newly committed.
+- Existing-document reference-zone fixes still require explicit reprocessing. Whole-library
+  contextual reading is paused, not completed by this integration.
+- Structural rebuilding of a book with contextual analysis now refuses before deleting units;
+  span reconciliation is still required before safely reprocessing those notes. Existing books
+  without assistant contextual notes retain their normal reprocessing flow.
+
 ## Knowledge trace module (2026-10-12)
 
 - `/trace` joins real proposals/decisions/private document spans; paginated filters and detail with
