@@ -150,6 +150,7 @@ export const DocumentKnowledgeRepository = {
         const currentPartId = candidate["currentPartId"];
         const currentChapterId = candidate["currentChapterId"];
         const currentSectionId = candidate["currentSectionId"];
+        const currentSectionTitle = candidate["currentSectionTitle"];
         const bibliographyMode = candidate["bibliographyMode"];
         const lastPersonLabel = candidate["lastPersonLabel"];
         const lastWorkLabel = candidate["lastWorkLabel"];
@@ -177,6 +178,7 @@ export const DocumentKnowledgeRepository = {
           ...(typeof currentPartId === "string" ? { currentPartId } : {}),
           ...(typeof currentChapterId === "string" ? { currentChapterId } : {}),
           ...(typeof currentSectionId === "string" ? { currentSectionId } : {}),
+          ...(typeof currentSectionTitle === "string" ? { currentSectionTitle } : {}),
           ...(bibliographyMode === true ? { bibliographyMode: true } : {}),
           ...(typeof lastPersonLabel === "string" ? { lastPersonLabel } : {}),
           ...(typeof lastWorkLabel === "string" ? { lastWorkLabel } : {}),

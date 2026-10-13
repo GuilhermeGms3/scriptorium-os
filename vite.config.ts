@@ -13,6 +13,9 @@ export default defineConfig({
   vite: {
     // SQLite's worker/WASM assets are resolved by the package at runtime.
     optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
+    // The optional Python companion keeps its virtualenv in the repository; watching its ~30k
+    // files stalls the dev server's SSR module requests on Windows.
+    server: { watch: { ignored: ["**/.venv/**", "**/*.egg-info/**"] } },
     build: {
       rolldownOptions: {
         output: {

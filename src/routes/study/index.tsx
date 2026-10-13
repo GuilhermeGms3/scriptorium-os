@@ -1,11 +1,14 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Download, Map, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
+import { ArrowRight, Map, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
 import { StudyLearningMap } from "../../components/study/study-learning-map";
 import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
 import { formatNumber, t } from "../../lib/i18n";
 import type { Study } from "../../lib/domain/study";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
+import { useSecureContextProblem } from "../../lib/workspace-runtime/use-secure-context";
+import { SecureContextNotice } from "../../components/common/secure-context-notice";
+import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
 
 type StudyView = "journey" | "investigations";
 
@@ -116,6 +119,7 @@ function PersonalInvestigations({
   onSubmit: (event: FormEvent) => Promise<void>;
   onRefresh: () => Promise<void>;
 }) {
+  const backupProblem = useSecureContextProblem("O backup");
   return (
     <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
       <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
@@ -186,31 +190,25 @@ function PersonalInvestigations({
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             Exporte perguntas, notas e estudos antes de trocar de navegador, origem ou dispositivo.
           </p>
+          {backupProblem && (
+            <div className="mt-3">
+              <SecureContextNotice problem={backupProblem} />
+            </div>
+          )}
           <div className="mt-4 grid gap-2">
-            <button
-              type="button"
-              onClick={() =>
-                void ResearchWorkspaceService.exportJson().then((content) => {
-                  const url = URL.createObjectURL(
-                    new Blob([content], { type: "application/json" }),
-                  );
-                  const anchor = document.createElement("a");
-                  anchor.href = url;
-                  anchor.download = `scriptorium-estudos-${new Date().toISOString().slice(0, 10)}.json`;
-                  anchor.click();
-                  URL.revokeObjectURL(url);
-                  onBackupStatus("Backup baixado.");
-                })
-              }
-              className="inline-flex h-9 items-center gap-2 border border-input px-3 text-xs hover:bg-accent"
-            >
-              <Download className="size-3.5" /> Baixar backup
-            </button>
-            <label className="inline-flex h-9 cursor-pointer items-center gap-2 border border-input px-3 text-xs hover:bg-accent">
+            <WorkspaceBackupButton
+              fileName={`scriptorium-estudos-${new Date().toISOString().slice(0, 10)}.json`}
+              disabled={Boolean(backupProblem)}
+              onDownloaded={() => onBackupStatus("Backup baixado.")}
+              onError={onBackupStatus}
+              className="inline-flex h-9 items-center gap-2 border border-input px-3 text-xs hover:bg-accent disabled:opacity-50"
+            />
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 border border-input px-3 text-xs hover:bg-accent has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
               <Upload className="size-3.5" /> Restaurar backup
               <input
                 type="file"
                 accept="application/json,.json"
+                disabled={Boolean(backupProblem)}
                 className="sr-only"
                 onChange={(event) => {
                   const file = event.target.files?.[0];

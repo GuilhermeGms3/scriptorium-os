@@ -8,7 +8,12 @@ import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import { knowledgeLabel } from "../../lib/content/knowledge-presentation";
 import type { ResearchQuestion } from "../../lib/domain/research";
 import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
-import { COVERAGE_LABELS } from "../../lib/domain/workspace-passage-knowledge";
+import {
+  COVERAGE_LABELS,
+  PASSAGE_KNOWLEDGE_GROUPS,
+  PASSAGE_KNOWLEDGE_GROUP_LABELS,
+  passageKnowledgeGroup,
+} from "../../lib/domain/workspace-passage-knowledge";
 import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
 import { passageRefsOverlap } from "../../lib/domain/scripture";
 import { StudyRepository } from "../../lib/repositories/study-repository";
@@ -538,116 +543,137 @@ export function PassageInspector() {
               {workspaceKnowledge && workspaceKnowledge.items.length > 0 && (
                 <section>
                   <p className="meta-label">Conhecimento e ligações dos livros privados</p>
-                  <ul className="mt-2 space-y-3">
-                    {workspaceKnowledge.items.map((item) => {
-                      const claims = item.proposals.filter(
-                        (proposal) => proposal.payload.kind === "claim",
-                      );
-                      const topics = item.proposals.flatMap((proposal) =>
-                        proposal.payload.kind === "topic-assignment"
-                          ? [proposal.payload.domain]
-                          : [],
-                      );
-                      const argumentsForUnit = item.proposals.filter(
-                        (proposal) => proposal.payload.kind === "argument",
-                      );
-                      const citations = item.proposals.filter(
-                        (proposal) => proposal.payload.kind === "citation",
-                      );
-                      const entities = item.proposals.filter(
-                        (proposal) => proposal.payload.kind === "entity",
-                      );
-                      return (
-                        <li key={item.id} className="rounded border border-border bg-muted/30 p-3">
-                          <div className="flex flex-wrap items-center justify-between gap-2">
-                            <p className="text-xs font-medium">{item.document.title}</p>
-                            {item.reviewState === "pending" && (
-                              <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px]">
-                                <span
-                                  aria-hidden="true"
-                                  className="size-1.5 rounded-full bg-amber-500"
-                                />
-                                Por confirmar
-                              </span>
-                            )}
-                          </div>
-                          <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
-                            {item.passageRelation.payload.rawReference} · páginas{" "}
-                            {item.pages.map((page) => page + 1).join(", ")}
-                            {item.reviewState === "pending"
-                              ? " · Ligação detectada, ainda sem revisão"
-                              : item.reviewState === "auto-visible"
-                                ? " · Ligação de máquina, não revisão editorial"
-                                : " · Revisão humana"}
-                          </p>
-                          {claims.map((proposal) =>
-                            proposal.payload.kind === "claim" ? (
-                              <p
-                                key={proposal.id}
-                                className="mt-2 border-l-2 border-primary/40 pl-2 text-xs leading-relaxed"
+                  {PASSAGE_KNOWLEDGE_GROUPS.map((group) => {
+                    const groupItems = workspaceKnowledge.items.filter(
+                      (item) => passageKnowledgeGroup(item) === group,
+                    );
+                    if (!groupItems.length) return null;
+                    const grouped = workspaceKnowledge.items.some(
+                      (item) => passageKnowledgeGroup(item) !== "library",
+                    );
+                    return (
+                      <div key={group}>
+                        {grouped && (
+                          <h4 className="meta-label mt-3">
+                            {PASSAGE_KNOWLEDGE_GROUP_LABELS[group]}
+                          </h4>
+                        )}
+                        <ul className="mt-2 space-y-3">
+                          {groupItems.map((item) => {
+                            const claims = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "claim",
+                            );
+                            const topics = item.proposals.flatMap((proposal) =>
+                              proposal.payload.kind === "topic-assignment"
+                                ? [proposal.payload.domain]
+                                : [],
+                            );
+                            const argumentsForUnit = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "argument",
+                            );
+                            const citations = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "citation",
+                            );
+                            const entities = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "entity",
+                            );
+                            return (
+                              <li
+                                key={item.id}
+                                className="rounded border border-border bg-muted/30 p-3"
                               >
-                                {proposal.payload.proposition}
-                              </p>
-                            ) : null,
-                          )}
-                          {argumentsForUnit.map((proposal) =>
-                            proposal.payload.kind === "argument" ? (
-                              <section
-                                key={proposal.id}
-                                className="mt-2 rounded border border-border/70 bg-background/50 p-2"
-                              >
-                                <p className="meta-label">Argumento</p>
-                                <p className="mt-1 text-xs font-medium">
-                                  {proposal.payload.conclusion}
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-xs font-medium">{item.document.title}</p>
+                                  {item.reviewState === "pending" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px]">
+                                      <span
+                                        aria-hidden="true"
+                                        className="size-1.5 rounded-full bg-amber-500"
+                                      />
+                                      Por confirmar
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                                  {item.passageRelation.payload.rawReference} · páginas{" "}
+                                  {item.pages.map((page) => page + 1).join(", ")}
+                                  {item.reviewState === "pending"
+                                    ? " · Ligação detectada, ainda sem revisão"
+                                    : item.reviewState === "auto-visible"
+                                      ? " · Ligação de máquina, não revisão editorial"
+                                      : " · Revisão humana"}
                                 </p>
-                                <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
-                                  {proposal.payload.premises.map((premise) => (
-                                    <li key={premise}>{premise}</li>
-                                  ))}
-                                </ol>
-                              </section>
-                            ) : null,
-                          )}
-                          {citations.map((proposal) =>
-                            proposal.payload.kind === "citation" ? (
-                              <blockquote
-                                key={proposal.id}
-                                className="mt-2 border-l-2 border-border pl-2 text-[11px] italic text-muted-foreground"
-                              >
-                                “{proposal.payload.quotedText}”
-                              </blockquote>
-                            ) : null,
-                          )}
-                          <p className="mt-2 line-clamp-5 text-xs leading-relaxed text-muted-foreground">
-                            {item.translation?.translatedText ?? item.unit.text}
-                          </p>
-                          {topics.length > 0 && (
-                            <p className="mt-2 font-mono text-[9px] text-muted-foreground uppercase">
-                              {topics.join(" · ")}
-                            </p>
-                          )}
-                          {entities.length > 0 && (
-                            <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
-                              Entidades:{" "}
-                              {entities
-                                .flatMap((proposal) =>
-                                  proposal.payload.kind === "entity"
-                                    ? [proposal.payload.label]
-                                    : [],
-                                )
-                                .join(" · ")}
-                            </p>
-                          )}
-                          <a
-                            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
-                            className="mt-2 inline-block text-[10px] underline underline-offset-2"
-                          >
-                            Abrir evidência local
-                          </a>
-                        </li>
-                      );
-                    })}
-                  </ul>
+                                {claims.map((proposal) =>
+                                  proposal.payload.kind === "claim" ? (
+                                    <p
+                                      key={proposal.id}
+                                      className="mt-2 border-l-2 border-primary/40 pl-2 text-xs leading-relaxed"
+                                    >
+                                      {proposal.payload.proposition}
+                                    </p>
+                                  ) : null,
+                                )}
+                                {argumentsForUnit.map((proposal) =>
+                                  proposal.payload.kind === "argument" ? (
+                                    <section
+                                      key={proposal.id}
+                                      className="mt-2 rounded border border-border/70 bg-background/50 p-2"
+                                    >
+                                      <p className="meta-label">Argumento</p>
+                                      <p className="mt-1 text-xs font-medium">
+                                        {proposal.payload.conclusion}
+                                      </p>
+                                      <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
+                                        {proposal.payload.premises.map((premise) => (
+                                          <li key={premise}>{premise}</li>
+                                        ))}
+                                      </ol>
+                                    </section>
+                                  ) : null,
+                                )}
+                                {citations.map((proposal) =>
+                                  proposal.payload.kind === "citation" ? (
+                                    <blockquote
+                                      key={proposal.id}
+                                      className="mt-2 border-l-2 border-border pl-2 text-[11px] italic text-muted-foreground"
+                                    >
+                                      “{proposal.payload.quotedText}”
+                                    </blockquote>
+                                  ) : null,
+                                )}
+                                <p className="mt-2 line-clamp-5 text-xs leading-relaxed text-muted-foreground">
+                                  {item.translation?.translatedText ?? item.unit.text}
+                                </p>
+                                {topics.length > 0 && (
+                                  <p className="mt-2 font-mono text-[9px] text-muted-foreground uppercase">
+                                    {topics.join(" · ")}
+                                  </p>
+                                )}
+                                {entities.length > 0 && (
+                                  <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
+                                    Entidades:{" "}
+                                    {entities
+                                      .flatMap((proposal) =>
+                                        proposal.payload.kind === "entity"
+                                          ? [proposal.payload.label]
+                                          : [],
+                                      )
+                                      .join(" · ")}
+                                  </p>
+                                )}
+                                <a
+                                  href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
+                                  className="mt-2 inline-block text-[10px] underline underline-offset-2"
+                                >
+                                  Abrir evidência local
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </section>
               )}
             </div>

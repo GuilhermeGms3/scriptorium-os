@@ -12,6 +12,7 @@ import {
   type DocumentKnowledgeAnalyzerCheckpoint,
   type IncrementalDocumentKnowledgeAnalysis,
 } from "./document-knowledge-analyzer";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const PROVIDER_ID = "python-contextual-document-knowledge";
 const PROVIDER_VERSION = "2";
@@ -46,8 +47,7 @@ function semanticEngineEndpoint(): string {
 }
 
 async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A análise do livro" });
 }
 
 async function providerProposal(

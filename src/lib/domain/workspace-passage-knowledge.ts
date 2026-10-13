@@ -1,6 +1,7 @@
 import type {
   KnowledgeProposal,
   KnowledgeProposalPayload,
+  ReferenceRole,
   SemanticUnit,
 } from "./document-knowledge";
 import type { LocalTranslation, SemanticDomain } from "./semantic-content";
@@ -95,6 +96,8 @@ export function knowledgeItemCoversVerse(
   verse: number,
 ): boolean {
   const payload = item.passageRelation.payload;
+  // A dictionary entry only mentions the verse; it belongs in the inspector, not under the verse.
+  if (payload.referenceRole === "lexical-mention") return false;
   return [payload.passage, ...payload.additionalPassages].some((passage) => {
     if (passage.bookId !== bookId) return false;
     // Book/chapter relations belong in the contextual inspector, never duplicated below every verse.
@@ -103,6 +106,29 @@ export function knowledgeItemCoversVerse(
     if (passage.verseStart === undefined) return false;
     return passage.verseStart <= verse && (passage.verseEnd ?? passage.verseStart) >= verse;
   });
+}
+
+export const REFERENCE_ROLE_LABELS: Record<ReferenceRole, string> = {
+  "lexical-mention": "Menção lexical",
+  intertextual: "Eco intertextual",
+  "proof-text": "Texto-prova",
+};
+
+export const PASSAGE_KNOWLEDGE_GROUPS = ["library", "reference-works", "primary-sources"] as const;
+export type PassageKnowledgeGroup = (typeof PASSAGE_KNOWLEDGE_GROUPS)[number];
+
+export const PASSAGE_KNOWLEDGE_GROUP_LABELS: Record<PassageKnowledgeGroup, string> = {
+  library: "Livros da biblioteca",
+  "reference-works": "Dicionários e léxicos",
+  "primary-sources": "Fontes primárias",
+};
+
+/** Inspector group of a linked passage, from how its book uses the reference. */
+export function passageKnowledgeGroup(item: WorkspacePassageKnowledgeItem): PassageKnowledgeGroup {
+  const role = item.passageRelation.payload.referenceRole;
+  if (role === "lexical-mention") return "reference-works";
+  if (role === "intertextual") return "primary-sources";
+  return "library";
 }
 
 export function semanticDomainCoverage(domain: SemanticDomain): PassageCoverageArea | null {

@@ -1,9 +1,10 @@
 import { z } from "zod";
 import { corpusPackageRegistry } from "../corpus-runtime/corpus-package-registry";
-import type { KnowledgeProposal, SemanticUnit } from "../domain/document-knowledge";
+import type { KnowledgeProposal, ReferenceRole, SemanticUnit } from "../domain/document-knowledge";
 import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-repository";
 import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 import type { DocumentProfileKind } from "../domain/document-profile";
+import type { ReferenceZone } from "../domain/semantic-content";
 import {
   PipelineInfoSchema,
   PipelineLinkSchema,
@@ -14,10 +15,11 @@ import {
   getWorkspaceDatabase,
   type WorkspaceDatabase,
 } from "../workspace-runtime/workspace-database";
+import { sha256Hex } from "../workspace-runtime/secure-context";
+import { profileAllowsVerseInference } from "./document-profile-policy";
 
 async function digest(text: string): Promise<string> {
-  const bytes = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(text));
-  return [...new Uint8Array(bytes)].map((x) => x.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(text, { operation: "A conexão dos livros" });
 }
 
 async function saveDecision(
@@ -72,13 +74,25 @@ const EXPLICIT_AUTO_VISIBILITY_PROFILES = new Set<DocumentProfileKind>([
   "church-history",
 ]);
 
-/** Dense reference works remain sampled because numeric entries produce many false positives. */
+/**
+ * Dense reference works remain sampled because numeric entries produce many false positives. A
+ * reference from a table of contents, index, bibliography or canon list only locates a passage, so
+ * it is never published automatically, whatever the profile. Neither is a lexical mention or an
+ * intertextual echo: only a person can say a dictionary entry or an ancient text explains a verse.
+ */
 export function explicitPublicationForProfile(
   profile: DocumentProfileKind,
   referenceValid: boolean,
   sourceSchemeConfirmed: boolean,
+  referenceZone: ReferenceZone = "body",
+  referenceRole?: ReferenceRole,
 ): "machine-visible" | "exception" {
-  return referenceValid && sourceSchemeConfirmed && EXPLICIT_AUTO_VISIBILITY_PROFILES.has(profile)
+  return referenceValid &&
+    sourceSchemeConfirmed &&
+    referenceZone === "body" &&
+    referenceRole !== "lexical-mention" &&
+    referenceRole !== "intertextual" &&
+    EXPLICIT_AUTO_VISIBILITY_PROFILES.has(profile)
     ? "machine-visible"
     : "exception";
 }
@@ -217,7 +231,7 @@ export const LocalKnowledgePipelineService = {
         checksum: summary.sourceChecksum,
         indexedAt: summary.indexedAt,
         sourceSchemeConfirmed,
-        policy: "profile-aware-explicit-v2",
+        policy: "profile-aware-explicit-v3",
         profile: profile.profile,
       }),
     );
@@ -264,7 +278,7 @@ export const LocalKnowledgePipelineService = {
         [
           key,
           JSON.stringify({
-            policy: "deterministic-profile-aware-explicit-v2",
+            policy: "deterministic-profile-aware-explicit-v3",
             reason: "no-explicit-reference",
           }),
           new Date().toISOString(),
@@ -346,7 +360,7 @@ export const LocalKnowledgePipelineService = {
               end: start + proposal.payload.rawReference.length,
               editionId,
               textChecksum: unit.textChecksum,
-              policy: "profile-aware-explicit-v2",
+              policy: "profile-aware-explicit-v3",
               documentProfile: profile.profile,
               sourceSchemeConfirmed,
             };
@@ -354,6 +368,8 @@ export const LocalKnowledgePipelineService = {
               profile.profile,
               valid,
               sourceSchemeConfirmed,
+              proposal.payload.referenceZone ?? "body",
+              proposal.payload.referenceRole,
             );
             if (useLlm) await saveDecision(db, proposal, "explicit", publication, evidence, key);
             else
@@ -361,8 +377,24 @@ export const LocalKnowledgePipelineService = {
                 decisionStatement(proposal, "explicit", publication, evidence, key),
               );
           }
-          if (useLlm && !explicit.length && !["heading", "bibliography-entry"].includes(unit.kind))
-            await this.inferUnit(db, documentId, unit, editionId, useLlm, key, signal);
+          if (
+            useLlm &&
+            !explicit.length &&
+            !["heading", "bibliography-entry"].includes(unit.kind)
+          ) {
+            if (profileAllowsVerseInference(profile.profile))
+              await this.inferUnit(db, documentId, unit, editionId, useLlm, key, signal);
+            else
+              await db.execute(
+                "INSERT OR REPLACE INTO pipeline_unit_receipts VALUES(?,?,'abstained',?,?)",
+                [
+                  unit.id,
+                  key,
+                  JSON.stringify({ reason: "primary-source-profile", profile: profile.profile }),
+                  new Date().toISOString(),
+                ],
+              );
+          }
           ordinal = unit.ordinal + 1;
           if (useLlm)
             await db.execute(

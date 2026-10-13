@@ -3,6 +3,7 @@ import type { ExtractedPrivateDocument } from "../domain/private-document";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { PrivateDocumentStorage } from "../private-documents/private-document-storage";
 import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const MAX_FILE_BYTES = 256 * 1024 * 1024;
 const MAX_PAGES = 5_000;
@@ -53,8 +54,7 @@ function report(
 }
 
 async function sha256(buffer: ArrayBuffer): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", buffer);
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(buffer);
 }
 
 function humanizeFilename(filename: string): string {

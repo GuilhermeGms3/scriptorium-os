@@ -7,6 +7,7 @@ import {
   type WorkspaceRow,
   type WorkspaceSqlValue,
 } from "../workspace-runtime/workspace-database";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const scalar = z.union([z.string(), z.number(), z.null()]);
 const rows = z.array(z.record(scalar));
@@ -86,6 +87,8 @@ const BackupV3Schema = BackupV2Schema.omit({ schemaVersion: true, manifest: true
     databaseSchemaVersion: z.number().int().positive(),
     checksum: z.string().regex(/^[a-f0-9]{64}$/),
     privateTextIncluded: z.literal(false),
+    /** Reviewed translations of private pages are kept on purpose; older backups omit the flag. */
+    privateTranslationsIncluded: z.boolean().optional(),
   }),
   privateKnowledge: PrivateKnowledgeBackupSchema,
 });
@@ -142,8 +145,7 @@ const researchTables = {
 } as const;
 
 async function sha256(value: string): Promise<string> {
-  const hash = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(hash)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "O backup" });
 }
 
 async function exportTables(
@@ -194,6 +196,32 @@ function rebuildFtsStatements(): { sql: string; bind?: WorkspaceSqlValue[] }[] {
       sql: "INSERT INTO workspace_fts(entity_kind,entity_id,title,body) SELECT 'research-question',id,question,coalesce(description,'') FROM research_questions",
     },
   ];
+}
+
+/** Words of a private book that pipeline evidence repeats; positions and checksums stay. */
+const PRIVATE_EVIDENCE_KEYS = new Set(["quote", "evidenceQuote", "rationale"]);
+
+function withoutPrivateQuotes(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(withoutPrivateQuotes);
+  if (!value || typeof value !== "object") return value;
+  return Object.fromEntries(
+    Object.entries(value)
+      .filter(([key]) => !PRIVATE_EVIDENCE_KEYS.has(key))
+      .map(([key, item]) => [key, withoutPrivateQuotes(item)]),
+  );
+}
+
+/** Rewrites the JSON columns of rows that may quote a private page. */
+function redactJsonColumns(tableRows: WorkspaceRow[], columns: readonly string[]): WorkspaceRow[] {
+  return tableRows.map((row) => {
+    const copy: WorkspaceRow = { ...row };
+    for (const column of columns) {
+      const value = row[column];
+      if (typeof value === "string")
+        copy[column] = JSON.stringify(withoutPrivateQuotes(JSON.parse(value) as unknown));
+    }
+    return copy;
+  });
 }
 
 async function exportPrivateKnowledge(
@@ -258,9 +286,9 @@ async function exportPrivateKnowledge(
     translations: serializableRows(translations),
     translationJobs: serializableRows(translationJobs),
     pipelineJobs: serializableRows(pipelineJobs),
-    pipelineDecisions: serializableRows(pipelineDecisions),
-    traceEvents: serializableRows(traceEvents),
-    pipelineReceipts: serializableRows(pipelineReceipts),
+    pipelineDecisions: serializableRows(redactJsonColumns(pipelineDecisions, ["evidence_json"])),
+    traceEvents: serializableRows(redactJsonColumns(traceEvents, ["state_json"])),
+    pipelineReceipts: serializableRows(redactJsonColumns(pipelineReceipts, ["receipt_json"])),
     pageLayouts: serializableRows(pageLayouts),
     documentProfiles: serializableRows(documentProfiles),
     processingSteps: serializableRows(processingSteps),
@@ -384,6 +412,9 @@ export const ResearchWorkspaceService = {
         applicationVersion: "0.0.0-phase10.3",
         databaseSchemaVersion: Number(versionRows[0]?.["version"] ?? 0),
         privateTextIncluded: false as const,
+        privateTranslationsIncluded: privateKnowledge.translations.some(
+          (row) => row["source_kind"] === "private-segment",
+        ),
       },
       library: library as BackupV3["library"],
       research: research as BackupV3["research"],
@@ -456,6 +487,9 @@ export const ResearchWorkspaceService = {
           applicationVersion: backup.manifest.applicationVersion,
           databaseSchemaVersion: backup.manifest.databaseSchemaVersion,
           privateTextIncluded: backup.manifest.privateTextIncluded,
+          ...(backup.manifest.privateTranslationsIncluded !== undefined
+            ? { privateTranslationsIncluded: backup.manifest.privateTranslationsIncluded }
+            : {}),
         },
         library: backup.library,
         research: backup.research,
