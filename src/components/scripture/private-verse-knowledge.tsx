@@ -273,6 +273,20 @@ export function PrivateLinkCard({
           {item.context.sectionTitle ? ` · ${item.context.sectionTitle}` : ""}
         </p>
       )}
+      {relation.payload.contextualAnalysis && (
+        <section className="mt-3 space-y-2 text-xs leading-relaxed">
+          <h3 className="font-serif text-base">{relation.payload.contextualAnalysis.title}</h3>
+          <p>{relation.payload.contextualAnalysis.summary}</p>
+          <p className="text-[10px] text-muted-foreground">
+            Síntese contextual assistida por máquina · não revisada por pessoa.
+          </p>
+          {relation.payload.contextualAnalysis.limitations.map((value) => (
+            <p key={value} className="border-l-2 border-amber-500/40 pl-2 text-muted-foreground">
+              {value}
+            </p>
+          ))}
+        </section>
+      )}
       {topics.length > 0 && (
         <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
           {[...new Set(topics)].join(" · ")}

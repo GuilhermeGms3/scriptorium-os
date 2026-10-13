@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { CLAIM_KINDS } from "./knowledge";
 import { SEMANTIC_DOMAINS } from "./semantic-content";
+import { ContextualAnalysisSchema } from "./contextual-analysis";
 
 export const DOCUMENT_NODE_KINDS = [
   "book",
@@ -118,6 +119,7 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     relationScope: z.enum(["verse", "range", "pericope", "chapter", "book"]).optional(),
     passage: DocumentPassageSchema,
     additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
+    contextualAnalysis: ContextualAnalysisSchema.optional(),
   }),
   z.object({
     kind: z.literal("topic-assignment"),

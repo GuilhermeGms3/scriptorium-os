@@ -12,6 +12,7 @@ import {
 import { passageLinkLabel } from "../lib/application/workspace-passage-knowledge-service";
 import { ScriptureKnowledgeEngine } from "../lib/knowledge-engine/scripture-knowledge-engine";
 import { bookLabel } from "../lib/i18n";
+import { ContextualReadingImport } from "../components/library/contextual-reading-import";
 
 const SearchSchema = TraceFilterSchema.extend({ proposal: z.string().max(500).optional() });
 type TraceSearch = z.infer<typeof SearchSchema>;
@@ -401,6 +402,7 @@ function TracePage() {
           <RefreshCw className="size-4" />
         </Button>
       </header>
+      {!search.proposal && <ContextualReadingImport />}
       {!state.data && !state.error && <p role="status">Carregando registros do workspace…</p>}
       {state.error && (
         <div role="alert" className="space-y-2 text-sm">
