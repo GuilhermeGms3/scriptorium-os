@@ -572,16 +572,11 @@ export const DocumentKnowledgeRepository = {
     const end = passage.verseEnd ?? passage.verseStart ?? 999;
     return (
       await db.query(
-        `SELECT * FROM knowledge_proposals
-         WHERE proposal_kind='passage-relation' AND (review_status='accepted' OR
-           (?=1 AND review_status='machine-proposed' AND EXISTS(
-             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id AND d.publication='machine-visible'
-           )) OR
-           (?=1 AND review_status='machine-proposed' AND NOT EXISTS(
-             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=knowledge_proposals.id
-           )))
-           AND (
-             (
+        `WITH target_matches AS MATERIALIZED (
+           SELECT id FROM knowledge_proposals
+           WHERE proposal_kind='passage-relation'
+             AND review_status IN ('accepted','machine-proposed')
+             AND (
                json_extract(payload_json,'$.passage.bookId')=?
                AND json_extract(payload_json,'$.passage.versificationSchemeId')=?
                AND (
@@ -592,7 +587,13 @@ export const DocumentKnowledgeRepository = {
                     coalesce(json_extract(payload_json,'$.passage.verseEnd'),json_extract(payload_json,'$.passage.verseStart')) >= ?)
                  ))
                )
-             ) OR EXISTS(
+             )
+           UNION
+           SELECT id FROM knowledge_proposals
+           WHERE proposal_kind='passage-relation'
+             AND review_status IN ('accepted','machine-proposed')
+             AND json_array_length(payload_json,'$.additionalPassages') > 0
+             AND EXISTS(
                SELECT 1 FROM json_each(payload_json,'$.additionalPassages') target
                WHERE json_extract(target.value,'$.bookId')=?
                  AND json_extract(target.value,'$.versificationSchemeId')=?
@@ -603,21 +604,29 @@ export const DocumentKnowledgeRepository = {
                       coalesce(json_extract(target.value,'$.verseEnd'),json_extract(target.value,'$.verseStart')) >= ?)
                    )))
              )
-           )
-         ORDER BY updated_at DESC,id LIMIT 200`,
+         )
+         SELECT p.* FROM target_matches t JOIN knowledge_proposals p ON p.id=t.id
+         WHERE p.review_status='accepted' OR
+           (?=1 AND p.review_status='machine-proposed' AND EXISTS(
+             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id AND d.publication='machine-visible'
+           )) OR
+           (?=1 AND p.review_status='machine-proposed' AND NOT EXISTS(
+             SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id
+           ))
+         ORDER BY p.updated_at DESC,p.id LIMIT 200`,
         [
+          passage.bookId,
+          passageRefScheme(passage),
+          passage.chapter,
+          end,
+          start,
+          passage.bookId,
+          passageRefScheme(passage),
+          passage.chapter,
+          end,
+          start,
           includeMachineLinks ? 1 : 0,
           includePending ? 1 : 0,
-          passage.bookId,
-          passageRefScheme(passage),
-          passage.chapter,
-          end,
-          start,
-          passage.bookId,
-          passageRefScheme(passage),
-          passage.chapter,
-          end,
-          start,
         ],
       )
     ).map(mapProposal);

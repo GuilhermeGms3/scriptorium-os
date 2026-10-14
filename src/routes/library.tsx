@@ -28,6 +28,8 @@ import {
   useSecureContextProblem,
 } from "../lib/workspace-runtime/use-secure-context";
 import { SecureContextNotice } from "../components/common/secure-context-notice";
+import { BookShelf } from "../components/library/book-shelf";
+import { NagHammadiLocator } from "../components/library/nag-hammadi-locator";
 
 interface LibrarySearch {
   source?: string;
@@ -56,7 +58,7 @@ export function LibraryPage() {
   const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
   const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
   const [newCollection, setNewCollection] = useState("");
-  const [view, setView] = useState<LibraryView>("all");
+  const [view, setView] = useState<LibraryView>("private");
   const origin = useCurrentOrigin();
 
   const refresh = useCallback(async () => {
@@ -157,14 +159,15 @@ export function LibraryPage() {
       <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4 md:px-6">
         <div>
           <p className="meta-label">Biblioteca acadêmica</p>
-          <h1 className="mt-1 font-serif text-2xl font-semibold">Fontes, obras e citações</h1>
+          <h1 className="mt-1 font-serif text-2xl font-semibold">Biblioteca</h1>
           <p className="mt-1 text-xs text-muted-foreground">
-            SQLite{" "}
-            {workspacePersistence === "opfs"
-              ? "persistente em OPFS"
-              : workspacePersistence === "loading"
-                ? "inicializando…"
-                : "em modo degradado"}
+            {workspacePersistence === "installation"
+              ? "Acervo persistente da instalação · compartilhado entre navegadores"
+              : workspacePersistence === "opfs"
+                ? "Acervo deste navegador · persistente em OPFS"
+                : workspacePersistence === "loading"
+                  ? "Abrindo armazenamento…"
+                  : "Armazenamento em modo degradado"}
           </p>
         </div>
         <div className="flex gap-2">
@@ -276,33 +279,16 @@ export function LibraryPage() {
                 </div>
                 <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
               </div>
-              <div className="mt-3 grid gap-1 sm:grid-cols-2">
-                {filteredPrivateDocuments.map((document) => (
-                  <a
-                    key={document.id}
-                    href={`/library/document/${encodeURIComponent(document.id)}`}
-                    className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span className="flex items-center gap-1.5 font-medium">
-                      <FileText className="size-3.5" /> {document.title}
-                    </span>
-                    <span className="mt-1 block text-[10px] text-muted-foreground">
-                      {document.textPageCount}/{document.pageCount} páginas com texto ·{" "}
-                      {document.language ?? "idioma não informado"}
-                    </span>
-                  </a>
-                ))}
-              </div>
+              <BookShelf documents={filteredPrivateDocuments} />
             </section>
           )}
-          {view === "private" && filteredPrivateDocuments.length === 0 && (
+          {view === "private" && !loading && !error && filteredPrivateDocuments.length === 0 && (
             <section className="m-4 rounded-md border border-dashed border-border p-5">
-              <h2 className="font-serif text-lg font-semibold">
-                Nenhum livro privado nesta origem
-              </h2>
+              <h2 className="font-serif text-lg font-semibold">Nenhum livro neste acervo</h2>
               <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                Seus livros podem estar em outro endereço (ex.: localhost:8080). Abra-o, exporte o
-                backup e importe aqui.
+                {workspacePersistence === "installation"
+                  ? "Importe seus PDFs ou transfira o workspace completo pelo navegador que contém os livros."
+                  : "Este modo usa o armazenamento do navegador. Para compartilhar o acervo, ative o modo de instalação e transfira o workspace completo."}
               </p>
               {origin && (
                 <p className="mt-1 font-mono text-[11px] text-muted-foreground">
@@ -310,9 +296,8 @@ export function LibraryPage() {
                 </p>
               )}
               <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
-                PDFs privados ficam no OPFS de cada endereço (protocolo, nome e porta). O backup
-                leva as revisões e os estudos; os PDFs originais precisam ser importados de novo
-                aqui, e o Git e o Docker não os transportam.
+                O backup JSON é estrutural. A transferência de instalação copia também textos,
+                índices, ligações e PDFs, sem repetir a desmontagem.
               </p>
               <Link
                 to="/library/process"
@@ -321,6 +306,14 @@ export function LibraryPage() {
                 Abrir importação e processamento
               </Link>
             </section>
+          )}
+          {view === "private" && loading && (
+            <p className="p-6 text-sm text-muted-foreground">Abrindo acervo e suas fontes…</p>
+          )}
+          {view === "private" && error && (
+            <p role="alert" className="p-6 text-sm text-destructive">
+              {error}
+            </p>
           )}
           {(view === "all" || view === "primary") && primaryWorks.length > 0 && !query.trim() && (
             <section className="border-b border-border p-3">
@@ -403,9 +396,7 @@ export function LibraryPage() {
                                   {content}
                                 </a>
                               ) : (
-                                <span className="flex items-baseline justify-between gap-2 text-xs">
-                                  {content}
-                                </span>
+                                <NagHammadiLocator tractate={tractate} />
                               )}
                             </li>
                           );
@@ -554,8 +545,9 @@ export function ImportPanel({
             <div>
               <h3 className="text-xs font-medium">PDF privado com texto pesquisável</h3>
               <p className="mt-0.5 text-[11px] text-muted-foreground">
-                O arquivo original vai para o OPFS e o texto é indexado por página no workspace.
-                Nada é enviado a servidor nem incluído nos pacotes públicos.
+                O original e o texto extraído ficam no armazenamento ativo: pasta da instalação no
+                modo Docker/local, ou OPFS no modo navegador. PDFs privados não entram nos pacotes
+                públicos.
               </p>
             </div>
           </div>

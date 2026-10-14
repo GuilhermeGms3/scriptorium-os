@@ -3,6 +3,7 @@ import type { LocalTranslation } from "../domain/semantic-content";
 import { LocalTranslationRepository } from "../repositories/local-translation-repository";
 import type { WorkspaceDatabase } from "../workspace-runtime/workspace-database";
 import { sha256Hex } from "../workspace-runtime/secure-context";
+import { installationAvailable, installationFetch } from "../workspace-runtime/installation-client";
 
 const TranslationResponseSchema = z.object({
   translatedText: z.string().min(1),
@@ -67,7 +68,9 @@ async function sha256(value: string): Promise<string> {
   return sha256Hex(value, { operation: "A tradução local" });
 }
 
-function endpoint(): string {
+async function endpoint(): Promise<string> {
+  if (typeof window !== "undefined" && (await installationAvailable()))
+    return "/api/workspace/translation";
   const configured = import.meta.env["VITE_SEMANTIC_ENGINE_URL"];
   return typeof configured === "string" && configured.trim()
     ? configured.replace(/\/$/, "")
@@ -114,9 +117,13 @@ export const LocalTranslationService = {
     );
 
     const infoScope = abortScope(options.signal, options.infoTimeoutMs ?? 30_000);
+    const baseUrl = await endpoint();
+    const localHeaders = baseUrl.startsWith("/") ? { "x-scriptorium-workspace": "1" } : undefined;
     let info: z.infer<typeof TranslationModelInfoSchema>;
     try {
-      const infoResponse = await fetch(`${endpoint()}/v1/info`, { signal: infoScope.signal });
+      const infoResponse = baseUrl.startsWith("/")
+        ? await installationFetch("translation/v1/info", { signal: infoScope.signal })
+        : await fetch(`${baseUrl}/v1/info`, { signal: infoScope.signal });
       if (!infoResponse.ok)
         throw new Error(`Identidade do tradutor indisponível (${infoResponse.status}).`);
       info = TranslationModelInfoSchema.parse(await infoResponse.json());
@@ -147,16 +154,19 @@ export const LocalTranslationService = {
     const translationScope = abortScope(options.signal, translationTimeoutMs);
     let response: Response;
     try {
-      response = await fetch(`${endpoint()}/v1/translate`, {
+      const requestInit: RequestInit = {
         method: "POST",
-        headers: { "content-type": "application/json" },
+        headers: { "content-type": "application/json", ...localHeaders },
         body: JSON.stringify({
           text,
           sourceLanguage: request.sourceLanguage,
           targetLanguage,
         }),
         signal: translationScope.signal,
-      });
+      };
+      response = baseUrl.startsWith("/")
+        ? await installationFetch("translation/v1/translate", requestInit)
+        : await fetch(`${baseUrl}/v1/translate`, requestInit);
     } catch (cause) {
       if (options.signal?.aborted) throw new DOMException("Tradução cancelada.", "AbortError");
       if (fallbackCached) return fallbackCached;

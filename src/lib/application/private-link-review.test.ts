@@ -110,6 +110,63 @@ async function reviewNote(db: DatabaseSync, id: string): Promise<unknown> {
 }
 
 describe("reviewing private links while reading the Bible", () => {
+  it("uses separate indexed primary and secondary targets without duplicates or scheme leakage", async () => {
+    const { db, workspace } = await analyzedBook();
+    const item = await pendingItem(workspace, JOHN_3_16);
+    await DocumentKnowledgeRepository.reviewProposal(
+      item.id,
+      "accepted",
+      {
+        payload: {
+          ...item.passageRelation.payload,
+          additionalPassages: [
+            item.passageRelation.payload.passage,
+            { ...item.passageRelation.payload.passage, chapter: 1, verseStart: 1 },
+          ],
+        },
+      },
+      workspace,
+    );
+    const plans: string[] = [];
+    const inspected: WorkspaceDatabase = {
+      ...workspace,
+      async query(sql, bind = []) {
+        if (sql.includes("target_matches"))
+          plans.push(
+            ...db
+              .prepare(`EXPLAIN QUERY PLAN ${sql}`)
+              .all(...bind)
+              .map((row) => String(row["detail"])),
+          );
+        return workspace.query(sql, bind);
+      },
+    };
+    expect(
+      (await DocumentKnowledgeRepository.listVisiblePassageRelations(JOHN_3_16, inspected)).map(
+        (entry) => entry.id,
+      ),
+    ).toEqual([item.id]);
+    expect(
+      (await DocumentKnowledgeRepository.listVisiblePassageRelations(JOHN_1_1, inspected)).map(
+        (entry) => entry.id,
+      ),
+    ).toEqual([item.id]);
+    expect(
+      await DocumentKnowledgeRepository.listVisiblePassageRelations(
+        { ...JOHN_1_1, versificationSchemeId: "different-scheme" },
+        inspected,
+      ),
+    ).toEqual([]);
+    expect(
+      plans.some(
+        (plan) =>
+          plan.includes("idx_knowledge_proposals_passage_lookup") && plan.includes("<expr>"),
+      ),
+    ).toBe(true);
+    expect(plans.some((plan) => plan.includes("idx_knowledge_proposals_additional_passages"))).toBe(
+      true,
+    );
+  });
   it("shows a detected link only when asked and never as private coverage", async () => {
     const { workspace } = await analyzedBook();
     expect((await WorkspacePassageKnowledgeService.load(JOHN_3_16, null, workspace)).items).toEqual(

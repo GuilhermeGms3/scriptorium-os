@@ -254,7 +254,12 @@ export function PrivateLinkCard({
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <p className="text-xs font-medium">{item.document.title}</p>
+          <a
+            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+            className="text-xs font-medium text-primary underline underline-offset-4"
+          >
+            {item.document.title}
+          </a>
           <span className="inline-flex items-center gap-1 font-mono text-[9px] text-muted-foreground">
             <LockKeyhole className="size-3" /> páginas{" "}
             {item.pages.map((page) => page + 1).join(", ")}
@@ -287,6 +292,23 @@ export function PrivateLinkCard({
             </p>
           ))}
         </section>
+      )}
+      {!relation.payload.contextualAnalysis && context === "bible-reader" && (
+        <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-sm leading-relaxed">
+          <a
+            className="underline decoration-primary/30 underline-offset-4"
+            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+          >
+            {item.translation?.translatedText ?? item.unit.text}
+          </a>
+          <p className="mt-2 text-[10px] text-muted-foreground">
+            Trecho literal da fonte · ligação{" "}
+            {item.reviewState === "confirmed"
+              ? "confirmada"
+              : "automática, ainda não interpretada editorialmente"}
+            . Uma citação não comprova que todo o trecho comente este versículo.
+          </p>
+        </blockquote>
       )}
       {topics.length > 0 && (
         <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
@@ -429,8 +451,8 @@ export function PrivateLinkCard({
         </p>
         {context === "bible-reader" && (
           <a
-            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
-            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+            className="inline-flex items-center gap-1 text-[10px] text-primary underline underline-offset-4"
           >
             Abrir fonte <ExternalLink className="size-3" />
           </a>
@@ -477,8 +499,43 @@ export function PrivateVerseKnowledge({
   if (!matching.length) return null;
   const unconfirmed = matching.filter((item) => item.reviewState === "pending").length;
   const published = matching.length - unconfirmed;
+  // A detected cross-reference is not automatically commentary on this verse.
+  const preview =
+    matching.find((item) => item.passageRelation.payload.contextualAnalysis) ??
+    matching.find((item) => item.reviewState === "confirmed");
+  const previewHref = preview
+    ? `/library/document/${encodeURIComponent(preview.document.id)}?page=${(preview.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(preview.unit.id)}`
+    : undefined;
   return (
     <div className="mb-4 ml-4">
+      {!open && preview && (
+        <aside
+          className="mb-2 border-l-2 border-primary/25 pl-3"
+          aria-label={`Trecho da biblioteca para o versículo ${verse}`}
+        >
+          <a href={previewHref} className="text-xs text-primary underline underline-offset-4">
+            {preview.document.title} · p. {preview.pages.map((page) => page + 1).join(", ")}
+          </a>
+          <a
+            href={previewHref}
+            className="mt-2 line-clamp-4 font-serif text-sm leading-relaxed underline decoration-primary/30 underline-offset-4"
+          >
+            {preview.passageRelation.payload.contextualAnalysis?.summary ??
+              preview.translation?.translatedText ??
+              preview.unit.text}
+          </a>
+          <p className="mt-1 text-[10px] text-muted-foreground">
+            {preview.passageRelation.payload.contextualAnalysis
+              ? "Síntese contextual assistida"
+              : "Trecho literal da fonte"}{" "}
+            ·{" "}
+            {preview.reviewState === "confirmed"
+              ? "ligação confirmada"
+              : "ligação automática, não é interpretação revisada"}
+            . Abra a fonte para ler o trecho completo.
+          </p>
+        </aside>
+      )}
       <button
         type="button"
         aria-expanded={open}
@@ -493,7 +550,7 @@ export function PrivateVerseKnowledge({
         <span>
           {unconfirmed > 0
             ? `${unconfirmed} por confirmar · ${published} ${published === 1 ? "publicado" : "publicados"}`
-            : `${published} ${published === 1 ? "trecho publicado" : "trechos publicados"}`}
+            : `${published} ${published === 1 ? "ligação na biblioteca" : "ligações na biblioteca"}`}
         </span>
         <ChevronDown
           className={cn("size-3 transition-transform", open && "rotate-180")}
@@ -507,8 +564,8 @@ export function PrivateVerseKnowledge({
           aria-label={`Biblioteca conectada ao versículo ${verse}`}
         >
           <p className="rounded border border-border bg-muted/20 p-2 text-[11px] leading-relaxed text-muted-foreground">
-            Conteúdo organizado por fonte e página. Afirmações e argumentos são extrações
-            revisáveis; os trechos completos permanecem recolhidos para não interromper a leitura.
+            Trechos organizados por fonte e página. Ligações automáticas e sínteses assistidas não
+            equivalem a comentários editorialmente revisados.
           </p>
           {matching.map((item) => (
             <PrivateLinkCard key={item.id} item={item} />

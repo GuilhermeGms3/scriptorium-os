@@ -31,7 +31,7 @@ export interface LibraryPipelineResult {
 
 export interface LibraryCoverageReport {
   generatedAt: string;
-  workspace: { id: string; origin: string; persistence: "opfs" | "memory" };
+  workspace: { id: string; origin: string; persistence: "opfs" | "memory" | "installation" };
   documents: {
     total: number;
     textReady: number;

@@ -337,6 +337,7 @@ function ChapterReader() {
                           verse={v.verse}
                           analyses={availableAnalyses}
                           claims={availableClaims}
+                          sources={bundle.sources}
                         />
                       )}
                       {showExplanations && (

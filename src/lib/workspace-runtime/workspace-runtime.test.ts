@@ -285,7 +285,7 @@ describe("Phase 9.5 workspace schema", () => {
     );
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
     expect(db.prepare("SELECT max(version) version FROM workspace_migrations").get()).toMatchObject(
-      { version: 21 },
+      { version: WORKSPACE_SCHEMA_VERSION },
     );
   });
 

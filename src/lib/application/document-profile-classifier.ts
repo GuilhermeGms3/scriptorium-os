@@ -46,7 +46,7 @@ const PROFILE_RULES: ProfileRule[] = [
   {
     profile: "systematic-theology",
     patterns: [
-      /teologia sistematica/u,
+      /teologia ?sistematica/u,
       /systematic theology/u,
       /\binstitutas/u,
       /\bsumm?a teologica\b/u,

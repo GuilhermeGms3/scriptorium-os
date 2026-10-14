@@ -1,5 +1,43 @@
 # Project Memory
 
+## Acervo compartilhado da instalação (2026-10-13)
+
+- Escopo ativo: migração integral OPFS → pasta local do projeto/Docker e biblioteca/leitor reais.
+  Leitura contextual editorial das Bíblias continua pausada; não confundir ligações automáticas com
+  comentários revisados. Esta seção substitui a limitação histórica OPFS-only das notas abaixo.
+- `SCRIPTORIUM_WORKSPACE_DIR` habilita adapter SQLite nativo autenticado por sessão local, header e
+  origem. Sem configuração, o modo navegador/Cloudflare permanece OPFS; falhas não alternam bancos.
+  Compose monta `data/workspace`; loopback single-user, não pronto para LAN/internet.
+- Migração real preservou 37 PDFs/671.893.492 bytes, 26.243 páginas, 49.229 unidades, 388.961 propostas,
+  137.375 decisões e eventos de Rastro. Original OPFS intacto. Pasta privada ignorada por Git/Docker;
+  não confundir estar na pasta do repositório com ser publicado no Git ou incluído na imagem.
+- Backup SQLite consistente `data/workspace/workspace.sqlite3.before-index22` e recibo local SHA-256
+  verificado. Nenhum PDF foi reprocessado, aceito ou rejeitado para fazer a migração.
+- Schema 22: índice parcial de secondary targets + união materializada dos IDs evita o scan causado
+  pelo OR de additionalPassages. Teste verifica índices, deduplicação e esquema. Medição Windows real:
+  Gênesis 1/200 relações 124 ms cold/91 ms warm; camada completa 184 ms. Em 14/10, camada completa
+  pelo adapter HTTP/Docker retornou os 200 itens em 5.440 ms; não confundir o transporte com SQL nativo.
+- Estante usa primeiras páginas reais via Poppler lazy, perfis por título explicitamente sugeridos;
+  leitor tem estrutura/assuntos extraídos, dicionário FTS e links página+unidade com realce. Estrutura
+  detectada ainda não é sumário editorial validado. Nag Hammadi localiza ocorrências nos volumes,
+  não inventa limites de tratados/códices. Contexto editorial bíblico fica recolhido.
+- Tradutor Marian inglês→português funciona no companion CPU com SentencePiece/Sacremoses e cache
+  /models corrigido para uid1001. Proxy same-origin, botão visível, tradução preservada separadamente.
+  Teste real Didaquê foi armazenado, mas mostrou qualidade ruim/omissões em trecho longo arcaico;
+  não declarar tradução acadêmica fiel. Espanhol não implementado, botão informa indisponibilidade.
+- Gates finais: 344 tests/44 arquivos e 11 Python tests, typecheck, lint e formatação passaram;
+  imagem Node/Docker produzida e verificada com as alterações finais; build Cloudflare também passou.
+  Docker reiniciado em 14/10 confirmou 37 livros/26.243 páginas/schema22, ambos serviços healthy.
+- QA IAB anterior à interrupção: estante 37 livros em localhost3000 sem reimportar, dicionários com
+  ocorrências reais de aliança, Nag Hammadi/Apócrifo de João na p.229, citação Shedd p.922 com um mark,
+  tradução Didaquê persistida após recriação, leitor 390px sem overflow, console Docker limpo.
+  Na retomada de 14/10, abas restauradas chrome-error foram bloqueadas pela política do navegador;
+  não houve tentativa de contorno nem nova validação visual dessa retomada. Abrir a URL normal
+  manualmente para uma nova rodada visual. A leitura contextual editorial integral não foi feita.
+- Fonte canônica: `docs/architecture/installation-workspace.md`. Reset/deleção física compartilhados
+  recusados; restore JSON grande, sincronização push entre browsers, HTTP Range e catálogo público
+  metadata-only permanecem dívida documentada. Nunca subir Vite/Windows + Docker/Linux sobre o mesmo DB.
+
 ## Profile reliability integration (2026-10-12)
 
 - Integrated coworker branch `origin/melhoria/confiabilidade-perfis` into

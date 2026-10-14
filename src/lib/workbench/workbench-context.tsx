@@ -65,7 +65,7 @@ interface WorkbenchState {
     item: Parameters<typeof StudyRepository.addStudyItem>[1],
   ) => Promise<void>;
   refreshUserData: () => Promise<void>;
-  workspacePersistence: "loading" | "opfs" | "memory" | "unavailable";
+  workspacePersistence: "loading" | "opfs" | "memory" | "unavailable" | "installation";
 }
 
 const WorkbenchContext = createContext<WorkbenchState | null>(null);

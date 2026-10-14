@@ -42,13 +42,20 @@ export function StatusBar() {
       {origin && (
         <span
           className="flex items-center gap-1.5"
-          title="Os livros e estudos locais pertencem a este endereço (protocolo, nome e porta)."
+          title={
+            workspacePersistence === "installation"
+              ? "Acervo compartilhado pela instalação local, independente deste navegador."
+              : "No modo navegador, livros e estudos pertencem a este endereço (protocolo, nome e porta)."
+          }
         >
           <Globe className="size-3" aria-hidden="true" /> {origin}
         </span>
       )}
       <span className="hidden items-center gap-1.5 lg:flex">
-        <Database className="size-3" /> {t("shell.localWorkspace")}
+        <Database className="size-3" />{" "}
+        {workspacePersistence === "installation"
+          ? "Acervo da instalação"
+          : t("shell.localWorkspace")}
       </span>
       <span className="hidden items-center gap-1.5 lg:flex">
         <Wifi className="size-3" /> {t("shell.offlineDemo")}

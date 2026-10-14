@@ -40,7 +40,7 @@ export const ContextualReadingService = {
       throw new Error("Lote excede 4 MiB.");
     const batch = ContextualReadingPackageSchema.parse(JSON.parse(raw) as unknown);
     const db = database ?? (await getWorkspaceDatabase());
-    if (!database && db.persistence !== "opfs")
+    if (!database && db.persistence === "memory")
       throw new Error("Importação exige workspace persistente. Verifique a origem do navegador.");
     const statements: Parameters<WorkspaceDatabase["transaction"]>[0] = [];
     const ordinals = new Map<string, number>();

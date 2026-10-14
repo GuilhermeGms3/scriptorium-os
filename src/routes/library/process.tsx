@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { LibraryPipelineOverview } from "../../components/library/library-pipeline-overview";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { ImportPanel } from "../library";
+import { InstallationMigration } from "../../components/library/installation-migration";
 
 export const Route = createFileRoute("/library/process")({
   head: () => ({ meta: [{ title: "Importar e processar — Scriptorium" }] }),
@@ -45,6 +46,7 @@ function LibraryProcessingPage() {
         </div>
       </header>
 
+      <InstallationMigration />
       <ImportPanel onImported={async () => undefined} />
 
       <section className="border-t border-border">

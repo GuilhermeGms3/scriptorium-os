@@ -15,11 +15,17 @@ import type { WorkspacePassageKnowledgeItem } from "../../../lib/domain/workspac
 import { DocumentKnowledgeRepository } from "../../../lib/repositories/document-knowledge-repository";
 import { PrivateDocumentRepository } from "../../../lib/repositories/private-document-repository";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
+import { BookReadingService } from "../../../lib/application/book-reading-service";
+import { BookContext } from "../../../components/library/book-context";
+import { PageTranslation } from "../../../components/library/page-translation";
 
 export const Route = createFileRoute("/library/document/$documentId")({
-  validateSearch: (search: Record<string, unknown>): { page?: number } => {
+  validateSearch: (search: Record<string, unknown>): { page?: number; unit?: string } => {
     const value = Number(search["page"]);
-    return Number.isInteger(value) && value > 0 ? { page: value } : {};
+    return {
+      ...(Number.isInteger(value) && value > 0 ? { page: value } : {}),
+      ...(typeof search["unit"] === "string" ? { unit: search["unit"] } : {}),
+    };
   },
   component: PrivateDocumentReaderPage,
   head: () => ({ meta: [{ title: "Documento privado — Scriptorium" }] }),
@@ -103,8 +109,55 @@ function PageBibleLinks({ links, sectionId }: { links: PageLinks; sectionId: str
 }
 
 function PrivateDocumentReaderPage() {
+  const [bookContext, setBookContext] =
+    useState<Awaited<ReturnType<typeof BookReadingService.context>>>();
+  const [word, setWord] = useState("");
+  const [structureOpen, setStructureOpen] = useState(false);
+  const [contextError, setContextError] = useState<string>();
   const { documentId } = Route.useParams();
-  const { page: requestedPage } = Route.useSearch();
+  useEffect(() => {
+    let active = true;
+    setBookContext(undefined);
+    setContextError(undefined);
+    setWord("");
+    void BookReadingService.context(documentId)
+      .then((value) => {
+        if (active) setBookContext(value);
+      })
+      .catch((cause: unknown) => {
+        if (active) setContextError(cause instanceof Error ? cause.message : String(cause));
+      });
+    return () => {
+      active = false;
+    };
+  }, [documentId]);
+  const { page: requestedPage, unit: requestedUnit } = Route.useSearch();
+  const [evidenceSpans, setEvidenceSpans] = useState<{ start: number; end: number }[]>([]);
+  const [evidenceError, setEvidenceError] = useState<string>();
+  useEffect(() => {
+    let active = true;
+    setEvidenceSpans([]);
+    setEvidenceError(undefined);
+    if (requestedUnit)
+      void DocumentKnowledgeRepository.listUnits(documentId, [requestedUnit])
+        .then((units) => {
+          const spans = (units[0]?.spans ?? [])
+            .filter((span) => span.pageIndex === Math.max(0, (requestedPage ?? 1) - 1))
+            .map((span) => ({ start: span.startOffset, end: span.endOffset }))
+            .sort((a, b) => a.start - b.start);
+          if (active) {
+            setEvidenceSpans(spans);
+            if (!spans.length)
+              setEvidenceError("A unidade citada não possui offsets nesta página.");
+          }
+        })
+        .catch((cause: unknown) => {
+          if (active) setEvidenceError(cause instanceof Error ? cause.message : String(cause));
+        });
+    return () => {
+      active = false;
+    };
+  }, [documentId, requestedUnit, requestedPage]);
   const { setPassageContext } = useWorkbench();
   const [document, setDocument] = useState<PrivateDocument | null>();
   const [pageIndex, setPageIndex] = useState(() => Math.max(0, (requestedPage ?? 1) - 1));
@@ -190,7 +243,7 @@ function PrivateDocumentReaderPage() {
             <h1 className="mt-1 truncate font-serif text-lg font-semibold">{document.title}</h1>
             <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
               <LockKeyhole className="size-3" /> Documento privado · {document.pageCount} páginas ·
-              OPFS local
+              acervo local
             </p>
             <DocumentProfileControl document={document} />
           </div>
@@ -221,36 +274,73 @@ function PrivateDocumentReaderPage() {
           </form>
         </div>
       </header>
-      <div className="grid min-h-0 lg:grid-cols-[300px_1fr]">
-        <aside className="min-h-0 overflow-y-auto border-r border-border p-3">
-          <p className="meta-label">Resultados locais</p>
-          {!results.length ? (
-            <p className="mt-3 text-xs italic text-muted-foreground">
-              Pesquise uma palavra ou expressão para localizar páginas neste livro.
+      <div className="grid min-h-0 grid-rows-[auto_minmax(0,1fr)_auto] md:grid-cols-[200px_minmax(0,1fr)] md:grid-rows-[minmax(0,1fr)_auto] xl:grid-cols-[240px_minmax(0,1fr)_280px] xl:grid-rows-[minmax(0,1fr)]">
+        <aside className="max-h-[40vh] min-h-0 overflow-y-auto border-r border-border p-3 md:max-h-none">
+          <button
+            type="button"
+            aria-expanded={structureOpen}
+            onClick={() => setStructureOpen((value) => !value)}
+            className="w-full text-left text-sm md:hidden"
+          >
+            Estrutura, busca e ferramentas {structureOpen ? "−" : "+"}
+          </button>
+          <div className={structureOpen ? "block" : "hidden md:block"}>
+            <h2 className="font-serif text-base">Estrutura do livro</h2>
+            <p className="mt-1 text-[10px] text-muted-foreground">
+              Detectada pelo motor; não é um sumário editorial inventado.
             </p>
-          ) : (
-            <ol className="mt-2 space-y-2">
-              {results.map((result) => (
-                <li key={`${result.documentId}:${result.pageIndex}`}>
+            <nav
+              aria-label="Estrutura do livro"
+              className="my-3 max-h-80 space-y-1 overflow-y-auto"
+            >
+              {bookContext?.nodes
+                .filter((node) => node.kind !== "book")
+                .map((node) => (
                   <button
+                    key={node.id}
                     type="button"
-                    onClick={() => setPageIndex(result.pageIndex)}
-                    className="w-full rounded border border-border p-2 text-left hover:bg-accent/50"
+                    onClick={() => setPageIndex(node.pageStart)}
+                    className="block w-full border-l border-border px-2 py-1.5 text-left text-xs hover:bg-accent"
                   >
-                    <span className="font-mono text-[10px] uppercase text-muted-foreground">
-                      Página {result.pageLabel}
-                    </span>
-                    <span className="mt-1 block text-xs leading-relaxed">{result.snippet}</span>
+                    {node.title ?? node.kind}{" "}
+                    <span className="text-muted-foreground">· p. {node.pageStart + 1}</span>
                   </button>
-                </li>
-              ))}
-            </ol>
-          )}
-          <DocumentKnowledgeWorkbench
-            documentId={document.id}
-            {...(document.language ? { documentLanguage: document.language } : {})}
-            onNavigatePage={setPageIndex}
-          />
+                ))}
+            </nav>
+            <p className="meta-label">Resultados locais</p>
+            {!results.length ? (
+              <p className="mt-3 text-xs italic text-muted-foreground">
+                Pesquise uma palavra ou expressão para localizar páginas neste livro.
+              </p>
+            ) : (
+              <ol className="mt-2 space-y-2">
+                {results.map((result) => (
+                  <li key={`${result.documentId}:${result.pageIndex}`}>
+                    <button
+                      type="button"
+                      onClick={() => setPageIndex(result.pageIndex)}
+                      className="w-full rounded border border-border p-2 text-left hover:bg-accent/50"
+                    >
+                      <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                        Página {result.pageLabel}
+                      </span>
+                      <span className="mt-1 block text-xs leading-relaxed">{result.snippet}</span>
+                    </button>
+                  </li>
+                ))}
+              </ol>
+            )}
+            <details className="mt-5 border-t border-border pt-3">
+              <summary className="cursor-pointer text-xs">
+                Ferramentas de processamento e revisão
+              </summary>
+              <DocumentKnowledgeWorkbench
+                documentId={document.id}
+                {...(document.language ? { documentLanguage: document.language } : {})}
+                onNavigatePage={setPageIndex}
+              />
+            </details>
+          </div>
         </aside>
         <main className="min-h-0 overflow-y-auto">
           <div className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-8">
@@ -296,6 +386,13 @@ function PrivateDocumentReaderPage() {
           ) : page ? (
             <article className="mx-auto max-w-3xl px-6 py-8 md:px-10">
               <p className="meta-label">Página física {page.pageLabel}</p>
+              {evidenceError && (
+                <p role="status" className="mt-2 text-xs text-muted-foreground">
+                  Não foi possível realçar o trecho citado; a página completa está disponível.{" "}
+                  {evidenceError}
+                </p>
+              )}
+              <PageTranslation id={page.id} text={page.text} language={document.language} />
               {unconfirmedLinks > 0 && (
                 <div
                   role="status"
@@ -324,8 +421,33 @@ function PrivateDocumentReaderPage() {
                 </div>
               )}
               {page.text ? (
-                <div className="mt-5 whitespace-pre-wrap font-serif text-[var(--reading-size)] leading-[var(--reading-leading)]">
-                  {page.text}
+                <div
+                  onDoubleClick={() =>
+                    setWord(window.getSelection()?.toString().trim().slice(0, 100) ?? "")
+                  }
+                  className="mt-5 whitespace-pre-wrap font-serif text-[var(--reading-size)] leading-[var(--reading-leading)]"
+                >
+                  {evidenceSpans.length && page.pageIndex === (requestedPage ?? 1) - 1
+                    ? (() => {
+                        let offset = 0;
+                        const chunks: React.ReactNode[] = [];
+                        for (const span of evidenceSpans) {
+                          if (span.start < offset || span.end > page.text.length) continue;
+                          chunks.push(page.text.slice(offset, span.start));
+                          chunks.push(
+                            <mark
+                              key={`${span.start}:${span.end}`}
+                              className="bg-amber-500/20 text-inherit underline decoration-amber-500 underline-offset-4"
+                            >
+                              {page.text.slice(span.start, span.end)}
+                            </mark>,
+                          );
+                          offset = span.end;
+                        }
+                        chunks.push(page.text.slice(offset));
+                        return chunks;
+                      })()
+                    : page.text}
                 </div>
               ) : (
                 <p className="mt-5 text-sm italic text-muted-foreground">
@@ -338,6 +460,23 @@ function PrivateDocumentReaderPage() {
             <p className="p-8 text-sm text-destructive">Página não encontrada.</p>
           )}
         </main>
+        <div className="hidden min-h-0 xl:block">
+          <BookContext
+            context={bookContext}
+            contextError={contextError}
+            word={word}
+            onWord={setWord}
+          />
+        </div>
+        <details className="col-span-full max-h-[40vh] overflow-y-auto border-t border-border p-4 xl:hidden">
+          <summary className="cursor-pointer text-sm">Sobre o livro e dicionários</summary>
+          <BookContext
+            context={bookContext}
+            contextError={contextError}
+            word={word}
+            onWord={setWord}
+          />
+        </details>
       </div>
     </div>
   );

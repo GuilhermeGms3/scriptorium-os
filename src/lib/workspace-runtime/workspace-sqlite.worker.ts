@@ -21,6 +21,7 @@ import migration18 from "./migrations/018_knowledge_proposal_unit_index.sql?raw"
 import migration19 from "./migrations/019_passage_relation_lookup.sql?raw";
 import migration20 from "./migrations/020_knowledge_trace.sql?raw";
 import migration21 from "./migrations/021_trace_lookup_indexes.sql?raw";
+import migration22 from "./migrations/022_additional_passage_index.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -45,11 +46,13 @@ const migrations = [
   migration19,
   migration20,
   migration21,
+  migration22,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";
 let reopenOpfsDatabase: (() => Database) | null = null;
 let unlinkWorkspaceDatabase: (() => Promise<unknown>) | null = null;
+let exportSnapshot: (() => Uint8Array) | undefined;
 
 function rows(db: Database, sql: string, bind: SqlValue[] = []): WorkspaceRow[] {
   return db.exec({ sql, bind, rowMode: "object", returnValue: "resultRows" }) as WorkspaceRow[];
@@ -70,6 +73,7 @@ function execute(db: Database, sql: string, bind: SqlValue[] = []): void {
 async function openDatabase(): Promise<Database> {
   if (database) return database;
   const sqlite = await sqlite3InitModule();
+  exportSnapshot = () => sqlite.capi.sqlite3_js_db_export(database!.pointer!);
   try {
     if (!reopenOpfsDatabase) {
       const pool = await sqlite.installOpfsSAHPoolVfs({
@@ -123,6 +127,7 @@ async function handle(request: WorkspaceRequest): Promise<unknown> {
     };
   }
   const db = await openDatabase();
+  if (request.type === "export-snapshot") return exportSnapshot!();
   if (request.type === "query")
     return rows(db, request.sql, request.bind as SqlValue[] | undefined);
   if (request.type === "execute") {
@@ -149,8 +154,11 @@ async function handle(request: WorkspaceRequest): Promise<unknown> {
 
 self.onmessage = (event: MessageEvent<WorkspaceRequest>) => {
   void handle(event.data).then(
-    (result) =>
-      self.postMessage({ id: event.data.id, ok: true, result } satisfies WorkspaceResponse),
+    (result) => {
+      const message = { id: event.data.id, ok: true, result } satisfies WorkspaceResponse;
+      if (result instanceof Uint8Array) self.postMessage(message, [result.buffer]);
+      else self.postMessage(message);
+    },
     (error: unknown) => {
       const normalized = error instanceof Error ? error : new Error(String(error));
       self.postMessage({
