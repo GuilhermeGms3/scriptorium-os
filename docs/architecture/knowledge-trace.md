@@ -71,6 +71,10 @@ antes de uma transação única. Reimportações idênticas preservam as revisõ
 fica identificada como assistida por máquina, nunca como revisão humana. Não há leitura integral
 automática do acervo pela existência desse importador.
 
+A instalação também possui o comando offline `content:import:contextual`, que reutiliza esse
+mesmo serviço após backup consistente. O primeiro lote real e seus limites estão registrados em
+[comentários das Bíblias privadas](../content/contextual-bible-reading.md).
+
 Limite de segurança: a reconstrução estrutural de um livro com `contextualAnalysis` é recusada
 antes de apagar unidades. A reconciliação dos spans contextuais com uma nova desmontagem ainda
 precisa ser implementada; não se deve perder notas/revisões para aplicar um novo perfil. Livros

@@ -282,7 +282,12 @@ export function PrivateLinkCard({
       {relation.payload.contextualAnalysis && (
         <section className="mt-3 space-y-2 text-xs leading-relaxed">
           <h3 className="font-serif text-base">{relation.payload.contextualAnalysis.title}</h3>
-          <p>{relation.payload.contextualAnalysis.summary}</p>
+          <a
+            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+            className="block underline decoration-primary/30 underline-offset-4"
+          >
+            {relation.payload.contextualAnalysis.summary}
+          </a>
           <p className="text-[10px] text-muted-foreground">
             Síntese contextual assistida por máquina · não revisada por pessoa.
           </p>
@@ -500,42 +505,68 @@ export function PrivateVerseKnowledge({
   const unconfirmed = matching.filter((item) => item.reviewState === "pending").length;
   const published = matching.length - unconfirmed;
   // A detected cross-reference is not automatically commentary on this verse.
-  const preview =
-    matching.find((item) => item.passageRelation.payload.contextualAnalysis) ??
-    matching.find((item) => item.reviewState === "confirmed");
-  const previewHref = preview
-    ? `/library/document/${encodeURIComponent(preview.document.id)}?page=${(preview.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(preview.unit.id)}`
-    : undefined;
+  const contextual = matching
+    .filter((item) => item.passageRelation.payload.contextualAnalysis)
+    .sort((a, b) => {
+      const width = (item: WorkspacePassageKnowledgeItem) => {
+        const address = item.passageRelation.payload.passage;
+        return (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0);
+      };
+      return width(a) - width(b) || a.document.title.localeCompare(b.document.title, "pt-BR");
+    });
+  // Confirming a reference is not reviewing its contents as exegesis. Literal links stay in
+  // the expandable library panel; only contextual reading becomes inline commentary.
+  const previews = contextual;
   return (
     <div className="mb-4 ml-4">
-      {!open && preview && (
-        <aside
-          className="mb-2 border-l-2 border-primary/25 pl-3"
-          aria-label={`Trecho da biblioteca para o versículo ${verse}`}
-        >
-          <a href={previewHref} className="text-xs text-primary underline underline-offset-4">
-            {preview.document.title} · p. {preview.pages.map((page) => page + 1).join(", ")}
-          </a>
-          <a
-            href={previewHref}
-            className="mt-2 line-clamp-4 font-serif text-sm leading-relaxed underline decoration-primary/30 underline-offset-4"
-          >
-            {preview.passageRelation.payload.contextualAnalysis?.summary ??
-              preview.translation?.translatedText ??
-              preview.unit.text}
-          </a>
-          <p className="mt-1 text-[10px] text-muted-foreground">
-            {preview.passageRelation.payload.contextualAnalysis
-              ? "Síntese contextual assistida"
-              : "Trecho literal da fonte"}{" "}
-            ·{" "}
-            {preview.reviewState === "confirmed"
-              ? "ligação confirmada"
-              : "ligação automática, não é interpretação revisada"}
-            . Abra a fonte para ler o trecho completo.
-          </p>
-        </aside>
-      )}
+      {!open &&
+        previews.map((preview) => {
+          const previewHref = `/library/document/${encodeURIComponent(preview.document.id)}?page=${(preview.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(preview.unit.id)}`;
+          const address = preview.passageRelation.payload.passage;
+          const broad =
+            (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0) > 6;
+          const commentary = (
+            <a
+              href={previewHref}
+              className="mt-2 block font-serif text-sm leading-relaxed underline decoration-primary/30 underline-offset-4"
+            >
+              {preview.passageRelation.payload.contextualAnalysis?.summary ??
+                preview.translation?.translatedText ??
+                preview.unit.text}
+            </a>
+          );
+          return (
+            <aside
+              key={preview.id}
+              className="mb-2 border-l-2 border-primary/25 pl-3"
+              aria-label={`Trecho da biblioteca para o versículo ${verse}`}
+            >
+              <a href={previewHref} className="text-xs text-primary underline underline-offset-4">
+                {preview.document.title} · p. {preview.pages.map((page) => page + 1).join(", ")}
+              </a>
+              {broad ? (
+                <details className="mt-2">
+                  <summary className="cursor-pointer text-xs text-muted-foreground">
+                    Contexto de {passageLinkLabel(address)}
+                  </summary>
+                  {commentary}
+                </details>
+              ) : (
+                commentary
+              )}
+              <p className="mt-1 text-[10px] text-muted-foreground">
+                {preview.passageRelation.payload.contextualAnalysis
+                  ? "Síntese contextual assistida"
+                  : "Trecho literal da fonte"}{" "}
+                ·{" "}
+                {preview.reviewState === "confirmed"
+                  ? "ligação confirmada"
+                  : "ligação automática, não é interpretação revisada"}
+                . Abra a fonte para ler o trecho completo.
+              </p>
+            </aside>
+          );
+        })}
       <button
         type="button"
         aria-expanded={open}

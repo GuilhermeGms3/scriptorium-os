@@ -613,7 +613,8 @@ export const DocumentKnowledgeRepository = {
            (?=1 AND p.review_status='machine-proposed' AND NOT EXISTS(
              SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id
            ))
-         ORDER BY p.updated_at DESC,p.id LIMIT 200`,
+         ORDER BY (json_extract(p.payload_json,'$.contextualAnalysis') IS NOT NULL) DESC,
+                  p.updated_at DESC,p.id LIMIT 200`,
         [
           passage.bookId,
           passageRefScheme(passage),

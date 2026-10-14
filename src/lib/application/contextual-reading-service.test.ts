@@ -11,6 +11,10 @@ import { KnowledgeTraceService } from "./knowledge-trace-service";
 import { ResearchWorkspaceService } from "./research-workspace-service";
 import { applyDocumentProfilePolicy } from "./document-profile-policy";
 import { DocumentKnowledgePipelineService } from "./document-knowledge-pipeline-service";
+import { WorkspacePassageKnowledgeService } from "./workspace-passage-knowledge-service";
+import { renderToStaticMarkup } from "react-dom/server";
+import { createElement } from "react";
+import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
 
 const databases: DatabaseSync[] = [];
 function workspace() {
@@ -102,6 +106,113 @@ async function source() {
   return { ...state, document };
 }
 describe("contextual reading and profile branch integration", () => {
+  it("renders both contextual sources with exact source links, without showing cross-references as commentary", async () => {
+    const { db, adapter } = await source();
+    await PrivateDocumentRepository.importDocument(
+      {
+        title: "Segunda fonte sintética",
+        originalName: "second.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 100,
+        checksum: "e".repeat(64),
+        language: "pt-BR",
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [{ pageIndex: 0, pageLabel: "1", text: quote, itemCount: 1 }],
+      },
+      "opfs:/second.pdf",
+      adapter,
+    );
+    const input = batch();
+    input.notes.push({
+      ...input.notes[0]!,
+      sourceChecksum: "e".repeat(64),
+      analysis: {
+        ...analysis,
+        summary: "Outra leitura sintética, preservada separadamente da primeira fonte.",
+      },
+    });
+    await ContextualReadingService.importJson(JSON.stringify(input), adapter);
+    // Newer automatic references must not starve contextual content at the 200-row cap.
+    const relation = db
+      .prepare("SELECT * FROM knowledge_proposals WHERE proposal_kind='passage-relation' LIMIT 1")
+      .get()!;
+    const payload = JSON.parse(String(relation["payload_json"])) as Record<string, unknown>;
+    delete payload["contextualAnalysis"];
+    for (let n = 0; n < 201; n++) {
+      const id = `cross-reference:${n}`;
+      payload["rawReference"] = `Referência sintética ${n}`;
+      db.prepare(
+        `INSERT INTO knowledge_proposals(id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,review_status,created_at,updated_at) SELECT ?,document_id,semantic_unit_id,proposal_kind,?,method,confidence,review_status,created_at,? FROM knowledge_proposals WHERE id=?`,
+      ).run(id, JSON.stringify(payload), "2099-01-01T00:00:00Z", String(relation["id"]));
+      db.prepare(
+        `INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,audit_status,updated_at) SELECT ?,publication,origin,evidence_json,configuration_key,audit_status,updated_at FROM pipeline_decisions WHERE proposal_id=?`,
+      ).run(id, String(relation["id"]));
+    }
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 1 },
+      null,
+      adapter,
+    );
+    expect(
+      layer.items.filter((item) => item.passageRelation.payload.contextualAnalysis),
+    ).toHaveLength(2);
+    const html = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(html).toContain(analysis.summary);
+    expect(html).toContain("Outra leitura sintética");
+    expect(html.match(/aria-label="Trecho da biblioteca/g)).toHaveLength(2);
+    expect(html).toContain("?page=1&amp;unit=");
+    expect(html).toContain("underline-offset-4");
+    const otherVerse = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 2,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(otherVerse).toBe("");
+    const filtered = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        sourceId: `private-document:${"e".repeat(64)}`,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(filtered).not.toContain(analysis.summary);
+    expect(filtered).toContain("Outra leitura sintética");
+    const referenceOnly = layer.items.find(
+      (item) => !item.passageRelation.payload.contextualAnalysis,
+    )!;
+    const confirmedReference = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: [{ ...referenceOnly, reviewState: "confirmed" }],
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(confirmedReference).not.toContain('aria-label="Trecho da biblioteca');
+    expect(confirmedReference).toContain("ligação na biblioteca");
+  });
   it("refuses a destructive rebuild rather than deleting contextual notes", async () => {
     const { adapter, document } = await source();
     await ContextualReadingService.importJson(JSON.stringify(batch()), adapter);

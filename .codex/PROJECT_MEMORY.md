@@ -3,8 +3,10 @@
 ## Acervo compartilhado da instalação (2026-10-13)
 
 - Escopo ativo: migração integral OPFS → pasta local do projeto/Docker e biblioteca/leitor reais.
-  Leitura contextual editorial das Bíblias continua pausada; não confundir ligações automáticas com
-  comentários revisados. Esta seção substitui a limitação histórica OPFS-only das notas abaixo.
+  Leitura contextual editorial retomada em 14/10: 116 notas reais (Shedd, Genebra, MacArthur),
+  seleção Gn 1–12. Não é cobertura integral nem revisão humana. Consulte a seção de leitura
+  contextual abaixo e `docs/content/contextual-bible-reading.md`. Esta seção substitui a
+  limitação histórica OPFS-only das notas abaixo.
 - `SCRIPTORIUM_WORKSPACE_DIR` habilita adapter SQLite nativo autenticado por sessão local, header e
   origem. Sem configuração, o modo navegador/Cloudflare permanece OPFS; falhas não alternam bancos.
   Compose monta `data/workspace`; loopback single-user, não pronto para LAN/internet.
@@ -404,3 +406,27 @@
 - Audit high-density explicit references and false positives by document profile; the completed deterministic run connects the library but does not make every extracted link academically correct.
 - Install Tesseract with Portuguese/English/Spanish language data only when recovering the remaining 219 image-only pages; OCR no longer blocks the 37-document collection.
 - Add EPUB support and improve structural section/citation extraction without weakening local-only privacy or provenance.
+
+# Leitura contextual privada — 2026-10-14
+
+- Incorporadas realmente 116 notas. Primeiros lotes: Shedd p. físicas 5–6 (Gn 1–3), Genebra p. 28–36
+  (seleção Gn 1–2). Lote privado `genesis-shedd-genebra-20261014-01`, JSON/plano em
+  `data/workspace/`; idempotência real: 0 importadas/48 reutilizadas. Não é leitura integral.
+- Segundo lote: 3 notas MacArthur p. 37–39, Gn 1:26, 3:1–24 e 12:1–3,
+  `genesis-macarthur-20261014-01`; reimportado 0/3. Snapshot completo de 48 notas
+  verificado por IDs + ambos os pacotes permitem recuperação; `.partial` não é backup válido.
+- Terceiro lote `genesis-shedd-genebra-20261014-02`: 65 notas novas, Shedd p. 7–11
+  (seleção Gn 3–12), Genebra p. 38–41 (seleção Gn 3–4). Importado 65/0 e repetido 0/65.
+  Novos snapshots completos antes dessas operações preservam 51 e 116 notas. Não é cobertura integral.
+- `content:import:contextual` usa serviço canônico + backup SQLite e exige runtimes parados.
+  Não executar Windows e Docker escrevendo simultaneamente no bind mount.
+- Reader mostra múltiplas fontes contextuais, links sublinhados para página/unidade;
+  intervalos >7 versos recolhidos; consulta prioriza contexto antes do teto de 200 relações.
+- A versão digital Genebra tem português e referências defeituosos no próprio PDF;
+  limitação preservada nas notas. Não afirmar que a edição foi certificada.
+- Continuidade: completar notas/capítulos na ordem bíblica; nunca converter citações
+  cruzadas existentes em comentário direto sem leitura. Docs: `docs/content/contextual-bible-reading.md`.
+- Marcadores editoriais: Shedd p. física 11, próxima nota `13.2`; Genebra p. física 41,
+  após `4:01`, seguir na p. 42. Lacunas deliberadas incluem Shedd 5:24 (p. 7–8) e
+  Genebra 3:2–5 (p. 37–38), 3:17 (p. 39–40): precisam recortes multi-página.
+  O livro de exegese/hermenêutica ainda não recebeu um lote editorial nesta entrega.
