@@ -1,9 +1,38 @@
 import { SEMANTIC_DOMAINS, type SemanticDomain } from "../domain/semantic-content";
 import type { LibraryCoverageReport } from "../domain/library-pipeline";
-import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import {
+  getWorkspaceDatabase,
+  type WorkspaceDatabase,
+} from "../workspace-runtime/workspace-database";
 import { DocumentProcessingRepository } from "../repositories/document-processing-repository";
 
+export interface LibraryQuickSummary {
+  total: number;
+  structured: number;
+  ocrPending: number;
+}
+
 export const LibraryCoverageService = {
+  /**
+   * The one-line state of the library ("31 livros · 1 estruturado · 6 precisam de OCR"), with the
+   * same definitions as `report` but without touching proposals or decisions.
+   */
+  async quickSummary(database?: WorkspaceDatabase): Promise<LibraryQuickSummary> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const row =
+      (
+        await db.query(`SELECT count(*) total,
+        sum(CASE WHEN text_page_count=0 OR (page_count-text_page_count)>=3 THEN 1 ELSE 0 END) ocr_pending,
+        sum(CASE WHEN EXISTS(SELECT 1 FROM document_knowledge_indexes i WHERE i.document_id=private_documents.id AND i.status='ready') THEN 1 ELSE 0 END) structured
+        FROM private_documents`)
+      )[0] ?? {};
+    return {
+      total: Number(row["total"] ?? 0),
+      structured: Number(row["structured"] ?? 0),
+      ocrPending: Number(row["ocr_pending"] ?? 0),
+    };
+  },
+
   async report(): Promise<LibraryCoverageReport> {
     const db = await getWorkspaceDatabase();
     const [workspaceId, documents, connections, proposals, domainRows, targetRows, profileRows] =

@@ -1,41 +1,31 @@
 import { createFileRoute, Link, Outlet } from "@tanstack/react-router";
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { FileText, FileUp, LockKeyhole, RefreshCw, Search, X } from "lucide-react";
-import { LibraryRepository, type SourceDetails } from "../lib/repositories/library-repository";
-import type { BibliographicSource } from "../lib/domain/bibliography";
-import {
-  SourceImportService,
-  type BibliographicImportFormat,
-  type ImportReport,
-} from "../lib/application/source-import-service";
-import { ResourceRow } from "../components/library/resource-row";
-import { ResourceDetails } from "../components/library/resource-details";
+import { BookPlus, RefreshCw } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import {
   PrimarySourceRepository,
   type PrimarySourceWorkSummary,
 } from "../lib/repositories/primary-source-repository";
-import {
-  PrivateDocumentImportService,
-  type PrivateDocumentImportProgress,
-  type PrivateDocumentImportResult,
-} from "../lib/application/private-document-import-service";
 import type { PrivateDocument } from "../lib/domain/private-document";
+import type { DocumentProfileKind } from "../lib/domain/document-profile";
 import { PrivateDocumentRepository } from "../lib/repositories/private-document-repository";
-import { NAG_HAMMADI_CODICES, NAG_HAMMADI_RIGHTS_NOTE } from "../lib/content/nag-hammadi-catalog";
-import {
-  useCurrentOrigin,
-  useSecureContextProblem,
-} from "../lib/workspace-runtime/use-secure-context";
-import { SecureContextNotice } from "../components/common/secure-context-notice";
-import { BookShelf } from "../components/library/book-shelf";
-import { NagHammadiLocator } from "../components/library/nag-hammadi-locator";
+import { DocumentProcessingRepository } from "../lib/repositories/document-processing-repository";
+import { useCurrentOrigin } from "../lib/workspace-runtime/use-secure-context";
+import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
+import { PrivateBooksSection } from "../components/library/private-books-section";
+import { PrimaryWorksSection } from "../components/library/primary-works-section";
+import { NagHammadiSection } from "../components/library/nag-hammadi-section";
+import { ReferencesSection } from "../components/library/references-section";
+import { BibliographicImportForm } from "../components/library/import-panel";
+import { LibraryProcessingSection } from "../components/library/library-processing-section";
 
 interface LibrarySearch {
   source?: string;
 }
-type LibraryView = "all" | "private" | "primary" | "nag-hammadi" | "references";
+type CatalogTab = "primary" | "nag-hammadi" | "references" | "bibliographic-import";
+
 export const Route = createFileRoute("/library")({
   validateSearch: (search: Record<string, unknown>): LibrarySearch =>
     typeof search["source"] === "string" ? { source: search["source"] } : {},
@@ -43,624 +33,142 @@ export const Route = createFileRoute("/library")({
   component: Outlet,
 });
 
+const STORAGE_DESCRIPTIONS = {
+  installation: "Acervo da instalação, compartilhado entre navegadores deste computador.",
+  opfs: "Acervo guardado neste navegador.",
+  loading: "Abrindo o acervo…",
+  memory: "Armazenamento temporário: o que for adicionado agora pode se perder ao fechar.",
+  unavailable: "O acervo não pôde ser aberto.",
+} as const;
+
+/**
+ * The library: the reader's own books first, then the installed catalog and bibliographic
+ * records in tabs, and batch processing folded at the end.
+ */
 export function LibraryPage() {
   const { source: sourceParam } = Route.useSearch();
   const { setPassageContext, workspacePersistence } = useWorkbench();
-  const [sources, setSources] = useState<BibliographicSource[]>([]);
-  const [collections, setCollections] = useState<
-    Awaited<ReturnType<typeof LibraryRepository.listCollections>>
-  >([]);
-  const [collectionId, setCollectionId] = useState<string>();
-  const [selectedId, setSelectedId] = useState<string | undefined>(sourceParam);
-  const [details, setDetails] = useState<SourceDetails | null>(null);
-  const [query, setQuery] = useState("");
+  const origin = useCurrentOrigin();
+  const [refreshKey, setRefreshKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string>();
-  const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
   const [privateDocuments, setPrivateDocuments] = useState<PrivateDocument[]>([]);
-  const [newCollection, setNewCollection] = useState("");
-  const [view, setView] = useState<LibraryView>("private");
-  const origin = useCurrentOrigin();
+  const [storedProfiles, setStoredProfiles] = useState<ReadonlyMap<string, DocumentProfileKind>>(
+    () => new Map(),
+  );
+  const [primaryWorks, setPrimaryWorks] = useState<PrimarySourceWorkSummary[]>([]);
+  const [referenceCount, setReferenceCount] = useState<number>();
+  const [tab, setTab] = useState<CatalogTab>(sourceParam ? "references" : "primary");
 
   const refresh = useCallback(async () => {
     setLoading(true);
     setError(undefined);
     try {
-      const [nextSources, nextCollections, nextPrimaryWorks, nextPrivateDocuments] =
-        await Promise.all([
-          LibraryRepository.listSources(collectionId ? { collectionId } : {}),
-          LibraryRepository.listCollections(),
-          PrimarySourceRepository.listWorks(),
-          PrivateDocumentRepository.listDocuments(),
-        ]);
-      setPrimaryWorks(nextPrimaryWorks);
-      setPrivateDocuments(nextPrivateDocuments);
-      setSources(nextSources);
-      setCollections(nextCollections);
-      setSelectedId((current) =>
-        current && nextSources.some((source) => source.id === current)
-          ? current
-          : nextSources[0]?.id,
-      );
+      const [documents, profiles, works] = await Promise.all([
+        PrivateDocumentRepository.listDocuments(),
+        DocumentProcessingRepository.listProfiles(),
+        PrimarySourceRepository.listWorks(),
+      ]);
+      setPrivateDocuments(documents);
+      setStoredProfiles(new Map(profiles.map((entry) => [entry.documentId, entry.profile])));
+      setPrimaryWorks(works);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : String(cause));
     } finally {
       setLoading(false);
     }
-  }, [collectionId]);
+  }, []);
 
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => {
     void refresh();
-  }, [refresh]);
-  useEffect(() => {
-    if (!selectedId) {
-      setDetails(null);
-      return;
-    }
-    let active = true;
-    void LibraryRepository.getSourceDetails(selectedId)
-      .then((value) => {
-        if (active) setDetails(value);
-      })
-      .catch((cause) => {
-        if (active) setError(cause instanceof Error ? cause.message : String(cause));
-      });
-    return () => {
-      active = false;
-    };
-  }, [selectedId]);
-  const refreshDetails = useCallback(async () => {
-    if (selectedId) setDetails(await LibraryRepository.getSourceDetails(selectedId));
-  }, [selectedId]);
-
-  const filtered = useMemo(() => {
-    const normalized = query.toLocaleLowerCase().trim();
-    return normalized
-      ? sources.filter((source) =>
-          `${source.title} ${source.sourceType} ${Object.values(source.identifiers).join(" ")}`
-            .toLocaleLowerCase()
-            .includes(normalized),
-        )
-      : sources;
-  }, [query, sources]);
-  const primaryWorksByDiscipline = useMemo(() => {
-    const groups = new Map<string, PrimarySourceWorkSummary[]>();
-    for (const work of primaryWorks) {
-      groups.set(work.disciplineLabel, [...(groups.get(work.disciplineLabel) ?? []), work]);
-    }
-    return [...groups.entries()].sort(([left], [right]) => left.localeCompare(right, "pt-BR"));
-  }, [primaryWorks]);
-  const filteredPrivateDocuments = useMemo(() => {
-    const normalized = query.normalize("NFC").toLocaleLowerCase("pt-BR").trim();
-    return normalized
-      ? privateDocuments.filter((document) =>
-          `${document.title} ${document.language ?? ""}`
-            .normalize("NFC")
-            .toLocaleLowerCase("pt-BR")
-            .includes(normalized),
-        )
-      : privateDocuments;
-  }, [privateDocuments, query]);
-  const installedPrimaryWorkIds = useMemo(
+  }, [refresh, refreshKey]);
+  const installedWorkIds = useMemo(
     () => new Set(primaryWorks.map((work) => work.id)),
     [primaryWorks],
   );
-  const createCollection = async () => {
-    if (!newCollection.trim()) return;
-    const id = await LibraryRepository.createCollection(newCollection);
-    if (selectedId) await LibraryRepository.addSourceToCollection(selectedId, id);
-    setNewCollection("");
-    setCollectionId(id);
-    await refresh();
-  };
+  const reload = useCallback(async () => setRefreshKey((value) => value + 1), []);
 
   return (
-    <div className="flex h-full min-w-0 flex-col">
+    <PageContainer width="wide" className="space-y-8">
       <PageHeader
-        className="px-5 pt-4 md:px-6"
         eyebrow="Biblioteca acadêmica"
         title="Biblioteca"
-        description={
-          <>
-            {workspacePersistence === "installation"
-              ? "Acervo persistente da instalação · compartilhado entre navegadores"
-              : workspacePersistence === "opfs"
-                ? "Acervo deste navegador · persistente em OPFS"
-                : workspacePersistence === "loading"
-                  ? "Abrindo armazenamento…"
-                  : "Armazenamento em modo degradado"}
-          </>
-        }
+        description={STORAGE_DESCRIPTIONS[workspacePersistence]}
         actions={
           <>
             <button
               type="button"
-              onClick={() => void refresh()}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs"
+              onClick={() => void reload()}
+              className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input px-3 text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <RefreshCw className="size-3.5" /> Atualizar
+              <RefreshCw className="size-4" aria-hidden="true" /> Atualizar
             </button>
             <Link
               to="/library/process"
-              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
+              className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-sm font-medium text-primary-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <FileUp className="size-3.5" aria-hidden="true" /> Adicionar livro
+              <BookPlus className="size-4" aria-hidden="true" /> Adicionar livro
             </Link>
           </>
         }
       />
-      <nav
-        aria-label="Seções da biblioteca"
-        className="flex gap-1 overflow-x-auto border-b border-border px-5 py-2 md:px-6"
-      >
-        {[
-          { id: "all", label: "Visão geral", count: privateDocuments.length + primaryWorks.length },
-          { id: "private", label: "Meus livros", count: privateDocuments.length },
-          { id: "primary", label: "Fontes primárias", count: primaryWorks.length },
-          { id: "nag-hammadi", label: "Nag Hammadi", count: 52 },
-          { id: "references", label: "Referências", count: sources.length },
-        ].map((item) => (
-          <button
-            key={item.id}
-            type="button"
-            onClick={() => setView(item.id as LibraryView)}
-            aria-current={view === item.id ? "page" : undefined}
-            className={`shrink-0 rounded px-2.5 py-1.5 text-xs transition-colors ${view === item.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"}`}
-          >
-            {item.label} <span className="ml-1 font-mono text-xs">{item.count}</span>
-          </button>
-        ))}
-      </nav>
-      <div
-        className={`grid min-h-0 flex-1 ${view === "all" || view === "references" ? "md:grid-cols-[190px_1fr] xl:grid-cols-[190px_1fr_340px]" : "grid-cols-1"}`}
-      >
-        {(view === "all" || view === "references") && (
-          <aside className="hidden overflow-y-auto border-r border-border p-2 md:block">
-            <p className="meta-label px-2 py-1">Coleções</p>
-            <button
-              onClick={() => setCollectionId(undefined)}
-              className={`block w-full rounded px-2 py-1.5 text-left text-xs ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
-            >
-              Todas <span className="float-right font-mono text-xs">{sources.length}</span>
-            </button>
-            {collections.map((collection) => (
-              <button
-                key={collection.id}
-                onClick={() => setCollectionId(collection.id)}
-                className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collectionId === collection.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
-              >
-                {collection.name}
-                <span className="float-right font-mono text-xs">{collection.itemCount}</span>
-              </button>
-            ))}
-            <div className="mt-3 border-t border-border pt-3">
-              <label className="meta-label px-2" htmlFor="new-library-collection">
-                Nova coleção
-              </label>
-              <input
-                id="new-library-collection"
-                value={newCollection}
-                onChange={(event) => setNewCollection(event.target.value)}
-                placeholder="Nome"
-                className="mt-1 h-8 w-full rounded border border-input bg-background px-2 text-xs"
-              />
-              <button
-                type="button"
-                onClick={() => void createCollection()}
-                disabled={!newCollection.trim()}
-                className="mt-1 h-8 w-full rounded bg-primary text-xs text-primary-foreground disabled:opacity-50"
-              >
-                Criar{selectedId ? " e adicionar" : ""}
-              </button>
-            </div>
-          </aside>
-        )}
-        <main
-          className={`min-w-0 overflow-y-auto ${view === "all" || view === "references" ? "border-r border-border" : ""}`}
-        >
-          <label className="flex h-10 items-center gap-2 border-b border-border px-3">
-            <Search className="size-3.5 text-muted-foreground" />
-            <span className="sr-only">Pesquisar biblioteca</span>
-            <input
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Título, tipo ou identificador…"
-              className="w-full bg-transparent text-xs outline-none"
-            />
-          </label>
-          {(view === "all" || view === "private") && filteredPrivateDocuments.length > 0 && (
-            <section className="border-b border-border p-3" aria-labelledby="private-library-title">
-              <div className="flex items-start justify-between gap-3">
-                <div>
-                  <h2 id="private-library-title" className="meta-label">
-                    Livros privados neste dispositivo · {filteredPrivateDocuments.length}
-                  </h2>
-                  <p className="mt-1 text-xs text-muted-foreground">
-                    Arquivos, texto extraído, revisões e traduções permanecem somente no workspace
-                    local.
-                  </p>
-                </div>
-                <LockKeyhole className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
-              </div>
-              <BookShelf documents={filteredPrivateDocuments} />
-            </section>
-          )}
-          {view === "private" && !loading && !error && filteredPrivateDocuments.length === 0 && (
-            <section className="m-4 rounded-md border border-dashed border-border p-5">
-              <h2 className="font-serif text-lg font-semibold">Nenhum livro neste acervo</h2>
-              <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-                {workspacePersistence === "installation"
-                  ? "Importe seus PDFs ou transfira o workspace completo pelo navegador que contém os livros."
-                  : "Este modo usa o armazenamento do navegador. Para compartilhar o acervo, ative o modo de instalação e transfira o workspace completo."}
-              </p>
-              {origin && (
-                <p className="mt-1 font-mono text-xs text-muted-foreground">
-                  Endereço atual: {origin}
-                </p>
-              )}
-              <p className="mt-2 max-w-2xl text-xs text-muted-foreground">
-                O backup JSON é estrutural. A transferência de instalação copia também textos,
-                índices, ligações e PDFs, sem repetir a desmontagem.
-              </p>
-              <Link
-                to="/library/process"
-                className="mt-3 inline-flex rounded border border-input px-3 py-1.5 text-xs font-medium hover:bg-accent"
-              >
-                Abrir importação e processamento
-              </Link>
-            </section>
-          )}
-          {view === "private" && loading && (
-            <p className="p-6 text-sm text-muted-foreground">Abrindo acervo e suas fontes…</p>
-          )}
-          {view === "private" && error && (
-            <p role="alert" className="p-6 text-sm text-destructive">
-              {error}
-            </p>
-          )}
-          {(view === "all" || view === "primary") && primaryWorks.length > 0 && !query.trim() && (
-            <section className="border-b border-border p-3">
-              <p className="meta-label">Textos primários instalados · {primaryWorks.length}</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Obras agrupadas pelo uso acadêmico principal; uma mesma obra poderá receber
-                múltiplos assuntos quando a taxonomia da biblioteca for ampliada.
-              </p>
-              <div className="mt-3 space-y-3">
-                {primaryWorksByDiscipline.map(([discipline, works]) => (
-                  <section key={discipline}>
-                    <h2 className="meta-label tracking-wider text-muted-foreground">
-                      {discipline}
-                    </h2>
-                    <div className="mt-1 grid gap-1 sm:grid-cols-2">
-                      {works.map((work) => (
-                        <a
-                          key={`${work.editionId}:${work.id}`}
-                          href={`/library/read/${encodeURIComponent(work.id)}`}
-                          className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50"
-                        >
-                          <span className="block font-medium">{work.title}</span>
-                          <span className="mt-0.5 block text-xs text-muted-foreground">
-                            {work.editionTitle}
-                          </span>
-                        </a>
-                      ))}
-                    </div>
-                  </section>
-                ))}
-              </div>
-            </section>
-          )}
-          {view === "primary" && primaryWorks.length === 0 && !loading && (
-            <p className="p-6 text-sm text-muted-foreground">
-              Nenhuma fonte primária está instalada neste build.
-            </p>
-          )}
-          {(view === "all" || view === "nag-hammadi") && !query.trim() && (
-            <section className="border-b border-border p-3">
-              <details>
-                <summary className="cursor-pointer list-none">
-                  <span className="meta-label">Catálogo documental · Nag Hammadi</span>
-                  <span className="mt-1 block text-xs text-muted-foreground">
-                    13 códices · 52 testemunhos textuais · 1 texto-fonte instalado
-                  </span>
-                </summary>
-                <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
-                  {NAG_HAMMADI_RIGHTS_NOTE}
-                </p>
-                <div className="mt-3 grid gap-2 lg:grid-cols-2">
-                  {NAG_HAMMADI_CODICES.map(({ codex, tractates }) => (
-                    <section key={codex} className="rounded border border-border p-2.5">
-                      <h2 className="meta-label tracking-wider text-muted-foreground">
-                        Códice {codex}
-                      </h2>
-                      <ol className="mt-1.5 space-y-1">
-                        {tractates.map((tractate) => {
-                          const installed = Boolean(
-                            tractate.installedWorkId &&
-                            installedPrimaryWorkIds.has(tractate.installedWorkId),
-                          );
-                          const content = (
-                            <>
-                              <span>
-                                {tractate.order}. {tractate.title}
-                              </span>
-                              <span className="meta-label tracking-wide text-muted-foreground">
-                                {installed ? "texto copta" : "catalogado"}
-                              </span>
-                            </>
-                          );
-                          return (
-                            <li key={tractate.id}>
-                              {installed && tractate.installedWorkId ? (
-                                <a
-                                  href={`/library/read/${encodeURIComponent(tractate.installedWorkId)}`}
-                                  className="flex items-baseline justify-between gap-2 text-xs text-primary hover:underline"
-                                >
-                                  {content}
-                                </a>
-                              ) : (
-                                <NagHammadiLocator tractate={tractate} />
-                              )}
-                            </li>
-                          );
-                        })}
-                      </ol>
-                    </section>
-                  ))}
-                </div>
-              </details>
-            </section>
-          )}
-          {view !== "all" && view !== "references" ? null : loading ? (
-            <p className="p-6 text-sm italic text-muted-foreground">Abrindo índice local…</p>
-          ) : error ? (
-            <p role="alert" className="p-6 text-sm text-destructive">
-              {error}
-            </p>
-          ) : filtered.length ? (
-            filtered.map((source) => (
-              <ResourceRow
-                key={source.id}
-                source={source}
-                authorNames={
-                  details?.source.id === source.id
-                    ? details.authors.map((author) => author.canonicalName)
-                    : []
-                }
-                active={source.id === selectedId}
-                onSelect={() => setSelectedId(source.id)}
-              />
-            ))
-          ) : (
-            <p className="p-6 text-sm italic text-muted-foreground">Nenhuma fonte encontrada.</p>
-          )}
-          {details && (
-            <div className="border-t border-border xl:hidden">
-              <ResourceDetails details={details} onChanged={refreshDetails} />
-            </div>
-          )}
-        </main>
-        {(view === "all" || view === "references") && (
-          <aside className="hidden overflow-y-auto xl:block">
-            {details ? (
-              <ResourceDetails details={details} onChanged={refreshDetails} />
-            ) : (
-              <p className="p-5 text-xs italic text-muted-foreground">Selecione uma fonte.</p>
-            )}
-          </aside>
-        )}
-      </div>
-    </div>
-  );
-}
 
-export function ImportPanel({
-  onClose,
-  onImported,
-}: {
-  onClose?: () => void;
-  onImported: () => Promise<void>;
-}) {
-  const [format, setFormat] = useState<BibliographicImportFormat>("csl-json");
-  const [input, setInput] = useState("");
-  const [report, setReport] = useState<ImportReport>();
-  const [busy, setBusy] = useState(false);
-  const [pdfFiles, setPdfFiles] = useState<File[]>([]);
-  const [pdfProgress, setPdfProgress] = useState<PrivateDocumentImportProgress>();
-  const [pdfResults, setPdfResults] = useState<PrivateDocumentImportResult[]>([]);
-  const [pdfErrors, setPdfErrors] = useState<Array<{ filename: string; message: string }>>([]);
-  const importProblem = useSecureContextProblem();
-  const preview = input.trim() ? SourceImportService.preview(format, input) : null;
-  const runImport = async () => {
-    setBusy(true);
-    try {
-      const next = await SourceImportService.import(format, input);
-      setReport(next);
-      if (next.imported) await onImported();
-    } finally {
-      setBusy(false);
-    }
-  };
-  const importPdfs = async () => {
-    if (!pdfFiles.length) return;
-    setBusy(true);
-    setPdfErrors([]);
-    setPdfResults([]);
-    const imported: PrivateDocumentImportResult[] = [];
-    const failures: Array<{ filename: string; message: string }> = [];
-    try {
-      for (const file of pdfFiles) {
-        setPdfProgress({ phase: "validating", message: `Preparando ${file.name}…` });
-        try {
-          imported.push(await PrivateDocumentImportService.importPdf(file, setPdfProgress));
-          setPdfResults([...imported]);
-        } catch (cause) {
-          failures.push({
-            filename: file.name,
-            message: cause instanceof Error ? cause.message : String(cause),
-          });
-          setPdfErrors([...failures]);
+      <PrivateBooksSection
+        documents={privateDocuments}
+        storedProfiles={storedProfiles}
+        loading={loading}
+        {...(error ? { error } : {})}
+        {...(origin ? { origin } : {})}
+        emptyHint={
+          workspacePersistence === "installation"
+            ? "Adicione seus PDFs ou transfira o acervo completo do navegador onde estão os seus livros."
+            : "Seus livros podem estar em outro endereço (por exemplo, localhost:8080). Abra-o, exporte o backup e importe aqui, ou adicione os PDFs de novo."
         }
-      }
-      setPdfFiles([]);
-      if (imported.length) await onImported();
-      setPdfProgress({
-        phase: "complete",
-        message: `${imported.length} PDF${imported.length === 1 ? "" : "s"} indexado${imported.length === 1 ? "" : "s"}; ${failures.length} exige${failures.length === 1 ? "" : "m"} OCR ou correção.`,
-      });
-    } finally {
-      setBusy(false);
-    }
-  };
-  return (
-    <section
-      aria-label="Importação bibliográfica"
-      className="border-b border-border bg-muted/20 px-5 py-4 md:px-6"
-    >
-      <div className="mx-auto max-w-4xl">
-        <div className="flex items-center justify-between">
-          <div>
-            <h2 className="text-sm font-medium">Importar para a biblioteca</h2>
-            <p className="text-xs text-muted-foreground">
-              Documentos privados permanecem neste dispositivo; registros bibliográficos guardam
-              somente metadados.
+      />
+
+      <section aria-labelledby="library-catalog-title" className="space-y-3">
+        <h2 id="library-catalog-title" className="font-serif text-lg font-semibold">
+          Catálogo e referências
+        </h2>
+        <Tabs value={tab} onValueChange={(value) => setTab(value as CatalogTab)}>
+          <TabsList className="h-auto flex-wrap justify-start">
+            <TabsTrigger value="primary" className="text-sm">
+              Fontes primárias · {primaryWorks.length}
+            </TabsTrigger>
+            <TabsTrigger value="nag-hammadi" className="text-sm">
+              Nag Hammadi · 52
+            </TabsTrigger>
+            <TabsTrigger value="references" className="text-sm">
+              Referências e coleções{referenceCount !== undefined ? ` · ${referenceCount}` : ""}
+            </TabsTrigger>
+            <TabsTrigger value="bibliographic-import" className="text-sm">
+              Importação bibliográfica
+            </TabsTrigger>
+          </TabsList>
+          <TabsContent value="primary" className="mt-4">
+            <PrimaryWorksSection works={primaryWorks} />
+          </TabsContent>
+          <TabsContent value="nag-hammadi" className="mt-4">
+            <NagHammadiSection installedWorkIds={installedWorkIds} />
+          </TabsContent>
+          <TabsContent value="references" className="mt-4" forceMount hidden={tab !== "references"}>
+            <ReferencesSection
+              refreshKey={refreshKey}
+              {...(sourceParam ? { initialSourceId: sourceParam } : {})}
+              onCountChange={setReferenceCount}
+            />
+          </TabsContent>
+          <TabsContent value="bibliographic-import" className="mt-4 max-w-4xl space-y-2">
+            <p className="text-sm text-muted-foreground">
+              Cole registros em CSL-JSON, BibTeX ou RIS. Só os metadados entram na biblioteca.
             </p>
-          </div>
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              aria-label="Fechar importação"
-              className="rounded p-1 hover:bg-accent"
-            >
-              <X className="size-4" />
-            </button>
-          )}
-        </div>
-        {importProblem && (
-          <div className="mt-4">
-            <SecureContextNotice problem={importProblem} />
-          </div>
-        )}
-        <section className="mt-4 rounded border border-border bg-background p-3">
-          <div className="flex items-start gap-2">
-            <LockKeyhole className="mt-0.5 size-4 text-muted-foreground" />
-            <div>
-              <h3 className="text-xs font-medium">PDF privado com texto pesquisável</h3>
-              <p className="mt-0.5 text-xs text-muted-foreground">
-                O original e o texto extraído ficam no armazenamento ativo: pasta da instalação no
-                modo Docker/local, ou OPFS no modo navegador. PDFs privados não entram nos pacotes
-                públicos.
-              </p>
-            </div>
-          </div>
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            <label className="inline-flex h-9 cursor-pointer items-center gap-1.5 rounded border border-input px-3 text-xs hover:bg-accent">
-              <FileText className="size-3.5" /> Selecionar PDFs
-              <input
-                type="file"
-                accept="application/pdf,.pdf"
-                multiple
-                disabled={busy || Boolean(importProblem)}
-                onChange={(event) => setPdfFiles(Array.from(event.target.files ?? []))}
-                className="sr-only"
-              />
-            </label>
-            <button
-              type="button"
-              disabled={!pdfFiles.length || busy || Boolean(importProblem)}
-              onClick={() => void importPdfs()}
-              className="h-9 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
-            >
-              {busy
-                ? "Processando…"
-                : `Indexar ${pdfFiles.length || ""} PDF${pdfFiles.length === 1 ? "" : "s"}`}
-            </button>
-            {pdfFiles.length > 0 && (
-              <span className="text-xs text-muted-foreground">
-                {pdfFiles.map((file) => file.name).join(" · ")}
-              </span>
-            )}
-          </div>
-          {pdfProgress && (
-            <p role="status" className="mt-2 text-xs text-muted-foreground">
-              {pdfProgress.message}
-            </p>
-          )}
-          {pdfErrors.length > 0 && (
-            <ul role="alert" className="mt-2 space-y-1 text-xs text-destructive">
-              {pdfErrors.map((failure) => (
-                <li key={failure.filename}>
-                  {failure.filename}: {failure.message}
-                </li>
-              ))}
-            </ul>
-          )}
-          {pdfResults.length > 0 && (
-            <ul className="mt-2 space-y-1 text-xs">
-              {pdfResults.map((result) => (
-                <li key={result.documentId}>
-                  {result.title}: {result.textPageCount}/{result.pageCount} páginas{" "}
-                  {result.duplicate ? "já indexadas" : "indexadas"} · idioma {result.language} ·{" "}
-                  {result.textLayerStatus === "complete"
-                    ? "camada textual completa"
-                    : "camada textual parcial; páginas vazias exigem OCR"}
-                  .
-                </li>
-              ))}
-            </ul>
-          )}
-        </section>
-        <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
-          <span className="h-px flex-1 bg-border" /> Metadados bibliográficos
-          <span className="h-px flex-1 bg-border" />
-        </div>
-        <div className="mt-3 grid gap-3 md:grid-cols-[160px_1fr_auto]">
-          <select
-            value={format}
-            onChange={(event) => setFormat(event.target.value as BibliographicImportFormat)}
-            className="h-9 rounded border border-input bg-background px-2 text-xs"
-          >
-            <option value="csl-json">CSL-JSON</option>
-            <option value="bibtex">BibTeX básico</option>
-            <option value="ris">RIS</option>
-          </select>
-          <textarea
-            value={input}
-            onChange={(event) => setInput(event.target.value)}
-            placeholder="Cole o registro bibliográfico…"
-            className="min-h-24 rounded border border-input bg-background p-2 font-mono text-xs"
-          />
-          <button
-            type="button"
-            disabled={
-              !input.trim() ||
-              busy ||
-              Boolean(importProblem) ||
-              Boolean(preview?.issues.some((issue) => issue.severity === "error"))
-            }
-            onClick={() => void runImport()}
-            className="h-9 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
-          >
-            {busy ? "Importando…" : `Importar ${preview?.candidates.length ?? 0}`}
-          </button>
-        </div>
-        {preview?.issues.map((issue, index) => (
-          <p
-            key={`${issue.code}-${index}`}
-            className={`mt-2 text-xs ${issue.severity === "error" ? "text-destructive" : "text-muted-foreground"}`}
-          >
-            {issue.code}: {issue.message}
-          </p>
-        ))}
-        {report && (
-          <p role="status" className="mt-2 text-xs">
-            {report.imported} importadas · {report.duplicates} duplicadas · {report.invalid}{" "}
-            inválidas.
-          </p>
-        )}
-      </div>
-    </section>
+            <BibliographicImportForm onImported={reload} />
+          </TabsContent>
+        </Tabs>
+      </section>
+
+      <LibraryProcessingSection refreshKey={refreshKey} />
+    </PageContainer>
   );
 }

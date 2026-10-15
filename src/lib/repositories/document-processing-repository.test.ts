@@ -9,6 +9,7 @@ import type {
 } from "../workspace-runtime/workspace-database";
 import { DocumentProcessingRepository } from "./document-processing-repository";
 import { PrivateDocumentRepository } from "./private-document-repository";
+import { LibraryCoverageService } from "../application/library-coverage-service";
 
 const databases: DatabaseSync[] = [];
 
@@ -101,5 +102,29 @@ describe("researcher correction of a document profile", () => {
         .get(document.id),
     ).toEqual({ profile: "lexicon", review_status: "accepted" });
     expect(db.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+});
+
+describe("library summaries for the shelf", () => {
+  it("lists the stored profiles, corrections included", async () => {
+    const { workspace, document } = await importedBook("Bíblia de Estudo de Genebra");
+    expect(await DocumentProcessingRepository.listProfiles(workspace)).toEqual([]);
+    await DocumentProcessingRepository.ensureProfile(document, workspace);
+    expect(await DocumentProcessingRepository.listProfiles(workspace)).toEqual([
+      { documentId: document.id, profile: "study-bible", reviewStatus: "machine-proposed" },
+    ]);
+    await DocumentProcessingRepository.correctProfile(document.id, "commentary", workspace);
+    expect(await DocumentProcessingRepository.listProfiles(workspace)).toEqual([
+      { documentId: document.id, profile: "commentary", reviewStatus: "accepted" },
+    ]);
+  });
+
+  it("counts books, structured books and books that still need OCR in one cheap query", async () => {
+    const { workspace } = await importedBook("Questões contemporâneas");
+    expect(await LibraryCoverageService.quickSummary(workspace)).toEqual({
+      total: 1,
+      structured: 0,
+      ocrPending: 0,
+    });
   });
 });

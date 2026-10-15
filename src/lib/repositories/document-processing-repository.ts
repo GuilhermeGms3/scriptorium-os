@@ -126,6 +126,21 @@ export const DocumentProcessingRepository = {
     return saved;
   },
 
+  /** Every stored profile, for filtering the shelf by kind of book. Read-only. */
+  async listProfiles(
+    database?: WorkspaceDatabase,
+  ): Promise<Pick<DocumentProfile, "documentId" | "profile" | "reviewStatus">[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const rows = await db.query(
+      "SELECT document_id,profile,review_status FROM private_document_profiles ORDER BY document_id",
+    );
+    return rows.map((row) => ({
+      documentId: String(row["document_id"]),
+      profile: String(row["profile"]) as DocumentProfile["profile"],
+      reviewStatus: String(row["review_status"]) as DocumentProfile["reviewStatus"],
+    }));
+  },
+
   /** The researcher's choice: accepted, so `ensureProfile` never replaces it with its own guess. */
   async correctProfile(
     documentId: string,

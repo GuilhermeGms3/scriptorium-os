@@ -3,7 +3,7 @@ import { ArrowLeft, DatabaseZap, ShieldCheck } from "lucide-react";
 import { useEffect } from "react";
 import { LibraryPipelineOverview } from "../../components/library/library-pipeline-overview";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
-import { ImportPanel } from "../library";
+import { ImportPanel } from "../../components/library/import-panel";
 import { InstallationMigration } from "../../components/library/installation-migration";
 import { PageHeader } from "../../components/layout/page-header";
 
