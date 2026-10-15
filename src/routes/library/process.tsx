@@ -8,7 +8,7 @@ import { InstallationMigration } from "../../components/library/installation-mig
 import { PageHeader } from "../../components/layout/page-header";
 
 export const Route = createFileRoute("/library/process")({
-  head: () => ({ meta: [{ title: "Importar e processar — Scriptorium" }] }),
+  head: () => ({ meta: [{ title: "Adicionar livros — Scriptorium" }] }),
   component: LibraryProcessingPage,
 });
 

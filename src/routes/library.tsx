@@ -185,7 +185,7 @@ export function LibraryPage() {
               to="/library/process"
               className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
             >
-              <FileUp className="size-3.5" /> Importar e processar
+              <FileUp className="size-3.5" aria-hidden="true" /> Adicionar livro
             </Link>
           </>
         }
