@@ -15,13 +15,15 @@ import {
 import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const PROVIDER_ID = "python-contextual-document-knowledge";
-const PROVIDER_VERSION = "2";
+const PROVIDER_VERSION = "3";
+/** Revision of the rules in services/semantic-engine; an older local service is refused. */
+const ANALYZER_REVISION = "3";
 const MAX_REMOTE_UNITS = 150;
 const MAX_UNIT_CHARACTERS = 20_000;
 
 const ProviderResponseSchema = z.object({
   analyzerId: z.literal("contextual-rule-analyzer"),
-  analyzerRevision: z.literal("2"),
+  analyzerRevision: z.literal(ANALYZER_REVISION),
   proposals: z.array(
     z.object({
       unitId: z.string().min(1),
@@ -64,7 +66,7 @@ async function providerProposal(
     semanticUnitId: unitId,
     proposalKind: payload.kind,
     payload,
-    method: "contextual-rule-analyzer:2",
+    method: `contextual-rule-analyzer:${ANALYZER_REVISION}`,
     confidence,
     reviewStatus: "machine-proposed",
     createdAt: timestamp,

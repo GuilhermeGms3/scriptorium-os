@@ -2,7 +2,6 @@ from fastapi.testclient import TestClient
 
 from app.main import app
 
-
 client = TestClient(app)
 
 
@@ -25,7 +24,7 @@ def test_analyze_batch_exposes_versioned_incremental_contract() -> None:
     assert response.status_code == 200
     body = response.json()
     assert body["analyzerId"] == "contextual-rule-analyzer"
-    assert body["analyzerRevision"] == "2"
+    assert body["analyzerRevision"] == "3"
     assert body["checkpoint"]["lastPersonLabel"] == "Agostinho"
     assert body["proposals"][0]["payload"]["kind"] == "attribution"
 

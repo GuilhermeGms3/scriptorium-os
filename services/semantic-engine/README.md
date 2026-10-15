@@ -26,15 +26,27 @@ Também é possível executar manualmente, a partir desta pasta:
 ```powershell
 py -3.13 -m pip install -e ".[test]"
 py -3.13 -m pytest tests -q
+py -3.13 -m ruff check .
+py -3.13 -m mypy --strict app/semantic_analyzer.py
 py -3.13 -m uvicorn app.main:app --host 127.0.0.1 --port 8018
 ```
+
+`ruff` e `mypy` vêm com as dependências de teste e leem a configuração do `pyproject.toml`
+(linhas de 100 colunas; B008 e RUF001 ignorados de propósito).
 
 ## Contrato contextual
 
 - `GET /v1/analyze/info`: versão e limites do analisador;
 - `POST /v1/analyze/batch`: até 200 unidades e 20.000 caracteres por unidade;
-- `checkpoint`: estado opaco devolvido ao cliente e persistido no workspace;
+- `checkpoint`: estado opaco devolvido ao cliente e persistido no workspace; guarda a última pessoa
+  nomeada e a posição dela (`lastPersonUnit`), porque “Ele afirma…” só é resolvido até 3 unidades
+  depois do nome, inclusive entre lotes;
 - toda saída continua `machine-proposed` até revisão humana no Scriptorium.
+
+A revisão 3 das regras procura o agente só em palavras com maiúscula (com “de/da/do/dos/das/e”),
+aceita um complemento entre o nome e o verbo, recusa demonstrativos e documentos como pessoa,
+protege abreviaturas (cf., S., Sto., p., v., cap., vol., ed., trad., séc.) antes de dividir frases e
+lê autores ABNT com iniciais. O cliente recusa respostas de um serviço com revisão antiga.
 
 O modo contextual é complementar: estrutura, âncoras e propostas determinísticas continuam sendo
 calculadas no cliente. Se este serviço estiver indisponível, selecione o modo determinístico no painel

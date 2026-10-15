@@ -1,5 +1,6 @@
-from app.translator import MarianTranslationBackend, split_text, split_to_token_limit
 from pytest import MonkeyPatch
+
+from app.translator import MarianTranslationBackend, split_text, split_to_token_limit
 
 
 def test_split_text_preserves_order_and_bounds() -> None:
@@ -29,7 +30,9 @@ def test_token_limit_splits_without_losing_words() -> None:
     assert " ".join(chunks).split() == text.split()
 
 
-def test_explicit_commit_revision_is_preserved_without_branch_alias(monkeypatch: MonkeyPatch) -> None:
+def test_explicit_commit_revision_is_preserved_without_branch_alias(
+    monkeypatch: MonkeyPatch,
+) -> None:
     revision = "0123456789abcdef0123456789abcdef01234567"
     monkeypatch.setenv("SCRIPTORIUM_TRANSLATION_MODEL_REVISION", revision)
     backend = MarianTranslationBackend()

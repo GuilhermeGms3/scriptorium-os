@@ -36,7 +36,7 @@ describe("PythonDocumentKnowledgeAnalyzer", () => {
       return new Response(
         JSON.stringify({
           analyzerId: "contextual-rule-analyzer",
-          analyzerRevision: "2",
+          analyzerRevision: "3",
           proposals: [
             {
               unitId: body.units[0]!.id,
@@ -51,7 +51,7 @@ describe("PythonDocumentKnowledgeAnalyzer", () => {
               confidence: 0.82,
             },
           ],
-          checkpoint: { lastPersonLabel: "Agostinho", processedUnits: 1 },
+          checkpoint: { lastPersonLabel: "Agostinho", lastPersonUnit: 0, processedUnits: 1 },
         }),
         { status: 200, headers: { "content-type": "application/json" } },
       );
@@ -63,16 +63,32 @@ describe("PythonDocumentKnowledgeAnalyzer", () => {
     expect(request.mock.calls[0]?.[0]).toBe("http://127.0.0.1:8018/v1/analyze/batch");
     expect(result.checkpoint.providerState).toEqual({
       lastPersonLabel: "Agostinho",
+      lastPersonUnit: 0,
       processedUnits: 1,
     });
     expect(result.proposals).toEqual(
       expect.arrayContaining([
         expect.objectContaining({
-          method: "contextual-rule-analyzer:2",
+          method: "contextual-rule-analyzer:3",
           proposalKind: "attribution",
           reviewStatus: "machine-proposed",
         }),
       ]),
     );
+  });
+
+  it("refuses an outdated local service instead of mixing its older rules", async () => {
+    vi.spyOn(globalThis, "fetch").mockResolvedValue(
+      new Response(
+        JSON.stringify({
+          analyzerId: "contextual-rule-analyzer",
+          analyzerRevision: "2",
+          proposals: [],
+          checkpoint: {},
+        }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    await expect(PythonDocumentKnowledgeAnalyzer.analyzeBatch!(document, [page])).rejects.toThrow();
   });
 });

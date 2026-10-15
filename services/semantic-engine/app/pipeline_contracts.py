@@ -1,6 +1,7 @@
 """Validated private pipeline input/output contracts, exposed through FastAPI OpenAPI."""
 
 from typing import Annotated, Literal
+
 from pydantic import BaseModel, ConfigDict, Field
 
 

@@ -7,7 +7,6 @@ from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, ConfigDict, Field
 
-from .translator import MarianTranslationBackend, TranslationBackend
 from .local_pipeline import router as pipeline_router
 from .semantic_analyzer import (
     ANALYZER_ID,
@@ -15,6 +14,7 @@ from .semantic_analyzer import (
     AnalyzerUnit,
     analyze_units,
 )
+from .translator import MarianTranslationBackend, TranslationBackend
 
 
 class TranslationRequest(BaseModel):

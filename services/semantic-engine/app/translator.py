@@ -24,7 +24,9 @@ class TranslationBackend(Protocol):
     @property
     def resolved_model_revision(self) -> str: ...
 
-    def translate(self, text: str, source_language: str, target_language: str) -> TranslationResult: ...
+    def translate(
+        self, text: str, source_language: str, target_language: str
+    ) -> TranslationResult: ...
 
 
 def split_text(text: str, maximum_characters: int = 1_500) -> list[str]:
@@ -60,7 +62,9 @@ def split_to_token_limit(text: str, tokenizer: object, maximum_tokens: int = 480
         chunk = pending.pop(0)
         encoded = tokenizer(chunk, add_special_tokens=True, truncation=False)  # type: ignore[operator]
         input_ids = encoded["input_ids"]
-        token_count = len(input_ids[0]) if input_ids and isinstance(input_ids[0], list) else len(input_ids)
+        token_count = (
+            len(input_ids[0]) if input_ids and isinstance(input_ids[0], list) else len(input_ids)
+        )
         if token_count <= maximum_tokens:
             result.append(chunk)
             continue
