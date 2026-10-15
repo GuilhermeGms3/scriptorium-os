@@ -17,7 +17,8 @@ import {
 import type { Book, Edition } from "../../lib/domain/scripture";
 import type { ReaderView } from "./verse";
 import { cn } from "../../lib/utils";
-import { bookLabel, t } from "../../lib/i18n";
+import { t } from "../../lib/i18n";
+import { BookChapterPicker } from "./book-chapter-picker";
 
 const VIEWS: { id: ReaderView; label: string; icon: typeof Rows3 }[] = [
   { id: "single", label: t("scripture.view.single"), icon: Rows3 },
@@ -76,15 +77,12 @@ export function ScriptureToolbar({
               params: { book: book.id, chapter: String(chapter - 1) },
             })
           }
-          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
+          className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30"
           aria-label={t("scripture.previousChapter")}
         >
           <ChevronLeft className="size-4" />
         </button>
-        <span className="min-w-24 text-center text-sm font-medium">
-          {bookLabel(book.id, book.name)}{" "}
-          <span className="font-mono text-muted-foreground">{chapter}</span>
-        </span>
+        <BookChapterPicker book={book} chapter={chapter} />
         <button
           disabled={!hasNext}
           onClick={() =>
@@ -93,7 +91,7 @@ export function ScriptureToolbar({
               params: { book: book.id, chapter: String(chapter + 1) },
             })
           }
-          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:opacity-30"
+          className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-30"
           aria-label={t("scripture.nextChapter")}
         >
           <ChevronRight className="size-4" />
@@ -108,7 +106,7 @@ export function ScriptureToolbar({
         <select
           value={editionId}
           onChange={(e) => onEditionChange(e.target.value)}
-          className="h-7 rounded-md border border-input bg-background px-1.5 font-mono text-xs text-foreground"
+          className="h-9 rounded-md border border-input bg-background px-2 text-sm text-foreground"
           aria-label={t("scripture.translation")}
         >
           {selectableEditions.map((ed) => (
@@ -132,13 +130,13 @@ export function ScriptureToolbar({
             : "Ainda não há explicações indexadas para este capítulo"
         }
         className={cn(
-          "flex h-7 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs transition-colors disabled:cursor-not-allowed disabled:opacity-35",
+          "flex h-9 items-center gap-1.5 rounded-md border border-input px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-35",
           showExplanations && view === "single"
             ? "bg-accent text-foreground"
             : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
       >
-        <MessagesSquare className="size-3.5" />
+        <MessagesSquare className="size-4" aria-hidden="true" />
         <span className="hidden sm:inline">Explicações</span>
       </button>
 
@@ -158,13 +156,13 @@ export function ScriptureToolbar({
               aria-pressed={view === id}
               title={enabled ? label : t("scripture.viewUnavailable", { view: label })}
               className={cn(
-                "flex h-7 items-center gap-1.5 px-2.5 text-xs transition-colors first:rounded-l-md last:rounded-r-md disabled:cursor-not-allowed disabled:opacity-35",
+                "flex h-9 items-center gap-1.5 px-3 text-sm transition-colors first:rounded-l-md last:rounded-r-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-35",
                 view === id
                   ? "bg-primary text-primary-foreground"
                   : "text-muted-foreground hover:bg-accent hover:text-foreground disabled:hover:bg-transparent disabled:hover:text-muted-foreground",
               )}
             >
-              <Icon className="size-3.5" strokeWidth={1.75} />
+              <Icon className="size-4" strokeWidth={1.75} aria-hidden="true" />
               <span className="hidden sm:inline">{label}</span>
             </button>
           );

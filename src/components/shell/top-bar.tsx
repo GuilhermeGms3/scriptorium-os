@@ -57,17 +57,18 @@ export function TopBar() {
         {passageInspectorAvailable && (
           <button
             onClick={() => setInspectorOpen(!inspectorOpen)}
+            type="button"
             className={cn(
-              "hidden size-7 items-center justify-center rounded-md transition-colors lg:flex",
+              "hidden h-8 items-center gap-1.5 rounded-md border px-2.5 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring md:flex",
               inspectorOpen
-                ? "bg-accent text-foreground"
-                : "text-muted-foreground hover:bg-accent hover:text-foreground",
+                ? "border-primary/50 bg-accent text-foreground"
+                : "border-input text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
-            aria-label={t("shell.toggleInspector")}
             aria-pressed={inspectorOpen}
             title={t("shell.toggleInspector")}
           >
-            <PanelRight className="size-4" strokeWidth={1.75} />
+            <PanelRight className="size-4" strokeWidth={1.75} aria-hidden="true" />
+            {t("shell.inspector")}
           </button>
         )}
       </div>

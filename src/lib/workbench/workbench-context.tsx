@@ -84,7 +84,8 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
 
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [wordSelection, setWordSelection] = useState<WordSelection | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  // Closed until the reader selects a verse or a word: the text comes first.
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [passageContext, setPassageContextState] = useState<PassageContext | null>(null);
 
   const [readingPrefs, setReadingPrefsState] = useState<ReadingPreferences>(() => {

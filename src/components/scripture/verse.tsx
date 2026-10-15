@@ -48,12 +48,15 @@ export function Verse({
       className={cn(
         verseMode === "verse" && "mb-3 block",
         onSelect &&
-          "cursor-pointer rounded-sm outline-none transition-colors hover:bg-accent/30 focus-visible:ring-1 focus-visible:ring-ring",
-        selected && "bg-accent/50 ring-1 ring-primary/40",
+          "cursor-pointer rounded-md outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring",
+        selected && "bg-primary/10 ring-2 ring-primary/60",
       )}
     >
       <span
-        className="mr-1.5 align-super font-mono text-xs font-medium text-muted-foreground select-none"
+        className={cn(
+          "mr-1.5 align-super font-mono text-xs font-medium select-none",
+          selected ? "text-primary" : "text-muted-foreground",
+        )}
         aria-hidden
       >
         {verse.verse}

@@ -2,7 +2,6 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { ScriptureToolbar } from "../../components/scripture/scripture-toolbar";
-import { BooksPanel } from "../../components/scripture/books-panel";
 import { OriginalVerse, Verse, type ReaderView } from "../../components/scripture/verse";
 import { ParallelVersions } from "../../components/scripture/parallel-versions";
 import { InterlinearView } from "../../components/scripture/interlinear-view";
@@ -57,7 +56,7 @@ function ChapterReader() {
   const { book: bookId, chapter: chapterParam } = Route.useParams();
   const loadedBundle = Route.useLoaderData();
   const chapter = Number(chapterParam);
-  const { setPassageContext, selectWord, readingPrefs } = useWorkbench();
+  const { setPassageContext, selectWord, readingPrefs, setInspectorOpen } = useWorkbench();
 
   const [editionId, setEditionId] = useState(() =>
     ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
@@ -213,10 +212,6 @@ function ChapterReader() {
 
   return (
     <div className="flex h-full min-w-0">
-      <div className="hidden w-44 shrink-0 border-r border-border lg:block">
-        <BooksPanel activeBookId={bookId} activeChapter={chapter} />
-      </div>
-
       <div className="flex min-w-0 flex-1 flex-col">
         <ScriptureToolbar
           book={book}
@@ -328,7 +323,10 @@ function ChapterReader() {
                         chapter={chapter}
                         verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
                         selected={selectedVerse === v.verse}
-                        onSelect={() => setSelectedVerse(v.verse)}
+                        onSelect={() => {
+                          setSelectedVerse(v.verse);
+                          setInspectorOpen(true);
+                        }}
                       />
                       {showExplanations && (
                         <VerseExplanations

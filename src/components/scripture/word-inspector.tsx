@@ -118,11 +118,12 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => selectWord(null)}
-          className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           aria-label={t("scripture.word.close")}
         >
-          <X className="size-4" />
+          <X className="size-4" aria-hidden="true" /> Voltar à passagem
         </button>
       </div>
 
@@ -135,7 +136,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
-              className="shrink-0 rounded px-2 py-1 meta-label tracking-wider text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
+              className="shrink-0 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-accent data-[state=active]:font-medium data-[state=active]:text-foreground"
             >
               {tab.label}
             </Tabs.Trigger>

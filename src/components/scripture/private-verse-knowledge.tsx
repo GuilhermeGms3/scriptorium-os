@@ -1,4 +1,12 @@
-import { BookMarked, Check, ChevronDown, ExternalLink, LockKeyhole, X } from "lucide-react";
+import {
+  BookMarked,
+  Check,
+  ChevronDown,
+  CircleHelp,
+  ExternalLink,
+  LockKeyhole,
+  X,
+} from "lucide-react";
 import { useId, useMemo, useState, type FormEvent } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -18,6 +26,7 @@ import {
 } from "../../lib/domain/workspace-passage-knowledge";
 import { bookLabel } from "../../lib/i18n";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
+import { ReviewStateBadge } from "./review-state-badge";
 
 const RELATION_LABELS: Record<
   WorkspacePassageKnowledgeItem["passageRelation"]["payload"]["relationType"],
@@ -237,10 +246,13 @@ export function PrivateLinkCard({
   return (
     <article
       className={cn(
-        "rounded-md border p-3",
-        unconfirmed ? "border-amber-500/30 bg-amber-500/5" : "border-border bg-muted/20",
+        "rounded-md p-3",
+        unconfirmed
+          ? "border-2 border-dashed border-amber-500/60 bg-amber-500/5"
+          : "border border-border bg-muted/20",
       )}
     >
+      <ReviewStateBadge state={item.reviewState} className="mb-2" />
       {context === "book-reader" ? (
         <div className="flex flex-wrap items-center justify-between gap-2">
           <p className="text-xs font-medium">Ligada a {passageLinkLabel(target)}</p>
@@ -377,8 +389,11 @@ export function PrivateLinkCard({
             O livro diz: “{relation.payload.rawReference}”
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
-            <p className="flex items-center gap-1.5 text-xs font-medium">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+            <p className="flex items-center gap-1.5 text-sm font-medium">
+              <CircleHelp
+                className="size-4 text-amber-700 dark:text-amber-400"
+                aria-hidden="true"
+              />
               Esta ligação está correta?
             </p>
             <Button
@@ -570,10 +585,13 @@ export function PrivateVerseKnowledge({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => onOpenChange(!open)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground"
+        className={cn(
+          "inline-flex min-h-8 items-center gap-1.5 rounded-full border bg-amber-500/5 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+          unconfirmed > 0 ? "border-dashed border-amber-500/70" : "border-amber-500/30",
+        )}
       >
         {unconfirmed > 0 && (
-          <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
+          <CircleHelp className="size-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" />
         )}
         <BookMarked className="size-3.5" aria-hidden="true" />
         <span>
