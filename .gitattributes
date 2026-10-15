@@ -1,3 +1,7 @@
+# Source code accepts the platform checkout convention; Prettier validates both
+# while Git normalizes newly added text to LF in the repository.
+* text=auto eol=lf
+
 # Source corpus artifacts are immutable byte snapshots; never normalize line endings.
 corpora/source/** binary
 

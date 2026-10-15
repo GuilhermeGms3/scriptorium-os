@@ -3,6 +3,7 @@ import { useEffect } from "react";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { bookLabel, t } from "../../lib/i18n";
+import { groupScriptureBooks } from "../../lib/content/scripture-navigation";
 
 export const Route = createFileRoute("/scripture/")({
   head: () => {
@@ -28,6 +29,7 @@ function ScriptureIndex() {
   const withText = books.filter(
     (book) => ScriptureKnowledgeEngine.availableChapters(book.id).length > 0,
   );
+  const groups = groupScriptureBooks(withText);
 
   return (
     <div className="mx-auto max-w-4xl px-5 py-6 md:px-8">
@@ -43,39 +45,51 @@ function ScriptureIndex() {
 
       <section className="mt-5">
         <h2 className="meta-label">{t("scripture.available")}</h2>
-        <ul className="mt-2 grid gap-2 sm:grid-cols-2">
-          {withText.map((book) => (
-            <li key={book.id} className="min-w-0 rounded-md border border-border p-3">
-              <div>
-                <p className="text-sm font-medium">{bookLabel(book.id, book.name)}</p>
-                <p className="font-mono text-[11px] text-muted-foreground">
-                  {book.testament === "ot"
-                    ? t("scripture.hebrewBible")
-                    : book.testament === "nt"
-                      ? t("scripture.newTestament")
-                      : t("scripture.otherBooks")}{" "}
-                  · {book.chapters} capítulos
-                </p>
-              </div>
-              <div
-                className="mt-2 grid grid-cols-5 gap-1 sm:grid-cols-6"
-                aria-label={`Capítulos de ${bookLabel(book.id, book.name)}`}
-              >
-                {ScriptureKnowledgeEngine.availableChapters(book.id).map((c) => (
-                  <Link
-                    key={c}
-                    to="/scripture/$book/$chapter"
-                    params={{ book: book.id, chapter: String(c) }}
-                    className="rounded-md border border-input px-1.5 py-1 text-center font-mono text-xs transition-colors hover:bg-accent"
-                    aria-label={`${bookLabel(book.id, book.name)} ${c}`}
-                  >
-                    {c}
-                  </Link>
+        <div className="mt-3 space-y-5">
+          {groups.map((group, index) => (
+            <details key={group.id} open={index === 0} className="group">
+              <summary className="flex cursor-pointer list-none items-baseline justify-between gap-3 border-b border-border pb-1.5">
+                <h3 className="font-serif text-lg font-semibold">{group.label}</h3>
+                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                  {group.books.length} livros · {group.description}
+                </span>
+              </summary>
+              <ul className="mt-2 grid gap-2 sm:grid-cols-2">
+                {group.books.map((book) => (
+                  <li key={book.id} className="min-w-0 rounded-md border border-border p-3">
+                    <div>
+                      <p className="text-sm font-medium">{bookLabel(book.id, book.name)}</p>
+                      <p className="font-mono text-[11px] text-muted-foreground">
+                        {book.testament === "ot"
+                          ? t("scripture.hebrewBible")
+                          : book.testament === "nt"
+                            ? t("scripture.newTestament")
+                            : t("scripture.otherBooks")}{" "}
+                        · {book.chapters} capítulos
+                      </p>
+                    </div>
+                    <div
+                      className="mt-2 grid grid-cols-5 gap-1 sm:grid-cols-6"
+                      aria-label={`Capítulos de ${bookLabel(book.id, book.name)}`}
+                    >
+                      {ScriptureKnowledgeEngine.availableChapters(book.id).map((c) => (
+                        <Link
+                          key={c}
+                          to="/scripture/$book/$chapter"
+                          params={{ book: book.id, chapter: String(c) }}
+                          className="rounded-md border border-input px-1.5 py-1 text-center font-mono text-xs transition-colors hover:bg-accent"
+                          aria-label={`${bookLabel(book.id, book.name)} ${c}`}
+                        >
+                          {c}
+                        </Link>
+                      ))}
+                    </div>
+                  </li>
                 ))}
-              </div>
-            </li>
+              </ul>
+            </details>
           ))}
-        </ul>
+        </div>
       </section>
 
       <section className="mt-6">

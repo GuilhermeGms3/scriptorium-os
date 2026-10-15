@@ -4,16 +4,19 @@ import { passageRefKey, type PassageRef } from "./scripture";
 import { textAnchorKey, type TextAnchor as CanonicalTextAnchor } from "./text-identity";
 import type { Provenance } from "./source";
 
-export type EntityType =
-  | "person"
-  | "place"
-  | "event"
-  | "passage"
-  | "work"
-  | "concept"
-  | "word"
-  | "manuscript"
-  | "historical-source";
+export const ENTITY_TYPES = [
+  "person",
+  "place",
+  "event",
+  "passage",
+  "work",
+  "concept",
+  "word",
+  "manuscript",
+  "historical-source",
+] as const;
+
+export type EntityType = (typeof ENTITY_TYPES)[number];
 
 export interface KnowledgeEntity {
   id: string;
@@ -58,26 +61,56 @@ export type EvidenceKind =
 /** @deprecated Use EvidenceKind; retained as an import bridge for older components. */
 export type EvidenceClassification = EvidenceKind;
 
-export type ClaimKind =
-  | "linguistic-analysis"
-  | "textual-critical-analysis"
-  | "historical-reconstruction"
-  | "exegetical-interpretation"
-  | "theological-interpretation"
-  | "symbolic-interpretation"
-  | "mystical-tradition"
-  | "philosophical-analysis"
-  | "reception-history"
-  | "academic-hypothesis"
-  | "speculation";
+export const CLAIM_KINDS = [
+  "textual-observation",
+  "historical-source-observation",
+  "linguistic-analysis",
+  "textual-critical-analysis",
+  "historical-reconstruction",
+  "exegetical-interpretation",
+  "theological-interpretation",
+  "symbolic-interpretation",
+  "mystical-tradition",
+  "philosophical-analysis",
+  "reception-history",
+  "academic-hypothesis",
+  "speculation",
+] as const;
 
-export type KnowledgeOrigin =
-  "source-derived" | "editorial" | "user" | "machine-assisted" | "ai-generated";
+export type ClaimKind = (typeof CLAIM_KINDS)[number];
 
-export type ReviewStatus =
-  "imported" | "machine-linked" | "source-checked" | "draft" | "reviewed" | "verified" | "disputed";
+export const KNOWLEDGE_ORIGINS = [
+  "source-derived",
+  "editorial",
+  "user",
+  "machine-assisted",
+  "ai-generated",
+] as const;
 
-export type SupportLevel = "direct" | "strong" | "moderate" | "weak" | "disputed" | "unknown";
+export type KnowledgeOrigin = (typeof KNOWLEDGE_ORIGINS)[number];
+
+export const REVIEW_STATUSES = [
+  "imported",
+  "machine-linked",
+  "source-checked",
+  "draft",
+  "reviewed",
+  "verified",
+  "disputed",
+] as const;
+
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
+
+export const SUPPORT_LEVELS = [
+  "direct",
+  "strong",
+  "moderate",
+  "weak",
+  "disputed",
+  "unknown",
+] as const;
+
+export type SupportLevel = (typeof SUPPORT_LEVELS)[number];
 
 export interface EvidenceLink {
   kind: EvidenceKind;
@@ -86,17 +119,20 @@ export interface EvidenceLink {
   assessmentNote?: string;
 }
 
-export type RelationKind =
-  | "mentioned-in"
-  | "contains-occurrence-of"
-  | "authored"
-  | "located-in"
-  | "related-to"
-  | "translated-as"
-  | "used-in"
-  | "attested-in"
-  | "echoes"
-  | "part-of";
+export const RELATION_KINDS = [
+  "mentioned-in",
+  "contains-occurrence-of",
+  "authored",
+  "located-in",
+  "related-to",
+  "translated-as",
+  "used-in",
+  "attested-in",
+  "echoes",
+  "part-of",
+] as const;
+
+export type RelationKind = (typeof RELATION_KINDS)[number];
 
 export type RelationType =
   { kind: "known"; value: RelationKind } | { kind: "custom"; value: string };

@@ -320,8 +320,7 @@ export const LinguisticRepository = {
     editionId = manifest.targetEditionId,
   ): Promise<LexicalDictionaryEntry[]> {
     const supported = references.filter(
-      (reference) =>
-        reference.system === "strong" && /^[GH]?\d+[A-Za-z]*$/.test(reference.value),
+      (reference) => reference.system === "strong" && /^[GH]?\d+[A-Za-z]*$/.test(reference.value),
     );
     if (!supported.length) return [];
     const storage = await corpusPackageRegistry.openPart(editionId, "linguistic");

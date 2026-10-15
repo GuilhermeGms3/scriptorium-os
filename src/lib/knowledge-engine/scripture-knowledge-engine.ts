@@ -7,6 +7,7 @@ import { corpusRegistry, type CorpusRegistry } from "../repositories/corpus-regi
 import { available, demo, hasAvailableData, unavailable } from "../domain/availability";
 import type {
   PassageKnowledgeBundle,
+  PassageViewpoint,
   ScriptureTextLayer,
   WordKnowledgeBundle,
 } from "../domain/knowledge-bundle";
@@ -149,6 +150,7 @@ export function createScriptureKnowledgeEngine(
       references: SourceReference[];
       fragments: SourceFragment[];
       analyses: Awaited<ReturnType<typeof KnowledgeRepository.analysesForPassage>>;
+      viewpoints: PassageViewpoint[];
     }
   >();
   const engine = {
@@ -170,17 +172,16 @@ export function createScriptureKnowledgeEngine(
     ): Promise<PassageKnowledgeBundle | null> {
       const ref = resolvePassageRef(query, dependencies.scripture.listBooks());
       if (!ref) return null;
-      await dependencies.scripture.loadChapter(ref.bookId, ref.chapter);
-      await dependencies.linguistic.loadChapter(ref.bookId, ref.chapter);
-      const directRelations = await dependencies.knowledge.relationsForPassage(ref);
-      const relations = relationClosure(
-        directRelations,
-        await dependencies.knowledge.allRelations(),
-      );
-      const [claims, analyses] = await Promise.all([
+      const [, , directRelations, allRelations, claims, analyses, viewpoints] = await Promise.all([
+        dependencies.scripture.loadChapter(ref.bookId, ref.chapter),
+        dependencies.linguistic.loadChapter(ref.bookId, ref.chapter),
+        dependencies.knowledge.relationsForPassage(ref),
+        dependencies.knowledge.allRelations(),
         dependencies.knowledge.claimsForPassage(ref),
         dependencies.knowledge.analysesForPassage(ref),
+        dependencies.knowledge.viewpointsForPassage(ref),
       ]);
+      const relations = relationClosure(directRelations, allRelations);
       const entityIds = new Set(
         relations
           .flatMap(anchorsOf)
@@ -220,6 +221,7 @@ export function createScriptureKnowledgeEngine(
           ).values(),
         ],
         analyses,
+        viewpoints,
       });
       return engine.getPassageKnowledgeBundle(ref);
     },
@@ -263,6 +265,19 @@ export function createScriptureKnowledgeEngine(
       const relations = cachedKnowledge?.relations ?? [];
       const claims = cachedKnowledge?.claims ?? [];
       const entities = cachedKnowledge?.entities ?? [];
+      const viewpoints = cachedKnowledge?.viewpoints ?? [];
+      const viewpointProfiles = viewpoints.flatMap((viewpoint) =>
+        viewpoint.profile ? [viewpoint.profile] : [],
+      );
+      const hasViewpoints = viewpoints.some(
+        (viewpoint) =>
+          viewpoint.profile !== null ||
+          viewpoint.supportingArguments.length > 0 ||
+          viewpoint.opposingArguments.length > 0,
+      );
+      const perspectives = viewpointProfiles.length
+        ? viewpointProfiles
+        : dependencies.analysis.listPerspectives();
 
       const editionIds = new Set<string>();
       verses.forEach((verse) => {
@@ -403,11 +418,17 @@ export function createScriptureKnowledgeEngine(
         analyses: analyses.length
           ? available(analyses)
           : unavailable("not-analyzed", "No source-backed analysis is available."),
+        viewpoints: hasViewpoints
+          ? available(viewpoints)
+          : unavailable(
+              "awaiting-source",
+              "Nenhuma fonte citada atribui estas afirmações a uma perspectiva.",
+            ),
         evidence: fragments.length
           ? available(fragments)
           : unavailable("unavailable", "Nenhum fragmento de fonte foi resolvido."),
         lenses: dependencies.analysis.listLenses(),
-        perspectives: dependencies.analysis.listPerspectives(),
+        perspectives,
         sources: { references, fragments },
         user,
         availability: {
@@ -422,9 +443,8 @@ export function createScriptureKnowledgeEngine(
           claims: claims.length ? "available" : "unavailable",
           evidence: fragments.length ? "available" : "unavailable",
           sources: references.length ? "available" : "unavailable",
-          perspectives: dependencies.analysis.listPerspectives().length
-            ? "available"
-            : "unavailable",
+          perspectives: perspectives.length ? "available" : "unavailable",
+          viewpoints: hasViewpoints ? "available" : "unavailable",
           study: user.notes.length || user.studyLinks.length ? "available" : "empty",
         },
         provenance: dependencies.scripture.getPassageProvenance(ref) ?? {

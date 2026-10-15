@@ -102,6 +102,14 @@ export function parseBibliaLivreF4(raw: string): BibliaLivreParsedBook {
 export class BibliaLivreAdapter implements CorpusAdapter {
   readonly id = "biblia-livre-f4";
   readonly importerVersion = "1.0.0";
+  readonly transformationType = "parse-f4";
+  readonly structuralDecisions = [
+    "Official UTF-8 F4 files are parsed directly; no opaque conversion tool is used.",
+    "Footnotes and psalm titles are counted and excluded from the visible verse string; added text remains visible.",
+    "No paragraph markers exist in this N4 source revision, so no paragraphs are invented.",
+    "Canonical passage references are shared, but no Portuguese-to-Greek word alignment is created.",
+    "Generated storage is partitioned by book and chapter.",
+  ];
   supports(manifest: CorpusPackageManifest) {
     return manifest.id === BIBLIA_LIVRE_PACKAGE_ID;
   }

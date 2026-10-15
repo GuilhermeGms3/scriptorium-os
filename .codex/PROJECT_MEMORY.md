@@ -1,5 +1,244 @@
 # Project Memory
 
+## Acervo compartilhado da instalação (2026-10-13)
+
+- Escopo ativo: migração integral OPFS → pasta local do projeto/Docker e biblioteca/leitor reais.
+  Leitura contextual editorial retomada em 14/10: 116 notas reais (Shedd, Genebra, MacArthur),
+  seleção Gn 1–12. Não é cobertura integral nem revisão humana. Consulte a seção de leitura
+  contextual abaixo e `docs/content/contextual-bible-reading.md`. Esta seção substitui a
+  limitação histórica OPFS-only das notas abaixo.
+- `SCRIPTORIUM_WORKSPACE_DIR` habilita adapter SQLite nativo autenticado por sessão local, header e
+  origem. Sem configuração, o modo navegador/Cloudflare permanece OPFS; falhas não alternam bancos.
+  Compose monta `data/workspace`; loopback single-user, não pronto para LAN/internet.
+- Migração real preservou 37 PDFs/671.893.492 bytes, 26.243 páginas, 49.229 unidades, 388.961 propostas,
+  137.375 decisões e eventos de Rastro. Original OPFS intacto. Pasta privada ignorada por Git/Docker;
+  não confundir estar na pasta do repositório com ser publicado no Git ou incluído na imagem.
+- Backup SQLite consistente `data/workspace/workspace.sqlite3.before-index22` e recibo local SHA-256
+  verificado. Nenhum PDF foi reprocessado, aceito ou rejeitado para fazer a migração.
+- Schema 22: índice parcial de secondary targets + união materializada dos IDs evita o scan causado
+  pelo OR de additionalPassages. Teste verifica índices, deduplicação e esquema. Medição Windows real:
+  Gênesis 1/200 relações 124 ms cold/91 ms warm; camada completa 184 ms. Em 14/10, camada completa
+  pelo adapter HTTP/Docker retornou os 200 itens em 5.440 ms; não confundir o transporte com SQL nativo.
+- Estante usa primeiras páginas reais via Poppler lazy, perfis por título explicitamente sugeridos;
+  leitor tem estrutura/assuntos extraídos, dicionário FTS e links página+unidade com realce. Estrutura
+  detectada ainda não é sumário editorial validado. Nag Hammadi localiza ocorrências nos volumes,
+  não inventa limites de tratados/códices. Contexto editorial bíblico fica recolhido.
+- Tradutor Marian inglês→português funciona no companion CPU com SentencePiece/Sacremoses e cache
+  /models corrigido para uid1001. Proxy same-origin, botão visível, tradução preservada separadamente.
+  Teste real Didaquê foi armazenado, mas mostrou qualidade ruim/omissões em trecho longo arcaico;
+  não declarar tradução acadêmica fiel. Espanhol não implementado, botão informa indisponibilidade.
+- Gates finais: 344 tests/44 arquivos e 11 Python tests, typecheck, lint e formatação passaram;
+  imagem Node/Docker produzida e verificada com as alterações finais; build Cloudflare também passou.
+  Docker reiniciado em 14/10 confirmou 37 livros/26.243 páginas/schema22, ambos serviços healthy.
+- QA IAB anterior à interrupção: estante 37 livros em localhost3000 sem reimportar, dicionários com
+  ocorrências reais de aliança, Nag Hammadi/Apócrifo de João na p.229, citação Shedd p.922 com um mark,
+  tradução Didaquê persistida após recriação, leitor 390px sem overflow, console Docker limpo.
+  Na retomada de 14/10, abas restauradas chrome-error foram bloqueadas pela política do navegador;
+  não houve tentativa de contorno nem nova validação visual dessa retomada. Abrir a URL normal
+  manualmente para uma nova rodada visual. A leitura contextual editorial integral não foi feita.
+- Fonte canônica: `docs/architecture/installation-workspace.md`. Reset/deleção física compartilhados
+  recusados; restore JSON grande, sincronização push entre browsers, HTTP Range e catálogo público
+  metadata-only permanecem dívida documentada. Nunca subir Vite/Windows + Docker/Linux sobre o mesmo DB.
+
+## Profile reliability integration (2026-10-12)
+
+- Integrated coworker branch `origin/melhoria/confiabilidade-perfis` into
+  `melhoria/verificacao-no-versiculo` with a merge, preserving published history and seven local
+  contextual-reading files in checkpoint `e45cafe`; merge commit `c305963`.
+- Canonical payload keeps reference zones, profile-specific roles and optional contextual analysis.
+  Contextual importer uses the shared secure-context hashing helper; trace explanations recover
+  from the canonical analysis after quote-redacted structural backup restore.
+- Five synthetic integration tests cover evidence offsets/errors, idempotent import and human
+  rejection preservation, profile/analysis coexistence, backup restore and atomic prevalidation.
+- Verification: 339 tests / 43 files, typecheck, full lint and production build passed. Browser QA
+  opened the real 37-book OPFS catalog, contextual-import disclosure, Shedd's profile selector and
+  Genesis 1; explanations toggled off/on and console had no warnings/errors. No private content
+  was imported, reprocessed or newly committed.
+- Existing-document reference-zone fixes still require explicit reprocessing. Whole-library
+  contextual reading is paused, not completed by this integration.
+- Structural rebuilding of a book with contextual analysis now refuses before deleting units;
+  span reconciliation is still required before safely reprocessing those notes. Existing books
+  without assistant contextual notes retain their normal reprocessing flow.
+
+## Knowledge trace module (2026-10-12)
+
+- `/trace` joins real proposals/decisions/private document spans; paginated filters and detail with
+  rationale, source page, scheme, original unit and timeline. Private Reader cards link directly.
+- Migration 020 captures proposal/decision changes with SQL triggers; legacy records get an honest
+  baseline snapshot. Reprocessing retains history by old proposal ID; deleting a document cascades it.
+- Backup v3 optional traceEvents preserves history and suppresses artificial restore events within
+  the transaction. No book corpus was newly analyzed by this UI delivery.
+- Canonical spec: `docs/architecture/knowledge-trace.md`. Migration 021 indexes paginated queries.
+- Verification: 256 tests in 37 files, strict typecheck, full lint and production build passed.
+  Browser QA recovered the persistent collection after a transient memory fallback, opened a real
+  Shedd link to physical page 935, and filtered Genebra references at Genesis 1:1. No editorial
+  analysis, acceptance, rejection or book reprocessing was performed during this read-only QA.
+- OPFS baseline history survived closing/reopening the browser tab on the same origin. Final
+  clean-tab console had no warnings/errors; mobile 390 px and desktop 1280 px had no global overflow.
+
+## Gamified visual study tree (2026-10-11)
+
+- Follow-up: every map node now navigates to its own `/study/guide/$topic` page; the center is
+  Teologia and the former right node inspector is removed. The previous inspector behavior below
+  describes the first iteration and is superseded by this navigation contract.
+- Sixteen distinct guides use editorial curricula plus bounded private-page FTS and verified
+  manifest resources. Search occurrences are not presented as approved semantic knowledge.
+- Personal investigations resume via stable `study-guide:<id>` markers, with legacy title fallback;
+  guide questions use existing ResearchQuestion persistence and workspaces link back to their guide.
+- Follow-up verification: 247 tests in 36 files; strict typecheck, full lint and Node production
+  build passed. Browser QA verified real PDF pages, duplicate-question prevention, guide/workspace
+  navigation, clean console and 390 px layout. Guide-only router scroll reset preserves Reader.
+
+- `/study` now opens a visual learning map inspired by a skill tree, while preserving the academic
+  workstation identity. Four journeys connect eleven existing source-backed study paths.
+- Node state is honest and derived from current data: an exact matching local study means started;
+  a path with sources is available; a path without source resources is an explicit collection gap.
+  No XP, mastery score or completion is fabricated.
+- Selecting a node shows contextual description, real starting works and the next action. Starting
+  creates the existing SQLite-backed `Study`; continuing opens its current workspace. Personal
+  investigations and workspace backup remain available in a dedicated view.
+- The Knowledge route remains the free graph mode. Study-map edges are pedagogical organization,
+  not theological truth claims or ontology relations.
+- Canonical graph content and derivation live in `src/lib/content/study-learning-map.ts`; rendering
+  lives in `src/components/study/study-learning-map.tsx`.
+
+## Functional front-end restructuring (2026-10-10)
+
+- Home rotates a real daily passage across all installed chapters and persists the last chapter in
+  localStorage. It never fabricates exegesis/hermeneutics for uncovered passages.
+- Scripture navigation is grouped by literary/canonical blocks; additional traditions remain an
+  explicit group rather than being mixed into the 66-book order.
+- Study is the primary learning tree and links to Knowledge as a deeper concept map. Knowledge was
+  removed from primary navigation but its route and graph remain available.
+- Library catalog has focused views for private books, installed primary sources, Nag Hammadi and
+  bibliographic records. PDF import/OCR/linking/audit moved to `/library/process`.
+- Passage and word inspectors hide empty tabs. Private passage cards foreground extracted claims
+  and arguments and collapse the source excerpt. English lexicon translation is now foregrounded.
+- Search offers intent examples and result-group filters over the existing SQLite-backed service.
+
+## Front-end experience foundation (2026-10-10)
+
+- Canonical UX direction: `docs/architecture/frontend-experience.md`. Preserve the dense academic
+  workstation identity, but organize the product into reading, library and investigation contexts.
+- The passage/word inspector is now route-scoped to chapter reading. Library, Study, Knowledge,
+  Search and other general routes no longer sacrifice space to an empty biblical inspector.
+- Library pipeline controls use progressive disclosure; the catalog remains the primary surface.
+- Knowledge Explorer now filters entities and omits empty relation cards, replacing an entirely
+  empty graph with one honest explanatory state.
+- Translation is already exposed for English primary-source units, accepted English private units
+  and eligible word definitions. Private batch translation and the configured Docker model remain
+  English-to-Portuguese only; Spanish-to-Portuguese is not implemented yet.
+- Verification: 229 tests across 31 files, typecheck, repository lint, Node production build and
+  desktop/mobile browser QA passed. Browser QA covered contextual inspector visibility, pipeline
+  disclosure, Knowledge filtering, 390 px overflow and clean-console fresh-page loads.
+
+## Contextual private knowledge engine (2026-10-02)
+
+- Workspace schema 14 preserves reviewed proposals while adding explicit bibliographic reference,
+  attribution and coreference proposal kinds. The deterministic analyzer carries bibliography,
+  recent-person and recent-work context across its 50-page checkpoints.
+- The optional Python service now implements the same bounded `analyzeBatch()` contract and returns
+  a serializable provider checkpoint. The client accepts only loopback endpoints, validates output
+  with Zod, rejects proposals for units outside the submitted batch and keeps every result
+  `machine-proposed`.
+- Private PDF batch import continues after per-file failures, detects Portuguese/English/Spanish and
+  Greek/Hebrew script conservatively, reports partial text layers and accepts files up to 256 MiB.
+  OCR remains explicit future work; protected bytes/text remain OPFS-only.
+- Python development is pinned to 3.13.3 through `.python-version`; npm semantic commands prefer the
+  local venv or Windows `py -3.13`, avoiding the stale `python` 3.10 PATH alias.
+- Client chunking separates React runtime from the application entry. The final measured entry fell
+  from 550.03 kB to 372.11 kB (React runtime 189.73 kB) without raising the warning threshold.
+- Browser QA imported the 37 PDFs found in the user's private library into OPFS: 31 were indexed and
+  six were rejected explicitly because they have no extractable text layer and require OCR. Protected
+  bytes and extracted text remain local and are not tracked by Git. Checksum reimports corrected
+  metadata without duplicating documents.
+- The contextual analyzer was exercised end-to-end against the local Python service. Reprocessing a
+  21-page document produced 260 reviewable proposals; a detected lowercase false attribution was
+  eliminated by the deterministic guard, and the browser console remained clean.
+- Fast Refresh ESLint exceptions are restricted to known stable component helpers/hooks; all eight
+  previous warnings are gone while the rule remains active.
+
+## Local pipeline implementation milestone (2026-10-04)
+
+- Architecture: `docs/architecture/local-knowledge-pipeline.md`; local companion setup in
+  `services/semantic-engine/README.md`. Extension of canonical units/proposals, not a duplicate engine.
+- Workspace migration 15: jobs/configuration/checkpoints, unit receipts, publication/audit decisions,
+  OCR layouts. Optional backup-v3 fields preserve compatibility with older checksums.
+- Scanned originals can now be imported; Tesseract recovers only empty pages. Native PDF geometry is
+  retained on new text-layer imports. Existing text/evidence is never overwritten by OCR.
+- Companion: bounded loopback-only OCR/index/link endpoints; optional global multilingual CPU vector
+  retrieval plus FTS and cosine rerank; candidate-constrained JSON LLM output and literal UTF-16 spans.
+- Front: per-book preparation, OCR languages, model toggle, scheme confirmation, pause/resume, audit
+  sampling and bulk review/revocation. Inspector distinguishes private machine links from editorial review.
+- Inferential auto-publication remains blocked pending evaluation; explicit reference auto-visibility
+  requires verified source numbering and corpus resolution. Author/bibliography/coreference still heuristic.
+- Validation: typecheck, focused ESLint, Ruff, Python 3.13.3 syntax and production build passed;
+  migrations reapplied to an in-memory SQLite database at version 15 with zero FK violations.
+- Deferred at user request: automated suites, real OCR/model processing, performance and browser QA.
+  No new PDFs were processed during this code-only stage. Concurrent tabs/job leases, neural structure,
+  cross-encoder and calibration remain debt. Rebuilding canonical units invalidates private derived audits.
+
+## Canonical private knowledge consolidation details (2026-10-01)
+
+- Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
+  `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query
+  the legacy semantic engine; its service/repository remain deprecated compatibility surfaces.
+- Library now lists persisted private documents after reload. Backup schema v3 preserves private
+  document identity, structure, spans, review decisions, translations and translation-job state,
+  but deliberately exports empty page anchors rather than protected text. Reimport of the original
+  checksum rehydrates those page IDs without deleting derived knowledge.
+- Knowledge Explorer now consumes supporting/opposing arguments, evidence, objections, responses
+  and multidimensional perspectives. Private passage knowledge renders arguments, premises,
+  citations and entities in addition to claims/topics/translations.
+- Immutable knowledge builds use the epoch migration timestamp and a byte-for-byte reproducibility
+  test. Curated claims now include actual evidence and perspective links instead of schema-only
+  support.
+- Local English-to-Portuguese translation resolves Hugging Face aliases to a commit SHA, separates
+  model-info and inference timeouts, persists batch progress and supports pause/resume through the
+  checksum cache. `main` is rejected as cache identity.
+- The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
+  claim-kind and qualifier classification and processes 50-page batches with a serialized
+  hierarchy/ordinal checkpoint. Failed runs resume after the last committed batch with idempotent
+  inserts. Full author/citation/coreference understanding remains future work; optional providers
+  only gain resumability when they implement `analyzeBatch()`.
+
+## Passage aggregation and editorial gate (2026-10-01)
+
+- Workspace schema 12 keys local translations by provider model revision and expands controlled
+  semantic domains for social/political history, tradition, soteriology, eschatology and religious
+  currents.
+- Accepted private-book passage relations now resolve to their citeable semantic unit, sibling
+  accepted proposals, physical pages and optional local translation in Passage Inspector. This is
+  a private overlay; curated knowledge remains read-only and separate.
+- Passage Inspector exposes an honest 15-area coverage matrix. Pending links do not count as
+  coverage.
+- The deterministic resolver supports full pt/en references, same-chapter continuations and
+  context-bound relative verses; exact per-chapter verse counts remain future work.
+- Accepted English units can be translated in batch, without tokenizer truncation, and translations
+  have an explicit human-review action.
+- Claims and arguments can declare an interpretive perspective. Editorial staging always has
+  `publicationAllowed: false` and blocks private rights, missing passage or missing evidence before
+  any future curated import.
+
+## Book Decomposition Pipeline v1 (2026-10-01)
+
+- Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,
+  `semantic_unit_spans`, reviewable `knowledge_proposals` and versioned
+  `document_knowledge_indexes`. No proposal writes to the public knowledge snapshot.
+- `DocumentKnowledgeAnalyzer` is the provider boundary. The deterministic v1 implementation
+  detects book/part/chapter/section/bibliography structure, joins simple cross-page continuations
+  and proposes topics, passage relations, claims, arguments, quotations and controlled entities.
+- Proposal IDs include a payload fingerprint. Reprocessing is idempotent and preserves accepted or
+  rejected decisions, including edited claim text, when the semantic proposal remains the same.
+- The private document reader now exposes Structure, Review and Aggregate views. Export is explicit,
+  local-only JSON (`scriptorium-private-knowledge-export-v1`) marked as requiring rights review.
+- Verification: strict typecheck passed; focused ESLint passed; 24 focused tests passed; direct Vite
+  client/SSR/Nitro build passed. Direct full Vitest without `pretest` remained blocked by local
+  corpus SQLite files whose checksums differ from the committed registry after a Node 24 rebuild;
+  this is the previously identified cross-toolchain artifact reproducibility issue.
+- Next safe actions: browser QA with a real text-layer PDF; add golden-layout fixtures for footnotes,
+  bibliographies and complex tables of contents; pin the binary corpus build toolchain.
+
 ## Semantic content engine (2026-09-30)
 
 - Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,
@@ -137,6 +376,9 @@
 - 2026-09-22 — quarantine the Wikisource Tradução Brasileira from distributable runtime packages because US hosting does not establish Brazilian public-domain status; preserve the artifact only for rights review.
 - 2026-09-22 — pin the official eBible porbrbsl USFM ZIP (SHA-256 52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd) as the public-domain Portuguese expansion; label it as a draft in active revision and preserve all 81 works without treating its collection as a universal canon.
 - 2026-09-25 — ingest user-owned PDFs only into private browser storage: keep original bytes in OPFS, index page text in workspace SQLite/FTS5, derive stable IDs from SHA-256, make checksum reimports idempotent and never add protected files/text to Git or public corpus packages.
+- 2026-10-05 — orchestrate the complete private library through the existing canonical knowledge pipeline, persisting run/document state and continuing after isolated failures; do not introduce a competing analyzer or storage path.
+- 2026-10-05 — represent contextual passage reach as one primary target plus bounded additional targets, with explicit verse/range/pericope/chapter/book scope; keep source edition and versification provenance on every relation.
+- 2026-10-05 — release explicit reference links under their own policy and keep inferred links withheld behind deterministic distributed batch samples; accepting a sample is an operational publication gate, not proof of theological or statistical truth.
 
 ## Current state
 
@@ -145,11 +387,15 @@
 - Data: 142,096 TAGNT records processed; 137,074/137,741 targets aligned (99.5158%): 82,918 exact, 53,740 normalized, 416 positional, 75 ambiguous, 592 unmatched. 5,621 lexical identities; 27 books/260 chapters. John 7:53–8:11 retains all 187 textual tokens with no accepted TAGNT link.
 - Storage: SBL generated 74,746,655 → 23,829,469 bytes (-68.12%); generated TAGNT 33,726,686 bytes. Exact metrics and timing in `docs/corpora/phase5-metrics.json`.
 - Bíblia Livre: 68 artifacts, 4,582,764 source bytes; 66 books, 1,189 chapters, 31,101 verses; 1,167 notes, 116 psalm titles, zero explicit paragraphs; 8,472,398 generated bytes. One explicit anomaly: Mark 5:19 omitted in N4.
-- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, interlinear, Hebrew or LXX. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF text-layer ingestion works; OCR, EPUB, structural section detection and automatic passage linking remain future work.
+- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, LXX or aparato crítico. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF ingestion, deterministic structure/linking and optional OCR exist; OCR requires Tesseract/idiomas locais e EPUB permanece futuro.
 - Verification performed: Phase 9 passed 106 tests across 11 files, typecheck, focused lint, Node production build and Lovable sandbox Cloudflare build. Browser QA covered João 1, OPFS across reload/server restart, immediate source-list invalidation, duplicate import, λόγος with 328 paginated occurrences and a clean console. A byte-counting proxy observed 31,744,000 corpus bytes for João versus 358,256,640 monolithic bytes; concordance transferred only the 60,268,544-byte linguistic part. Direct SSR returned the client loading shell without SQLite/OPFS initialization. Repository-wide lint remains blocked by the pre-existing line-ending/Prettier debt snapshot.
 - Phase 10.1 continuation: imported the public-domain 1885 ANF IX OCR source for Origen's Commentary on John Books I-II as 65 stable primary-source units and a 1,908,736-byte work-sharded SQLite/FTS5 package. John 1:1 now links to exact unit II.2 through a source-backed reception-history analysis. Final verification passed 126 tests across 16 files, typecheck, focused ESLint and Node production build; a no-change corpus rebuild reused all six packages. Browser QA opened the exact II.2 unit, confirmed real global FTS results and a clean console. Repository-wide lint still reports 2,974 pre-existing formatting/CRLF problems.
 - Phase 10.1 content continuation: imported the public-domain eBible Bíblia Portuguesa Mundial draft as 81 works, 1,402 chapters, 38,029 text units and 2,311 detected editorial notes. Added 15 Portuguese deuterocanonical/other apocryphal works to navigation and work-sharded SQLite/FTS delivery. Wikisource TBB is blocked from the public registry pending Brazilian rights review.
 - Private library continuation (2026-09-25): six user-purchased Portuguese PDFs were imported locally as 4,280 physical pages, 4,261 with searchable text. Global search opens exact document pages; reload persistence and checksum-idempotent reimport were verified in the browser. The files and extracted content are not tracked by Git.
+- Private library orchestration (2026-10-09): schema 18 persists workspace identity, whole-library runs, per-document stage state, document profiles, semantic-unit roles and review batches; an indexed unit/proposal lookup keeps deterministic resumptions bounded. Coverage reports missing text/OCR/structure/linking state, profile distribution, proposal policy and target/domain gaps. Reader selection can narrow the inspector to one verse; accepted private excerpts appear below the relevant verse with page/section/author metadata and obey the explanations toggle.
+- Workspace consolidation (2026-10-10): the canonical OPFS origin is `http://127.0.0.1:5173` and now contains all 37 PDFs, 26,243 pages, 49,229 semantic units and a completed deterministic run (37/37, zero operational failures). It reaches 16,701 distinct verses; 60,036 relations are machine-visible and 77,339 remain in exception/review. The former six-book OPFS workspace was archived outside the live browser profile after a verified raw backup.
+- The final raw OPFS backup is `C:\Users\comical\Documents\Scriptorium Workspace Backups\2026-10-10-final-workspace-consolidation`; its 1,187,467,264-byte main database file matches the canonical source by SHA-256 (`926C73C2B41FB23EB015459121391D9C28C4B9B1627D5861C58EECC9C1015FDC`). The retired six-book store is recoverable at `2026-10-10-retired-six-book-workspace` and the earlier before/after snapshots remain available.
+- Reader consolidation (2026-10-10): schema 19 adds the passage lookup index; contextual proposal resolution now uses the already-computed publication set instead of a correlated scan and fetches only required document nodes/pages. A native Gênesis 1 diagnostic fell from about 28.2 s to 0.51 s. Browser QA on the 1.1 GB OPFS workspace showed 200 published links in Gênesis 1, source/page cards, filters, inspector coverage and a working clean-reading explanations toggle. OPFS cold startup remains around 30 s and the browser/WASM reader path around 18 s for the 200-item chapter cap.
 
 ## Next safe actions
 
@@ -157,4 +403,30 @@
 - If translation/original alignment is added later, use an explicit dataset and algorithm; never infer Portuguese↔Greek links by position.
 - Keep the 667 TAGNT residues unchanged unless explicit editorial evidence is introduced.
 - Build a compact cross-work search/lexeme index or range VFS before global operations span substantially larger corpora; preserve the `CorpusStorage` boundary.
-- Add OCR, EPUB, structural section detection, private citations and human-reviewed passage links without weakening local-only privacy or provenance.
+- Audit high-density explicit references and false positives by document profile; the completed deterministic run connects the library but does not make every extracted link academically correct.
+- Install Tesseract with Portuguese/English/Spanish language data only when recovering the remaining 219 image-only pages; OCR no longer blocks the 37-document collection.
+- Add EPUB support and improve structural section/citation extraction without weakening local-only privacy or provenance.
+
+# Leitura contextual privada — 2026-10-14
+
+- Incorporadas realmente 116 notas. Primeiros lotes: Shedd p. físicas 5–6 (Gn 1–3), Genebra p. 28–36
+  (seleção Gn 1–2). Lote privado `genesis-shedd-genebra-20261014-01`, JSON/plano em
+  `data/workspace/`; idempotência real: 0 importadas/48 reutilizadas. Não é leitura integral.
+- Segundo lote: 3 notas MacArthur p. 37–39, Gn 1:26, 3:1–24 e 12:1–3,
+  `genesis-macarthur-20261014-01`; reimportado 0/3. Snapshot completo de 48 notas
+  verificado por IDs + ambos os pacotes permitem recuperação; `.partial` não é backup válido.
+- Terceiro lote `genesis-shedd-genebra-20261014-02`: 65 notas novas, Shedd p. 7–11
+  (seleção Gn 3–12), Genebra p. 38–41 (seleção Gn 3–4). Importado 65/0 e repetido 0/65.
+  Novos snapshots completos antes dessas operações preservam 51 e 116 notas. Não é cobertura integral.
+- `content:import:contextual` usa serviço canônico + backup SQLite e exige runtimes parados.
+  Não executar Windows e Docker escrevendo simultaneamente no bind mount.
+- Reader mostra múltiplas fontes contextuais, links sublinhados para página/unidade;
+  intervalos >7 versos recolhidos; consulta prioriza contexto antes do teto de 200 relações.
+- A versão digital Genebra tem português e referências defeituosos no próprio PDF;
+  limitação preservada nas notas. Não afirmar que a edição foi certificada.
+- Continuidade: completar notas/capítulos na ordem bíblica; nunca converter citações
+  cruzadas existentes em comentário direto sem leitura. Docs: `docs/content/contextual-bible-reading.md`.
+- Marcadores editoriais: Shedd p. física 11, próxima nota `13.2`; Genebra p. física 41,
+  após `4:01`, seguir na p. 42. Lacunas deliberadas incluem Shedd 5:24 (p. 7–8) e
+  Genebra 3:2–5 (p. 37–38), 3:17 (p. 39–40): precisam recortes multi-página.
+  O livro de exegese/hermenêutica ainda não recebeu um lote editorial nesta entrega.

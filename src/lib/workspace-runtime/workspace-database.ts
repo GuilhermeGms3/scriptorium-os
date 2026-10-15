@@ -7,6 +7,7 @@ import type {
   WorkspaceSqlValue,
 } from "./protocol";
 import { StorageUnavailableError, WorkspaceMigrationError } from "../domain/errors";
+import { installationAvailable, InstallationWorkspaceDatabase } from "./installation-client";
 
 class WorkerWorkspaceDatabase implements WorkspaceDatabase {
   readonly #worker: Worker;
@@ -61,13 +62,26 @@ class WorkerWorkspaceDatabase implements WorkspaceDatabase {
   async reset(): Promise<void> {
     await this.#send({ type: "reset" });
   }
+  async exportSnapshot(): Promise<Uint8Array> {
+    return (await this.#send({ type: "export-snapshot" })) as Uint8Array;
+  }
 }
 
-let databasePromise: Promise<WorkerWorkspaceDatabase> | null = null;
+/** Explicit migration source; never the fallback when the installation is unavailable. */
+export async function openBrowserMigrationSource() {
+  const database = new WorkerWorkspaceDatabase();
+  await database.initialize();
+  if (database.persistence !== "opfs")
+    throw new Error("Workspace OPFS original indisponível. Nada foi migrado.");
+  return database;
+}
+
+let databasePromise: Promise<WorkspaceDatabase> | null = null;
 export function getWorkspaceDatabase(): Promise<WorkspaceDatabase> {
   if (typeof window === "undefined")
     throw new StorageUnavailableError("Workspace SQLite is available in the browser runtime only.");
   databasePromise ??= (async () => {
+    if (await installationAvailable()) return new InstallationWorkspaceDatabase();
     const database = new WorkerWorkspaceDatabase();
     await database.initialize();
     return database;

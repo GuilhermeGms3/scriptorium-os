@@ -9,11 +9,14 @@
 .tanstack
 .vinxi
 node_modules
+**/.venv
+**/.pytest_cache
 dist
 dist-ssr
 coverage
 logs
 livros
+data/workspace
 *.log
 *.local
 .env

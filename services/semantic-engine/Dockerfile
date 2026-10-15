@@ -11,7 +11,10 @@ RUN groupadd --system --gid 1001 scriptorium \
 
 COPY pyproject.toml ./
 COPY --chown=scriptorium:scriptorium app ./app
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir "torch>=2.6,<3" --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir .
+
+RUN mkdir -p /models/huggingface && chown -R scriptorium:scriptorium /models
 
 USER scriptorium
 EXPOSE 8018

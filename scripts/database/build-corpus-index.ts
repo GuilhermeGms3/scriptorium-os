@@ -1,5 +1,5 @@
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { DatabaseSync } from "node:sqlite";
 import type { GeneratedCorpusManifest } from "../../src/lib/domain/generated-corpus";
@@ -18,8 +18,15 @@ import {
   type LinguisticDataset,
   type MorphologicalAnalysis,
 } from "../../src/lib/domain/linguistic";
-import { applyMigrations, DATABASE_SCHEMA_VERSION } from "./migrate";
-import { seedKnowledgeDatabase } from "./seed-knowledge";
+import {
+  applyMigrations,
+  DATABASE_SCHEMA_VERSION,
+  progress,
+  removeDatabaseFiles,
+  sweepInterruptedBuildFiles,
+  timed,
+} from "./migrate";
+import { seedKnowledgeDatabase, type KnowledgeSeedReport } from "./seed-knowledge";
 import { buildPrimarySourcePackages } from "./build-primary-source-index";
 
 const root = resolve(import.meta.dirname, "../..");
@@ -423,7 +430,7 @@ function buildWorkShard(
   const shardDirectory = join(outputDirectory, editionId);
   const shardPath = join(shardDirectory, `${safeWork}.sqlite3`);
   mkdirSync(shardDirectory, { recursive: true });
-  if (existsSync(shardPath)) rmSync(shardPath);
+  removeDatabaseFiles(shardPath);
   const shard = new DatabaseSync(shardPath);
   applyMigrations(shard, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   shard.prepare("ATTACH DATABASE ? AS source_db").run(sourcePath);
@@ -487,7 +494,7 @@ function buildLinguisticShard(
   const shardDirectory = join(outputDirectory, editionId);
   const shardPath = join(shardDirectory, "linguistic.sqlite3");
   mkdirSync(shardDirectory, { recursive: true });
-  if (existsSync(shardPath)) rmSync(shardPath);
+  removeDatabaseFiles(shardPath);
   const shard = new DatabaseSync(shardPath);
   applyMigrations(shard, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   shard.prepare("ATTACH DATABASE ? AS source_db").run(sourcePath);
@@ -557,7 +564,7 @@ function buildSearchShard(
   const shardDirectory = join(outputDirectory, editionId);
   const shardPath = join(shardDirectory, "search.sqlite3");
   mkdirSync(shardDirectory, { recursive: true });
-  if (existsSync(shardPath)) rmSync(shardPath);
+  removeDatabaseFiles(shardPath);
   const shard = new DatabaseSync(shardPath);
   applyMigrations(shard, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   shard.prepare("ATTACH DATABASE ? AS source_db").run(sourcePath);
@@ -699,7 +706,10 @@ function buildPackage(
   const sourceManifest = json<GeneratedCorpusManifest>(join(generatedRoot, "manifest.json"));
   const outputPath = join(outputDirectory, `${sourceManifest.editionId}.sqlite3`);
   mkdirSync(dirname(outputPath), { recursive: true });
-  if (existsSync(outputPath)) rmSync(outputPath);
+  removeDatabaseFiles(outputPath);
+  progress(
+    `  ${sourceManifest.editionId}: base principal (${sourceManifest.books.length} livros)…`,
+  );
   const database = new DatabaseSync(outputPath);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   database.exec("BEGIN IMMEDIATE");
@@ -921,12 +931,16 @@ function buildPackage(
   if (violations.length || quickCheck.quick_check !== "ok")
     throw new Error(`Invalid generated database ${outputPath}.`);
   const bytes = readFileSync(outputPath);
-  const parts: CorpusPackageManifest["parts"] = sourceManifest.books.map((book) =>
-    buildWorkShard(outputPath, sourceManifest.editionId, `work:${book.id}`),
-  );
+  const parts: CorpusPackageManifest["parts"] = sourceManifest.books.map((book, index) => {
+    progress(`  shard ${index + 1}/${sourceManifest.books.length}: ${book.id}`);
+    return buildWorkShard(outputPath, sourceManifest.editionId, `work:${book.id}`);
+  });
+  progress(`  ${sourceManifest.editionId}: shard de busca…`);
   parts.push(buildSearchShard(outputPath, sourceManifest.editionId));
-  if (definition.kind === "original-language")
+  if (definition.kind === "original-language") {
+    progress(`  ${sourceManifest.editionId}: shard linguístico…`);
     parts.push(buildLinguisticShard(outputPath, sourceManifest.editionId));
+  }
   const manifest: CorpusPackageManifest = {
     schemaVersion: DATABASE_SCHEMA_VERSION,
     id: `runtime:${sourceManifest.packageId}`,
@@ -969,21 +983,26 @@ const previousPackages = existsSync(previousRegistryPath)
   ? (json<{ packages: CorpusPackageManifest[] }>(previousRegistryPath).packages ?? [])
   : [];
 const buildReport: { editionId: string; action: "reused" | "rebuilt" }[] = [];
-const packages = definitions.map((definition) => {
+const sweptFiles = sweepInterruptedBuildFiles(outputDirectory);
+if (sweptFiles) progress(`Removidos ${sweptFiles} ficheiros laterais de um build interrompido.`);
+const packages = definitions.map((definition, index) => {
   const generated = json<GeneratedCorpusManifest>(
     join(root, definition.generatedDirectory, "manifest.json"),
   );
+  const step = `[${index + 1}/${definitions.length}] ${generated.editionId}`;
   const fingerprint = packageFingerprint(definition);
   const previous = previousPackages.find((manifest) => manifest.editionId === generated.editionId);
   if (
     previous &&
     validatesCachedPackage(previous, fingerprint, !definition.generatedDirectory.includes("wlc"))
   ) {
+    progress(`${step}: atualizado, reaproveitado`);
     buildReport.push({ editionId: generated.editionId, action: "reused" });
     return CorpusPackageManifestSchema.parse({ ...previous, buildFingerprint: fingerprint });
   }
+  progress(`${step}: reconstruindo…`);
   buildReport.push({ editionId: generated.editionId, action: "rebuilt" });
-  return buildPackage(definition, fingerprint);
+  return timed(step, () => buildPackage(definition, fingerprint));
 });
 packages.push(...buildPrimarySourcePackages(previousPackages, buildReport));
 writeFileSync(
@@ -1011,16 +1030,21 @@ function buildKnowledgeDatabase(): {
   checksum: string;
   sizeBytes: number;
   schemaVersion: number;
+  counts: KnowledgeSeedReport["counts"];
 } {
   const directory = join(root, "public/knowledge");
   const path = join(directory, "knowledge.sqlite3");
   mkdirSync(directory, { recursive: true });
-  if (existsSync(path)) rmSync(path);
+  removeDatabaseFiles(path);
   const database = new DatabaseSync(path);
   applyMigrations(database, migrationsDirectory, { appliedAt: "1970-01-01T00:00:00.000Z" });
   database.exec("BEGIN IMMEDIATE");
+  let report: KnowledgeSeedReport;
   try {
-    seedKnowledgeDatabase(database, join(root, "content/scriptorium-content-seed-v0.1.json"));
+    report = seedKnowledgeDatabase(
+      database,
+      join(root, "content/scriptorium-content-seed-v0.1.json"),
+    );
     database.exec("COMMIT; VACUUM;");
   } catch (error) {
     database.exec("ROLLBACK");
@@ -1041,7 +1065,10 @@ function buildKnowledgeDatabase(): {
     schemaVersion: DATABASE_SCHEMA_VERSION,
   };
   writeFileSync(join(directory, "manifest.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
-  return manifest;
+  return { ...manifest, counts: report.counts };
 }
 
-console.log(JSON.stringify({ knowledge: buildKnowledgeDatabase() }, null, 2));
+progress("Construindo a base de conhecimento…");
+const knowledge = timed("Base de conhecimento", buildKnowledgeDatabase);
+console.log(JSON.stringify({ knowledge }, null, 2));
+progress("Pronto.");

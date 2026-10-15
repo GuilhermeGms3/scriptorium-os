@@ -6,6 +6,7 @@ import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../../lib/i18n";
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import type { ResearchQuestion } from "../../lib/domain/research";
+import { studyGuideById } from "../../lib/content/study-guides";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -54,6 +55,11 @@ function StudyWorkspace() {
     note.links.some((link) => link.kind === "study" && link.target === study.id),
   );
 
+  const guideId = study.items
+    .find((item) => item.refId.startsWith("study-guide:"))
+    ?.refId.slice("study-guide:".length);
+  const guide = guideId ? studyGuideById(guideId) : undefined;
+
   const saveNote = async (event: FormEvent) => {
     event.preventDefault();
     if (!title.trim() && !body.trim()) return;
@@ -68,6 +74,15 @@ function StudyWorkspace() {
   return (
     <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">
       <header className="border-b border-border pb-3">
+        {guide && (
+          <Link
+            to="/study/guide/$topic"
+            params={{ topic: guide.id }}
+            className="mb-3 inline-block text-xs text-primary hover:underline"
+          >
+            Voltar ao guia de {guide.title}
+          </Link>
+        )}
         <p className="meta-label">{t("study.workspace")}</p>
         <h1 className="mt-1 font-serif text-2xl font-semibold">{study.title}</h1>
         <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">

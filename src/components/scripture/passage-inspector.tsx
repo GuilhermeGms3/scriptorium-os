@@ -2,12 +2,21 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
+import type { Argument } from "../../lib/domain/argument";
 import type { TextAnchor } from "../../lib/domain/knowledge";
+import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
+import { knowledgeLabel } from "../../lib/content/knowledge-presentation";
 import type { ResearchQuestion } from "../../lib/domain/research";
-import type { SemanticPassageLink } from "../../lib/domain/semantic-content";
+import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
+import {
+  COVERAGE_LABELS,
+  PASSAGE_KNOWLEDGE_GROUPS,
+  PASSAGE_KNOWLEDGE_GROUP_LABELS,
+  passageKnowledgeGroup,
+} from "../../lib/domain/workspace-passage-knowledge";
+import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
 import { passageRefsOverlap } from "../../lib/domain/scripture";
 import { StudyRepository } from "../../lib/repositories/study-repository";
-import { SemanticContentRepository } from "../../lib/repositories/semantic-content-repository";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
@@ -25,10 +34,10 @@ import {
 
 const TABS = [
   { id: "overview", label: t("scripture.tab.overview") },
+  { id: "literature", label: t("scripture.tab.literature") },
   { id: "cross-references", label: t("scripture.tab.crossReferences") },
   { id: "language", label: t("scripture.tab.language") },
   { id: "history", label: t("scripture.tab.history") },
-  { id: "literature", label: t("scripture.tab.literature") },
   { id: "notes", label: t("scripture.tab.notes") },
   { id: "sources", label: t("scripture.tab.sources") },
   { id: "research", label: "Pesquisa" },
@@ -50,10 +59,74 @@ function primarySourceAnchor(anchor: TextAnchor):
   };
 }
 
+function ViewpointArguments({ label, items }: { label: string; items: Argument[] }) {
+  return (
+    <div className="mt-2">
+      <p className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">{label}</p>
+      {items.length ? (
+        <ul className="mt-1 space-y-0.5">
+          {items.map((argument) => (
+            <li key={argument.id} className="text-xs">
+              {knowledgeLabel(argument.id, argument.title ?? argument.id)}
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="mt-0.5 text-xs text-muted-foreground italic">Nenhum argumento registrado.</p>
+      )}
+    </div>
+  );
+}
+
+/** Claims grouped by the perspective a cited source attributes them to; never inferred. */
+function PassageViewpoints({ bundle }: { bundle: PassageKnowledgeBundle | null }) {
+  if (!bundle || !hasAvailableData(bundle.viewpoints)) {
+    return (
+      <p className="mt-1 text-sm text-muted-foreground italic">
+        {bundle ? statusLabel(bundle.viewpoints.status) : t("scripture.noPassageSelected")}
+      </p>
+    );
+  }
+  return (
+    <ul className="mt-2 space-y-2">
+      {bundle.viewpoints.data.map((viewpoint) => (
+        <li
+          key={viewpoint.profile?.id ?? "unassigned"}
+          className="rounded-md border border-border p-2.5"
+        >
+          <p className="text-sm font-medium">
+            {viewpoint.profile
+              ? knowledgeLabel(viewpoint.profile.id, viewpoint.profile.label)
+              : "Sem perspectiva atribuída"}
+          </p>
+          {viewpoint.profile?.description && (
+            <p className="mt-0.5 text-xs leading-relaxed text-muted-foreground">
+              {viewpoint.profile.description}
+            </p>
+          )}
+          <ul className="mt-2 space-y-1.5">
+            {viewpoint.claims.map((claim) => (
+              <li key={claim.id} className="border-l border-border pl-2.5">
+                <p className="text-xs leading-relaxed">{claim.proposition}</p>
+                <p className="mt-0.5 font-mono text-[9px] text-muted-foreground uppercase">
+                  {claimKindLabel(claim.kind)} · {supportLevelLabel(claim.supportLevel)}
+                </p>
+              </li>
+            ))}
+          </ul>
+          <ViewpointArguments label="Argumentos a favor" items={viewpoint.supportingArguments} />
+          <ViewpointArguments label="Argumentos contra" items={viewpoint.opposingArguments} />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
 export function PassageInspector() {
   const { passageContext } = useWorkbench();
   const [researchQuestions, setResearchQuestions] = useState<ResearchQuestion[]>([]);
-  const [semanticSources, setSemanticSources] = useState<SemanticPassageLink[]>([]);
+  const [workspaceKnowledge, setWorkspaceKnowledge] =
+    useState<WorkspacePassageKnowledgeLayer | null>(null);
   useEffect(() => {
     let active = true;
     if (!passageContext) {
@@ -96,22 +169,29 @@ export function PassageInspector() {
   useEffect(() => {
     let active = true;
     if (!passageContext) {
-      setSemanticSources([]);
+      setWorkspaceKnowledge(null);
       return;
     }
-    void SemanticContentRepository.listLinksForPassage(passageContext.ref, {
-      reviewStatus: "accepted",
-      limit: 50,
-    }).then(
-      (links) => {
-        if (active) setSemanticSources(links);
-      },
-      () => {
-        if (active) setSemanticSources([]);
-      },
-    );
+    const curated = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref);
+    let generation = 0;
+    const reload = () => {
+      const requestGeneration = ++generation;
+      void WorkspacePassageKnowledgeService.load(passageContext.ref, curated, undefined, {
+        includePending: true,
+      }).then(
+        (layer) => {
+          if (active && requestGeneration === generation) setWorkspaceKnowledge(layer);
+        },
+        () => {
+          if (active && requestGeneration === generation) setWorkspaceKnowledge(null);
+        },
+      );
+    };
+    reload();
+    window.addEventListener("scriptorium:knowledge-changed", reload);
     return () => {
       active = false;
+      window.removeEventListener("scriptorium:knowledge-changed", reload);
     };
   }, [passageContext]);
   const bundle = passageContext
@@ -133,6 +213,27 @@ export function PassageInspector() {
           return source && isPassageRelation ? [{ relation, source }] : [];
         })
       : [];
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "overview") return true;
+    if (tab.id === "cross-references")
+      return Boolean(bundle && hasAvailableData(bundle.crossReferences));
+    if (tab.id === "language") return Boolean(bundle && hasAvailableData(bundle.originals));
+    if (tab.id === "history")
+      return historicalAnalyses.length > 0 || primarySourceRelations.length > 0;
+    if (tab.id === "literature")
+      return Boolean(bundle?.sources.references.length || workspaceKnowledge?.items.length);
+    if (tab.id === "notes") return Boolean(bundle?.user.notes.length);
+    if (tab.id === "sources") return Boolean(bundle?.sources.references.length);
+    if (tab.id === "research") return researchQuestions.length > 0;
+    return false;
+  });
+  const hasOverviewContent = Boolean(
+    (bundle && hasAvailableData(bundle.analyses)) ||
+    (bundle && hasAvailableData(bundle.claims)) ||
+    (bundle && hasAvailableData(bundle.viewpoints)) ||
+    (bundle && hasAvailableData(bundle.lemmas)) ||
+    workspaceKnowledge?.items.length,
+  );
 
   return (
     <div className="flex h-full flex-col">
@@ -151,7 +252,7 @@ export function PassageInspector() {
           className="flex gap-0.5 overflow-x-auto border-b border-border px-2 py-1.5"
           aria-label={t("scripture.inspector.sections")}
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
@@ -164,74 +265,170 @@ export function PassageInspector() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <Tabs.Content value="overview" className="space-y-4">
-            <section>
-              <h3 className="meta-label">{t("scripture.analysis")}</h3>
-              <p className="mt-1 text-sm text-muted-foreground italic">
-                {bundle && hasAvailableData(bundle.analyses)
-                  ? t("scripture.analysisCount", {
-                      count: formatNumber(bundle.analyses.data.length),
-                    })
-                  : bundle
-                    ? statusLabel(bundle.analyses.status)
-                    : t("scripture.openPassageBundle")}
-              </p>
-            </section>
-            <section>
-              <h3 className="meta-label">Afirmações ligadas à passagem</h3>
-              {bundle && hasAvailableData(bundle.claims) ? (
-                <ul className="mt-2 space-y-2">
-                  {bundle.claims.data.map((claim) => (
-                    <li key={claim.id} className="rounded-md border border-border p-2.5">
-                      <p className="text-sm leading-relaxed">{claim.proposition}</p>
-                      <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
-                        <span>{claimKindLabel(claim.kind)}</span>
-                        <span>·</span>
-                        <span>{reviewStatusLabel(claim.reviewStatus)}</span>
-                        <span>·</span>
-                        <span>{supportLevelLabel(claim.supportLevel)}</span>
-                      </div>
+            {!hasOverviewContent && (
+              <section className="rounded-md border border-dashed border-border p-3">
+                <h3 className="text-sm font-medium">
+                  Texto disponível, estudo contextual pendente
+                </h3>
+                <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
+                  Ainda não há análise, afirmação ou trecho de biblioteca publicado para esta
+                  seleção. Isso é uma lacuna de conteúdo, não uma falha no texto bíblico.
+                </p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Link
+                    to="/study"
+                    className="rounded border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
+                  >
+                    Iniciar um estudo
+                  </Link>
+                  <Link
+                    to="/library"
+                    className="rounded border border-input px-2.5 py-1.5 text-xs hover:bg-accent"
+                  >
+                    Consultar biblioteca
+                  </Link>
+                </div>
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.analyses) && (
+              <section>
+                <h3 className="meta-label">{t("scripture.analysis")}</h3>
+                <p className="mt-1 text-sm text-muted-foreground italic">
+                  {bundle && hasAvailableData(bundle.analyses)
+                    ? t("scripture.analysisCount", {
+                        count: formatNumber(bundle.analyses.data.length),
+                      })
+                    : bundle
+                      ? statusLabel(bundle.analyses.status)
+                      : t("scripture.openPassageBundle")}
+                </p>
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.claims) && (
+              <section>
+                <h3 className="meta-label">Afirmações ligadas à passagem</h3>
+                {bundle && hasAvailableData(bundle.claims) ? (
+                  <ul className="mt-2 space-y-2">
+                    {bundle.claims.data.map((claim) => (
+                      <li key={claim.id} className="rounded-md border border-border p-2.5">
+                        <p className="text-sm leading-relaxed">{claim.proposition}</p>
+                        <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
+                          <span>{claimKindLabel(claim.kind)}</span>
+                          <span>·</span>
+                          <span>{reviewStatusLabel(claim.reviewStatus)}</span>
+                          <span>·</span>
+                          <span>{supportLevelLabel(claim.supportLevel)}</span>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                ) : (
+                  <p className="mt-1 text-sm text-muted-foreground italic">
+                    {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
+                  </p>
+                )}
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.viewpoints) && (
+              <section>
+                <h3 className="meta-label">Leituras por perspectiva</h3>
+                <PassageViewpoints bundle={bundle} />
+              </section>
+            )}
+            {workspaceKnowledge?.items.length ? (
+              <section>
+                <h3 className="meta-label">Biblioteca conectada</h3>
+                <div className="mt-2 rounded-md border border-border p-2.5">
+                  <p className="text-xs font-medium">
+                    {workspaceKnowledge.items.length}{" "}
+                    {workspaceKnowledge.items.length === 1
+                      ? "trecho relacionado"
+                      : "trechos relacionados"}
+                  </p>
+                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    {workspaceKnowledge.items
+                      .slice(0, 3)
+                      .map((item) => item.document.title)
+                      .filter((title, index, titles) => titles.indexOf(title) === index)
+                      .join(" · ")}
+                  </p>
+                  <p className="mt-1.5 text-[10px] text-muted-foreground">
+                    Abra a aba Literatura para ver fonte, página, contexto e estado de revisão.
+                  </p>
+                </div>
+              </section>
+            ) : null}
+            {workspaceKnowledge && (
+              <section>
+                <h3 className="meta-label">Cobertura desta passagem</h3>
+                <ul className="mt-2 grid grid-cols-2 gap-1.5">
+                  {workspaceKnowledge.coverage.map((entry) => (
+                    <li
+                      key={entry.area}
+                      className="flex min-h-8 items-center justify-between gap-2 rounded border border-border px-2 text-[10px]"
+                    >
+                      <span>{COVERAGE_LABELS[entry.area]}</span>
+                      <span
+                        className={`font-mono uppercase ${
+                          entry.status === "available"
+                            ? "text-emerald-700 dark:text-emerald-400"
+                            : entry.status === "private"
+                              ? "text-primary"
+                              : entry.status === "in-review"
+                                ? "text-amber-700 dark:text-amber-400"
+                                : "text-muted-foreground"
+                        }`}
+                      >
+                        {entry.status === "available"
+                          ? "curado"
+                          : entry.status === "private"
+                            ? `privado ${entry.sourceCount}`
+                            : entry.status === "in-review"
+                              ? "revisão"
+                              : "sem fonte"}
+                      </span>
                     </li>
                   ))}
                 </ul>
-              ) : (
-                <p className="mt-1 text-sm text-muted-foreground italic">
-                  {bundle ? statusLabel(bundle.claims.status) : t("scripture.noPassageSelected")}
-                </p>
-              )}
-            </section>
-            <section>
-              <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                {bundle && hasAvailableData(bundle.lemmas) ? (
-                  bundle.lemmas.data.map((lemma) => {
-                    const entity = hasAvailableData(bundle.entities)
-                      ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
-                      : undefined;
-                    return entity ? (
-                      <Link
-                        key={lemma.id}
-                        to="/knowledge"
-                        search={{ entity: entity.id }}
-                        className="original-text rounded border border-border bg-muted/50 px-2 py-0.5 text-sm hover:bg-accent"
-                      >
-                        {lemma.lemma}
-                      </Link>
-                    ) : (
-                      <span
-                        key={lemma.id}
-                        className="original-text rounded border border-border px-2 py-0.5 text-sm"
-                      >
-                        {lemma.lemma}
-                      </span>
-                    );
-                  })
-                ) : (
-                  <span className="text-sm text-muted-foreground italic">
-                    {bundle ? statusLabel(bundle.lemmas.status) : t("scripture.noPassageSelected")}
-                  </span>
-                )}
-              </div>
-            </section>
+              </section>
+            )}
+            {bundle && hasAvailableData(bundle.lemmas) && (
+              <section>
+                <h3 className="meta-label">{t("scripture.keyTerms")}</h3>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
+                  {bundle && hasAvailableData(bundle.lemmas) ? (
+                    bundle.lemmas.data.map((lemma) => {
+                      const entity = hasAvailableData(bundle.entities)
+                        ? bundle.entities.data.find((item) => item.originalForm === lemma.lemma)
+                        : undefined;
+                      return entity ? (
+                        <Link
+                          key={lemma.id}
+                          to="/knowledge"
+                          search={{ entity: entity.id }}
+                          className="original-text rounded border border-border bg-muted/50 px-2 py-0.5 text-sm hover:bg-accent"
+                        >
+                          {lemma.lemma}
+                        </Link>
+                      ) : (
+                        <span
+                          key={lemma.id}
+                          className="original-text rounded border border-border px-2 py-0.5 text-sm"
+                        >
+                          {lemma.lemma}
+                        </span>
+                      );
+                    })
+                  ) : (
+                    <span className="text-sm text-muted-foreground italic">
+                      {bundle
+                        ? statusLabel(bundle.lemmas.status)
+                        : t("scripture.noPassageSelected")}
+                    </span>
+                  )}
+                </div>
+              </section>
+            )}
           </Tabs.Content>
 
           <Tabs.Content value="cross-references">
@@ -343,25 +540,140 @@ export function PassageInspector() {
                     })
                   : t("scripture.literatureAwaiting")}
               </p>
-              {semanticSources.length > 0 && (
+              {workspaceKnowledge && workspaceKnowledge.items.length > 0 && (
                 <section>
-                  <p className="meta-label">Trechos confirmados da biblioteca privada</p>
-                  <ul className="mt-2 space-y-2">
-                    {semanticSources.map((link) => (
-                      <li key={link.id} className="rounded border border-border bg-muted/30 p-2.5">
-                        <p className="text-xs font-medium">{link.rawReference}</p>
-                        <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
-                          Página {link.pageIndex + 1} · vínculo revisado
-                        </p>
-                        <a
-                          href={`/library/document/${encodeURIComponent(link.documentId)}?page=${link.pageIndex + 1}`}
-                          className="mt-1 inline-block text-[10px] underline underline-offset-2"
-                        >
-                          Abrir trecho local
-                        </a>
-                      </li>
-                    ))}
-                  </ul>
+                  <p className="meta-label">Conhecimento e ligações dos livros privados</p>
+                  {PASSAGE_KNOWLEDGE_GROUPS.map((group) => {
+                    const groupItems = workspaceKnowledge.items.filter(
+                      (item) => passageKnowledgeGroup(item) === group,
+                    );
+                    if (!groupItems.length) return null;
+                    const grouped = workspaceKnowledge.items.some(
+                      (item) => passageKnowledgeGroup(item) !== "library",
+                    );
+                    return (
+                      <div key={group}>
+                        {grouped && (
+                          <h4 className="meta-label mt-3">
+                            {PASSAGE_KNOWLEDGE_GROUP_LABELS[group]}
+                          </h4>
+                        )}
+                        <ul className="mt-2 space-y-3">
+                          {groupItems.map((item) => {
+                            const claims = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "claim",
+                            );
+                            const topics = item.proposals.flatMap((proposal) =>
+                              proposal.payload.kind === "topic-assignment"
+                                ? [proposal.payload.domain]
+                                : [],
+                            );
+                            const argumentsForUnit = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "argument",
+                            );
+                            const citations = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "citation",
+                            );
+                            const entities = item.proposals.filter(
+                              (proposal) => proposal.payload.kind === "entity",
+                            );
+                            return (
+                              <li
+                                key={item.id}
+                                className="rounded border border-border bg-muted/30 p-3"
+                              >
+                                <div className="flex flex-wrap items-center justify-between gap-2">
+                                  <p className="text-xs font-medium">{item.document.title}</p>
+                                  {item.reviewState === "pending" && (
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px]">
+                                      <span
+                                        aria-hidden="true"
+                                        className="size-1.5 rounded-full bg-amber-500"
+                                      />
+                                      Por confirmar
+                                    </span>
+                                  )}
+                                </div>
+                                <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                                  {item.passageRelation.payload.rawReference} · páginas{" "}
+                                  {item.pages.map((page) => page + 1).join(", ")}
+                                  {item.reviewState === "pending"
+                                    ? " · Ligação detectada, ainda sem revisão"
+                                    : item.reviewState === "auto-visible"
+                                      ? " · Ligação de máquina, não revisão editorial"
+                                      : " · Revisão humana"}
+                                </p>
+                                {claims.map((proposal) =>
+                                  proposal.payload.kind === "claim" ? (
+                                    <p
+                                      key={proposal.id}
+                                      className="mt-2 border-l-2 border-primary/40 pl-2 text-xs leading-relaxed"
+                                    >
+                                      {proposal.payload.proposition}
+                                    </p>
+                                  ) : null,
+                                )}
+                                {argumentsForUnit.map((proposal) =>
+                                  proposal.payload.kind === "argument" ? (
+                                    <section
+                                      key={proposal.id}
+                                      className="mt-2 rounded border border-border/70 bg-background/50 p-2"
+                                    >
+                                      <p className="meta-label">Argumento</p>
+                                      <p className="mt-1 text-xs font-medium">
+                                        {proposal.payload.conclusion}
+                                      </p>
+                                      <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
+                                        {proposal.payload.premises.map((premise) => (
+                                          <li key={premise}>{premise}</li>
+                                        ))}
+                                      </ol>
+                                    </section>
+                                  ) : null,
+                                )}
+                                {citations.map((proposal) =>
+                                  proposal.payload.kind === "citation" ? (
+                                    <blockquote
+                                      key={proposal.id}
+                                      className="mt-2 border-l-2 border-border pl-2 text-[11px] italic text-muted-foreground"
+                                    >
+                                      “{proposal.payload.quotedText}”
+                                    </blockquote>
+                                  ) : null,
+                                )}
+                                <p className="mt-2 line-clamp-5 text-xs leading-relaxed text-muted-foreground">
+                                  {item.translation?.translatedText ?? item.unit.text}
+                                </p>
+                                {topics.length > 0 && (
+                                  <p className="mt-2 font-mono text-[9px] text-muted-foreground uppercase">
+                                    {topics.join(" · ")}
+                                  </p>
+                                )}
+                                {entities.length > 0 && (
+                                  <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
+                                    Entidades:{" "}
+                                    {entities
+                                      .flatMap((proposal) =>
+                                        proposal.payload.kind === "entity"
+                                          ? [proposal.payload.label]
+                                          : [],
+                                      )
+                                      .join(" · ")}
+                                  </p>
+                                )}
+                                <a
+                                  href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
+                                  className="mt-2 inline-block text-[10px] underline underline-offset-2"
+                                >
+                                  Abrir evidência local
+                                </a>
+                              </li>
+                            );
+                          })}
+                        </ul>
+                      </div>
+                    );
+                  })}
                 </section>
               )}
             </div>

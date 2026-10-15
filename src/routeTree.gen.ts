@@ -15,13 +15,16 @@ import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
+import { Route as TraceRouteImport } from './routes/trace'
 import { Route as LibraryIndexRouteImport } from './routes/library/index'
+import { Route as LibraryProcessRouteImport } from './routes/library/process'
 import { Route as ScriptureIndexRouteImport } from './routes/scripture/index'
 import { Route as StudyIndexRouteImport } from './routes/study/index'
 import { Route as StudySlugRouteImport } from './routes/study/$slug'
 import { Route as LibraryDocumentDocumentIdRouteImport } from './routes/library/document/$documentId'
 import { Route as LibraryReadWorkIdRouteImport } from './routes/library/read/$workId'
 import { Route as ScriptureBookChapterRouteImport } from './routes/scripture/$book.$chapter'
+import { Route as StudyGuideTopicRouteImport } from './routes/study/guide/$topic'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
@@ -53,9 +56,19 @@ const SettingsRoute = SettingsRouteImport.update({
   path: '/settings',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TraceRoute = TraceRouteImport.update({
+  id: '/trace',
+  path: '/trace',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LibraryIndexRoute = LibraryIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => LibraryRoute,
+} as any)
+const LibraryProcessRoute = LibraryProcessRouteImport.update({
+  id: '/process',
+  path: '/process',
   getParentRoute: () => LibraryRoute,
 } as any)
 const ScriptureIndexRoute = ScriptureIndexRouteImport.update({
@@ -89,6 +102,11 @@ const ScriptureBookChapterRoute = ScriptureBookChapterRouteImport.update({
   path: '/scripture/$book/$chapter',
   getParentRoute: () => rootRouteImport,
 } as any)
+const StudyGuideTopicRoute = StudyGuideTopicRouteImport.update({
+  id: '/study/guide/$topic',
+  path: '/study/guide/$topic',
+  getParentRoute: () => rootRouteImport,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
@@ -97,6 +115,8 @@ export interface FileRoutesByFullPath {
   '/library': typeof LibraryRouteWithChildren
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/trace': typeof TraceRoute
+  '/library/process': typeof LibraryProcessRoute
   '/study/$slug': typeof StudySlugRoute
   '/library/': typeof LibraryIndexRoute
   '/scripture/': typeof ScriptureIndexRoute
@@ -104,6 +124,7 @@ export interface FileRoutesByFullPath {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -111,6 +132,8 @@ export interface FileRoutesByTo {
   '/knowledge': typeof KnowledgeRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/trace': typeof TraceRoute
+  '/library/process': typeof LibraryProcessRoute
   '/study/$slug': typeof StudySlugRoute
   '/library': typeof LibraryIndexRoute
   '/scripture': typeof ScriptureIndexRoute
@@ -118,6 +141,7 @@ export interface FileRoutesByTo {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -127,6 +151,8 @@ export interface FileRoutesById {
   '/library': typeof LibraryRouteWithChildren
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
+  '/trace': typeof TraceRoute
+  '/library/process': typeof LibraryProcessRoute
   '/study/$slug': typeof StudySlugRoute
   '/library/': typeof LibraryIndexRoute
   '/scripture/': typeof ScriptureIndexRoute
@@ -134,6 +160,7 @@ export interface FileRoutesById {
   '/library/document/$documentId': typeof LibraryDocumentDocumentIdRoute
   '/library/read/$workId': typeof LibraryReadWorkIdRoute
   '/scripture/$book/$chapter': typeof ScriptureBookChapterRoute
+  '/study/guide/$topic': typeof StudyGuideTopicRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -144,6 +171,8 @@ export interface FileRouteTypes {
     | '/library'
     | '/search'
     | '/settings'
+    | '/trace'
+    | '/library/process'
     | '/study/$slug'
     | '/library/'
     | '/scripture/'
@@ -151,6 +180,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -158,6 +188,8 @@ export interface FileRouteTypes {
     | '/knowledge'
     | '/search'
     | '/settings'
+    | '/trace'
+    | '/library/process'
     | '/study/$slug'
     | '/library'
     | '/scripture'
@@ -165,6 +197,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   id:
     | '__root__'
     | '/'
@@ -173,6 +206,8 @@ export interface FileRouteTypes {
     | '/library'
     | '/search'
     | '/settings'
+    | '/trace'
+    | '/library/process'
     | '/study/$slug'
     | '/library/'
     | '/scripture/'
@@ -180,6 +215,7 @@ export interface FileRouteTypes {
     | '/library/document/$documentId'
     | '/library/read/$workId'
     | '/scripture/$book/$chapter'
+    | '/study/guide/$topic'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,10 +225,12 @@ export interface RootRouteChildren {
   LibraryRoute: typeof LibraryRouteWithChildren
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
+  TraceRoute: typeof TraceRoute
   StudySlugRoute: typeof StudySlugRoute
   ScriptureIndexRoute: typeof ScriptureIndexRoute
   StudyIndexRoute: typeof StudyIndexRoute
   ScriptureBookChapterRoute: typeof ScriptureBookChapterRoute
+  StudyGuideTopicRoute: typeof StudyGuideTopicRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -239,11 +277,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SettingsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/trace': {
+      id: '/trace'
+      path: '/trace'
+      fullPath: '/trace'
+      preLoaderRoute: typeof TraceRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/library/': {
       id: '/library/'
       path: '/'
       fullPath: '/library/'
       preLoaderRoute: typeof LibraryIndexRouteImport
+      parentRoute: typeof LibraryRoute
+    }
+    '/library/process': {
+      id: '/library/process'
+      path: '/process'
+      fullPath: '/library/process'
+      preLoaderRoute: typeof LibraryProcessRouteImport
       parentRoute: typeof LibraryRoute
     }
     '/scripture/': {
@@ -288,16 +340,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ScriptureBookChapterRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/study/guide/$topic': {
+      id: '/study/guide/$topic'
+      path: '/study/guide/$topic'
+      fullPath: '/study/guide/$topic'
+      preLoaderRoute: typeof StudyGuideTopicRouteImport
+      parentRoute: typeof rootRouteImport
+    }
   }
 }
 
 interface LibraryRouteChildren {
+  LibraryProcessRoute: typeof LibraryProcessRoute
   LibraryIndexRoute: typeof LibraryIndexRoute
   LibraryDocumentDocumentIdRoute: typeof LibraryDocumentDocumentIdRoute
   LibraryReadWorkIdRoute: typeof LibraryReadWorkIdRoute
 }
 
 const LibraryRouteChildren: LibraryRouteChildren = {
+  LibraryProcessRoute: LibraryProcessRoute,
   LibraryIndexRoute: LibraryIndexRoute,
   LibraryDocumentDocumentIdRoute: LibraryDocumentDocumentIdRoute,
   LibraryReadWorkIdRoute: LibraryReadWorkIdRoute,
@@ -313,10 +374,12 @@ const rootRouteChildren: RootRouteChildren = {
   LibraryRoute: LibraryRouteWithChildren,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
+  TraceRoute: TraceRoute,
   StudySlugRoute: StudySlugRoute,
   ScriptureIndexRoute: ScriptureIndexRoute,
   StudyIndexRoute: StudyIndexRoute,
   ScriptureBookChapterRoute: ScriptureBookChapterRoute,
+  StudyGuideTopicRoute: StudyGuideTopicRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

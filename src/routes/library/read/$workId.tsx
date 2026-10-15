@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Check, Clipboard, Languages, LoaderCircle, NotebookPen } from "lucide-react";
 import { LocalTranslationService } from "../../../lib/application/local-translation-service";
 import type { LocalTranslation } from "../../../lib/domain/semantic-content";
@@ -32,6 +32,7 @@ function PrimarySourceReader() {
   const [translation, setTranslation] = useState<LocalTranslation | null>();
   const [translationError, setTranslationError] = useState<string>();
   const [translating, setTranslating] = useState(false);
+  const pendingTranslation = useRef<AbortController | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -67,10 +68,13 @@ function PrimarySourceReader() {
   }, [document, selectedId, unitQuery]);
 
   useEffect(() => {
+    const controller = new AbortController();
+    pendingTranslation.current = controller;
+    setTranslating(false);
     if (!selected || document?.language !== "en") {
       setTranslation(null);
       setTranslationError(undefined);
-      return;
+      return () => controller.abort();
     }
     let active = true;
     setTranslation(undefined);
@@ -90,6 +94,7 @@ function PrimarySourceReader() {
     );
     return () => {
       active = false;
+      controller.abort();
     };
   }, [document?.language, selected]);
   if (document === undefined)
@@ -143,21 +148,27 @@ function PrimarySourceReader() {
   };
   const translateSelected = async () => {
     if (!selected || document.language !== "en") return;
+    const controller = pendingTranslation.current;
+    if (!controller) return;
     setTranslating(true);
     setTranslationError(undefined);
     try {
-      setTranslation(
-        await LocalTranslationService.translate({
+      const result = await LocalTranslationService.translate(
+        {
           sourceKind: "primary-text-unit",
           sourceId: selected.id,
           sourceLanguage: document.language,
           text: selected.text,
-        }),
+        },
+        undefined,
+        { signal: controller.signal },
       );
+      if (!controller.signal.aborted) setTranslation(result);
     } catch (cause) {
-      setTranslationError(cause instanceof Error ? cause.message : String(cause));
+      if (!controller.signal.aborted)
+        setTranslationError(cause instanceof Error ? cause.message : String(cause));
     } finally {
-      setTranslating(false);
+      if (!controller.signal.aborted) setTranslating(false);
     }
   };
 
@@ -220,17 +231,15 @@ function PrimarySourceReader() {
         </header>
         {selected && (
           <article className="mx-auto max-w-3xl px-6 py-8">
-            <p className="meta-label mb-3">Texto original · {document.language}</p>
-            <p className="whitespace-pre-line font-serif text-[17px] leading-8">{selected.text}</p>
             {document.language === "en" && (
-              <section className="mt-8 rounded-md border border-border bg-muted/20 p-4">
+              <section className="mb-6 rounded-md border border-border bg-muted/20 p-4">
                 <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
                     <h3 className="meta-label flex items-center gap-1.5">
                       <Languages className="size-3.5" /> Tradução local para português
                     </h3>
                     <p className="mt-1 text-xs text-muted-foreground">
-                      Tradução automática auxiliar; o original acima permanece canônico.
+                      Tradução automática auxiliar; o original abaixo permanece canônico.
                     </p>
                   </div>
                   <button
@@ -263,6 +272,8 @@ function PrimarySourceReader() {
                 )}
               </section>
             )}
+            <p className="meta-label mb-3">Texto original · {document.language}</p>
+            <p className="whitespace-pre-line font-serif text-[17px] leading-8">{selected.text}</p>
             <section className="mt-10 border-t border-border pt-5">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="meta-label">Citação estruturada</h3>
