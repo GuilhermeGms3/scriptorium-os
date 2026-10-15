@@ -421,7 +421,7 @@ function ChapterReader() {
                 />
               </div>
 
-              <footer className="mt-8 border-t border-border pt-3 font-mono text-[11px] leading-relaxed text-muted-foreground">
+              <footer className="mt-8 border-t border-border pt-3 font-mono text-xs leading-relaxed text-muted-foreground">
                 <details>
                   <summary className="cursor-pointer">
                     {displayedEdition?.title ?? "Fontes desta passagem"}

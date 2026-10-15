@@ -95,7 +95,7 @@ export function NagHammadiLocator({ tractate }: { tractate: NagHammadiTractate }
       )}
       {hits && hits.length > 0 && (
         <>
-          <p className="my-2 text-[10px] text-muted-foreground">
+          <p className="my-2 text-xs text-muted-foreground">
             Ocorrências do título, não limites confirmados do tratado nem alinhamento entre códices.
           </p>
           <ul className="space-y-3">

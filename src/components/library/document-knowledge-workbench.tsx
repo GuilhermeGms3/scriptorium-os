@@ -324,7 +324,7 @@ export function DocumentKnowledgeWorkbench({
             onChange={(event) =>
               setAnalyzerMode(event.target.value as "deterministic" | "contextual")
             }
-            className="h-7 rounded border border-input bg-background px-1.5 text-[10px]"
+            className="h-7 rounded border border-input bg-background px-1.5 text-xs"
           >
             <option value="deterministic">Determinístico</option>
             <option value="contextual">Contextual local</option>
@@ -333,7 +333,7 @@ export function DocumentKnowledgeWorkbench({
             type="button"
             onClick={() => void run()}
             disabled={Boolean(progress) || pipelineBusy}
-            className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+            className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
           >
             {progress ? (
               <LoaderCircle className="size-3 animate-spin" />
@@ -345,7 +345,7 @@ export function DocumentKnowledgeWorkbench({
         </div>
       </div>
 
-      <p className="mt-1 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
         {analyzerMode === "contextual"
           ? "Usa o serviço Python local para propor autoria, correferência e bibliografia; todo resultado continua pendente de revisão."
           : "Baseline reproduzível no navegador, sem serviço externo."}
@@ -388,7 +388,7 @@ export function DocumentKnowledgeWorkbench({
                 role="tab"
                 aria-selected={tab === value}
                 onClick={() => setTab(value)}
-                className={`inline-flex min-h-8 items-center justify-center gap-1 rounded px-1 text-[10px] ${
+                className={`inline-flex min-h-8 items-center justify-center gap-1 rounded px-1 text-xs ${
                   tab === value ? "bg-muted font-medium text-foreground" : "text-muted-foreground"
                 }`}
               >
@@ -409,7 +409,7 @@ export function DocumentKnowledgeWorkbench({
                     <span className="block truncate text-xs">
                       {node.title ?? NODE_LABELS[node.kind]}
                     </span>
-                    <span className="font-mono text-[9px] text-muted-foreground">
+                    <span className="font-mono text-xs text-muted-foreground">
                       {NODE_LABELS[node.kind]} · p. {node.pageStart + 1} ·{" "}
                       {Math.round(node.confidence * 100)}%
                     </span>
@@ -427,13 +427,13 @@ export function DocumentKnowledgeWorkbench({
                 proposals.map((proposal) => (
                   <article key={proposal.id} className="rounded border border-border p-2">
                     <div className="flex items-center justify-between gap-2">
-                      <span className="font-mono text-[9px] uppercase text-muted-foreground">
+                      <span className="meta-label text-muted-foreground">
                         {KIND_LABELS[proposal.proposalKind]} ·{" "}
                         {proposal.method.startsWith("local-llm:")
                           ? "Inferência não calibrada"
                           : `${Math.round(proposal.confidence * 100)}% (heurística)`}
                       </span>
-                      <span className="text-[9px] text-muted-foreground">
+                      <span className="text-xs text-muted-foreground">
                         {proposal.reviewStatus === "accepted"
                           ? "Aceita"
                           : proposal.reviewStatus === "rejected"
@@ -456,7 +456,7 @@ export function DocumentKnowledgeWorkbench({
                     )}
                     {(proposal.payload.kind === "claim" ||
                       proposal.payload.kind === "argument") && (
-                      <label className="mt-2 block text-[10px] text-muted-foreground">
+                      <label className="mt-2 block text-xs text-muted-foreground">
                         Perspectiva interpretativa
                         <select
                           value={
@@ -487,7 +487,7 @@ export function DocumentKnowledgeWorkbench({
                           type="button"
                           disabled={reviewing === proposal.id}
                           onClick={() => void review(proposal, "accepted")}
-                          className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                          className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
                         >
                           <Check className="size-3" /> Aceitar
                         </button>
@@ -495,7 +495,7 @@ export function DocumentKnowledgeWorkbench({
                           type="button"
                           disabled={reviewing === proposal.id}
                           onClick={() => void review(proposal, "rejected")}
-                          className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                          className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
                         >
                           <X className="size-3" /> Rejeitar
                         </button>
@@ -508,7 +508,7 @@ export function DocumentKnowledgeWorkbench({
                           type="button"
                           disabled={reviewing === proposal.id}
                           onClick={() => void review(proposal, "accepted")}
-                          className="mt-2 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                          className="mt-2 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
                         >
                           <Check className="size-3" /> Atualizar perspectiva
                         </button>
@@ -543,7 +543,7 @@ export function DocumentKnowledgeWorkbench({
                 <ul className="space-y-1.5">
                   {aggregate.acceptedProposals.slice(0, 30).map((proposal) => (
                     <li key={proposal.id} className="border-l border-border pl-2 text-xs">
-                      <span className="font-mono text-[9px] uppercase text-muted-foreground">
+                      <span className="meta-label text-muted-foreground">
                         {KIND_LABELS[proposal.proposalKind]}
                       </span>
                       <p className="line-clamp-3">{proposalText(proposal)}</p>
@@ -559,7 +559,7 @@ export function DocumentKnowledgeWorkbench({
                 type="button"
                 onClick={() => void exportAccepted()}
                 disabled={!aggregate.acceptedCount}
-                className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
               >
                 <Download className="size-3" /> Exportar seleção editorial
               </button>
@@ -571,7 +571,7 @@ export function DocumentKnowledgeWorkbench({
                       <button
                         type="button"
                         onClick={() => translationController.current?.abort()}
-                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs"
                       >
                         <X className="size-3" /> Pausar
                       </button>
@@ -579,19 +579,19 @@ export function DocumentKnowledgeWorkbench({
                       <button
                         type="button"
                         onClick={() => void translateAccepted()}
-                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                        className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs"
                       >
                         <Languages className="size-3" /> Traduzir ou retomar
                       </button>
                     )}
                   </div>
                   {translationProgress && (
-                    <p className="mt-1 text-[10px] text-muted-foreground">{translationProgress}</p>
+                    <p className="mt-1 text-xs text-muted-foreground">{translationProgress}</p>
                   )}
                   {!translationProgress &&
                     translationJob &&
                     translationJob.status !== "complete" && (
-                      <p className="mt-1 text-[10px] text-muted-foreground">
+                      <p className="mt-1 text-xs text-muted-foreground">
                         Lote {translationJob.status === "paused" ? "pausado" : "interrompido"} em{" "}
                         {translationJob.completedCount}/{translationJob.totalCount}. As unidades já
                         concluídas serão reutilizadas.
@@ -614,7 +614,7 @@ export function DocumentKnowledgeWorkbench({
                         <button
                           type="button"
                           onClick={() => void reviewTranslation(translation)}
-                          className="mt-1 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px]"
+                          className="mt-1 inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs"
                         >
                           <Check className="size-3" /> Marcar revisão humana
                         </button>
@@ -627,12 +627,12 @@ export function DocumentKnowledgeWorkbench({
                 type="button"
                 onClick={() => void prepareEditorial()}
                 disabled={!aggregate.acceptedCount}
-                className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-[10px] disabled:opacity-50"
+                className="inline-flex min-h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
               >
                 <ShieldCheck className="size-3" /> Preparar pacote de promoção
               </button>
               {editorialIssues && (
-                <ul className="space-y-1 rounded border border-border p-2 text-[10px]">
+                <ul className="space-y-1 rounded border border-border p-2 text-xs">
                   {editorialIssues.map((issue) => (
                     <li key={issue.code}>
                       <strong>{issue.severity === "blocker" ? "Bloqueio" : "Revisão"}:</strong>{" "}
@@ -641,7 +641,7 @@ export function DocumentKnowledgeWorkbench({
                   ))}
                 </ul>
               )}
-              <p className="text-[10px] leading-relaxed text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 O pacote é apenas de staging: nunca publica automaticamente e sempre bloqueia a
                 promoção de material privado até a decisão explícita de direitos.
               </p>

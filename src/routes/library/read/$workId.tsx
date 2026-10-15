@@ -177,8 +177,8 @@ function PrimarySourceReader() {
       <aside className="overflow-y-auto border-r border-border p-3">
         <p className="meta-label">Conteúdo</p>
         <h1 className="mt-1 font-serif text-lg font-semibold">{document.title}</h1>
-        <p className="mt-1 text-[11px] text-muted-foreground">{document.canonicalTitle}</p>
-        <p className="mt-2 text-[10px] text-muted-foreground">{document.editionTitle}</p>
+        <p className="mt-1 text-xs text-muted-foreground">{document.canonicalTitle}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{document.editionTitle}</p>
         {document.units.length > 40 && (
           <label className="mt-3 block">
             <span className="sr-only">Filtrar seções da obra</span>
@@ -188,7 +188,7 @@ function PrimarySourceReader() {
               placeholder="Questão, artigo ou trecho…"
               className="h-8 w-full rounded border border-input bg-background px-2 text-xs"
             />
-            <span className="mt-1 block font-mono text-[9px] text-muted-foreground">
+            <span className="mt-1 block font-mono text-xs text-muted-foreground">
               {visibleUnits.length} de {document.units.length} unidades exibidas
             </span>
           </label>
@@ -222,7 +222,7 @@ function PrimarySourceReader() {
           <p className="mt-2 max-w-3xl rounded border border-border bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
             {languageNotice}
           </p>
-          <p className="mt-2 max-w-3xl text-[11px] text-muted-foreground">
+          <p className="mt-2 max-w-3xl text-xs text-muted-foreground">
             Direitos da edição:{" "}
             {document.rights === "Public domain source editions"
               ? "edições-fonte em domínio público"
@@ -254,10 +254,10 @@ function PrimarySourceReader() {
                 </div>
                 {translation?.translatedText && (
                   <div className="mt-4 border-t border-border pt-4">
-                    <p className="whitespace-pre-line font-serif text-[17px] leading-8">
+                    <p className="whitespace-pre-line font-serif text-lg leading-8">
                       {translation.translatedText}
                     </p>
-                    <p className="mt-3 font-mono text-[10px] text-muted-foreground">
+                    <p className="mt-3 font-mono text-xs text-muted-foreground">
                       Gerada por {translation.model} ·{" "}
                       {translation.reviewStatus === "human-reviewed"
                         ? "revisada por humano"
@@ -273,7 +273,7 @@ function PrimarySourceReader() {
               </section>
             )}
             <p className="meta-label mb-3">Texto original · {document.language}</p>
-            <p className="whitespace-pre-line font-serif text-[17px] leading-8">{selected.text}</p>
+            <p className="whitespace-pre-line font-serif text-lg leading-8">{selected.text}</p>
             <section className="mt-10 border-t border-border pt-5">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="meta-label">Citação estruturada</h3>

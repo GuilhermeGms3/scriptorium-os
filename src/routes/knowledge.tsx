@@ -16,6 +16,7 @@ import {
   t,
 } from "../lib/i18n";
 import { LibraryRepository } from "../lib/repositories/library-repository";
+import { PageHeader } from "../components/layout/page-header";
 import type { Citation } from "../lib/domain/bibliography";
 import type { KnowledgeClaim } from "../lib/domain/knowledge";
 import { ArgumentRepository } from "../lib/repositories/argument-repository";
@@ -191,16 +192,11 @@ function KnowledgePage() {
       </aside>
 
       <main className="min-w-0 flex-1 overflow-y-auto px-5 py-6 md:px-8">
-        <header className="border-b border-border pb-3">
-          <p className="meta-label">{t("knowledge.section")}</p>
-          <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
-            {t("knowledge.explorer")}
-          </h1>
-          <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-            Explore temas, doutrinas, métodos, tradições e debates. Cada item reúne somente as
-            afirmações, fontes e argumentos realmente ligados a ele.
-          </p>
-        </header>
+        <PageHeader
+          eyebrow={t("knowledge.section")}
+          title={t("knowledge.explorer")}
+          description="Explore temas, doutrinas, métodos, tradições e debates. Cada item reúne somente as afirmações, fontes e argumentos realmente ligados a ele."
+        />
 
         <label className="mt-4 block md:hidden">
           <span className="meta-label">{t("knowledge.entity")}</span>
@@ -300,7 +296,7 @@ function ExplorerContent({
           <p className="meta-label">{kindLabel(entityKind(selected))}</p>
           <h2 className="mt-1 font-serif text-xl font-semibold">{title}</h2>
           {description && <p className="mt-2 text-sm text-muted-foreground">{description}</p>}
-          <details className="mt-2 text-[10px] text-muted-foreground">
+          <details className="mt-2 text-xs text-muted-foreground">
             <summary className="cursor-pointer">Detalhes técnicos</summary>
             <p className="mt-1 font-mono">{selected.entity.id}</p>
           </details>
@@ -315,18 +311,18 @@ function ExplorerContent({
           <ul className="mt-2 space-y-2">
             {focusedClaim && !bundle.claims.some((claim) => claim.id === focusedClaim.id) && (
               <li className="rounded-md border border-primary/40 bg-primary/5 p-2.5">
-                <p className="text-[13px]">{focusedClaim.proposition}</p>
-                <p className="mt-1 font-mono text-[10px] text-muted-foreground">
+                <p className="text-sm">{focusedClaim.proposition}</p>
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
                   Claim selecionada · {focusedClaim.id}
                 </p>
               </li>
             )}
             {bundle.claims.map((claim) => (
               <li key={claim.id} className="rounded-md border border-border bg-muted/30 p-2.5">
-                <p className="text-[13px]">{claim.proposition}</p>
+                <p className="text-sm">{claim.proposition}</p>
                 <p className="mt-1 flex flex-wrap items-center gap-2">
                   <EvidenceTag kind={claim.kind} />
-                  <span className="font-mono text-[10px] text-muted-foreground">
+                  <span className="font-mono text-xs text-muted-foreground">
                     {formatNumber(claim.anchors.length)} âncoras ·{" "}
                     {supportLevelLabel(claim.supportLevel)} ·{" "}
                     {reviewStatusLabel(claim.reviewStatus)}
@@ -391,7 +387,7 @@ function ExplorerContent({
         {sourceLinks.length > 0 && (
           <section className="rounded-lg border border-border bg-card p-4">
             <h3 className="meta-label">Fontes instaladas para investigar</h3>
-            <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
               Associação editorial de estudo; a presença da fonte não comprova automaticamente uma
               doutrina.
             </p>
@@ -404,7 +400,7 @@ function ExplorerContent({
                     className="block rounded bg-muted/40 p-2 text-xs hover:bg-accent"
                   >
                     <span className="font-medium">{source.label}</span>
-                    <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                    <span className="mt-0.5 block text-xs text-muted-foreground">
                       {source.role}
                     </span>
                   </Link>

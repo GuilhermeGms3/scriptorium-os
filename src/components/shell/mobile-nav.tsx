@@ -32,7 +32,7 @@ export function MobileNav() {
           to={to}
           aria-current={isActive(to) ? "page" : undefined}
           className={cn(
-            "flex flex-1 flex-col items-center justify-center gap-0.5 text-[10px]",
+            "flex flex-1 flex-col items-center justify-center gap-0.5 text-xs",
             isActive(to) ? "text-foreground" : "text-muted-foreground",
           )}
         >

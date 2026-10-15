@@ -4,6 +4,8 @@ import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-k
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { bookLabel, t } from "../../lib/i18n";
 import { groupScriptureBooks } from "../../lib/content/scripture-navigation";
+import { PageContainer } from "../../components/layout/page-container";
+import { PageHeader } from "../../components/layout/page-header";
 
 export const Route = createFileRoute("/scripture/")({
   head: () => {
@@ -32,16 +34,12 @@ function ScriptureIndex() {
   const groups = groupScriptureBooks(withText);
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("scripture.section")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
-          {t("scripture.reader")}
-        </h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-          {t("scripture.indexDescription")}
-        </p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        eyebrow={t("scripture.section")}
+        title={t("scripture.reader")}
+        description={t("scripture.indexDescription")}
+      />
 
       <section className="mt-5">
         <h2 className="meta-label">{t("scripture.available")}</h2>
@@ -50,7 +48,7 @@ function ScriptureIndex() {
             <details key={group.id} open={index === 0} className="group">
               <summary className="flex cursor-pointer list-none items-baseline justify-between gap-3 border-b border-border pb-1.5">
                 <h3 className="font-serif text-lg font-semibold">{group.label}</h3>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                <span className="meta-label tracking-wider text-muted-foreground">
                   {group.books.length} livros · {group.description}
                 </span>
               </summary>
@@ -59,7 +57,7 @@ function ScriptureIndex() {
                   <li key={book.id} className="min-w-0 rounded-md border border-border p-3">
                     <div>
                       <p className="text-sm font-medium">{bookLabel(book.id, book.name)}</p>
-                      <p className="font-mono text-[11px] text-muted-foreground">
+                      <p className="font-mono text-xs text-muted-foreground">
                         {book.testament === "ot"
                           ? t("scripture.hebrewBible")
                           : book.testament === "nt"
@@ -117,8 +115,8 @@ function ScriptureIndex() {
             );
           })}
         </ul>
-        <p className="mt-2 text-[11px] text-muted-foreground">{t("scripture.navigationHint")}</p>
+        <p className="mt-2 text-xs text-muted-foreground">{t("scripture.navigationHint")}</p>
       </section>
-    </div>
+    </PageContainer>
   );
 }

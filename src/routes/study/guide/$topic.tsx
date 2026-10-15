@@ -9,6 +9,7 @@ import { studyGuideById, studyForGuide, type StudyGuide } from "../../../lib/con
 import { knowledgeLabel } from "../../../lib/content/knowledge-presentation";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
 import { StudyRepository } from "../../../lib/repositories/study-repository";
+import { PageHeader } from "../../../components/layout/page-header";
 
 export const Route = createFileRoute("/study/guide/$topic")({
   head: ({ params }) => ({
@@ -27,7 +28,7 @@ function StudyGuidePage() {
   if (!guide)
     return (
       <div className="p-7">
-        <h1 className="font-serif text-2xl">Guia não encontrado</h1>
+        <h1 className="font-serif text-2xl font-semibold tracking-tight">Guia não encontrado</h1>
         <p className="mt-3 text-sm text-muted-foreground">
           Este tema não faz parte do roteiro atual.
         </p>
@@ -119,12 +120,12 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
       >
         <ArrowLeft className="size-3.5" /> Árvore de estudos
       </Link>
-      <header className="mt-6 border-b border-border pb-6">
-        <p className="meta-label">Guia de estudo · roteiro editorial do Scriptorium</p>
-        <h1 className="mt-2 font-serif text-3xl font-semibold md:text-4xl">{guide.title}</h1>
-        <p className="mt-3 max-w-3xl text-sm leading-7 text-muted-foreground">
-          {guide.introduction}
-        </p>
+      <PageHeader
+        className="mt-6 pb-6"
+        eyebrow="Guia de estudo · roteiro editorial do Scriptorium"
+        title={guide.title}
+        description={guide.introduction}
+      >
         <div className="mt-5 flex flex-wrap items-center gap-4">
           <button
             type="button"
@@ -163,7 +164,7 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
             {status}
           </p>
         )}
-      </header>
+      </PageHeader>
       <nav
         aria-label="Seções do guia"
         className="flex flex-wrap gap-x-5 gap-y-2 border-b border-border py-4 text-sm text-primary"

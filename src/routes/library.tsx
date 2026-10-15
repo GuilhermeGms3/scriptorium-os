@@ -30,6 +30,7 @@ import {
 import { SecureContextNotice } from "../components/common/secure-context-notice";
 import { BookShelf } from "../components/library/book-shelf";
 import { NagHammadiLocator } from "../components/library/nag-hammadi-locator";
+import { PageHeader } from "../components/layout/page-header";
 
 interface LibrarySearch {
   source?: string;
@@ -156,11 +157,12 @@ export function LibraryPage() {
 
   return (
     <div className="flex h-full min-w-0 flex-col">
-      <header className="flex flex-wrap items-end justify-between gap-3 border-b border-border px-5 py-4 md:px-6">
-        <div>
-          <p className="meta-label">Biblioteca acadêmica</p>
-          <h1 className="mt-1 font-serif text-2xl font-semibold">Biblioteca</h1>
-          <p className="mt-1 text-xs text-muted-foreground">
+      <PageHeader
+        className="px-5 pt-4 md:px-6"
+        eyebrow="Biblioteca acadêmica"
+        title="Biblioteca"
+        description={
+          <>
             {workspacePersistence === "installation"
               ? "Acervo persistente da instalação · compartilhado entre navegadores"
               : workspacePersistence === "opfs"
@@ -168,24 +170,26 @@ export function LibraryPage() {
                 : workspacePersistence === "loading"
                   ? "Abrindo armazenamento…"
                   : "Armazenamento em modo degradado"}
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => void refresh()}
-            className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs"
-          >
-            <RefreshCw className="size-3.5" /> Atualizar
-          </button>
-          <Link
-            to="/library/process"
-            className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
-          >
-            <FileUp className="size-3.5" /> Importar e processar
-          </Link>
-        </div>
-      </header>
+          </>
+        }
+        actions={
+          <>
+            <button
+              type="button"
+              onClick={() => void refresh()}
+              className="inline-flex h-8 items-center gap-1.5 rounded-md border border-input px-2.5 text-xs"
+            >
+              <RefreshCw className="size-3.5" /> Atualizar
+            </button>
+            <Link
+              to="/library/process"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-2.5 text-xs text-primary-foreground"
+            >
+              <FileUp className="size-3.5" /> Importar e processar
+            </Link>
+          </>
+        }
+      />
       <nav
         aria-label="Seções da biblioteca"
         className="flex gap-1 overflow-x-auto border-b border-border px-5 py-2 md:px-6"
@@ -204,7 +208,7 @@ export function LibraryPage() {
             aria-current={view === item.id ? "page" : undefined}
             className={`shrink-0 rounded px-2.5 py-1.5 text-xs transition-colors ${view === item.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/60 hover:text-foreground"}`}
           >
-            {item.label} <span className="ml-1 font-mono text-[9px]">{item.count}</span>
+            {item.label} <span className="ml-1 font-mono text-xs">{item.count}</span>
           </button>
         ))}
       </nav>
@@ -218,7 +222,7 @@ export function LibraryPage() {
               onClick={() => setCollectionId(undefined)}
               className={`block w-full rounded px-2 py-1.5 text-left text-xs ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
             >
-              Todas <span className="float-right font-mono text-[9px]">{sources.length}</span>
+              Todas <span className="float-right font-mono text-xs">{sources.length}</span>
             </button>
             {collections.map((collection) => (
               <button
@@ -227,7 +231,7 @@ export function LibraryPage() {
                 className={`block w-full rounded px-2 py-1.5 text-left text-xs ${collectionId === collection.id ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
               >
                 {collection.name}
-                <span className="float-right font-mono text-[9px]">{collection.itemCount}</span>
+                <span className="float-right font-mono text-xs">{collection.itemCount}</span>
               </button>
             ))}
             <div className="mt-3 border-t border-border pt-3">
@@ -291,7 +295,7 @@ export function LibraryPage() {
                   : "Este modo usa o armazenamento do navegador. Para compartilhar o acervo, ative o modo de instalação e transfira o workspace completo."}
               </p>
               {origin && (
-                <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
                   Endereço atual: {origin}
                 </p>
               )}
@@ -325,7 +329,7 @@ export function LibraryPage() {
               <div className="mt-3 space-y-3">
                 {primaryWorksByDiscipline.map(([discipline, works]) => (
                   <section key={discipline}>
-                    <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    <h2 className="meta-label tracking-wider text-muted-foreground">
                       {discipline}
                     </h2>
                     <div className="mt-1 grid gap-1 sm:grid-cols-2">
@@ -336,7 +340,7 @@ export function LibraryPage() {
                           className="rounded border border-border px-2.5 py-2 text-xs hover:bg-accent/50"
                         >
                           <span className="block font-medium">{work.title}</span>
-                          <span className="mt-0.5 block text-[10px] text-muted-foreground">
+                          <span className="mt-0.5 block text-xs text-muted-foreground">
                             {work.editionTitle}
                           </span>
                         </a>
@@ -361,13 +365,13 @@ export function LibraryPage() {
                     13 códices · 52 testemunhos textuais · 1 texto-fonte instalado
                   </span>
                 </summary>
-                <p className="mt-2 max-w-3xl text-[11px] leading-relaxed text-muted-foreground">
+                <p className="mt-2 max-w-3xl text-xs leading-relaxed text-muted-foreground">
                   {NAG_HAMMADI_RIGHTS_NOTE}
                 </p>
                 <div className="mt-3 grid gap-2 lg:grid-cols-2">
                   {NAG_HAMMADI_CODICES.map(({ codex, tractates }) => (
                     <section key={codex} className="rounded border border-border p-2.5">
-                      <h2 className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                      <h2 className="meta-label tracking-wider text-muted-foreground">
                         Códice {codex}
                       </h2>
                       <ol className="mt-1.5 space-y-1">
@@ -381,7 +385,7 @@ export function LibraryPage() {
                               <span>
                                 {tractate.order}. {tractate.title}
                               </span>
-                              <span className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+                              <span className="meta-label tracking-wide text-muted-foreground">
                                 {installed ? "texto copta" : "catalogado"}
                               </span>
                             </>
@@ -544,7 +548,7 @@ export function ImportPanel({
             <LockKeyhole className="mt-0.5 size-4 text-muted-foreground" />
             <div>
               <h3 className="text-xs font-medium">PDF privado com texto pesquisável</h3>
-              <p className="mt-0.5 text-[11px] text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 O original e o texto extraído ficam no armazenamento ativo: pasta da instalação no
                 modo Docker/local, ou OPFS no modo navegador. PDFs privados não entram nos pacotes
                 públicos.
@@ -574,7 +578,7 @@ export function ImportPanel({
                 : `Indexar ${pdfFiles.length || ""} PDF${pdfFiles.length === 1 ? "" : "s"}`}
             </button>
             {pdfFiles.length > 0 && (
-              <span className="text-[11px] text-muted-foreground">
+              <span className="text-xs text-muted-foreground">
                 {pdfFiles.map((file) => file.name).join(" · ")}
               </span>
             )}
@@ -608,7 +612,7 @@ export function ImportPanel({
             </ul>
           )}
         </section>
-        <div className="my-4 flex items-center gap-3 text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="my-4 flex items-center gap-3 text-xs uppercase tracking-wider text-muted-foreground">
           <span className="h-px flex-1 bg-border" /> Metadados bibliográficos
           <span className="h-px flex-1 bg-border" />
         </div>

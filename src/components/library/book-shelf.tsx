@@ -58,7 +58,7 @@ export function DocumentCover({ document }: { document: PrivateDocument }) {
       ) : (
         <div className="p-4 text-center">
           <p className="font-serif text-base leading-snug">{document.title}</p>
-          <p className="mt-4 text-[10px] text-muted-foreground">
+          <p className="mt-4 text-xs text-muted-foreground">
             {unavailable ? "Prévia indisponível" : "Carregando página original…"}
           </p>
         </div>
@@ -91,7 +91,7 @@ export function BookShelf({ documents }: { documents: PrivateDocument[] }) {
           ))}
         </select>
       </label>
-      <p className="mt-2 text-[10px] text-muted-foreground">
+      <p className="mt-2 text-xs text-muted-foreground">
         Prévias das páginas reais. Agrupamento sugerido pelo título; confirme o perfil dentro do
         livro.
       </p>
@@ -108,10 +108,10 @@ export function BookShelf({ documents }: { documents: PrivateDocument[] }) {
             <h3 className="mt-3 font-serif text-sm leading-snug underline-offset-4 group-hover:underline">
               {document.title}
             </h3>
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {DOCUMENT_PROFILE_LABELS[kind]} · {document.language ?? "idioma não identificado"}
             </p>
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               {document.textPageCount}/{document.pageCount} páginas pesquisáveis
             </p>
           </a>

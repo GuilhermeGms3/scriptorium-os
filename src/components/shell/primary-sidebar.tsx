@@ -55,7 +55,7 @@ export function PrimarySidebar() {
                 to={to}
                 aria-current={isActive(to) ? "page" : undefined}
                 className={cn(
-                  "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] transition-colors",
+                  "flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm transition-colors",
                   isActive(to)
                     ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
                     : "text-sidebar-foreground/80 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
@@ -75,7 +75,7 @@ export function PrimarySidebar() {
             <li key={label}>
               <Link
                 to={to}
-                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+                className="flex items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-sidebar-foreground/70 transition-colors hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
               >
                 <Icon className="size-4 shrink-0 opacity-70" strokeWidth={1.75} />
                 {label}

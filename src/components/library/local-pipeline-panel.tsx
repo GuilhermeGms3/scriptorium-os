@@ -267,7 +267,7 @@ export function LocalPipelinePanel({
             é controle operacional, não prova de verdade ou precisão acadêmica.
           </p>
           {audit.batches.length ? (
-            <ul className="grid gap-1 text-[10px] sm:grid-cols-2">
+            <ul className="grid gap-1 text-xs sm:grid-cols-2">
               {audit.batches.map((batch) => (
                 <li key={String(batch["id"])} className="rounded border border-border px-2 py-1.5">
                   Lote {Number(batch["ordinal"]) + 1}: {Number(batch["member_count"])} ligações ·

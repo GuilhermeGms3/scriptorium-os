@@ -53,7 +53,7 @@ export function Verse({
       )}
     >
       <span
-        className="mr-1.5 align-super font-mono text-[10px] font-medium text-muted-foreground select-none"
+        className="mr-1.5 align-super font-mono text-xs font-medium text-muted-foreground select-none"
         aria-hidden
       >
         {verse.verse}
@@ -85,7 +85,7 @@ export function OriginalVerse({
   if (!verse.original) {
     return (
       <div className="mb-3 flex items-baseline gap-2">
-        <span className="align-super font-mono text-[10px] text-muted-foreground select-none">
+        <span className="align-super font-mono text-xs text-muted-foreground select-none">
           {verse.verse}
         </span>
         <span className="text-sm text-muted-foreground italic">
@@ -98,7 +98,7 @@ export function OriginalVerse({
   return (
     <div id={`verse-${verse.verse}`} className="mb-4" dir={direction}>
       <span
-        className="me-1.5 align-super font-mono text-[10px] text-muted-foreground select-none"
+        className="me-1.5 align-super font-mono text-xs text-muted-foreground select-none"
         dir="ltr"
       >
         {verse.verse}

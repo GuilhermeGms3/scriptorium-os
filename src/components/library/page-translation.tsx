@@ -77,7 +77,7 @@ export function PageTranslation({
       {translation && (
         <div className="mt-3 whitespace-pre-wrap border-l-2 border-primary/40 pl-3 font-serif text-base leading-7">
           {translation.translatedText}
-          <p className="mt-2 font-sans text-[10px] text-muted-foreground">
+          <p className="mt-2 font-sans text-xs text-muted-foreground">
             Tradução automática · {translation.model} · revisão humana pendente
           </p>
         </div>

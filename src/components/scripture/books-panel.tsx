@@ -30,10 +30,8 @@ export function BooksPanel({
             className="group"
           >
             <summary className="cursor-pointer list-none border-y border-border/50 bg-muted/20 px-3 py-2">
-              <span className="block font-mono text-[10px] font-medium uppercase tracking-wider">
-                {group.label}
-              </span>
-              <span className="block text-[9px] text-muted-foreground">{group.description}</span>
+              <span className="block meta-label font-medium tracking-wider">{group.label}</span>
+              <span className="block text-xs text-muted-foreground">{group.description}</span>
             </summary>
             <ul>
               {group.books.map((book) => {
@@ -46,24 +44,24 @@ export function BooksPanel({
                         to="/scripture/$book/$chapter"
                         params={{ book: book.id, chapter: String(available[0]) }}
                         className={cn(
-                          "flex items-baseline justify-between gap-2 px-3 py-1 text-[13px] transition-colors",
+                          "flex items-baseline justify-between gap-2 px-3 py-1 text-sm transition-colors",
                           active
                             ? "bg-accent font-medium text-accent-foreground"
                             : "text-foreground/80 hover:bg-accent/60",
                         )}
                       >
                         <span className="min-w-0 truncate">{bookLabel(book.id, book.name)}</span>
-                        <span className="shrink-0 font-mono text-[9px] text-muted-foreground">
+                        <span className="shrink-0 font-mono text-xs text-muted-foreground">
                           {t("scripture.chapterCount", { count: available.length })}
                         </span>
                       </Link>
                     ) : (
                       <span
-                        className="flex items-baseline justify-between gap-2 px-3 py-1 text-[13px] text-muted-foreground/50"
+                        className="flex items-baseline justify-between gap-2 px-3 py-1 text-sm text-muted-foreground/50"
                         title={t("scripture.noImportedText")}
                       >
                         {bookLabel(book.id, book.name)}
-                        <span className="font-mono text-[10px]">—</span>
+                        <span className="font-mono text-xs">—</span>
                       </span>
                     )}
                     {active && available.length > 1 && (
@@ -79,7 +77,7 @@ export function BooksPanel({
                               to="/scripture/$book/$chapter"
                               params={{ book: book.id, chapter: String(c) }}
                               className={cn(
-                                "rounded px-1.5 py-0.5 font-mono text-[11px]",
+                                "rounded px-1.5 py-0.5 font-mono text-xs",
                                 c === activeChapter
                                   ? "bg-primary text-primary-foreground"
                                   : "hover:bg-accent",
@@ -98,7 +96,7 @@ export function BooksPanel({
           </details>
         ))}
       </div>
-      <p className="px-3 pt-3 text-[10px] leading-relaxed text-muted-foreground">
+      <p className="px-3 pt-3 text-xs leading-relaxed text-muted-foreground">
         {t("scripture.booksHintCompact")}
       </p>
     </nav>

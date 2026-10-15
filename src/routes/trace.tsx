@@ -13,6 +13,7 @@ import { passageLinkLabel } from "../lib/application/workspace-passage-knowledge
 import { ScriptureKnowledgeEngine } from "../lib/knowledge-engine/scripture-knowledge-engine";
 import { bookLabel } from "../lib/i18n";
 import { ContextualReadingImport } from "../components/library/contextual-reading-import";
+import { PageHeader } from "../components/layout/page-header";
 
 const SearchSchema = TraceFilterSchema.extend({ proposal: z.string().max(500).optional() });
 type TraceSearch = z.infer<typeof SearchSchema>;
@@ -381,27 +382,22 @@ function TracePage() {
   const items: KnowledgeTraceItem[] = state.data?.list.rows.map(explainKnowledgeTrace) ?? [];
   return (
     <article data-knowledge-trace className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
-      <header className="flex items-start justify-between gap-4">
-        <div>
-          <p className="meta-label">Proveniência do conhecimento privado</p>
-          <h1 className="mt-1 flex items-center gap-2 font-serif text-3xl">
-            <GitBranch className="size-6" />
-            Rastro
-          </h1>
-          <p className="mt-2 max-w-2xl text-sm text-muted-foreground">
-            Do livro à passagem: veja a origem, a justificativa e o que aconteceu com cada ligação
-            real do motor.
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => setRevision((value) => value + 1)}
-          aria-label="Atualizar rastro"
-        >
-          <RefreshCw className="size-4" />
-        </Button>
-      </header>
+      <PageHeader
+        eyebrow="Proveniência do conhecimento privado"
+        icon={<GitBranch className="size-5" aria-hidden="true" />}
+        title="Rastro"
+        description="Do livro à passagem: veja a origem, a justificativa e o que aconteceu com cada ligação real do motor."
+        actions={
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setRevision((value) => value + 1)}
+            aria-label="Atualizar rastro"
+          >
+            <RefreshCw className="size-4" />
+          </Button>
+        }
+      />
       {!search.proposal && <ContextualReadingImport />}
       {!state.data && !state.error && <p role="status">Carregando registros do workspace…</p>}
       {state.error && (

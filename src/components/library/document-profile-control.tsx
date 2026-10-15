@@ -64,12 +64,12 @@ export function DocumentProfileControl({ document }: { document: PrivateDocument
   };
 
   if (profile === undefined && !error)
-    return <p className="mt-1 text-[10px] italic text-muted-foreground">Identificando o perfil…</p>;
+    return <p className="mt-1 text-xs italic text-muted-foreground">Identificando o perfil…</p>;
 
   const accepted = profile?.reviewStatus === "accepted";
   const unchanged = choice === profile?.profile;
   return (
-    <div className="mt-2 flex flex-wrap items-center gap-2 text-[10px]">
+    <div className="mt-2 flex flex-wrap items-center gap-2 text-xs">
       <span id={labelId} className="text-muted-foreground">
         Perfil do livro
       </span>

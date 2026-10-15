@@ -12,7 +12,7 @@ export function StatusBar() {
   const origin = useCurrentOrigin();
 
   return (
-    <footer className="hidden h-6 shrink-0 items-center gap-4 border-t border-border bg-muted/40 px-3 font-mono text-[11px] text-muted-foreground md:flex">
+    <footer className="hidden h-6 shrink-0 items-center gap-4 border-t border-border bg-muted/40 px-3 font-mono text-xs text-muted-foreground md:flex">
       <span className="flex items-center gap-1.5">
         <span className="size-1.5 rounded-full bg-primary" aria-hidden />
         {passageContext?.label ?? t("shell.noPassage")}

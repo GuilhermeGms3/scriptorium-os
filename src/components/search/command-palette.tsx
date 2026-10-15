@@ -130,7 +130,7 @@ export function CommandPalette() {
             placeholder={t("search.palettePlaceholder")}
             className="h-11 w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground"
           />
-          <kbd className="rounded border border-border px-1 font-mono text-[10px] text-muted-foreground">
+          <kbd className="rounded border border-border px-1 font-mono text-xs text-muted-foreground">
             esc
           </kbd>
         </div>
@@ -156,9 +156,9 @@ export function CommandPalette() {
                     if (hit.to) navigate({ to: hit.to as never });
                     setPaletteOpen(false);
                   }}
-                  className="flex cursor-pointer items-baseline gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-foreground aria-selected:bg-accent"
+                  className="flex cursor-pointer items-baseline gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground aria-selected:bg-accent"
                 >
-                  <span className="w-20 shrink-0 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span className="w-20 shrink-0 meta-label tracking-wider text-muted-foreground">
                     {hit.group}
                   </span>
                   <span className="min-w-0">
@@ -184,7 +184,7 @@ export function CommandPalette() {
                     command.run();
                     setPaletteOpen(false);
                   }}
-                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-[13px] text-foreground aria-selected:bg-accent"
+                  className="flex cursor-pointer items-center gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground aria-selected:bg-accent"
                 >
                   <command.icon className="size-4 text-muted-foreground" strokeWidth={1.75} />
                   {command.label}

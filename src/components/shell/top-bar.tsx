@@ -19,10 +19,10 @@ export function TopBar() {
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
       <div className="flex items-center gap-2">
         <BookMarked className="size-4 text-primary" strokeWidth={2} />
-        <span className="font-mono text-[13px] font-medium tracking-[0.14em] text-foreground">
+        <span className="font-mono text-sm font-medium tracking-[0.14em] text-foreground">
           SCRIPTORIUM
         </span>
-        <span className="hidden rounded border border-border px-1 py-px font-mono text-[10px] uppercase tracking-wider text-muted-foreground md:inline">
+        <span className="hidden rounded border border-border px-1 py-px meta-label tracking-wider text-muted-foreground md:inline">
           {t("shell.productDescriptor")}
         </span>
       </div>
@@ -30,12 +30,12 @@ export function TopBar() {
       <div className="flex flex-1 justify-center px-2">
         <button
           onClick={() => setPaletteOpen(true)}
-          className="flex h-7 w-full max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-2.5 text-[13px] text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex h-7 w-full max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label={t("shell.openSearch")}
         >
           <Search className="size-3.5" />
           <span className="flex-1 text-left">{t("shell.searchCommand")}</span>
-          <kbd className="hidden rounded border border-border bg-background px-1 font-mono text-[10px] text-muted-foreground sm:inline">
+          <kbd className="hidden rounded border border-border bg-background px-1 font-mono text-xs text-muted-foreground sm:inline">
             ⌘K
           </kbd>
         </button>

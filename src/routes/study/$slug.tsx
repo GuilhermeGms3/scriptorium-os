@@ -7,6 +7,8 @@ import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../.
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import type { ResearchQuestion } from "../../lib/domain/research";
 import { studyGuideById } from "../../lib/content/study-guides";
+import { PageContainer } from "../../components/layout/page-container";
+import { PageHeader } from "../../components/layout/page-header";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -72,8 +74,12 @@ function StudyWorkspace() {
   };
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
+    <PageContainer width="wide">
+      <PageHeader
+        eyebrow={t("study.workspace")}
+        title={study.title}
+        description={study.description ?? t("study.privateDescription")}
+      >
         {guide && (
           <Link
             to="/study/guide/$topic"
@@ -83,12 +89,7 @@ function StudyWorkspace() {
             Voltar ao guia de {guide.title}
           </Link>
         )}
-        <p className="meta-label">{t("study.workspace")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold">{study.title}</h1>
-        <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-          {study.description ?? t("study.privateDescription")}
-        </p>
-      </header>
+      </PageHeader>
 
       <p className="mt-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
         Use este estudo como uma mesa de pesquisa: formule uma pergunta, reúna passagens e fontes
@@ -156,10 +157,10 @@ function StudyWorkspace() {
                 return (
                   <li key={item.id} className="flex items-center gap-2.5 py-2">
                     <Icon className="size-3.5 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 text-[13px]">
+                    <span className="min-w-0 flex-1 text-sm">
                       {item.passageRef ? passageLabel(item.passageRef) : item.label}
                     </span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <span className="meta-label tracking-wider text-muted-foreground">
                       {studyItemKindLabel(item.kind)}
                     </span>
                   </li>
@@ -202,7 +203,7 @@ function StudyWorkspace() {
                 return (
                   <div key={lens.id} className="border-b border-border p-2.5 sm:border-r">
                     <p className="text-xs font-medium">{presentation.label}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {presentation.question}
                     </p>
                   </div>
@@ -230,7 +231,7 @@ function StudyWorkspace() {
               onChange={(e) => setBody(e.target.value)}
               placeholder={t("study.notePlaceholder")}
               aria-label={t("study.noteBody")}
-              className="min-h-24 w-full resize-y bg-transparent text-[13px] leading-relaxed outline-none"
+              className="min-h-24 w-full resize-y bg-transparent text-sm leading-relaxed outline-none"
             />
             <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
               {t("common.saveLocally")}
@@ -239,7 +240,7 @@ function StudyWorkspace() {
           <ul className="mt-3 space-y-2">
             {linkedNotes.map((note) => (
               <li key={note.id} className="border-l-2 border-border pl-3">
-                <p className="text-[13px] font-medium">{note.title}</p>
+                <p className="text-sm font-medium">{note.title}</p>
                 <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
                   {note.body || t("study.emptyNote")}
                 </p>
@@ -251,7 +252,7 @@ function StudyWorkspace() {
           </ul>
         </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -272,7 +273,7 @@ function ResearchQuestionItem({
           aria-label="Status da pergunta"
           value={status}
           onChange={(event) => setStatus(event.target.value as ResearchQuestion["status"])}
-          className="h-7 min-w-0 flex-1 rounded border border-input bg-background px-1 text-[10px]"
+          className="h-7 min-w-0 flex-1 rounded border border-input bg-background px-1 text-xs"
         >
           <option value="open">Aberta</option>
           <option value="investigating">Investigando</option>
@@ -288,7 +289,7 @@ function ResearchQuestionItem({
               ...(conclusion.trim() ? { provisionalConclusion: conclusion } : {}),
             }).then(onChanged)
           }
-          className="rounded border border-input px-2 text-[10px]"
+          className="rounded border border-input px-2 text-xs"
         >
           Salvar
         </button>
@@ -298,7 +299,7 @@ function ResearchQuestionItem({
         value={conclusion}
         onChange={(event) => setConclusion(event.target.value)}
         placeholder="Conclusão provisória pessoal"
-        className="mt-1 min-h-14 w-full rounded border border-input bg-background p-1.5 text-[10px]"
+        className="mt-1 min-h-14 w-full rounded border border-input bg-background p-1.5 text-xs"
       />
     </li>
   );

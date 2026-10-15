@@ -75,14 +75,14 @@ export function StudyLearningMap({ studies }: { studies: readonly Study[] }) {
                   />
                   <span className="flex-1 text-xs font-medium">{journey.title}</span>
                 </span>
-                <span className="mt-1 block pl-4 text-[10px] text-muted-foreground">
+                <span className="mt-1 block pl-4 text-xs text-muted-foreground">
                   {journeyStartCount(journey, studies)} investigações iniciadas
                 </span>
               </Link>
             </li>
           ))}
         </ul>
-        <p className="mt-5 border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="mt-5 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
           Todos os nós abrem roteiros. A marca ✓ indica uma investigação iniciada, não domínio ou
           conclusão do assunto.
         </p>
@@ -194,12 +194,7 @@ function MapNodeLink({
     >
       <span className="leading-tight">
         {started && <Check className="mx-auto mb-0.5 size-3" aria-hidden="true" />}
-        <span
-          className={clsx(
-            "block",
-            node.kind === "path" ? "text-[10px]" : "text-[11px] font-medium",
-          )}
-        >
+        <span className={clsx("block", node.kind === "path" ? "text-xs" : "text-xs font-medium")}>
           {node.shortTitle}
         </span>
       </span>

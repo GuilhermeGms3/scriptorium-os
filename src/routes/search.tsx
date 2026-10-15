@@ -4,6 +4,8 @@ import { BookOpen, Library, Search as SearchIcon, Sparkles } from "lucide-react"
 import { searchWorkspace, type SearchHit } from "../lib/application/search-workspace";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
+import { PageContainer } from "../components/layout/page-container";
+import { PageHeader } from "../components/layout/page-header";
 
 interface SearchParams {
   q?: string;
@@ -50,12 +52,12 @@ function SearchPage() {
   const visibleHits = group === "all" ? hits : hits.filter((hit) => hit.group === group);
 
   return (
-    <div className="mx-auto max-w-4xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("search.global")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold">{t("search.workspace")}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">{t("search.description")}</p>
-      </header>
+    <PageContainer>
+      <PageHeader
+        eyebrow={t("search.global")}
+        title={t("search.workspace")}
+        description={t("search.description")}
+      />
       <label className="mt-5 flex h-12 items-center gap-2 rounded-md border border-input bg-card px-3 shadow-sm">
         <SearchIcon className="size-4 text-muted-foreground" />
         <span className="sr-only">{t("search.query")}</span>
@@ -83,7 +85,7 @@ function SearchPage() {
                   key={example}
                   type="button"
                   onClick={() => setQuery(example)}
-                  className="rounded border border-input px-2 py-1 text-[11px] hover:bg-accent"
+                  className="rounded border border-input px-2 py-1 text-xs hover:bg-accent"
                 >
                   {example}
                 </button>
@@ -104,7 +106,7 @@ function SearchPage() {
                   key={example}
                   type="button"
                   onClick={() => setQuery(example)}
-                  className="rounded border border-input px-2 py-1 text-[11px] hover:bg-accent"
+                  className="rounded border border-input px-2 py-1 text-xs hover:bg-accent"
                 >
                   {example}
                 </button>
@@ -123,7 +125,7 @@ function SearchPage() {
             onClick={() => setGroup("all")}
             className={`shrink-0 rounded px-2.5 py-1 text-xs ${group === "all" ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/60"}`}
           >
-            Todos <span className="font-mono text-[9px]">{hits.length}</span>
+            Todos <span className="font-mono text-xs">{hits.length}</span>
           </button>
           {groups.map((name) => (
             <button
@@ -133,7 +135,7 @@ function SearchPage() {
               className={`shrink-0 rounded px-2.5 py-1 text-xs ${group === name ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/60"}`}
             >
               {name}{" "}
-              <span className="font-mono text-[9px]">
+              <span className="font-mono text-xs">
                 {hits.filter((hit) => hit.group === name).length}
               </span>
             </button>
@@ -155,11 +157,11 @@ function SearchPage() {
             {visibleHits.map((hit) => (
               <li key={hit.id}>
                 <Link to={hit.to as never} className="grid gap-1 py-2.5 sm:grid-cols-[90px_1fr]">
-                  <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                  <span className="meta-label tracking-wider text-muted-foreground">
                     {hit.group}
                   </span>
                   <span>
-                    <span className="block text-[13px] font-medium">{hit.label}</span>
+                    <span className="block text-sm font-medium">{hit.label}</span>
                     {hit.detail && (
                       <span className="block text-xs text-muted-foreground">
                         {hit.detail.replaceAll(/<\/?mark>/g, "")}
@@ -172,6 +174,6 @@ function SearchPage() {
           </ul>
         )}
       </div>
-    </div>
+    </PageContainer>
   );
 }

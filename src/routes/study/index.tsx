@@ -9,6 +9,7 @@ import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { useSecureContextProblem } from "../../lib/workspace-runtime/use-secure-context";
 import { SecureContextNotice } from "../../components/common/secure-context-notice";
 import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
+import { PageHeader } from "../../components/layout/page-header";
 
 type StudyView = "journey" | "investigations";
 
@@ -40,49 +41,48 @@ function StudyIndex() {
   return (
     <div className="min-h-full">
       <header className="border-b border-border bg-background px-5 py-4 md:px-7">
-        <div className="flex flex-wrap items-end justify-between gap-4">
-          <div>
-            <p className="meta-label">Formação e investigação</p>
-            <h1 className="mt-1 font-serif text-2xl font-semibold">Árvore de estudos</h1>
-            <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">
-              Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações.
-              Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso
-              inventado.
-            </p>
-          </div>
-          <div
-            className="flex border border-input bg-card p-0.5"
-            role="group"
-            aria-label="Modo de estudo"
-          >
-            <button
-              type="button"
-              aria-pressed={view === "journey"}
-              onClick={() => setView("journey")}
-              className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
-                view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-              }`}
+        <PageHeader
+          className="border-b-0 pb-0"
+          eyebrow="Formação e investigação"
+          title="Árvore de estudos"
+          description="Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso inventado."
+          actions={
+            <div
+              className="flex border border-input bg-card p-0.5"
+              role="group"
+              aria-label="Modo de estudo"
             >
-              <RouteIcon className="size-3.5" /> Jornada
-            </button>
-            <Link
-              to="/knowledge"
-              className="inline-flex h-8 items-center gap-1.5 px-2.5 text-xs hover:bg-accent"
-            >
-              <Map className="size-3.5" /> Mapa livre
-            </Link>
-            <button
-              type="button"
-              aria-pressed={view === "investigations"}
-              onClick={() => setView("investigations")}
-              className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
-                view === "investigations" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-              }`}
-            >
-              <Network className="size-3.5" /> Investigações
-            </button>
-          </div>
-        </div>
+              <button
+                type="button"
+                aria-pressed={view === "journey"}
+                onClick={() => setView("journey")}
+                className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                  view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                }`}
+              >
+                <RouteIcon className="size-3.5" /> Jornada
+              </button>
+              <Link
+                to="/knowledge"
+                className="inline-flex h-8 items-center gap-1.5 px-2.5 text-xs hover:bg-accent"
+              >
+                <Map className="size-3.5" /> Mapa livre
+              </Link>
+              <button
+                type="button"
+                aria-pressed={view === "investigations"}
+                onClick={() => setView("investigations")}
+                className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                  view === "investigations"
+                    ? "bg-primary text-primary-foreground"
+                    : "hover:bg-accent"
+                }`}
+              >
+                <Network className="size-3.5" /> Investigações
+              </button>
+            </div>
+          }
+        />
       </header>
 
       {view === "journey" ? (
@@ -165,7 +165,7 @@ function PersonalInvestigations({
                       {study.description ?? t("study.localDescription")}
                     </span>
                   </span>
-                  <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  <span className="flex items-center gap-2 meta-label tracking-wider text-muted-foreground">
                     {formatNumber(study.items.length)} {t("common.items")}
                     <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
                   </span>

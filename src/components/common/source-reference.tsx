@@ -23,15 +23,15 @@ export function SourceReferenceCard({
         <div className="min-w-0 text-sm">
           {source.author && <p className="text-foreground">{source.author}</p>}
           <p className="font-serif italic text-foreground/90">{source.work}</p>
-          <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+          <p className="mt-0.5 font-mono text-xs text-muted-foreground">
             {[source.edition, fragment?.locator, source.year].filter(Boolean).join(" · ")}
           </p>
           {source.language && (
-            <p className="mt-0.5 text-[11px] text-muted-foreground">
+            <p className="mt-0.5 text-xs text-muted-foreground">
               {t("common.language")}: {languageLabel(source.language)}
             </p>
           )}
-          <p className="mt-1 flex flex-wrap gap-1 font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+          <p className="mt-1 flex flex-wrap gap-1 meta-label tracking-wider text-muted-foreground">
             {fragment && <span>{t(`source.${fragment.epistemicRole}`)}</span>}
             <span>
               {source.provenance.isDemo

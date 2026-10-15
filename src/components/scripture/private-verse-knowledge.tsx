@@ -92,12 +92,12 @@ function LinkCorrectionPanel({
       <p id={`${id}-title`} className="text-xs font-medium">
         Onde essa informação se encaixaria?
       </p>
-      <p className="mt-0.5 text-[11px] text-muted-foreground">
+      <p className="mt-0.5 text-xs text-muted-foreground">
         O livro diz: “{item.passageRelation.payload.rawReference}”
       </p>
       <div className="mt-2 grid grid-cols-2 gap-2 sm:grid-cols-[minmax(0,2fr)_repeat(3,minmax(0,1fr))]">
         <div className="col-span-2 space-y-1 sm:col-span-1">
-          <Label htmlFor={`${id}-book`} className="text-[11px]">
+          <Label htmlFor={`${id}-book`} className="text-xs">
             Livro
           </Label>
           <select
@@ -114,7 +114,7 @@ function LinkCorrectionPanel({
           </select>
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`${id}-chapter`} className="text-[11px]">
+          <Label htmlFor={`${id}-chapter`} className="text-xs">
             Capítulo
           </Label>
           <Input
@@ -130,7 +130,7 @@ function LinkCorrectionPanel({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`${id}-verse`} className="text-[11px]">
+          <Label htmlFor={`${id}-verse`} className="text-xs">
             Versículo
           </Label>
           <Input
@@ -145,7 +145,7 @@ function LinkCorrectionPanel({
           />
         </div>
         <div className="space-y-1">
-          <Label htmlFor={`${id}-until`} className="text-[11px]">
+          <Label htmlFor={`${id}-until`} className="text-xs">
             Até (opcional)
           </Label>
           <Input
@@ -247,7 +247,7 @@ export function PrivateLinkCard({
           <Link
             to="/scripture/$book/$chapter"
             params={{ book: target.bookId, chapter: String(target.chapter ?? 1) }}
-            className="inline-flex items-center gap-1 text-[10px] text-primary hover:underline"
+            className="inline-flex items-center gap-1 text-xs text-primary hover:underline"
           >
             Abrir na Bíblia <ExternalLink className="size-3" aria-hidden="true" />
           </Link>
@@ -260,7 +260,7 @@ export function PrivateLinkCard({
           >
             {item.document.title}
           </a>
-          <span className="inline-flex items-center gap-1 font-mono text-[9px] text-muted-foreground">
+          <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
             <LockKeyhole className="size-3" /> páginas{" "}
             {item.pages.map((page) => page + 1).join(", ")}
           </span>
@@ -274,7 +274,7 @@ export function PrivateLinkCard({
         Ver rastro desta ligação
       </Link>
       {(item.context.authors.length > 0 || item.context.sectionTitle) && (
-        <p className="mt-1 text-[10px] text-muted-foreground">
+        <p className="mt-1 text-xs text-muted-foreground">
           {item.context.authors.length ? item.context.authors.join(", ") : "Autor não catalogado"}
           {item.context.sectionTitle ? ` · ${item.context.sectionTitle}` : ""}
         </p>
@@ -288,7 +288,7 @@ export function PrivateLinkCard({
           >
             {relation.payload.contextualAnalysis.summary}
           </a>
-          <p className="text-[10px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             Síntese contextual assistida por máquina · não revisada por pessoa.
           </p>
           {relation.payload.contextualAnalysis.limitations.map((value) => (
@@ -306,7 +306,7 @@ export function PrivateLinkCard({
           >
             {item.translation?.translatedText ?? item.unit.text}
           </a>
-          <p className="mt-2 text-[10px] text-muted-foreground">
+          <p className="mt-2 text-xs text-muted-foreground">
             Trecho literal da fonte · ligação{" "}
             {item.reviewState === "confirmed"
               ? "confirmada"
@@ -316,9 +316,7 @@ export function PrivateLinkCard({
         </blockquote>
       )}
       {topics.length > 0 && (
-        <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
-          {[...new Set(topics)].join(" · ")}
-        </p>
+        <p className="mt-1 meta-label text-muted-foreground">{[...new Set(topics)].join(" · ")}</p>
       )}
       {claims.length > 0 && (
         <section className="mt-2 rounded border border-border bg-background/60 p-2.5">
@@ -342,7 +340,7 @@ export function PrivateLinkCard({
         >
           <p className="meta-label">Argumento detectado</p>
           <p className="mt-1 text-xs font-medium">{argument.conclusion}</p>
-          <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
+          <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-xs text-muted-foreground">
             {argument.premises.map((premise) => (
               <li key={premise}>{premise}</li>
             ))}
@@ -350,20 +348,20 @@ export function PrivateLinkCard({
         </section>
       ))}
       <details className="mt-2 rounded border border-border/70 px-2.5 py-2">
-        <summary className="cursor-pointer text-[11px] font-medium">
+        <summary className="cursor-pointer text-xs font-medium">
           Ler trecho-fonte {item.translation ? "em português" : "no idioma original"}
         </summary>
         <p className="mt-2 whitespace-pre-line text-xs leading-relaxed text-foreground/90">
           {item.translation?.translatedText ?? item.unit.text}
         </p>
         {(item.translation?.translatedText ?? item.unit.text).length > 700 && (
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Trecho abreviado. Abra a fonte para ler a unidade completa no contexto da página.
           </p>
         )}
       </details>
       {item.context.attributions.length > 0 && (
-        <details className="mt-2 text-[10px] text-muted-foreground">
+        <details className="mt-2 text-xs text-muted-foreground">
           <summary className="cursor-pointer">Atribuições detectadas</summary>
           <ul className="mt-1 space-y-1">
             {item.context.attributions.map((value, index) => (
@@ -375,7 +373,7 @@ export function PrivateLinkCard({
 
       {unconfirmed && !correcting && (
         <div className="mt-3 rounded border border-amber-500/30 bg-amber-500/10 p-2">
-          <p className="text-[11px] text-muted-foreground">
+          <p className="text-xs text-muted-foreground">
             O livro diz: “{relation.payload.rawReference}”
           </p>
           <div className="mt-1.5 flex flex-wrap items-center gap-2">
@@ -435,7 +433,7 @@ export function PrivateLinkCard({
       )}
 
       <div className="mt-2 flex flex-wrap items-center justify-between gap-2">
-        <p className="flex flex-wrap items-center gap-1 font-mono text-[9px] text-muted-foreground">
+        <p className="flex flex-wrap items-center gap-1 font-mono text-xs text-muted-foreground">
           {item.reviewState === "confirmed"
             ? "Confirmada por você"
             : item.reviewState === "auto-visible"
@@ -448,7 +446,7 @@ export function PrivateLinkCard({
             <button
               type="button"
               onClick={() => setCorrecting(true)}
-              className="ml-1 font-sans text-[10px] text-muted-foreground underline underline-offset-2 hover:text-foreground"
+              className="ml-1 font-sans text-xs text-muted-foreground underline underline-offset-2 hover:text-foreground"
             >
               Corrigir
             </button>
@@ -457,7 +455,7 @@ export function PrivateLinkCard({
         {context === "bible-reader" && (
           <a
             href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
-            className="inline-flex items-center gap-1 text-[10px] text-primary underline underline-offset-4"
+            className="inline-flex items-center gap-1 text-xs text-primary underline underline-offset-4"
           >
             Abrir fonte <ExternalLink className="size-3" />
           </a>
@@ -554,7 +552,7 @@ export function PrivateVerseKnowledge({
               ) : (
                 commentary
               )}
-              <p className="mt-1 text-[10px] text-muted-foreground">
+              <p className="mt-1 text-xs text-muted-foreground">
                 {preview.passageRelation.payload.contextualAnalysis
                   ? "Síntese contextual assistida"
                   : "Trecho literal da fonte"}{" "}
@@ -572,7 +570,7 @@ export function PrivateVerseKnowledge({
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => onOpenChange(!open)}
-        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 px-2.5 py-1 text-[11px] text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground"
+        className="inline-flex items-center gap-1.5 rounded-full border border-amber-500/30 bg-amber-500/5 px-2.5 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground"
       >
         {unconfirmed > 0 && (
           <span aria-hidden="true" className="size-1.5 rounded-full bg-amber-500" />
@@ -594,7 +592,7 @@ export function PrivateVerseKnowledge({
           className="mt-2 space-y-2 border-l-2 border-amber-500/30 pl-3"
           aria-label={`Biblioteca conectada ao versículo ${verse}`}
         >
-          <p className="rounded border border-border bg-muted/20 p-2 text-[11px] leading-relaxed text-muted-foreground">
+          <p className="rounded border border-border bg-muted/20 p-2 text-xs leading-relaxed text-muted-foreground">
             Trechos organizados por fonte e página. Ligações automáticas e sínteses assistidas não
             equivalem a comentários editorialmente revisados.
           </p>

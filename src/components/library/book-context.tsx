@@ -38,7 +38,7 @@ export function BookContext({
             estruturais detectados
           </p>
           <h3 className="meta-label mt-6">Assuntos detectados</h3>
-          <p className="mt-1 text-[10px] text-muted-foreground">
+          <p className="mt-1 text-xs text-muted-foreground">
             Classificação de máquina, não interpretação aprovada.
           </p>
           <ul className="mt-2 space-y-1">

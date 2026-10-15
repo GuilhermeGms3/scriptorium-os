@@ -135,7 +135,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
-              className="shrink-0 rounded px-2 py-1 font-mono text-[10px] tracking-wider text-muted-foreground uppercase transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
+              className="shrink-0 rounded px-2 py-1 meta-label tracking-wider text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
             >
               {tab.label}
             </Tabs.Trigger>
@@ -254,9 +254,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                   .filter(([, v]) => v)
                   .map(([k, v], index) => (
                     <tr key={`${k}:${index}`} className="border-b border-border/60 last:border-0">
-                      <td className="py-1.5 pr-3 font-mono text-[11px] text-muted-foreground">
-                        {k}
-                      </td>
+                      <td className="py-1.5 pr-3 font-mono text-xs text-muted-foreground">{k}</td>
                       <td className="py-1.5 capitalize">{v ? morphologyLabel(v) : v}</td>
                     </tr>
                   ))}
@@ -446,7 +444,7 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
         <div className="rounded border border-primary/30 bg-primary/5 p-2.5">
           <p className="meta-label">Em português · tradução automática auxiliar</p>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{translation}</p>
-          <p className="mt-2 text-[10px] text-muted-foreground">Não revisada academicamente.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Não revisada academicamente.</p>
         </div>
       ) : (
         <button
@@ -461,7 +459,7 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <details open={!translation} className="border-t border-border pt-2">
-        <summary className="cursor-pointer text-[11px] font-medium text-muted-foreground">
+        <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
           Consultar texto original da definição em inglês
         </summary>
         <div className="mt-2">
@@ -475,7 +473,7 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
           </div>
         )}
       </details>
-      <p className="text-[11px] text-muted-foreground">
+      <p className="text-xs text-muted-foreground">
         {entry.language === "hbo"
           ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"
           : "TBESG · STEP Bible / Tyndale House Cambridge · CC BY 4.0"}

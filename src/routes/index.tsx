@@ -4,6 +4,8 @@ import { ArrowRight, BookOpen, CalendarDays, FileText, Library, StickyNote } fro
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { LibraryRepository } from "../lib/repositories/library-repository";
 import { ResearchAssistant } from "../components/common/research-assistant";
+import { PageContainer } from "../components/layout/page-container";
+import { PageHeader } from "../components/layout/page-header";
 import { bookLabel, claimKindLabel, formatNumber, passageLabel, t } from "../lib/i18n";
 import type { BibliographicSource } from "../lib/domain/bibliography";
 import { ScriptureKnowledgeEngine } from "../lib/knowledge-engine/scripture-knowledge-engine";
@@ -116,13 +118,8 @@ function Home() {
     dailyBundle && hasAvailableData(dailyBundle.analyses) ? dailyBundle.analyses.data : [];
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("home.workspace")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
-          {t("home.resume")}
-        </h1>
-      </header>
+    <PageContainer>
+      <PageHeader eyebrow={t("home.workspace")} title={t("home.resume")} />
 
       <div className="mt-5 grid gap-x-8 gap-y-6 lg:grid-cols-[1.6fr_1fr]">
         <div className="space-y-6">
@@ -134,7 +131,7 @@ function Home() {
                   Uma passagem diferente do acervo instalado, com as camadas realmente disponíveis.
                 </p>
               </div>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-xs text-muted-foreground">
                 {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date())}
               </span>
             </div>
@@ -203,7 +200,7 @@ function Home() {
                 {bookLabel(lastPosition?.bookId ?? dailyBundle?.identity.ref.bookId ?? "genesis")}{" "}
                 {lastPosition?.chapter ?? dailyBundle?.identity.ref.chapter ?? 1}
               </p>
-              <p className="mt-1 font-mono text-[11px] text-muted-foreground">
+              <p className="mt-1 font-mono text-xs text-muted-foreground">
                 {lastPosition ? t("home.lastPosition") : "Sugestão inicial do acervo"}
                 <ArrowRight className="ml-1 inline size-3 transition-transform group-hover:translate-x-0.5" />
               </p>
@@ -219,8 +216,8 @@ function Home() {
                 params={{ slug: recentStudy.slug }}
                 className="group mt-2 block border-l-2 border-border pl-3 transition-colors hover:border-primary/60"
               >
-                <p className="text-[15px] font-medium">{recentStudy.title}</p>
-                <p className="mt-0.5 font-mono text-[11px] text-muted-foreground">
+                <p className="text-base font-medium">{recentStudy.title}</p>
+                <p className="mt-0.5 font-mono text-xs text-muted-foreground">
                   {formatNumber(recentStudy.items.filter((i) => i.kind === "resource").length)}{" "}
                   {t("home.sourcesLinked")} · {formatNumber(notes.length)} {t("home.notes")} ·{" "}
                   {formatNumber(recentStudy.items.filter((i) => i.kind === "passage").length)}{" "}
@@ -239,11 +236,11 @@ function Home() {
                   <Link
                     to="/library"
                     search={{ source: r.id }}
-                    className="min-w-0 flex-1 text-[13px] hover:underline"
+                    className="min-w-0 flex-1 text-sm hover:underline"
                   >
                     {r.title}
                   </Link>
-                  <span className="shrink-0 font-mono text-[10px] tracking-wider text-muted-foreground uppercase">
+                  <span className="shrink-0 meta-label tracking-wider text-muted-foreground">
                     {r.sourceType.replaceAll("-", " ")}
                   </span>
                 </li>
@@ -260,8 +257,8 @@ function Home() {
               <ul className="mt-2 divide-y divide-border border-y border-border">
                 {notes.slice(0, 4).map((n) => (
                   <li key={n.id} className="py-1.5">
-                    <p className="text-[13px] font-medium">{n.title}</p>
-                    <p className="font-mono text-[10px] text-muted-foreground">
+                    <p className="text-sm font-medium">{n.title}</p>
+                    <p className="font-mono text-xs text-muted-foreground">
                       {n.links.map((l) => l.label).join(" · ") || t("home.unlinked")}
                     </p>
                   </li>
@@ -274,7 +271,7 @@ function Home() {
         <aside className="space-y-5">
           <section className="rounded-lg border border-border bg-card p-3.5">
             <p className="meta-label">O que existe para a passagem</p>
-            <dl className="mt-3 space-y-2 text-[13px]">
+            <dl className="mt-3 space-y-2 text-sm">
               <div className="flex items-center justify-between gap-3">
                 <dt>Análises editoriais</dt>
                 <dd className="font-mono text-xs">{dailyAnalyses.length}</dd>
@@ -295,7 +292,7 @@ function Home() {
             {dailyBundle && hasAvailableData(dailyBundle.claims) && dailyBundle.claims.data[0] ? (
               <div className="mt-3 border-t border-border pt-3">
                 <p className="text-xs leading-relaxed">{dailyBundle.claims.data[0].proposition}</p>
-                <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                <p className="mt-1 meta-label text-muted-foreground">
                   {claimKindLabel(dailyBundle.claims.data[0].kind)}
                 </p>
               </div>
@@ -317,7 +314,7 @@ function Home() {
           />
         </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 

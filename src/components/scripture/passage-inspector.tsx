@@ -62,7 +62,7 @@ function primarySourceAnchor(anchor: TextAnchor):
 function ViewpointArguments({ label, items }: { label: string; items: Argument[] }) {
   return (
     <div className="mt-2">
-      <p className="font-mono text-[9px] tracking-wider text-muted-foreground uppercase">{label}</p>
+      <p className="meta-label tracking-wider text-muted-foreground">{label}</p>
       {items.length ? (
         <ul className="mt-1 space-y-0.5">
           {items.map((argument) => (
@@ -108,7 +108,7 @@ function PassageViewpoints({ bundle }: { bundle: PassageKnowledgeBundle | null }
             {viewpoint.claims.map((claim) => (
               <li key={claim.id} className="border-l border-border pl-2.5">
                 <p className="text-xs leading-relaxed">{claim.proposition}</p>
-                <p className="mt-0.5 font-mono text-[9px] text-muted-foreground uppercase">
+                <p className="mt-0.5 meta-label text-muted-foreground">
                   {claimKindLabel(claim.kind)} · {supportLevelLabel(claim.supportLevel)}
                 </p>
               </li>
@@ -241,7 +241,7 @@ export function PassageInspector() {
         <p className="meta-label">{t("scripture.inspector.passage")}</p>
         <p className="mt-1 font-serif text-lg font-semibold">{label}</p>
         {bundle?.provenance.isDemo && (
-          <p className="mt-1 font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+          <p className="mt-1 meta-label tracking-wider text-muted-foreground">
             {t("scripture.bundleDemo")}
           </p>
         )}
@@ -256,7 +256,7 @@ export function PassageInspector() {
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
-              className="shrink-0 rounded px-2 py-1 font-mono text-[10px] tracking-wider text-muted-foreground uppercase transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
+              className="shrink-0 rounded px-2 py-1 meta-label tracking-wider text-muted-foreground transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
             >
               {tab.label}
             </Tabs.Trigger>
@@ -312,7 +312,7 @@ export function PassageInspector() {
                     {bundle.claims.data.map((claim) => (
                       <li key={claim.id} className="rounded-md border border-border p-2.5">
                         <p className="text-sm leading-relaxed">{claim.proposition}</p>
-                        <div className="mt-1.5 flex flex-wrap gap-1.5 font-mono text-[9px] uppercase text-muted-foreground">
+                        <div className="mt-1.5 flex flex-wrap gap-1.5 meta-label text-muted-foreground">
                           <span>{claimKindLabel(claim.kind)}</span>
                           <span>·</span>
                           <span>{reviewStatusLabel(claim.reviewStatus)}</span>
@@ -345,14 +345,14 @@ export function PassageInspector() {
                       ? "trecho relacionado"
                       : "trechos relacionados"}
                   </p>
-                  <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                  <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                     {workspaceKnowledge.items
                       .slice(0, 3)
                       .map((item) => item.document.title)
                       .filter((title, index, titles) => titles.indexOf(title) === index)
                       .join(" · ")}
                   </p>
-                  <p className="mt-1.5 text-[10px] text-muted-foreground">
+                  <p className="mt-1.5 text-xs text-muted-foreground">
                     Abra a aba Literatura para ver fonte, página, contexto e estado de revisão.
                   </p>
                 </div>
@@ -365,7 +365,7 @@ export function PassageInspector() {
                   {workspaceKnowledge.coverage.map((entry) => (
                     <li
                       key={entry.area}
-                      className="flex min-h-8 items-center justify-between gap-2 rounded border border-border px-2 text-[10px]"
+                      className="flex min-h-8 items-center justify-between gap-2 rounded border border-border px-2 text-xs"
                     >
                       <span>{COVERAGE_LABELS[entry.area]}</span>
                       <span
@@ -457,7 +457,7 @@ export function PassageInspector() {
                       <p className="mt-0.5 text-xs text-muted-foreground">
                         {relation.description ?? relation.relation.value}
                       </p>
-                      <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                      <p className="mt-1 meta-label text-muted-foreground">
                         {relation.sourceFragmentIds.length
                           ? reviewStatusLabel(relation.reviewStatus)
                           : t("knowledge.noSource")}
@@ -501,7 +501,7 @@ export function PassageInspector() {
                     <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
                       {analysis.summary}
                     </p>
-                    <p className="mt-2 font-mono text-[9px] uppercase text-muted-foreground">
+                    <p className="mt-2 meta-label text-muted-foreground">
                       {reviewStatusLabel(analysis.reviewStatus)} ·{" "}
                       {claimKindLabel(analysis.interpretationKind)}
                     </p>
@@ -585,7 +585,7 @@ export function PassageInspector() {
                                 <div className="flex flex-wrap items-center justify-between gap-2">
                                   <p className="text-xs font-medium">{item.document.title}</p>
                                   {item.reviewState === "pending" && (
-                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-[10px]">
+                                    <span className="inline-flex items-center gap-1 rounded-full border border-amber-500/30 bg-amber-500/10 px-1.5 py-0.5 text-xs">
                                       <span
                                         aria-hidden="true"
                                         className="size-1.5 rounded-full bg-amber-500"
@@ -594,7 +594,7 @@ export function PassageInspector() {
                                     </span>
                                   )}
                                 </div>
-                                <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                                <p className="mt-1 meta-label text-muted-foreground">
                                   {item.passageRelation.payload.rawReference} · páginas{" "}
                                   {item.pages.map((page) => page + 1).join(", ")}
                                   {item.reviewState === "pending"
@@ -623,7 +623,7 @@ export function PassageInspector() {
                                       <p className="mt-1 text-xs font-medium">
                                         {proposal.payload.conclusion}
                                       </p>
-                                      <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-[11px] text-muted-foreground">
+                                      <ol className="mt-1 list-decimal space-y-0.5 pl-4 text-xs text-muted-foreground">
                                         {proposal.payload.premises.map((premise) => (
                                           <li key={premise}>{premise}</li>
                                         ))}
@@ -635,7 +635,7 @@ export function PassageInspector() {
                                   proposal.payload.kind === "citation" ? (
                                     <blockquote
                                       key={proposal.id}
-                                      className="mt-2 border-l-2 border-border pl-2 text-[11px] italic text-muted-foreground"
+                                      className="mt-2 border-l-2 border-border pl-2 text-xs italic text-muted-foreground"
                                     >
                                       “{proposal.payload.quotedText}”
                                     </blockquote>
@@ -645,12 +645,12 @@ export function PassageInspector() {
                                   {item.translation?.translatedText ?? item.unit.text}
                                 </p>
                                 {topics.length > 0 && (
-                                  <p className="mt-2 font-mono text-[9px] text-muted-foreground uppercase">
+                                  <p className="mt-2 meta-label text-muted-foreground">
                                     {topics.join(" · ")}
                                   </p>
                                 )}
                                 {entities.length > 0 && (
-                                  <p className="mt-1 font-mono text-[9px] text-muted-foreground uppercase">
+                                  <p className="mt-1 meta-label text-muted-foreground">
                                     Entidades:{" "}
                                     {entities
                                       .flatMap((proposal) =>
@@ -663,7 +663,7 @@ export function PassageInspector() {
                                 )}
                                 <a
                                   href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
-                                  className="mt-2 inline-block text-[10px] underline underline-offset-2"
+                                  className="mt-2 inline-block text-xs underline underline-offset-2"
                                 >
                                   Abrir evidência local
                                 </a>
@@ -688,7 +688,7 @@ export function PassageInspector() {
                     <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
                       {note.body || "—"}
                     </p>
-                    <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
+                    <p className="mt-1 meta-label text-muted-foreground">
                       {t("provenance.user-provided")}
                     </p>
                   </li>
@@ -718,12 +718,10 @@ export function PassageInspector() {
                 {researchQuestions.map((question) => (
                   <li key={question.id} className="rounded border border-border bg-muted/30 p-2.5">
                     <p className="text-xs font-medium">{question.question}</p>
-                    <p className="mt-1 font-mono text-[9px] uppercase text-muted-foreground">
-                      {question.status}
-                    </p>
+                    <p className="mt-1 meta-label text-muted-foreground">{question.status}</p>
                     <Link
                       to="/study"
-                      className="mt-1 inline-block text-[10px] underline underline-offset-2"
+                      className="mt-1 inline-block text-xs underline underline-offset-2"
                     >
                       Abrir workspace
                     </Link>

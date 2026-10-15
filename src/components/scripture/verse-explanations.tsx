@@ -49,7 +49,7 @@ export function VerseExplanations({
       className="mb-5 ml-4 border-l-2 border-primary/25 pl-3"
       aria-label={`Explicações do versículo ${verse}`}
     >
-      <div className="flex items-center gap-1.5 text-[10px] font-medium uppercase tracking-[0.14em] text-muted-foreground">
+      <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
         <BookOpenCheck className="size-3.5" /> Estudo da passagem
       </div>
       <div className="mt-2 space-y-2">
@@ -72,7 +72,7 @@ export function VerseExplanations({
                   key={analysis.id}
                   className="rounded-md border border-border bg-muted/20 p-3"
                 >
-                  <p className="font-mono text-[10px] text-muted-foreground">
+                  <p className="font-mono text-xs text-muted-foreground">
                     {lens ? studyLensPresentation(lens).label : analysis.lensId}
                     {range}
                   </p>
@@ -82,7 +82,7 @@ export function VerseExplanations({
                       {analysis.summary}
                     </p>
                   )}
-                  <p className="mt-2 font-mono text-[9px] text-muted-foreground">
+                  <p className="mt-2 font-mono text-xs text-muted-foreground">
                     {reviewStatusLabel(analysis.reviewStatus)} ·{" "}
                     {analysis.status === "reviewed" ? "revisado" : "síntese em revisão"}
                   </p>
@@ -106,7 +106,7 @@ export function VerseExplanations({
               <Quote className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
               <div>
                 <p className="text-xs leading-relaxed">{claim.proposition}</p>
-                <p className="mt-1 font-mono text-[9px] text-muted-foreground">
+                <p className="mt-1 font-mono text-xs text-muted-foreground">
                   {claim.kind.replaceAll("-", " ")} · {reviewStatusLabel(claim.reviewStatus)}
                 </p>
                 {sources?.fragments

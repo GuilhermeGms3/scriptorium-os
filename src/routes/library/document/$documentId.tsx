@@ -236,12 +236,12 @@ function PrivateDocumentReaderPage() {
           <div className="min-w-0">
             <a
               href="/library"
-              className="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-muted-foreground hover:text-foreground"
+              className="inline-flex items-center gap-1 text-xs uppercase tracking-wider text-muted-foreground hover:text-foreground"
             >
               <Library className="size-3" /> Biblioteca
             </a>
             <h1 className="mt-1 truncate font-serif text-lg font-semibold">{document.title}</h1>
-            <p className="mt-0.5 flex items-center gap-1 text-[10px] text-muted-foreground">
+            <p className="mt-0.5 flex items-center gap-1 text-xs text-muted-foreground">
               <LockKeyhole className="size-3" /> Documento privado · {document.pageCount} páginas ·
               acervo local
             </p>
@@ -286,7 +286,7 @@ function PrivateDocumentReaderPage() {
           </button>
           <div className={structureOpen ? "block" : "hidden md:block"}>
             <h2 className="font-serif text-base">Estrutura do livro</h2>
-            <p className="mt-1 text-[10px] text-muted-foreground">
+            <p className="mt-1 text-xs text-muted-foreground">
               Detectada pelo motor; não é um sumário editorial inventado.
             </p>
             <nav
@@ -321,7 +321,7 @@ function PrivateDocumentReaderPage() {
                       onClick={() => setPageIndex(result.pageIndex)}
                       className="w-full rounded border border-border p-2 text-left hover:bg-accent/50"
                     >
-                      <span className="font-mono text-[10px] uppercase text-muted-foreground">
+                      <span className="meta-label text-muted-foreground">
                         Página {result.pageLabel}
                       </span>
                       <span className="mt-1 block text-xs leading-relaxed">{result.snippet}</span>
