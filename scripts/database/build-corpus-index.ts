@@ -28,6 +28,7 @@ import {
 } from "./migrate";
 import { seedKnowledgeDatabase, type KnowledgeSeedReport } from "./seed-knowledge";
 import { buildPrimarySourcePackages } from "./build-primary-source-index";
+import { corpusPackageFingerprint } from "./corpus-package-fingerprint";
 
 const root = resolve(import.meta.dirname, "../..");
 const migrationsDirectory = join(root, "src/lib/corpus-runtime/migrations");
@@ -662,18 +663,15 @@ function packageFingerprint(definition: PackageDefinition): string {
     : definition.generatedDirectory.includes("wlc")
       ? readFileSync(join(root, "content/source-lock.json"))
       : new Uint8Array();
-  return sha256(
-    JSON.stringify({
-      schemaVersion: DATABASE_SCHEMA_VERSION,
-      builderVersion: definition.generatedDirectory.includes("wlc")
-        ? "corpus-runtime-10.1.2"
-        : "corpus-runtime-10.1.1",
-      definition,
-      sourceManifest: sha256(sourceManifestBytes),
-      generatedContent: generatedContentDigest.digest("hex"),
-      relevantAuxiliary: sha256(relevantAuxiliary),
-    }),
-  );
+  // BUILDER_VERSION (corpus-package-fingerprint.ts): subir sempre que a indexação mudar.
+  return corpusPackageFingerprint({
+    schemaVersion: DATABASE_SCHEMA_VERSION,
+    wlc: definition.generatedDirectory.includes("wlc"),
+    definition,
+    sourceManifest: sha256(sourceManifestBytes),
+    generatedContent: generatedContentDigest.digest("hex"),
+    relevantAuxiliary: sha256(relevantAuxiliary),
+  });
 }
 
 function validatesCachedPackage(

@@ -24,6 +24,37 @@ import {
   parseOrigenCommentaryOnJohn,
   type ParsedPrimaryWork,
 } from "../content/primary-source-parser";
+import { builderLabel } from "./corpus-package-fingerprint";
+
+/**
+ * Versão do construtor dos pacotes de fontes primárias, parte do fingerprint de cada pacote: subir
+ * sempre que a indexação mudar, para que a cache não reaproveite pacotes do código antigo.
+ */
+export const BUILDER_VERSION = 1;
+
+export interface PrimarySourceFingerprintInput {
+  schemaVersion: number;
+  editionId: string;
+  sourceChecksums: string[];
+  /** [work id, unit count, SHA-256 of the unit texts] per work. */
+  workShape: [string, number, string][];
+}
+
+export function primarySourceFingerprint(
+  input: PrimarySourceFingerprintInput,
+  builderVersion = BUILDER_VERSION,
+): string {
+  return sha256(
+    JSON.stringify({
+      schemaVersion: input.schemaVersion,
+      parserVersion: "primary-sources-1.2.0",
+      builderVersion: builderLabel("primary-sources-1.2.0", builderVersion),
+      editionId: input.editionId,
+      sourceChecksums: input.sourceChecksums,
+      workShape: input.workShape,
+    }),
+  );
+}
 
 const root = resolve(import.meta.dirname, "../..");
 const outputDirectory = join(root, "public/corpus-packages");
@@ -625,22 +656,18 @@ export function buildPrimarySourcePackages(
   ];
   return definitions.map((definition, index) => {
     const step = `[fontes ${index + 1}/${definitions.length}] ${definition.editionId}`;
-    const fingerprint = sha256(
-      JSON.stringify({
-        schemaVersion: DATABASE_SCHEMA_VERSION,
-        parserVersion: "primary-sources-1.2.0",
-        builderVersion: "primary-sources-1.2.0",
-        editionId: definition.editionId,
-        sourceChecksums: definition.sourceIds.map(
-          (id) => sources.find((source) => source.id === id)!.checksum,
-        ),
-        workShape: definition.works.map((work) => [
-          work.id,
-          work.units.length,
-          sha256(work.units.map((unit) => unit.text).join("\n")),
-        ]),
-      }),
-    );
+    const fingerprint = primarySourceFingerprint({
+      schemaVersion: DATABASE_SCHEMA_VERSION,
+      editionId: definition.editionId,
+      sourceChecksums: definition.sourceIds.map(
+        (id) => sources.find((source) => source.id === id)!.checksum,
+      ),
+      workShape: definition.works.map((work) => [
+        work.id,
+        work.units.length,
+        sha256(work.units.map((unit) => unit.text).join("\n")),
+      ]),
+    });
     const previous = previousPackages.find(
       (manifest) => manifest.editionId === definition.editionId,
     );
