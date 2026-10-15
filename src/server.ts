@@ -51,9 +51,9 @@ export default {
         const root =
           typeof process !== "undefined" ? process.env["SCRIPTORIUM_WORKSPACE_DIR"] : undefined;
         if (!root) return new Response("Modo de instalação desativado", { status: 404 });
-        const { installationWorkspace } =
+        const { handleInstallationRequest } =
           await import("./lib/workspace-runtime/installation-workspace.server");
-        return await installationWorkspace(root).handle(request);
+        return await handleInstallationRequest(root, request);
       }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);

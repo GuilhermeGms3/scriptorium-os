@@ -1,10 +1,15 @@
-import { mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
 import { backup } from "node:sqlite";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, describe, expect, it } from "vitest";
-import { InstallationWorkspace } from "./installation-workspace.server";
+import {
+  handleInstallationRequest,
+  InstallationWorkspace,
+  installationWorkspace,
+} from "./installation-workspace.server";
+import type { WorkspaceLockOptions } from "./workspace-lock.server";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import type { WorkspaceDatabase, WorkspaceRow } from "./protocol";
 
@@ -223,5 +228,141 @@ describe("single-user installation workspace", () => {
     );
     expect(response.status).toBe(409);
     expect(workspace.database.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  });
+});
+
+describe("installation workspace lock", () => {
+  const roots: string[] = [];
+  const open: InstallationWorkspace[] = [];
+  afterEach(() => {
+    for (const workspace of open.splice(0)) workspace.close();
+    for (const root of roots.splice(0)) rmSync(root, { recursive: true, force: true });
+  });
+  function root() {
+    const path = mkdtempSync(join(tmpdir(), "scriptorium-lock-"));
+    roots.push(path);
+    return path;
+  }
+  /** A clock and a heartbeat scheduler driven by the test, so nothing waits for real time. */
+  function environment(hostname: string, start = Date.parse("2026-10-15T12:00:00.000Z")) {
+    let now = start;
+    const beats = new Set<() => void>();
+    const log: string[] = [];
+    const options: WorkspaceLockOptions = {
+      now: () => now,
+      schedule: (beat) => {
+        beats.add(beat);
+        return () => beats.delete(beat);
+      },
+      log: (message) => log.push(message),
+      identity: { hostname, pid: 4242, platform: "linux" },
+      releaseOnExit: false,
+    };
+    return {
+      options,
+      log,
+      advance(ms: number) {
+        now += ms;
+      },
+      heartbeat() {
+        for (const beat of beats) beat();
+      },
+    };
+  }
+  function openWorkspace(path: string, options: WorkspaceLockOptions) {
+    const workspace = new InstallationWorkspace(path, { lock: options });
+    open.push(workspace);
+    return workspace;
+  }
+  const lockOf = (path: string) =>
+    JSON.parse(readFileSync(join(path, "workspace.lock"), "utf8")) as Record<string, unknown>;
+
+  it("refuses a second process while the first one keeps its heartbeat", () => {
+    const path = root();
+    const windows = environment("windows-vite");
+    openWorkspace(path, windows.options);
+    expect(lockOf(path)).toMatchObject({
+      pid: 4242,
+      hostname: "windows-vite",
+      platform: "linux",
+      startedAt: "2026-10-15T12:00:00.000Z",
+      heartbeatAt: "2026-10-15T12:00:00.000Z",
+    });
+    windows.advance(90_000);
+    windows.heartbeat();
+    expect(lockOf(path)).toMatchObject({ heartbeatAt: "2026-10-15T12:01:30.000Z" });
+
+    const docker = environment("docker", Date.parse("2026-10-15T12:03:00.000Z"));
+    expect(() => openWorkspace(path, docker.options)).toThrow(
+      /^Este acervo já está aberto por outro processo \(windows-vite, desde .+\)\. Feche-o antes de abrir aqui\.$/u,
+    );
+    expect(lockOf(path)).toMatchObject({ hostname: "windows-vite" });
+  });
+
+  it("recovers a lock whose heartbeat stopped more than two minutes ago", () => {
+    const path = root();
+    const crashed = environment("windows-vite");
+    const abandoned = openWorkspace(path, crashed.options);
+
+    const docker = environment("docker", Date.parse("2026-10-15T12:02:01.000Z"));
+    openWorkspace(path, docker.options);
+    expect(lockOf(path)).toMatchObject({ hostname: "docker" });
+    expect(docker.log.join(" ")).toMatch(/abandonado.*windows-vite/u);
+
+    // The old process waking up neither steals nor deletes the recovered lock.
+    crashed.heartbeat();
+    abandoned.close();
+    expect(lockOf(path)).toMatchObject({ hostname: "docker" });
+  });
+
+  it("releases the lock when the workspace is closed", () => {
+    const path = root();
+    const first = environment("windows-vite");
+    openWorkspace(path, first.options).close();
+    expect(existsSync(join(path, "workspace.lock"))).toBe(false);
+    expect(() => openWorkspace(path, environment("docker").options)).not.toThrow();
+  });
+
+  it("hands the folder to a reloaded server module in the same process", () => {
+    const path = root();
+    const registry = (globalThis as Record<symbol, Map<string, { close(): void }> | undefined>)[
+      Symbol.for("scriptorium.installation-workspaces")
+    ];
+    // What a dev server reload leaves behind: an open workspace from the previous module version.
+    const previous = openWorkspace(path, environment("windows-vite").options);
+    const registered = registry ?? new Map<string, { close(): void }>();
+    (globalThis as Record<symbol, unknown>)[Symbol.for("scriptorium.installation-workspaces")] =
+      registered;
+    registered.set(path, { close: () => previous.close() });
+
+    const reloaded = installationWorkspace(path, environment("windows-vite").options);
+    try {
+      expect(reloaded === previous).toBe(false);
+      expect(lockOf(path)).toMatchObject({ hostname: "windows-vite" });
+      expect(installationWorkspace(path) === reloaded).toBe(true);
+    } finally {
+      registered.delete(path);
+      reloaded.close();
+    }
+  });
+
+  it("tells the browser who holds the collection instead of a generic error", async () => {
+    const path = root();
+    openWorkspace(path, environment("windows-vite").options);
+    const response = await handleInstallationRequest(
+      path,
+      new Request("http://localhost:3000/api/workspace/session", {
+        method: "POST",
+        headers: { "x-scriptorium-workspace": "1" },
+      }),
+      environment("docker", Date.parse("2026-10-15T12:01:00.000Z")).options,
+    );
+    expect(response.status).toBe(423);
+    expect(await response.json()).toMatchObject({
+      code: "workspace-locked",
+      error: expect.stringMatching(
+        /^Este acervo já está aberto por outro processo \(windows-vite/u,
+      ),
+    });
   });
 });

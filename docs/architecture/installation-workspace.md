@@ -115,6 +115,22 @@ docker compose --profile semantic up -d --build
 ```
 
 Abra `http://localhost:3000`. Defina `SCRIPTORIUM_PORT=5173` no ambiente do Compose para mudar a
-porta publicada, parando Vite antes. Não execute Vite/Windows e Docker/Linux escrevendo
-simultaneamente no mesmo SQLite montado: mantenha um runtime ativo por instalação.
+porta publicada, parando Vite antes. Mantenha um runtime ativo por instalação: Vite/Windows e
+Docker/Linux nunca podem escrever simultaneamente no mesmo SQLite montado.
+
+### Lock do acervo
+
+Ao abrir a pasta, o servidor cria `workspace.lock` com `open(..., "wx")` antes de tocar no banco e
+grava `pid`, `hostname`, `platform`, `startedAt`, `heartbeatAt` e um token de dono. O
+`heartbeatAt` é renovado a cada 30 s; o pid não decide nada, porque Windows e o contentor Docker
+não veem os processos um do outro.
+
+- Lock com heartbeat de menos de 2 minutos: o segundo processo é recusado e o navegador recebe
+  HTTP 423 com “Este acervo já está aberto por outro processo (<host>, desde <hora>). Feche-o antes
+  de abrir aqui.”, mostrado na barra de estado e na Biblioteca. A próxima requisição tenta de novo.
+- Heartbeat com mais de 2 minutos: o lock é considerado abandonado, movido de lado atomicamente e
+  recuperado; a recuperação é registrada no log do servidor.
+- `close()`, `exit`, `SIGINT` e `SIGTERM` libertam o lock, mas só se ele ainda pertencer ao
+  processo. Um processo que volte de uma pausa longa e encontre o lock com outro dono deixa de
+  servir comandos (423) em vez de escrever no banco.
 No desenvolvimento local, configure `SCRIPTORIUM_WORKSPACE_DIR` em `.env.local` (não versionado).

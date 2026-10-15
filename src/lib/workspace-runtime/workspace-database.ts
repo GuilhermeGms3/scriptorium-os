@@ -85,7 +85,11 @@ export function getWorkspaceDatabase(): Promise<WorkspaceDatabase> {
     const database = new WorkerWorkspaceDatabase();
     await database.initialize();
     return database;
-  })();
+  })().catch((error: unknown) => {
+    // A collection held by another process can be opened later without reloading the page.
+    databasePromise = null;
+    throw error;
+  });
   return databasePromise;
 }
 

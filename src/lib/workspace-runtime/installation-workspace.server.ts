@@ -13,6 +13,11 @@ import { createHash, randomBytes } from "node:crypto";
 import { execFile } from "node:child_process";
 import { promisify } from "node:util";
 import { z } from "zod";
+import {
+  WorkspaceLock,
+  WorkspaceLockedError,
+  type WorkspaceLockOptions,
+} from "./workspace-lock.server";
 
 const migrations = import.meta.glob<string>("./migrations/*.sql", {
   eager: true,
@@ -38,40 +43,59 @@ export class InstallationWorkspace {
   database: DatabaseSync;
   readonly root: string;
   readonly sessions = new Map<string, number>();
-  constructor(root: string) {
+  readonly lock: WorkspaceLock;
+  constructor(root: string, options: { lock?: WorkspaceLockOptions } = {}) {
     this.root = resolve(root);
     mkdirSync(join(this.root, "documents"), { recursive: true });
-    this.database = new DatabaseSync(join(this.root, "workspace.sqlite3"));
-    this.database.exec(
-      "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;",
-    );
-    this.database.exec(
+    // Before the database is touched: two processes must never migrate or write it together.
+    this.lock = WorkspaceLock.acquire(this.root, options.lock);
+    try {
+      this.database = this.#open();
+    } catch (error) {
+      this.lock.release();
+      throw error;
+    }
+  }
+  #open(): DatabaseSync {
+    const database = new DatabaseSync(join(this.root, "workspace.sqlite3"));
+    try {
+      this.#migrate(database);
+    } catch (error) {
+      database.close();
+      throw error;
+    }
+    return database;
+  }
+  #migrate(database: DatabaseSync): void {
+    database.exec("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000;");
+    database.exec(
       "CREATE TABLE IF NOT EXISTS workspace_migrations(version INTEGER PRIMARY KEY,name TEXT NOT NULL UNIQUE,applied_at TEXT NOT NULL) STRICT",
     );
-    const version = this.database
+    const version = database
       .prepare("SELECT max(version) AS version FROM workspace_migrations")
       .get()?.["version"];
     if (typeof version === "number" && version > 22)
       throw new Error("Unsupported workspace schema");
     for (const [name, sql] of Object.entries(migrations).sort()) {
       const number = Number(name.match(/\/(\d{3})_/)?.[1]);
-      if (this.database.prepare("SELECT 1 FROM workspace_migrations WHERE version=?").get(number))
+      if (database.prepare("SELECT 1 FROM workspace_migrations WHERE version=?").get(number))
         continue;
-      this.database.exec("BEGIN IMMEDIATE");
+      database.exec("BEGIN IMMEDIATE");
       try {
-        this.database.exec(sql);
-        this.database
+        database.exec(sql);
+        database
           .prepare("INSERT INTO workspace_migrations VALUES(?,?,?)")
           .run(number, name, new Date().toISOString());
-        this.database.exec("COMMIT");
+        database.exec("COMMIT");
       } catch (error) {
-        this.database.exec("ROLLBACK");
+        database.exec("ROLLBACK");
         throw error;
       }
     }
   }
   close() {
-    this.database.close();
+    if (this.database.isOpen) this.database.close();
+    this.lock.release();
   }
   static isLocalRequest(request: Request): boolean {
     const url = new URL(request.url);
@@ -89,6 +113,15 @@ export class InstallationWorkspace {
       new Response(JSON.stringify(value), { status, headers });
     if (!InstallationWorkspace.isLocalRequest(request))
       return json({ error: "Acesso somente pela instalação local na mesma origem." }, 403);
+    if (this.lock.lost)
+      return json(
+        {
+          error:
+            "Outro processo assumiu este acervo enquanto este estava parado. Reinicie este servidor para evitar escritas simultâneas.",
+          code: "workspace-locked",
+        },
+        423,
+      );
     const url = new URL(request.url);
     if (url.pathname === "/api/workspace/session" && request.method === "POST") {
       const now = Date.now();
@@ -342,7 +375,53 @@ async function boundedBody(request: Request, limit: number): Promise<Uint8Array>
   }
   return new Uint8Array(Buffer.concat(chunks, length));
 }
-let installed: InstallationWorkspace | undefined;
-export function installationWorkspace(root: string) {
-  return (installed ??= new InstallationWorkspace(root));
+const OPEN_WORKSPACES = Symbol.for("scriptorium.installation-workspaces");
+
+/**
+ * One open workspace per folder and process, kept on globalThis: a dev server that reloads this
+ * module must hand the folder to the new code instead of being refused by its own lock.
+ */
+function openWorkspaces(): Map<string, { close(): void }> {
+  const scope = globalThis as typeof globalThis & {
+    [OPEN_WORKSPACES]?: Map<string, { close(): void }>;
+  };
+  return (scope[OPEN_WORKSPACES] ??= new Map());
+}
+
+export function installationWorkspace(
+  root: string,
+  lock?: WorkspaceLockOptions,
+): InstallationWorkspace {
+  const key = resolve(root);
+  const workspaces = openWorkspaces();
+  const current = workspaces.get(key);
+  if (current instanceof InstallationWorkspace) return current;
+  // Left by an earlier version of this module: closing it frees the database and the lock.
+  current?.close();
+  workspaces.delete(key);
+  const created = new InstallationWorkspace(key, lock ? { lock } : {});
+  workspaces.set(key, created);
+  return created;
+}
+
+/**
+ * Serves an installation request. While another process holds the collection, the browser gets
+ * that explanation (423) instead of a generic failure; the next request tries again.
+ */
+export async function handleInstallationRequest(
+  root: string,
+  request: Request,
+  lock?: WorkspaceLockOptions,
+): Promise<Response> {
+  let workspace: InstallationWorkspace;
+  try {
+    workspace = installationWorkspace(root, lock);
+  } catch (error) {
+    if (!(error instanceof WorkspaceLockedError)) throw error;
+    return new Response(JSON.stringify({ error: error.message, code: error.code }), {
+      status: 423,
+      headers: { "cache-control": "no-store", "content-type": "application/json" },
+    });
+  }
+  return workspace.handle(request);
 }

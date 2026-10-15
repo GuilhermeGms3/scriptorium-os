@@ -2,6 +2,14 @@ import { z } from "zod";
 import type { WorkspaceDatabase, WorkspaceRow, WorkspaceSqlValue } from "./protocol";
 
 let session: Promise<boolean> | undefined;
+
+/** Message the server gives when another process holds the collection (HTTP 423). */
+async function lockedMessage(response: Response): Promise<string | undefined> {
+  if (response.status !== 423) return undefined;
+  const body = (await response.json().catch(() => null)) as { error?: unknown } | null;
+  return typeof body?.error === "string" ? body.error : undefined;
+}
+
 export function installationAvailable(): Promise<boolean> {
   session ??= (async () => {
     const response = await fetch("/api/workspace/session", {
@@ -9,6 +17,12 @@ export function installationAvailable(): Promise<boolean> {
       headers: { "x-scriptorium-workspace": "1" },
     });
     if (response.status === 404) return false;
+    const locked = await lockedMessage(response);
+    if (locked) {
+      // Not cached: once the other process closes, the next attempt opens the collection.
+      session = undefined;
+      throw new Error(locked);
+    }
     if (!response.ok)
       throw new Error(
         "Não foi possível abrir a instalação. O workspace do navegador não será usado silenciosamente.",
@@ -28,6 +42,8 @@ export async function installationFetch(path: string, init: RequestInit = {}): P
     result = await fetch(`/api/workspace/${path}`, { ...init, headers });
   }
   if (!result.ok) {
+    const locked = await lockedMessage(result.clone());
+    if (locked) throw new Error(locked);
     const message = await result.text();
     throw new Error(`Armazenamento da instalação (${result.status}): ${message.slice(0, 300)}`);
   }

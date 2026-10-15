@@ -66,6 +66,8 @@ interface WorkbenchState {
   ) => Promise<void>;
   refreshUserData: () => Promise<void>;
   workspacePersistence: "loading" | "opfs" | "memory" | "unavailable" | "installation";
+  /** Why the workspace is unavailable, e.g. the collection is open in another process. */
+  workspaceError?: string;
 }
 
 const WorkbenchContext = createContext<WorkbenchState | null>(null);
@@ -102,6 +104,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [studies, setStudies] = useState<Study[]>([]);
   const [workspacePersistence, setWorkspacePersistence] =
     useState<WorkbenchState["workspacePersistence"]>("loading");
+  const [workspaceError, setWorkspaceError] = useState<string>();
 
   const refreshUserData = useCallback(async () => {
     await StudyRepository.refresh();
@@ -121,8 +124,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
         const database = await getWorkspaceDatabase();
         if (active) setWorkspacePersistence(database.persistence);
       })
-      .catch(() => {
-        if (active) setWorkspacePersistence("unavailable");
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setWorkspacePersistence("unavailable");
+        setWorkspaceError(cause instanceof Error ? cause.message : String(cause));
       });
     return () => {
       active = false;
@@ -232,6 +237,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addToStudy,
       refreshUserData,
       workspacePersistence,
+      ...(workspaceError ? { workspaceError } : {}),
     }),
     [
       theme,
@@ -252,6 +258,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addToStudy,
       refreshUserData,
       workspacePersistence,
+      workspaceError,
     ],
   );
 

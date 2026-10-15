@@ -8,7 +8,7 @@ import { t } from "../../lib/i18n";
 import { useCurrentOrigin } from "../../lib/workspace-runtime/use-secure-context";
 
 export function StatusBar() {
-  const { passageContext, wordSelection, workspacePersistence } = useWorkbench();
+  const { passageContext, wordSelection, workspacePersistence, workspaceError } = useWorkbench();
   const origin = useCurrentOrigin();
 
   return (
@@ -37,6 +37,16 @@ export function StatusBar() {
         >
           <AlertTriangle className="size-3" /> Armazenamento temporário: notas e estudos podem ser
           perdidos ao fechar.
+        </span>
+      )}
+      {workspacePersistence === "unavailable" && workspaceError && (
+        <span
+          className="flex min-w-0 items-center gap-1.5 text-amber-700 dark:text-amber-400"
+          role="alert"
+          title={workspaceError}
+        >
+          <AlertTriangle className="size-3 shrink-0" />
+          <span className="truncate">{workspaceError}</span>
         </span>
       )}
       {origin && (
