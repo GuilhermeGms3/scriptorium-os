@@ -2,6 +2,7 @@
 @source "../src";
 @import "tw-animate-css";
 @import "./components/shell/intro-splash.css";
+@import "./components/shell/today-inscriptions.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -180,8 +181,7 @@
   /* Dense, unobtrusive scrollbars for panel-heavy layouts */
   * {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent)
-      transparent;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
   }
   *::-webkit-scrollbar {
     width: 8px;

@@ -1,5 +1,23 @@
 # Project Memory
 
+## Próxima prioridade editorial preservada (2026-10-16)
+
+- Antes de expandir módulos, completar/operar o pipeline especializado nas Bíblias comentadas:
+  separar texto/notas/margens, reconstruir livro-capítulo e notas entre páginas, distinguir
+  comentário direto de mera menção, disponibilizar originais com página/fonte e auditar lotes.
+- Reutilizar Python e serviços canônicos existentes; não criar motor ou banco concorrente.
+  Relatório por fonte/livro/página com retomada e exceções. Nenhuma promessa de comentário
+  individual onde a fonte só comenta um intervalo. Preservar as 116 notas existentes e revisões.
+- Usuário interrompeu essa frente para ajustar animações do commit do colega `23e54fe`.
+  Essa alteração visual não executa ingestão, reprocessamento ou leitura editorial adicional.
+- Abertura agora roda por carga/recarga de documento, ignora a antiga chave localStorage e não
+  repete em navegação interna. Hoje recebe revelação CSS tinta/papiro, pausada durante a abertura,
+  com foco imediato e respeito a movimento reduzido.
+- Verificação: 383 testes/52 arquivos, typecheck, lint e build passaram. Playwright local em
+  1365×900 e 390×844 confirmou reload, Esc, replay, navegação interna, movimento reduzido,
+  ausência de overflow horizontal e pageerrors. Cabeçalho mobile já quebra texto do botão de
+  busca; dívida visual fora deste escopo. Imagem Docker não reconstruída nesta tarefa.
+
 ## Proposta adiada — Compor leitura (2026-10-15)
 
 - Ideia registrada em `docs/architecture/reading-composer-proposal.md`: blocos conectáveis para

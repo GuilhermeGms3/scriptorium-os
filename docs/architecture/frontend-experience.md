@@ -176,7 +176,7 @@ Conhecimento voltou a ter entrada própria no menu).
 
 ### Abertura
 
-- Na primeira visita aparece a abertura do Scriptorium OS, na mesma identidade da barra do topo:
+- A cada abertura ou recarga completa aparece a abertura do Scriptorium OS, na mesma identidade da barra do topo:
   IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e só as cores do tema. O ícone é
   desenhado, cada letra de SCRIPTORIUM passa por letras hebraicas e gregas até cair na latina
   (passando pela letra grega de onde vem: S ← Σ, P ← Π…), o "OS" chega, o lema é datilografado e,
@@ -187,8 +187,13 @@ Conhecimento voltou a ter entrada própria no menu).
   script no `<head>` (`intro-controller.ts`) decide antes da primeira pintura se ela aparece (classe
   `intro-on` no `<html>`), conta o tempo a partir do início real da animação, cuida do "pular" e do
   voo até `[data-brand-mark]` da barra do topo. O React só desenha a marcação, que nunca muda.
-- Depois de vista fica marcada em `localStorage` (`scriptorium.intro.v1`); "Ver a abertura de novo"
-  em Ajuda e sobre a repete.
+- Não depende de `localStorage` nem de `sessionStorage`; a antiga chave `scriptorium.intro.v1`
+  é ignorada. Navegação interna não repete a abertura. "Ver a abertura de novo" em Ajuda e sobre
+  continua funcionando.
+- Em Hoje, os blocos recebem uma revelação progressiva de tinta/papiro, inspirada em inscrições
+  antigas, sem substituir letras ou alterar conteúdo. O efeito espera a abertura terminar e dura
+  até 1,25 s. Não usa animação por caractere nem dependências. Reduzir movimento desativa o efeito;
+  foco de teclado revela imediatamente o bloco, sem recortar controles.
 
 ### Leitura de dados nas telas
 
