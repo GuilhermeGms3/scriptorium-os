@@ -1,5 +1,15 @@
 # Project Memory
 
+## Proposta adiada — Compor leitura (2026-10-15)
+
+- Ideia registrada em `docs/architecture/reading-composer-proposal.md`: blocos conectáveis para
+  compor texto, fontes e perspectivas, com consultas determinísticas, sem inferência LLM.
+- Apenas documentação autorizada. Antes de implementar, priorizar cobertura contextual do acervo
+  já entregue ao longo da Bíblia e ampliação das traduções realmente legíveis. 116 notas em
+  passagens selecionadas de Gn 1–12 não significam cobertura completa desses capítulos.
+- King James, NAA e outras Almeida são opções desejadas, não corpora declarados instalados;
+  identificar edição/idioma/direitos antes de adquirir e integrar.
+
 ## Exclusividade do acervo (2026-10-15)
 
 - Corrigido o protocolo de `8c58d9a`: heartbeat antigo não prova morte de processo Windows/Docker;
