@@ -176,15 +176,19 @@ Conhecimento voltou a ter entrada própria no menu).
 
 ### Abertura
 
-- Na primeira visita aparece a abertura do Scriptorium OS (`src/components/shell/intro-splash.tsx`
-  e `.css`): pauta de copista, Gênesis em hebraico, João em grego e a Vulgata ao fundo, a inicial
-  "S" iluminada, o nome escorrendo letra a letra, o "OS" com cursor, a pena traçando o arabesco e o
-  livro que se abre para o app. Cerca de 5 s; um clique, Esc, Enter ou espaço pulam.
-- Usa só os tokens do tema (o dourado é `--chart-4` no claro e `--chart-3` no escuro, o mesmo
-  oklch). Com "reduzir movimento" no sistema, mostra a página pronta e só a desvanece.
+- Na primeira visita aparece a abertura do Scriptorium OS, na mesma identidade da barra do topo:
+  IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e só as cores do tema. O ícone é
+  desenhado, cada letra de SCRIPTORIUM passa por letras hebraicas e gregas até cair na latina
+  (passando pela letra grega de onde vem: S ← Σ, P ← Π…), o "OS" chega, o lema é datilografado e,
+  no fim, o nome voa até o logotipo do topo enquanto o app aparece. Cerca de 5 s; um clique, Esc,
+  Enter ou espaço pulam. Com "reduzir movimento", a página já vem pronta e só se desvanece.
+- Aparece no primeiro quadro, sem esperar o app carregar: a marcação está no HTML do servidor
+  (`IntroSplash`, no `<body>` do `RootShell`) e toda a animação é CSS (`intro-splash.css`). Um
+  script no `<head>` (`intro-controller.ts`) decide antes da primeira pintura se ela aparece (classe
+  `intro-on` no `<html>`), conta o tempo a partir do início real da animação, cuida do "pular" e do
+  voo até `[data-brand-mark]` da barra do topo. O React só desenha a marcação, que nunca muda.
 - Depois de vista fica marcada em `localStorage` (`scriptorium.intro.v1`); "Ver a abertura de novo"
-  em Ajuda e sobre a repete. Um script no `<head>` cobre a página na primeira visita para o app não
-  piscar por baixo antes de a abertura montar (com um limite de 6 s, caso os scripts não rodem).
+  em Ajuda e sobre a repete.
 
 ### Leitura de dados nas telas
 

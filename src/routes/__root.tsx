@@ -14,7 +14,8 @@ import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WorkbenchProvider } from "../lib/workbench/workbench-context";
 import { AppShell } from "../components/shell/app-shell";
 import { WorkspaceQueryRefresh } from "../hooks/use-workspace-query";
-import { INTRO_INIT, IntroSplash } from "../components/shell/intro-splash";
+import { IntroSplash } from "../components/shell/intro-splash";
+import { INTRO_INIT } from "../components/shell/intro-controller";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
 
 function NotFoundComponent() {
@@ -121,6 +122,8 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
+        {/* In the server HTML, so a first visit sees it on the very first frame. */}
+        <IntroSplash />
         {children}
         <Scripts />
       </body>
@@ -139,7 +142,6 @@ function RootComponent() {
           <Outlet />
         </AppShell>
       </WorkbenchProvider>
-      <IntroSplash />
     </QueryClientProvider>
   );
 }

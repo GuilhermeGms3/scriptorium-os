@@ -29,9 +29,12 @@ export function TopBar() {
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
       <div className="flex items-center gap-2">
-        <BookMarked className="size-4 text-primary" strokeWidth={2} />
-        <span className="font-mono text-sm font-medium tracking-[0.14em] text-foreground">
-          SCRIPTORIUM
+        {/* Where the name of the opening lands. */}
+        <span className="flex items-center gap-2" data-brand-mark="">
+          <BookMarked className="size-4 text-primary" strokeWidth={2} />
+          <span className="font-mono text-sm font-medium tracking-[0.14em] text-foreground">
+            SCRIPTORIUM
+          </span>
         </span>
         <span className="hidden rounded border border-border px-1 py-px meta-label tracking-wider text-muted-foreground md:inline">
           {t("shell.productDescriptor")}

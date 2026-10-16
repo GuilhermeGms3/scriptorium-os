@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { REPLAY_INTRO_EVENT } from "../components/shell/intro-splash";
+import { replayIntro } from "../components/shell/intro-controller";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
@@ -37,10 +37,7 @@ function AboutPage() {
         </p>
       </section>
       <section className="mt-8 border-t border-border pt-5">
-        <Button
-          variant="outline"
-          onClick={() => window.dispatchEvent(new Event(REPLAY_INTRO_EVENT))}
-        >
+        <Button variant="outline" onClick={replayIntro}>
           <Sparkles className="size-4" aria-hidden="true" /> Ver a abertura de novo
         </Button>
       </section>
