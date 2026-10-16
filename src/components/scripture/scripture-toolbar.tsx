@@ -62,8 +62,10 @@ export function ScriptureToolbar({
   );
 
   return (
+    // A container: with the study panel open the text column is narrow, so the toolbar adapts to
+    // its own width (one line), not to the window's.
     <div
-      className="sticky top-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur"
+      className="@container sticky top-0 z-10 flex flex-wrap items-center gap-x-3 gap-y-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur"
       role="toolbar"
       aria-label={t("scripture.toolbar")}
     >
@@ -102,7 +104,7 @@ export function ScriptureToolbar({
 
       {/* Edition */}
       <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
-        <span className="meta-label">{t("scripture.version")}</span>
+        <span className="meta-label hidden @min-[60rem]:inline">{t("scripture.version")}</span>
         <select
           value={editionId}
           onChange={(e) => onEditionChange(e.target.value)}
@@ -163,7 +165,9 @@ export function ScriptureToolbar({
               )}
             >
               <Icon className="size-4" strokeWidth={1.75} aria-hidden="true" />
-              <span className="hidden sm:inline">{label}</span>
+              {/* When space is short only the current mode keeps its name; the others keep
+                  their icon and title. */}
+              <span className={view === id ? "inline" : "hidden @min-[60rem]:inline"}>{label}</span>
             </button>
           );
         })}

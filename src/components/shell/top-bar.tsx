@@ -3,17 +3,28 @@
  */
 
 import { useLocation } from "@tanstack/react-router";
+import { useEffect, useState } from "react";
 import { BookMarked, Moon, PanelRight, Search, Sun } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { cn } from "../../lib/utils";
 import { t } from "../../lib/i18n";
 import { supportsPassageInspector } from "./shell-route-context";
 
+/** "Ctrl K" by default (the shortcut also works with Ctrl on a Mac); "⌘K" on Apple devices. */
+function useShortcutLabel(): string {
+  const [label, setLabel] = useState("Ctrl K");
+  useEffect(() => {
+    if (/Mac|iPhone|iPad/i.test(navigator.userAgent)) setLabel("⌘K");
+  }, []);
+  return label;
+}
+
 export function TopBar() {
   const { setPaletteOpen, resolvedTheme, setTheme, inspectorOpen, setInspectorOpen } =
     useWorkbench();
   const pathname = useLocation({ select: (location) => location.pathname });
   const passageInspectorAvailable = supportsPassageInspector(pathname);
+  const shortcut = useShortcutLabel();
 
   return (
     <header className="flex h-11 shrink-0 items-center gap-3 border-b border-border bg-background px-3">
@@ -36,7 +47,7 @@ export function TopBar() {
           <Search className="size-3.5" />
           <span className="flex-1 text-left">{t("shell.searchCommand")}</span>
           <kbd className="hidden rounded border border-border bg-background px-1 font-mono text-xs text-muted-foreground sm:inline">
-            ⌘K
+            {shortcut}
           </kbd>
         </button>
       </div>
