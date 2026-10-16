@@ -174,3 +174,25 @@ Conhecimento voltou a ter entrada própria no menu).
   `aria-label`; texto secundário sem opacidade reduzida, para manter contraste AA.
 - Cores, fontes e raios continuam os tokens de `src/styles.css`; nenhuma cor nova foi criada.
 
+### Abertura
+
+- Na primeira visita aparece a abertura do Scriptorium OS (`src/components/shell/intro-splash.tsx`
+  e `.css`): pauta de copista, Gênesis em hebraico, João em grego e a Vulgata ao fundo, a inicial
+  "S" iluminada, o nome escorrendo letra a letra, o "OS" com cursor, a pena traçando o arabesco e o
+  livro que se abre para o app. Cerca de 5 s; um clique, Esc, Enter ou espaço pulam.
+- Usa só os tokens do tema (o dourado é `--chart-4` no claro e `--chart-3` no escuro, o mesmo
+  oklch). Com "reduzir movimento" no sistema, mostra a página pronta e só a desvanece.
+- Depois de vista fica marcada em `localStorage` (`scriptorium.intro.v1`); "Ver a abertura de novo"
+  em Ajuda e sobre a repete. Um script no `<head>` cobre a página na primeira visita para o app não
+  piscar por baixo antes de a abertura montar (com um limite de 6 s, caso os scripts não rodem).
+
+### Leitura de dados nas telas
+
+- Telas novas leem o banco com `useWorkspaceQuery` (`src/hooks/use-workspace-query.ts`), sobre o
+  React Query: cada chave guarda a sua resposta (trocar depressa não mostra o resultado anterior),
+  erros chegam à tela e nada repete sozinho. `refreshOnKnowledgeChange` recarrega quando a
+  biblioteca muda, no máximo algumas vezes por segundo e nunca duas vezes ao mesmo tempo;
+  `keepPrevious` mantém a resposta anterior enquanto a nova carrega.
+- Uma página que falha mostra `RouteError` dentro do app, com "Tentar novamente"; o menu continua.
+- A barra do leitor se ajusta à largura da própria coluna (`@container`): com o painel de estudo
+  aberto fica numa linha, e só o modo de leitura escolhido mostra o nome.
