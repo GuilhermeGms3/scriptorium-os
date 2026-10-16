@@ -1,5 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { REPLAY_INTRO_EVENT } from "../components/shell/intro-splash";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
@@ -32,6 +35,14 @@ function AboutPage() {
         <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
           {t("about.perspectivesText")}
         </p>
+      </section>
+      <section className="mt-8 border-t border-border pt-5">
+        <Button
+          variant="outline"
+          onClick={() => window.dispatchEvent(new Event(REPLAY_INTRO_EVENT))}
+        >
+          <Sparkles className="size-4" aria-hidden="true" /> Ver a abertura de novo
+        </Button>
       </section>
     </PageContainer>
   );

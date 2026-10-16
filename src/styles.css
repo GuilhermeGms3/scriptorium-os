@@ -1,6 +1,7 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./components/shell/intro-splash.css";
 
 @custom-variant dark (&:is(.dark *));
 
