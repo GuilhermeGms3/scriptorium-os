@@ -110,6 +110,11 @@ Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e ger
 
 ## Limites atuais
 
+O extrator offline especializado em notas de Bíblias comentadas está descrito em
+[extração de comentários originais](docs/architecture/original-commentary-extraction.md).
+Ele produz lotes privados, preserva comentários anteriores e separa o destino principal das
+comparações/menções no corpo. Não depende de LLM nem equivale a cobertura editorial integral.
+
 O primeiro trabalho de leitura contextual das Bíblias privadas está registrado em
 [comentários das Bíblias privadas](docs/content/contextual-bible-reading.md), com fontes,
 páginas, lotes realmente incorporados e limites de cobertura. Referências automáticas

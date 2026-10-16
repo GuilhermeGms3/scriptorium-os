@@ -473,3 +473,35 @@
   após `4:01`, seguir na p. 42. Lacunas deliberadas incluem Shedd 5:24 (p. 7–8) e
   Genebra 3:2–5 (p. 37–38), 3:17 (p. 39–40): precisam recortes multi-página.
   O livro de exegese/hermenêutica ainda não recebeu um lote editorial nesta entrega.
+
+# Comentários originais em escala — 2026-10-16
+
+- Estado atual: workspace da instalação em `data/workspace/workspace.sqlite3`, schema 24;
+  não é mais exclusivamente o OPFS antigo. Preservados os 37 documentos, 26.243 páginas,
+  49.345 unidades preexistentes, 116 notas editoriais e 232 propostas associadas por hashes.
+- Incorporados realmente 24.057 comentários originais adicionais: Shedd 11.876, Genebra 12.181.
+  Extração Python percorreu 935/1.740 páginas e reconheceu os 66 livros de ambas as fontes.
+  São 21.297 notas pontuais, 2.514 intervalos, 212 perícopes entre capítulos e 34 notas de capítulo.
+  Notas pontuais: 16.276 endereços distintos; com intervalos/perícopes: 28.142. Não é cobertura
+  individual integral, revisão humana de todas as páginas ou geração de novas interpretações.
+- CLI `app.commentary_cli` usa perfis vinculados ao checksum, estrutura e negrito quando disponível;
+  serviço TypeScript canônico valida citações literais, separa comparação/menção do alvo primário,
+  importa transacionalmente com lock, backup e retomada. Nenhuma LLM necessária.
+- Novas notas machine-proposed/machine-visible por política documental, auditoria pendente.
+  Exceções incluem referências não contíguas, remissões sem explicação e texto incompleto;
+  não foram corrigidas nem publicadas cegamente. Outros livros não reprocessados nesta execução.
+- Migration 024 permite evidência compartilhada por unidades distintas, sem duplicar a mesma
+  evidência dentro da unidade. Atualizar todos os runtimes antes de abrir schema 24. Docker não
+  foi reconstruído: daemon indisponível. Reversão exige backup offline, não downgrade arbitrário.
+- Pacotes privados finais: `shedd-commentary-publish-v1`, `genebra-commentary-publish-v1`.
+  Auditoria: `data/workspace/commentary-baseline-20261016.json.verification.json`.
+  Shedd reimportada 0/11.876; Genebra retomada com 100 reutilizadas/12.081 novas.
+  `quick_check` e `foreign_key_check` passaram; backups privados completos preservados.
+- Reader mostra comentário original literal, fonte/página sublinhada e trecho destacado ao abrir.
+  Consulta separa orçamento contextual (2.000) de referências gerais (200); futura paginação
+  necessária para fontes adicionais. Salmos 119 exibiu 342 cartões, filtro Shedd 256, toggle 0/256.
+- Validação: 387 testes TS/53 arquivos, 54 Python, typecheck, lint integral, build Node, Ruff e
+  mypy strict passaram. QA produção João 3, Salmos 119, citação/página/destaque e viewport móvel
+  sem pageerrors; há dívida visual preexistente no cabeçalho/filtro de fonte em tela estreita.
+  OPFS roundtrip e Docker não foram validados nesta execução. Docs canônicos:
+  `docs/architecture/original-commentary-extraction.md`, `docs/content/contextual-bible-reading.md`.

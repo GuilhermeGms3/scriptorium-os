@@ -15,6 +15,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+commentary = ["pypdf>=6.12,<7"]
 test = ["httpx>=0.28,<1", "mypy>=1.11,<2", "pytest>=8.3,<9", "ruff>=0.6,<1"]
 
 [tool.pytest.ini_options]

@@ -131,6 +131,16 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     passage: DocumentPassageSchema,
     additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
     contextualAnalysis: ContextualAnalysisSchema.optional(),
+    secondaryReferences: z
+      .array(
+        z.object({
+          rawReference: z.string().min(1),
+          passage: DocumentPassageSchema,
+          relationType: z.enum(["comparison", "mention"]),
+        }),
+      )
+      .max(100)
+      .optional(),
   }),
   z.object({
     kind: z.literal("topic-assignment"),

@@ -25,7 +25,7 @@ export const ContextualReadingPackageSchema = z.object({
           .max(5),
         rawReference: z.string().min(1).max(200),
         passage: DocumentPassageSchema,
-        additionalPassages: z.array(DocumentPassageSchema).max(10).default([]),
+        additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
         relationScope: z.enum(["verse", "range", "pericope", "chapter", "book"]),
         domains: z.array(SemanticDomainSchema).min(1).max(6),
         analysis: ContextualAnalysisSchema,

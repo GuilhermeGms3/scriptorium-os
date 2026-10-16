@@ -80,12 +80,12 @@ function batch(): ContextualReadingPackage {
         additionalPassages: [],
         relationScope: "verse",
         domains: ["exegesis"],
-        analysis,
+        analysis: { ...analysis, limitations: [...analysis.limitations] },
       },
     ],
   };
 }
-async function source() {
+async function source(text = quote) {
   const state = workspace();
   const { document } = await PrivateDocumentRepository.importDocument(
     {
@@ -98,7 +98,7 @@ async function source() {
       pageCount: 1,
       textPageCount: 1,
       extractionMethod: "pdf-text-layer",
-      pages: [{ pageIndex: 0, pageLabel: "1", text: quote, itemCount: 1 }],
+      pages: [{ pageIndex: 0, pageLabel: "1", text, itemCount: 1 }],
     },
     "opfs:/fixture.pdf",
     state.adapter,
@@ -106,6 +106,98 @@ async function source() {
   return { ...state, document };
 }
 describe("contextual reading and profile branch integration", () => {
+  it("does not truncate chapter commentary at the old 200-relation cap", async () => {
+    const { db, adapter } = await source();
+    await ContextualReadingService.importJson(JSON.stringify(batch()), adapter);
+    const original = db
+      .prepare("SELECT * FROM knowledge_proposals WHERE proposal_kind='passage-relation'")
+      .get()!;
+    const insert = db.prepare(
+      `INSERT INTO knowledge_proposals(id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,review_status,created_at,updated_at) VALUES(?,?,?,'passage-relation',?,'fixture',0,'machine-proposed','2026-10-16T00:00:00.000Z','2026-10-16T00:00:00.000Z')`,
+    );
+    for (let i = 0; i < 210; i++) {
+      const id = `extra-${i}`;
+      const payload = JSON.parse(String(original["payload_json"])) as {
+        contextualAnalysis: { title: string };
+      };
+      payload.contextualAnalysis.title = `Comentário sintético ${i}`;
+      insert.run(
+        id,
+        original["document_id"]!,
+        original["semantic_unit_id"]!,
+        JSON.stringify(payload),
+      );
+      db.prepare(
+        "INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,audit_status,updated_at) VALUES(?,'machine-visible','explicit','{}','fixture','pending','2026')",
+      ).run(id);
+    }
+    expect(
+      (
+        await DocumentKnowledgeRepository.listVisiblePassageRelations(
+          { bookId: "genesis", chapter: 1 },
+          adapter,
+        )
+      ).length,
+    ).toBe(211);
+  });
+  it("imports a literal commentary without publishing its secondary references as commentary", async () => {
+    const original =
+      "1.1 Comentário sintético sobre a criação. Cf. João 1:1. Também menciona Romanos 5:1.";
+    const { adapter, document } = await source(original);
+    const pkg = batch();
+    pkg.notes[0]!.fragments = [{ physicalPage: 1, quote: original }];
+    pkg.notes[0]!.analysis = {
+      ...analysis,
+      mode: "source-excerpt",
+      summary: original,
+      contentType: "source-commentary",
+    };
+    expect((await ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).imported).toBe(
+      1,
+    );
+    expect((await ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).reused).toBe(
+      1,
+    );
+    const proposals = await DocumentKnowledgeRepository.listProposals(
+      document.id,
+      { limit: 20 },
+      adapter,
+    );
+    const relation = proposals.find((p) => p.payload.kind === "passage-relation");
+    expect(relation?.payload).toMatchObject({
+      additionalPassages: [],
+      secondaryReferences: [
+        { relationType: "comparison", passage: { bookId: "john" } },
+        { relationType: "mention", passage: { bookId: "romans" } },
+      ],
+    });
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 1 },
+      null,
+      adapter,
+    );
+    const rendered = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(rendered).toContain("Comentário original da fonte");
+    expect(rendered).not.toContain("Síntese contextual assistida");
+  });
+  it("rejects fabricated text mislabeled as an original excerpt before writing", async () => {
+    const { adapter, db } = await source();
+    const pkg = batch();
+    pkg.notes[0]!.analysis.mode = "source-excerpt";
+    await expect(ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).rejects.toThrow(
+      "coincidir integralmente",
+    );
+    expect(db.prepare("SELECT count(*) AS n FROM knowledge_proposals").get()?.["n"]).toBe(0);
+  });
   it("renders both contextual sources with exact source links, without showing cross-references as commentary", async () => {
     const { db, adapter } = await source();
     await PrivateDocumentRepository.importDocument(
