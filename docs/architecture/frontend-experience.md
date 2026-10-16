@@ -24,17 +24,20 @@ mas tornar essas capacidades descobríveis no contexto correto.
 
 ### Leitura
 
-- A Bíblia é o centro visual.
-- Navegação de livros e capítulos fica à esquerda.
+- A Bíblia é o centro visual; o leitor abre só com o texto.
+- Livros e capítulos são escolhidos pelo botão “Livro capítulo ▾” do topo do texto, numa janela com
+  busca, testamentos e capítulos em números grandes; não há coluna fixa de livros.
 - Explicações pertinentes podem aparecer logo após o versículo e ser desativadas.
-- O inspetor da direita é contextual à passagem ou palavra selecionada, nunca global.
+- O painel de estudo (antigo inspetor) começa fechado e abre ao selecionar um versículo ou uma
+  palavra; é contextual, nunca global, e sempre tem “Fechar”.
 - Texto original, comparação e interlinear são modos da mesma leitura, não destinos separados.
 
 ### Biblioteca
 
-- O catálogo e os livros do usuário são a superfície principal.
+- Os livros do usuário vêm primeiro (“Meus livros”, com busca e filtro por tipo de livro); fontes
+  primárias, Nag Hammadi, referências e importação bibliográfica ficam em abas logo abaixo.
 - Tradução, OCR, desmontagem, auditoria e cobertura são ferramentas contextuais do documento.
-- Controles operacionais em lote ficam sob divulgação progressiva, sem dominar o catálogo.
+- Controles operacionais em lote ficam em “Processamento”, recolhido, com uma linha de estado.
 - Original, tradução auxiliar, fonte, página e estado de revisão devem permanecer distinguíveis.
 
 ### Investigação
@@ -113,3 +116,61 @@ mas tornar essas capacidades descobríveis no contexto correto.
 - QA desta entrega: navegação centro → Teologia, tema → Hermenêutica, pergunta → investigação
   existente (sem duplicação ao repetir a ação), retorno ao guia e abertura de PDF na página 29.
   Verificados desktop e viewport de 390 px, sem overflow global no guia e com console limpo.
+
+## Organização do front para leitores não técnicos (outubro de 2026)
+
+Público principal: teólogos, padres, pastores e estudantes, em geral pouco habituados a
+ferramentas técnicas. Cada tela tem uma tarefa principal; o resto fica a um clique, recolhido.
+Esta seção substitui as notas anteriores onde houver conflito (por exemplo, o Mapa de
+Conhecimento voltou a ter entrada própria no menu).
+
+### Navegação
+
+- Barra lateral em três grupos com rótulo pequeno: **Ler** (Início, Escrituras, Busca),
+  **Estudar** (Estudos, Mapa de conhecimento) e **Biblioteca**. No fundo, discretos: Rastro
+  (“Registro técnico das ligações”), Configurações e Ajuda. O item ativo tem fundo e uma barra na
+  cor primária. A definição fica em `src/components/shell/navigation.ts`.
+- “Importar e processar” não está no menu: é o botão principal “Adicionar livro” da Biblioteca.
+  A rota `/library/process` continua válida.
+- No celular: cinco destinos na barra inferior e “Mais” com o restante; nada fica inacessível.
+- A barra de estado usa frases simples (“Guardado neste computador”, “Funciona sem internet”) e
+  mostra a mensagem do lock do acervo quando outro processo o tem aberto.
+
+### Leitor e painel de estudo
+
+- No máximo três regiões: menu, texto e painel de estudo. A partir de 1280 px o painel fica ao
+  lado do texto; abaixo disso abre por cima (folha lateral); no celular é uma gaveta inferior.
+- O painel mostra no topo “Versículo selecionado: …” e tem quatro abas: Visão geral, Texto e
+  língua, Fontes, Minhas notas. As abas sem conteúdo não aparecem.
+- “O que existe para esta passagem” é uma frase; a tabela por área fica recolhida.
+- Ligações privadas por confirmar têm borda tracejada âmbar, o selo “Por confirmar” com ícone e a
+  pergunta “Esta ligação está correta?”; as confirmadas têm um visto e “Confirmada”
+  (`ReviewStateBadge`).
+
+### Biblioteca e página do livro
+
+- Biblioteca: cabeçalho com “Adicionar livro”, “Meus livros”, abas de catálogo e “Processamento”
+  recolhido com o resumo “N livros · N estruturados · N precisam de OCR”, calculado por uma
+  consulta leve (`LibraryCoverageService.quickSummary`). O relatório completo só é calculado
+  quando a seção é aberta.
+- Página do livro: a página à esquerda (navegação e busca no livro); à direita, abas Ligações,
+  Estrutura, Tradução e Sobre o livro (perfil com correção, assuntos e dicionários). Desmontar,
+  OCR, auditoria e reprocessar ficam em “Processamento”, no fim do painel, com o estado numa frase.
+
+### Componentes de página
+
+- `PageHeader` (rótulo, título serifado `text-2xl`, descrição e ações à direita),
+  `PageContainer` (larguras `narrow`, `default`, `wide` e o mesmo espaçamento vertical),
+  `SectionHeader` (variante padrão ou `meta`) e `EmptyState` (ícone, título, explicação e,
+  quando houver, a próxima ação), em `src/components/layout/`. Novas páginas devem usá-los.
+
+### Escala tipográfica e acessibilidade
+
+- Nenhum texto de interface abaixo de 12 px (`text-xs`). Só a `.meta-label` (rótulo de seção em
+  maiúsculas monoespaçadas) usa 11 px (`0.6875rem`). Tamanhos arbitrários (`text-[10px]` etc.)
+  não devem voltar. O texto bíblico e o original seguem as preferências de leitura.
+- Ações principais com pelo menos 32 px de altura; foco visível em todos os elementos interativos
+  (contorno global em `--ring` ou anel `focus-visible:ring-2`); botões só com ícone têm
+  `aria-label`; texto secundário sem opacidade reduzida, para manter contraste AA.
+- Cores, fontes e raios continuam os tokens de `src/styles.css`; nenhuma cor nova foi criada.
+
