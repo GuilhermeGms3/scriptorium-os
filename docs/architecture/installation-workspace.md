@@ -90,6 +90,31 @@ O recibo local `data/workspace/migration-receipt.json` registra contagens e o SH
 (`12bf4b6ff8ae59eda9b5c9283e84f378cf9587f468c259b020bacd416eee0dfe`). O recibo e os
 arquivos privados não são versionados no Git.
 
+### Falhas que se resolvem sozinhas (outubro de 2026)
+
+- **Sessões:** recarregar a página reaproveita a sessão que o navegador já tem. Com 256 sessões
+  abertas, a mais antiga é esquecida; antes, o servidor recusava novas sessões (429) até ser
+  reiniciado.
+- **PDF original:** o envio grava num arquivo temporário de nome único, força a gravação no disco e
+  só então renomeia; um envio interrompido não deixa mais um `.tmp` que bloqueava aquele livro
+  para sempre.
+- **Capas:** o `pdftoppm` escreve num nome temporário; um tempo esgotado não deixa uma imagem pela
+  metade que seria servida dali em diante.
+- **Migração do navegador:** se o Windows (antivírus, OneDrive) segurar um arquivo durante a troca,
+  o banco original volta ao lugar e é reaberto com os mesmos PRAGMAs; nunca se cria um banco vazio
+  no lugar dele. Dois pedaços enviados para o mesmo offset não são mais anexados os dois.
+- **Mensagens de erro:** falhas de arquivo ou de processo ficam no log do servidor; a página recebe
+  uma frase simples, sem caminhos do computador.
+- **Servidor de desenvolvimento:** o Vite entregava qualquer arquivo do projeto a qualquer página
+  em `localhost`, inclusive `data/workspace/` (banco e PDFs) e `livros/`. Agora recusa as duas
+  pastas (`server.fs.deny`, repetindo os padrões do Vite); o acervo só sai pela API.
+- **Serviço Python:** só responde aos nomes pelos quais é chamado (`127.0.0.1`, `localhost`,
+  `semantic-engine`; configurável em `SCRIPTORIUM_ALLOWED_HOSTS`) e só aceita POST em JSON, o que
+  barra páginas que tentam DNS rebinding ou POSTs "simples" sem preflight.
+- **Docker no Linux:** o Docker cria `./data/workspace` como root e o contêiner roda com uid 1001.
+  Antes do primeiro `docker compose up`, rode `sudo chown -R 1001:1001 data/workspace`. No Docker
+  Desktop do Windows isso não é preciso.
+
 ## Consulta de passagens
 
 A migration 022 adiciona um índice parcial apenas para relações com alvos adicionais não vazios.

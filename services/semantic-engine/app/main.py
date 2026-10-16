@@ -1,11 +1,14 @@
 from __future__ import annotations
 
 import os
+from collections.abc import Awaitable, Callable
 from functools import lru_cache
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import Depends, FastAPI, HTTPException, Request, Response
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
+from starlette.middleware.trustedhost import TrustedHostMiddleware
 
 from .local_pipeline import router as pipeline_router
 from .semantic_analyzer import (
@@ -97,6 +100,21 @@ app.add_middleware(
     allow_methods=["GET", "POST"],
     allow_headers=["content-type"],
 )
+# Only the names this service is reached by: a page that rebinds its own domain to 127.0.0.1
+# (DNS rebinding) arrives with that domain in Host and is refused before any route runs.
+hosts = os.getenv("SCRIPTORIUM_ALLOWED_HOSTS", "127.0.0.1,localhost,semantic-engine").split(",")
+app.add_middleware(TrustedHostMiddleware, allowed_hosts=[h.strip() for h in hosts if h.strip()])
+
+
+@app.middleware("http")
+async def require_json_body(
+    request: Request, call_next: Callable[[Request], Awaitable[Response]]
+) -> Response:
+    """Every POST is JSON: a cross-site "simple" POST (text/plain, no preflight) is refused."""
+    media_type = request.headers.get("content-type", "").split(";")[0].strip().lower()
+    if request.method == "POST" and media_type != "application/json":
+        return JSONResponse({"detail": "Envie o corpo como application/json."}, status_code=415)
+    return await call_next(request)
 
 
 @app.get("/health")

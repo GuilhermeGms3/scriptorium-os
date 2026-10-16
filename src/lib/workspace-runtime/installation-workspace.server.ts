@@ -7,6 +7,11 @@ import {
   renameSync,
   appendFileSync,
   statSync,
+  openSync,
+  writeSync,
+  fsyncSync,
+  closeSync,
+  rmSync,
 } from "node:fs";
 import { resolve, join } from "node:path";
 import { createHash, randomBytes } from "node:crypto";
@@ -39,6 +44,8 @@ const command = z.discriminatedUnion("type", [
   z.object({ type: z.literal("transaction"), statements: z.array(statement).max(2000) }),
 ]);
 const runFile = promisify(execFile);
+const MAX_SESSIONS = 256;
+const SESSION_TTL_MS = 12 * 60 * 60 * 1000;
 let coverQueue: Promise<unknown> = Promise.resolve();
 const coverRequests = new Map<string, Promise<void>>();
 
@@ -59,6 +66,16 @@ export class InstallationWorkspace {
       this.lock.release();
       throw error;
     }
+  }
+  /** Reopens the live file after a migration swap; never creates an empty database instead. */
+  #reopen(path: string): DatabaseSync {
+    if (!existsSync(path))
+      throw new Error(
+        "O arquivo do acervo não voltou ao lugar; o original está guardado ao lado, com o sufixo .before-migration.",
+      );
+    const database = new DatabaseSync(path);
+    database.exec("PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000");
+    return database;
   }
   #open(): DatabaseSync {
     const database = new DatabaseSync(join(this.root, "workspace.sqlite3"));
@@ -130,22 +147,30 @@ export class InstallationWorkspace {
       );
     }
     const url = new URL(request.url);
-    if (url.pathname === "/api/workspace/session" && request.method === "POST") {
-      const now = Date.now();
-      for (const [key, expiry] of this.sessions) if (expiry < now) this.sessions.delete(key);
-      if (this.sessions.size > 256) return json({ error: "Limite de sessões locais." }, 429);
-      const token = randomBytes(32).toString("hex");
-      this.sessions.set(token, now + 12 * 60 * 60 * 1000);
-      return new Response(JSON.stringify({ persistence: "installation" }), {
-        headers: {
-          ...headers,
-          "set-cookie": `scriptorium-installation=${token}; HttpOnly; SameSite=Strict; Path=/api/workspace; Max-Age=43200${url.protocol === "https:" ? "; Secure" : ""}`,
-        },
-      });
-    }
     const token = /(?:^|;\s*)scriptorium-installation=([a-f0-9]{64})(?:;|$)/.exec(
       request.headers.get("cookie") ?? "",
     )?.[1];
+    if (url.pathname === "/api/workspace/session" && request.method === "POST") {
+      const now = Date.now();
+      for (const [key, expiry] of this.sessions) if (expiry < now) this.sessions.delete(key);
+      // A reload keeps its session instead of opening another; when the table is full the oldest
+      // one goes (it used to refuse every new session until the server restarted).
+      const reused = token && this.sessions.has(token) ? token : undefined;
+      if (reused) this.sessions.delete(reused);
+      while (this.sessions.size >= MAX_SESSIONS) {
+        const oldest = this.sessions.keys().next().value;
+        if (oldest === undefined) break;
+        this.sessions.delete(oldest);
+      }
+      const session = reused ?? randomBytes(32).toString("hex");
+      this.sessions.set(session, now + SESSION_TTL_MS);
+      return new Response(JSON.stringify({ persistence: "installation" }), {
+        headers: {
+          ...headers,
+          "set-cookie": `scriptorium-installation=${session}; HttpOnly; SameSite=Strict; Path=/api/workspace; Max-Age=${SESSION_TTL_MS / 1000}${url.protocol === "https:" ? "; Secure" : ""}`,
+        },
+      });
+    }
     if (!token || (this.sessions.get(token) ?? 0) < Date.now())
       return json({ error: "Sessão local necessária." }, 401);
     try {
@@ -163,22 +188,17 @@ export class InstallationWorkspace {
               .catch(() => undefined)
               .then(async () => {
                 this.lock.assertOwned();
-                await runFile(
-                  "pdftoppm",
-                  [
-                    "-f",
-                    "1",
-                    "-l",
-                    "1",
-                    "-scale-to",
-                    "420",
-                    "-singlefile",
-                    "-png",
-                    pdf,
-                    join(folder, cover),
-                  ],
-                  { timeout: 30_000, maxBuffer: 1024 * 1024 },
-                );
+                const partial = join(folder, `${cover}.${randomBytes(6).toString("hex")}`);
+                try {
+                  await runFile(
+                    "pdftoppm",
+                    ["-f", "1", "-l", "1", "-scale-to", "420", "-singlefile", "-png", pdf, partial],
+                    { timeout: 30_000, maxBuffer: 1024 * 1024 },
+                  );
+                  renameSync(`${partial}.png`, path);
+                } finally {
+                  rmSync(`${partial}.png`, { force: true });
+                }
               });
             coverRequests.set(path, task);
             coverQueue = task;
@@ -264,17 +284,22 @@ export class InstallationWorkspace {
           this.database.close();
           const live = join(this.root, "workspace.sqlite3");
           const backup = `${live}.before-migration-${Date.now()}`;
-          renameSync(live, backup);
+          // On Windows an antivirus or OneDrive can hold a file for a moment: whatever fails here,
+          // the original database goes back in place and is reopened with its pragmas, instead of
+          // leaving every later request failing until a restart.
           try {
-            renameSync(staging, live);
-            this.database = new DatabaseSync(live);
-            this.database.exec(
-              "PRAGMA foreign_keys=ON; PRAGMA journal_mode=WAL; PRAGMA busy_timeout=5000",
-            );
-          } catch (error) {
-            if (!existsSync(live)) renameSync(backup, live);
-            this.database = new DatabaseSync(live);
-            throw error;
+            // A leftover WAL would be replayed into the new file by SQLite.
+            if (existsSync(`${live}-wal`) && statSync(`${live}-wal`).size > 0)
+              throw new Error("O acervo ainda tem escritas pendentes; tente de novo.");
+            renameSync(live, backup);
+            try {
+              renameSync(staging, live);
+            } catch (error) {
+              renameSync(backup, live);
+              throw error;
+            }
+          } finally {
+            this.database = this.#reopen(live);
           }
           return json({ migrated: true, counts });
         }
@@ -286,6 +311,9 @@ export class InstallationWorkspace {
         this.lock.assertOwned();
         if (offset + chunk.byteLength > 2 * 1024 * 1024 * 1024)
           throw new Error("Snapshot excede 2 GiB.");
+        // Another upload of the same offset may have landed while this body was being read.
+        if (statSync(staging).size !== offset)
+          return json({ error: "Offset divergente; nenhuma sobrescrita realizada." }, 409);
         appendFileSync(staging, chunk);
         return json({ offset: offset + chunk.byteLength });
       }
@@ -310,8 +338,20 @@ export class InstallationWorkspace {
           )
             return json({ error: "PDF ou checksum inválido." }, 422);
           if (!existsSync(path)) {
-            writeFileSync(`${path}.tmp`, bytes, { flag: "wx" });
-            renameSync(`${path}.tmp`, path);
+            // A fixed ".tmp" name made one failed upload block that book for good (EEXIST).
+            const partial = `${path}.${randomBytes(6).toString("hex")}.tmp`;
+            try {
+              const descriptor = openSync(partial, "wx");
+              try {
+                writeSync(descriptor, bytes);
+                fsyncSync(descriptor);
+              } finally {
+                closeSync(descriptor);
+              }
+              renameSync(partial, path);
+            } finally {
+              rmSync(partial, { force: true });
+            }
           }
           return json({ stored: true });
         }
@@ -355,6 +395,13 @@ export class InstallationWorkspace {
     } catch (error) {
       if (error instanceof WorkspaceLockedError)
         return json({ error: error.message, code: error.code }, 423);
+      if (isSystemError(error)) {
+        console.error("Falha no acervo da instalação:", error);
+        return json(
+          { error: "Não foi possível acessar os arquivos do acervo neste computador." },
+          500,
+        );
+      }
       return json(
         {
           error:
@@ -368,6 +415,14 @@ export class InstallationWorkspace {
       );
     }
   }
+}
+/** Failures of the file system or of a child process: their messages carry local paths. */
+function isSystemError(error: unknown): boolean {
+  return (
+    typeof error === "object" &&
+    error !== null &&
+    ("syscall" in error || "path" in error || "cmd" in error)
+  );
 }
 async function boundedBody(request: Request, limit: number): Promise<Uint8Array> {
   if (Number(request.headers.get("content-length")) > limit)

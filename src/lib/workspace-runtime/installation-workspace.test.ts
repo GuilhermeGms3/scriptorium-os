@@ -1,4 +1,12 @@
-import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import {
+  existsSync,
+  mkdtempSync,
+  readdirSync,
+  rmSync,
+  readFileSync,
+  writeFileSync,
+  unlinkSync,
+} from "node:fs";
 import { spawnSync } from "node:child_process";
 import { backup } from "node:sqlite";
 import { createHash } from "node:crypto";
@@ -460,5 +468,49 @@ describe("installation workspace lock", () => {
         /^Este acervo já está aberto por outro processo \(windows-vite/u,
       ),
     });
+  });
+});
+
+describe("sessions and uploads that recover by themselves", () => {
+  const openSession = (workspace: InstallationWorkspace, session?: string) =>
+    workspace.handle(
+      new Request("http://localhost:3000/api/workspace/session", {
+        method: "POST",
+        headers: { "x-scriptorium-workspace": "1", ...(session ? { cookie: session } : {}) },
+      }),
+    );
+
+  it("keeps the browser's session on reload and, when full, forgets the oldest instead of refusing", async () => {
+    const workspace = create();
+    const first = await cookie(workspace);
+    const reload = await openSession(workspace, first);
+    expect(reload.headers.get("set-cookie")?.split(";")[0]).toBe(first);
+
+    for (let index = 0; index < 300; index += 1)
+      expect((await openSession(workspace)).status).toBe(200);
+    expect(workspace.sessions.size).toBe(256);
+    const query = { type: "query", sql: "SELECT 1 AS n" };
+    expect((await command(workspace, first, query)).status).toBe(401);
+    expect((await command(workspace, await cookie(workspace), query)).status).toBe(200);
+  });
+
+  it("stores a PDF even when an earlier upload left a temporary file behind", async () => {
+    const workspace = create();
+    const session = await cookie(workspace);
+    const bytes = Buffer.from("%PDF-1.4\n1 0 obj << >> endobj\n%%EOF\n");
+    const checksum = createHash("sha256").update(bytes).digest("hex");
+    const documents = join(workspace.root, "documents");
+    writeFileSync(join(documents, `${checksum}.pdf.tmp`), "pela metade");
+
+    const response = await workspace.handle(
+      new Request(`http://localhost:3000/api/workspace/documents/${checksum}`, {
+        method: "PUT",
+        headers: { "x-scriptorium-workspace": "1", cookie: session },
+        body: bytes,
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(readFileSync(join(documents, `${checksum}.pdf`))).toEqual(bytes);
+    expect(readdirSync(documents).sort()).toEqual([`${checksum}.pdf`, `${checksum}.pdf.tmp`]);
   });
 });

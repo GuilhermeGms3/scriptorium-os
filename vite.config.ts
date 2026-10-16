@@ -15,7 +15,22 @@ export default defineConfig({
     optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
     // The optional Python companion keeps its virtualenv in the repository; watching its ~30k
     // files stalls the dev server's SSR module requests on Windows.
-    server: { watch: { ignored: ["**/.venv/**", "**/*.egg-info/**"] } },
+    server: {
+      watch: { ignored: ["**/.venv/**", "**/*.egg-info/**"] },
+      // The dev server serves any file under the project, to any localhost page (another dev
+      // server, a local tool). Private data must only leave through the /api/workspace gate.
+      // Setting deny replaces Vite's defaults, so they are repeated first.
+      fs: {
+        deny: [
+          ".env",
+          ".env.*",
+          "*.{crt,pem}",
+          "**/.git/**",
+          "**/data/workspace/**",
+          "**/livros/**",
+        ],
+      },
+    },
     build: {
       rolldownOptions: {
         output: {
