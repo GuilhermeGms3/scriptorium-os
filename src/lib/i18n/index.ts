@@ -7,6 +7,7 @@ import type {
   SupportLevel,
 } from "../domain/knowledge";
 import type { ResourceType } from "../domain/library";
+import type { SOURCE_TYPES } from "../domain/bibliography";
 import type { PassageRef } from "../domain/scripture";
 import { ptBR, type TranslationKey } from "./pt-BR";
 export { DEFAULT_LOCALE, DOCUMENT_LANGUAGE_CODES, textDirectionForLanguage } from "./locale";
@@ -236,6 +237,37 @@ const RESOURCE_LABELS: Record<ResourceType, string> = {
 
 export function resourceTypeLabel(type: ResourceType): string {
   return RESOURCE_LABELS[type];
+}
+
+const SOURCE_TYPE_LABELS: Record<(typeof SOURCE_TYPES)[number], string> = {
+  book: "Livro",
+  journal: "Periódico",
+  "journal-issue": "Número de periódico",
+  "journal-article": "Artigo de periódico",
+  chapter: "Capítulo",
+  thesis: "Tese",
+  dissertation: "Dissertação",
+  "conference-paper": "Trabalho de congresso",
+  "encyclopedia-entry": "Verbete de enciclopédia",
+  website: "Site",
+  manuscript: "Manuscrito",
+  papyrus: "Papiro",
+  inscription: "Inscrição",
+  "archaeological-report": "Relatório arqueológico",
+  "council-document": "Documento conciliar",
+  creed: "Credo",
+  confession: "Confissão de fé",
+  catechism: "Catecismo",
+  "ancient-work": "Obra antiga",
+  "patristic-work": "Obra patrística",
+  "rabbinic-source": "Fonte rabínica",
+  "user-document": "Documento pessoal",
+  dataset: "Conjunto de dados",
+};
+
+/** Kind of bibliographic source in Portuguese, e.g. "Obra antiga" for "ancient-work". */
+export function sourceTypeLabel(type: (typeof SOURCE_TYPES)[number]): string {
+  return SOURCE_TYPE_LABELS[type];
 }
 
 const EVIDENCE_LABELS: Record<EvidenceKind, string> = {

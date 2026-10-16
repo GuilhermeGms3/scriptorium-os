@@ -10,6 +10,7 @@ import { useSecureContextProblem } from "../../lib/workspace-runtime/use-secure-
 import { SecureContextNotice } from "../../components/common/secure-context-notice";
 import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
 import { PageHeader } from "../../components/layout/page-header";
+import { EmptyState } from "../../components/layout/empty-state";
 
 type StudyView = "journey" | "investigations";
 
@@ -174,13 +175,10 @@ function PersonalInvestigations({
             ))}
           </ul>
           {studies.length === 0 && (
-            <div className="mt-6 border border-dashed border-border p-5">
-              <p className="text-sm font-medium">Nenhuma investigação criada</p>
-              <p className="mt-1 text-xs text-muted-foreground">
-                Volte à Jornada para iniciar por uma trilha com fontes ou crie uma pergunta própria
-                acima.
-              </p>
-            </div>
+            <EmptyState className="mt-6" title="Nenhuma investigação criada">
+              Volte à Jornada para começar por uma trilha com fontes, ou crie uma pergunta própria
+              acima.
+            </EmptyState>
           )}
         </section>
 

@@ -1,12 +1,20 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { ArrowRight, BookOpen, CalendarDays, FileText, Library, StickyNote } from "lucide-react";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { LibraryRepository } from "../lib/repositories/library-repository";
 import { ResearchAssistant } from "../components/common/research-assistant";
 import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
-import { bookLabel, claimKindLabel, formatNumber, passageLabel, t } from "../lib/i18n";
+import { SectionHeader } from "../components/layout/section-header";
+import {
+  bookLabel,
+  claimKindLabel,
+  formatNumber,
+  passageLabel,
+  sourceTypeLabel,
+  t,
+} from "../lib/i18n";
 import type { BibliographicSource } from "../lib/domain/bibliography";
 import { ScriptureKnowledgeEngine } from "../lib/knowledge-engine/scripture-knowledge-engine";
 import type { PassageKnowledgeBundle } from "../lib/domain/knowledge-bundle";
@@ -117,212 +125,249 @@ function Home() {
   const dailyAnalyses =
     dailyBundle && hasAvailableData(dailyBundle.analyses) ? dailyBundle.analyses.data : [];
 
+  const lensSummaries = (["exegetical", "hermeneutical", "historical"] as const).flatMap(
+    (lensId) => {
+      const analysis = dailyAnalyses.find((item) => item.lensId === lensId);
+      return analysis ? [{ lensId, label: LENS_LABELS[lensId], summary: analysis.summary }] : [];
+    },
+  );
+  const dailyClaim =
+    dailyBundle && hasAvailableData(dailyBundle.claims) ? dailyBundle.claims.data[0] : undefined;
+  const continueRef = {
+    book: lastPosition?.bookId ?? dailyBundle?.identity.ref.bookId ?? "genesis",
+    chapter: lastPosition?.chapter ?? dailyBundle?.identity.ref.chapter ?? 1,
+  };
+
   return (
-    <PageContainer>
+    <PageContainer className="space-y-10">
       <PageHeader eyebrow={t("home.workspace")} title={t("home.resume")} />
 
-      <div className="mt-5 grid gap-x-8 gap-y-6 lg:grid-cols-[1.6fr_1fr]">
-        <div className="space-y-6">
-          <section className="border-y border-border py-4">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <SectionHeading icon={CalendarDays} title="Passagem do dia" />
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Uma passagem diferente do acervo instalado, com as camadas realmente disponíveis.
-                </p>
-              </div>
-              <span className="font-mono text-xs text-muted-foreground">
-                {new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date())}
-              </span>
-            </div>
-            {dailyLoading ? (
-              <p role="status" className="mt-4 text-sm text-muted-foreground">
-                Abrindo a passagem no corpus local…
-              </p>
-            ) : dailyBundle && dailyVerse ? (
-              <div className="mt-4 grid gap-4 md:grid-cols-[1.3fr_1fr]">
-                <Link
-                  to="/scripture/$book/$chapter"
-                  params={{
-                    book: dailyBundle.identity.ref.bookId,
-                    chapter: String(dailyBundle.identity.ref.chapter),
-                  }}
-                  className="group border-l-2 border-primary pl-4"
-                >
-                  <p className="font-serif text-lg font-semibold">
-                    {passageLabel(dailyBundle.identity.ref)}
-                  </p>
-                  <p className="mt-2 font-serif text-base leading-7">
-                    {dailyText ? dailyVerse.translations[dailyText] : undefined}
-                  </p>
-                  <span className="mt-3 inline-flex items-center gap-1 text-xs text-primary">
-                    Ler no contexto <ArrowRight className="size-3" />
-                  </span>
-                </Link>
-                <div className="space-y-2">
-                  {["exegetical", "hermeneutical", "historical"].map((lensId) => {
-                    const analysis = dailyAnalyses.find((item) => item.lensId === lensId);
-                    const label =
-                      lensId === "exegetical"
-                        ? "Exegese"
-                        : lensId === "hermeneutical"
-                          ? "Hermenêutica"
-                          : "Contexto histórico";
-                    return (
-                      <div key={lensId} className="rounded border border-border px-3 py-2">
-                        <p className="meta-label">{label}</p>
-                        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                          {analysis?.summary ?? "Ainda sem análise curada para esta passagem."}
-                        </p>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            ) : (
-              <p className="mt-4 text-sm text-muted-foreground">
-                O corpus diário não pôde ser aberto neste dispositivo.
-              </p>
-            )}
-          </section>
+      <div className="grid gap-4 md:grid-cols-3">
+        <HomeCard icon={BookOpen} label={t("home.continueReading")}>
+          <Link
+            to="/scripture/$book/$chapter"
+            params={{ book: continueRef.book, chapter: String(continueRef.chapter) }}
+            className="group block focus-visible:outline-none"
+          >
+            <p className="font-serif text-xl font-semibold group-hover:underline">
+              {bookLabel(continueRef.book)} {continueRef.chapter}
+            </p>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {lastPosition ? "Onde você parou." : "Uma sugestão para começar."}
+            </p>
+            <CardAction>Abrir a leitura</CardAction>
+          </Link>
+        </HomeCard>
 
-          <section>
-            <SectionHeading icon={BookOpen} title={t("home.continueReading")} />
+        <HomeCard icon={CalendarDays} label="Passagem do dia">
+          {dailyLoading ? (
+            <p role="status" className="text-sm text-muted-foreground">
+              Abrindo a passagem…
+            </p>
+          ) : dailyBundle && dailyVerse ? (
             <Link
               to="/scripture/$book/$chapter"
               params={{
-                book: lastPosition?.bookId ?? dailyBundle?.identity.ref.bookId ?? "genesis",
-                chapter: String(lastPosition?.chapter ?? dailyBundle?.identity.ref.chapter ?? 1),
+                book: dailyBundle.identity.ref.bookId,
+                chapter: String(dailyBundle.identity.ref.chapter),
               }}
-              className="group mt-2 block border-l-2 border-primary/60 pl-3 transition-colors hover:border-primary"
+              className="group block focus-visible:outline-none"
             >
-              <p className="font-serif text-lg font-medium">
-                {bookLabel(lastPosition?.bookId ?? dailyBundle?.identity.ref.bookId ?? "genesis")}{" "}
-                {lastPosition?.chapter ?? dailyBundle?.identity.ref.chapter ?? 1}
+              <p className="font-serif text-xl font-semibold group-hover:underline">
+                {passageLabel(dailyBundle.identity.ref)}
               </p>
-              <p className="mt-1 font-mono text-xs text-muted-foreground">
-                {lastPosition ? t("home.lastPosition") : "Sugestão inicial do acervo"}
-                <ArrowRight className="ml-1 inline size-3 transition-transform group-hover:translate-x-0.5" />
+              <p className="mt-1 line-clamp-3 font-serif text-base leading-relaxed">
+                {dailyText ? dailyVerse.translations[dailyText] : undefined}
               </p>
+              <CardAction>Ler no contexto</CardAction>
             </Link>
-          </section>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              A passagem do dia não pôde ser aberta neste computador.
+            </p>
+          )}
+        </HomeCard>
 
-          {/* Continue studying */}
-          <section>
-            <SectionHeading icon={FileText} title={t("home.continueStudying")} />
-            {recentStudy ? (
-              <Link
-                to="/study/$slug"
-                params={{ slug: recentStudy.slug }}
-                className="group mt-2 block border-l-2 border-border pl-3 transition-colors hover:border-primary/60"
-              >
-                <p className="text-base font-medium">{recentStudy.title}</p>
-                <p className="mt-0.5 font-mono text-xs text-muted-foreground">
-                  {formatNumber(recentStudy.items.filter((i) => i.kind === "resource").length)}{" "}
-                  {t("home.sourcesLinked")} · {formatNumber(notes.length)} {t("home.notes")} ·{" "}
-                  {formatNumber(recentStudy.items.filter((i) => i.kind === "passage").length)}{" "}
-                  {t("home.passages")}
-                </p>
-              </Link>
-            ) : null}
-          </section>
+        <HomeCard icon={FileText} label="Meus estudos">
+          {recentStudy ? (
+            <Link
+              to="/study/$slug"
+              params={{ slug: recentStudy.slug }}
+              className="group block focus-visible:outline-none"
+            >
+              <p className="font-serif text-xl font-semibold group-hover:underline">
+                {recentStudy.title}
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {formatNumber(recentStudy.items.filter((i) => i.kind === "resource").length)}{" "}
+                {t("home.sourcesLinked")} ·{" "}
+                {formatNumber(recentStudy.items.filter((i) => i.kind === "passage").length)}{" "}
+                {t("home.passages")}
+              </p>
+              <CardAction>Continuar o estudo</CardAction>
+            </Link>
+          ) : (
+            <Link to="/study" className="group block focus-visible:outline-none">
+              <p className="font-serif text-xl font-semibold group-hover:underline">
+                Comece um estudo
+              </p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Escolha um tema na árvore de estudos e reúna passagens, fontes e notas.
+              </p>
+              <CardAction>Ver os temas</CardAction>
+            </Link>
+          )}
+        </HomeCard>
+      </div>
 
-          {/* Recent library */}
-          <section>
-            <SectionHeading icon={Library} title={t("home.recentLibrary")} />
-            <ul className="mt-2 divide-y divide-border border-y border-border">
-              {recentResources.map((r) => (
-                <li key={r.id} className="flex items-baseline justify-between gap-3 py-1.5">
+      {dailyBundle && (
+        <section aria-labelledby="daily-study-title" className="space-y-3">
+          <SectionHeader
+            id="daily-study-title"
+            title={`Para estudar ${passageLabel(dailyBundle.identity.ref)}`}
+            description={new Intl.DateTimeFormat("pt-BR", { dateStyle: "long" }).format(new Date())}
+          />
+          {lensSummaries.length ? (
+            <div className="grid gap-3 md:grid-cols-3">
+              {lensSummaries.map((lens) => (
+                <div key={lens.lensId} className="rounded-md border border-border p-3">
+                  <p className="meta-label">{lens.label}</p>
+                  <p className="mt-1 text-sm leading-relaxed">{lens.summary}</p>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">
+              O texto bíblico está disponível, mas ainda não há exegese, hermenêutica ou contexto
+              histórico publicados para esta passagem.
+            </p>
+          )}
+          {dailyClaim && (
+            <blockquote className="border-l-2 border-primary/40 pl-3 text-sm leading-relaxed">
+              {dailyClaim.proposition}
+              <footer className="mt-1 text-xs text-muted-foreground">
+                {claimKindLabel(dailyClaim.kind)}
+              </footer>
+            </blockquote>
+          )}
+          <p className="text-sm text-muted-foreground">
+            {formatNumber(dailyAnalyses.length)} análises ·{" "}
+            {formatNumber(
+              dailyBundle && hasAvailableData(dailyBundle.claims)
+                ? dailyBundle.claims.data.length
+                : 0,
+            )}{" "}
+            afirmações · {formatNumber(dailyBundle.sources.references.length)} fontes citáveis ·{" "}
+            <Link to="/study" className="text-primary underline-offset-4 hover:underline">
+              abrir um guia de estudo
+            </Link>
+          </p>
+        </section>
+      )}
+
+      <div className="grid gap-8 md:grid-cols-2">
+        <section aria-labelledby="recent-library-title" className="space-y-2">
+          <SectionHeader
+            id="recent-library-title"
+            title={t("home.recentLibrary")}
+            icon={<Library className="size-4 text-muted-foreground" aria-hidden="true" />}
+          />
+          {recentResources.length ? (
+            <ul className="divide-y divide-border border-y border-border">
+              {recentResources.map((resource) => (
+                <li key={resource.id} className="flex items-baseline justify-between gap-3 py-2">
                   <Link
                     to="/library"
-                    search={{ source: r.id }}
+                    search={{ source: resource.id }}
                     className="min-w-0 flex-1 text-sm hover:underline"
                   >
-                    {r.title}
+                    {resource.title}
                   </Link>
-                  <span className="shrink-0 meta-label tracking-wider text-muted-foreground">
-                    {r.sourceType.replaceAll("-", " ")}
+                  <span className="shrink-0 text-xs text-muted-foreground">
+                    {sourceTypeLabel(resource.sourceType)}
                   </span>
                 </li>
               ))}
             </ul>
-          </section>
+          ) : (
+            <p className="text-sm text-muted-foreground">Nenhuma referência na biblioteca ainda.</p>
+          )}
+        </section>
 
-          {/* Recent notes */}
-          <section>
-            <SectionHeading icon={StickyNote} title={t("home.recentNotes")} />
-            {notes.length === 0 ? (
-              <p className="mt-2 text-sm text-muted-foreground">{t("home.noNotes")}</p>
-            ) : (
-              <ul className="mt-2 divide-y divide-border border-y border-border">
-                {notes.slice(0, 4).map((n) => (
-                  <li key={n.id} className="py-1.5">
-                    <p className="text-sm font-medium">{n.title}</p>
-                    <p className="font-mono text-xs text-muted-foreground">
-                      {n.links.map((l) => l.label).join(" · ") || t("home.unlinked")}
-                    </p>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </section>
-        </div>
+        <section aria-labelledby="recent-notes-title" className="space-y-2">
+          <SectionHeader
+            id="recent-notes-title"
+            title={t("home.recentNotes")}
+            icon={<StickyNote className="size-4 text-muted-foreground" aria-hidden="true" />}
+          />
+          {notes.length === 0 ? (
+            <p className="text-sm text-muted-foreground">{t("home.noNotes")}</p>
+          ) : (
+            <ul className="divide-y divide-border border-y border-border">
+              {notes.slice(0, 4).map((note) => (
+                <li key={note.id} className="py-2">
+                  <p className="text-sm font-medium">{note.title}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {note.links.map((link) => link.label).join(" · ") || t("home.unlinked")}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      </div>
 
-        <aside className="space-y-5">
-          <section className="rounded-lg border border-border bg-card p-3.5">
-            <p className="meta-label">O que existe para a passagem</p>
-            <dl className="mt-3 space-y-2 text-sm">
-              <div className="flex items-center justify-between gap-3">
-                <dt>Análises editoriais</dt>
-                <dd className="font-mono text-xs">{dailyAnalyses.length}</dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt>Afirmações relacionadas</dt>
-                <dd className="font-mono text-xs">
-                  {dailyBundle && hasAvailableData(dailyBundle.claims)
-                    ? dailyBundle.claims.data.length
-                    : 0}
-                </dd>
-              </div>
-              <div className="flex items-center justify-between gap-3">
-                <dt>Fontes citáveis</dt>
-                <dd className="font-mono text-xs">{dailyBundle?.sources.references.length ?? 0}</dd>
-              </div>
-            </dl>
-            {dailyBundle && hasAvailableData(dailyBundle.claims) && dailyBundle.claims.data[0] ? (
-              <div className="mt-3 border-t border-border pt-3">
-                <p className="text-xs leading-relaxed">{dailyBundle.claims.data[0].proposition}</p>
-                <p className="mt-1 meta-label text-muted-foreground">
-                  {claimKindLabel(dailyBundle.claims.data[0].kind)}
-                </p>
-              </div>
-            ) : (
-              <p className="mt-3 border-t border-border pt-3 text-xs text-muted-foreground">
-                O texto bíblico está disponível; uma síntese acadêmica ainda não foi publicada.
-              </p>
-            )}
-            <Link
-              to="/study"
-              className="mt-3 inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium transition-colors hover:bg-accent"
-            >
-              Abrir guia de estudo <ArrowRight className="size-3" />
-            </Link>
-          </section>
-
+      <details className="rounded-md border border-border">
+        <summary className="cursor-pointer px-4 py-3 text-sm font-medium hover:bg-accent/40">
+          Assistente de pesquisa (experimental)
+        </summary>
+        <div className="border-t border-border p-4">
           <ResearchAssistant
             contextLabel={dailyBundle ? passageLabel(dailyBundle.identity.ref) : "Passagem do dia"}
           />
-        </aside>
-      </div>
+        </div>
+      </details>
     </PageContainer>
   );
 }
 
-function SectionHeading({ icon: Icon, title }: { icon: typeof BookOpen; title: string }) {
+const LENS_LABELS = {
+  exegetical: "Exegese",
+  hermeneutical: "Hermenêutica",
+  historical: "Contexto histórico",
+} as const;
+
+function HomeCard({
+  icon: Icon,
+  label,
+  children,
+}: {
+  icon: typeof BookOpen;
+  label: string;
+  children: ReactNode;
+}) {
   return (
-    <h2 className="flex items-center gap-1.5">
-      <Icon className="size-3.5 text-muted-foreground" strokeWidth={1.75} />
-      <span className="meta-label">{title}</span>
-    </h2>
+    <section
+      aria-label={label}
+      className="rounded-lg border border-border bg-card p-4 transition-colors focus-within:ring-2 focus-within:ring-ring hover:border-primary/50"
+    >
+      <p className="flex items-center gap-1.5 meta-label">
+        <Icon className="size-3.5" strokeWidth={1.75} aria-hidden="true" />
+        {label}
+      </p>
+      <div className="mt-2">{children}</div>
+    </section>
+  );
+}
+
+function CardAction({ children }: { children: ReactNode }) {
+  return (
+    <span className="mt-3 inline-flex items-center gap-1 text-sm text-primary">
+      {children}{" "}
+      <ArrowRight
+        className="size-3.5 transition-transform group-hover:translate-x-0.5"
+        aria-hidden="true"
+      />
+    </span>
   );
 }

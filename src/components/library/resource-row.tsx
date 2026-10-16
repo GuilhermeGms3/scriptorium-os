@@ -1,5 +1,6 @@
 import type { BibliographicSource } from "../../lib/domain/bibliography";
 import { cn } from "../../lib/utils";
+import { sourceTypeLabel } from "../../lib/i18n";
 
 export function ResourceRow({
   source,
@@ -30,7 +31,7 @@ export function ResourceRow({
         </span>
       </span>
       <span className="rounded border border-border px-1 py-px meta-label tracking-wider text-muted-foreground">
-        {source.sourceType.replaceAll("-", " ")}
+        {sourceTypeLabel(source.sourceType)}
       </span>
     </button>
   );

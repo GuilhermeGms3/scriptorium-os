@@ -17,6 +17,7 @@ import {
 } from "../lib/i18n";
 import { LibraryRepository } from "../lib/repositories/library-repository";
 import { PageHeader } from "../components/layout/page-header";
+import { EmptyState } from "../components/layout/empty-state";
 import type { Citation } from "../lib/domain/bibliography";
 import type { KnowledgeClaim } from "../lib/domain/knowledge";
 import { ArgumentRepository } from "../lib/repositories/argument-repository";
@@ -160,33 +161,45 @@ function KnowledgePage() {
         className="hidden w-60 shrink-0 overflow-y-auto border-r border-border py-2 md:block"
         aria-label="Entidades do conhecimento"
       >
-        <label className="mx-2 mb-3 flex h-8 items-center gap-2 rounded border border-input bg-background px-2">
-          <Search className="size-3.5 shrink-0 text-muted-foreground" />
-          <span className="sr-only">Filtrar entidades</span>
+        <label className="mx-2 mb-3 flex h-9 items-center gap-2 rounded-md border border-input bg-background px-2.5 focus-within:ring-2 focus-within:ring-ring">
+          <Search className="size-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+          <span className="sr-only">Procurar no mapa</span>
           <input
             value={entityQuery}
             onChange={(event) => setEntityQuery(event.target.value)}
-            placeholder="Filtrar o mapa…"
-            className="min-w-0 flex-1 bg-transparent text-xs outline-none"
+            placeholder="Procurar no mapa…"
+            className="min-w-0 flex-1 bg-transparent text-sm outline-none"
           />
         </label>
         {grouped.map(([kind, items]) => (
-          <div key={kind} className="mb-3 px-2">
-            <p className="meta-label px-1 py-1">{kindLabel(kind)}</p>
+          <details
+            key={`${kind}:${entityQuery.trim() ? "filtered" : "all"}`}
+            open={
+              Boolean(entityQuery.trim()) ||
+              items.some((item) => bundle?.selected.entity.id === entityId(item))
+            }
+            className="group mb-1 px-2"
+          >
+            <summary className="flex cursor-pointer list-none items-center justify-between rounded px-1.5 py-1.5 hover:bg-muted">
+              <span className="meta-label">{kindLabel(kind)}</span>
+              <span className="text-xs text-muted-foreground">{items.length}</span>
+            </summary>
             {items.map((item) => (
               <button
+                type="button"
                 key={entityId(item)}
                 onClick={() => select(entityId(item))}
-                className={`block w-full rounded px-2 py-1.5 text-left text-xs ${bundle?.selected.entity.id === entityId(item) ? "bg-accent font-medium" : "hover:bg-muted"}`}
+                aria-current={bundle?.selected.entity.id === entityId(item) ? "true" : undefined}
+                className={`block w-full rounded px-2 py-1.5 text-left text-sm ${bundle?.selected.entity.id === entityId(item) ? "bg-accent font-medium" : "hover:bg-muted"}`}
               >
                 {entityName(item)}
               </button>
             ))}
-          </div>
+          </details>
         ))}
         {!grouped.length && (
-          <p className="px-4 py-6 text-xs italic text-muted-foreground">
-            Nenhuma entidade corresponde ao filtro.
+          <p className="px-4 py-6 text-sm text-muted-foreground">
+            Nada no mapa com esse nome. Tente outra palavra.
           </p>
         )}
       </aside>
@@ -450,13 +463,10 @@ function ExplorerContent({
           )}
         />
         {!hasRelatedMaterial && (
-          <section className="rounded-lg border border-dashed border-border bg-muted/15 p-4">
-            <h3 className="text-sm font-medium">Ainda sem conexões publicadas</h3>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-              Esta entidade existe na taxonomia, mas ainda não possui argumentos, evidências ou
-              fontes relacionadas. O Scriptorium não preenche essas relações com conteúdo fictício.
-            </p>
-          </section>
+          <EmptyState title="Ainda sem conexões publicadas">
+            Esta entidade existe na taxonomia, mas ainda não possui argumentos, evidências ou fontes
+            relacionadas. O Scriptorium não preenche essas relações com conteúdo fictício.
+          </EmptyState>
         )}
       </aside>
     </div>

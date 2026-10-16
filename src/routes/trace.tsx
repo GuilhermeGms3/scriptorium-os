@@ -14,6 +14,7 @@ import { ScriptureKnowledgeEngine } from "../lib/knowledge-engine/scripture-know
 import { bookLabel } from "../lib/i18n";
 import { ContextualReadingImport } from "../components/library/contextual-reading-import";
 import { PageHeader } from "../components/layout/page-header";
+import { EmptyState } from "../components/layout/empty-state";
 
 const SearchSchema = TraceFilterSchema.extend({ proposal: z.string().max(500).optional() });
 type TraceSearch = z.infer<typeof SearchSchema>;
@@ -381,7 +382,7 @@ function TracePage() {
   }, [key, revision]);
   const items: KnowledgeTraceItem[] = state.data?.list.rows.map(explainKnowledgeTrace) ?? [];
   return (
-    <article data-knowledge-trace className="mx-auto max-w-6xl space-y-6 p-4 md:p-8">
+    <article data-knowledge-trace className="mx-auto w-full max-w-7xl space-y-6 px-5 py-6 md:px-8">
       <PageHeader
         eyebrow="Proveniência do conhecimento privado"
         icon={<GitBranch className="size-5" aria-hidden="true" />}
@@ -476,15 +477,22 @@ function TracePage() {
                 ))}
               </ul>
             ) : (
-              <div role="status" className="space-y-3 border border-border p-5">
-                <h2 className="font-serif text-xl">Nenhuma ligação neste recorte</h2>
-                <p className="text-sm text-muted-foreground">
-                  Um PDF importado ou pesquisável ainda pode não ter ligações. Ajuste os filtros ou
-                  consulte o processamento; o Rastro não inventa conteúdo para preencher lacunas.
-                </p>
-                <Link to="/library/process" className="text-sm underline">
-                  Abrir processamento da biblioteca
-                </Link>
+              <div role="status">
+                <EmptyState
+                  title="Nenhuma ligação neste recorte"
+                  action={
+                    <Link
+                      to="/library"
+                      className="inline-flex h-9 items-center rounded-md border border-input px-3 text-sm hover:bg-accent"
+                    >
+                      Abrir a Biblioteca
+                    </Link>
+                  }
+                >
+                  Um livro importado ainda pode não ter ligações. Ajuste os filtros ou veja o
+                  “Processamento” na Biblioteca; o Rastro não inventa conteúdo para preencher
+                  lacunas.
+                </EmptyState>
               </div>
             )}
             <nav aria-label="Paginação do rastro" className="flex justify-between gap-4">

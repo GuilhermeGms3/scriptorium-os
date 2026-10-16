@@ -6,6 +6,7 @@ import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
+import { EmptyState } from "../components/layout/empty-state";
 
 interface SearchParams {
   q?: string;
@@ -144,14 +145,16 @@ function SearchPage() {
       )}
       <div className="mt-5">
         {!query.trim() ? (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <Sparkles className="size-3.5" /> A busca consulta índices locais; nenhum texto é
-            enviado para a internet.
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <Sparkles className="size-4" aria-hidden="true" /> A busca consulta índices locais;
+            nenhum texto é enviado para a internet.
           </div>
         ) : searching ? (
           <p className="text-sm italic text-muted-foreground">Pesquisando no índice SQLite…</p>
         ) : hits.length === 0 ? (
-          <p className="text-sm italic text-muted-foreground">{t("search.noResults")}</p>
+          <EmptyState icon={SearchIcon} title={t("search.noResults")}>
+            Tente outra palavra, um nome de livro (por exemplo, “Romanos 8”) ou menos termos.
+          </EmptyState>
         ) : (
           <ul className="divide-y divide-border border-y border-border">
             {visibleHits.map((hit) => (
