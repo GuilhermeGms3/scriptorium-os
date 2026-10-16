@@ -8,11 +8,14 @@ export function BookContext({
   contextError,
   word,
   onWord,
+  embedded = false,
 }: {
   context: Awaited<ReturnType<typeof BookReadingService.context>> | undefined;
   contextError?: string | undefined;
   word: string;
   onWord: (word: string) => void;
+  /** Inside a tab of the book panel: no column frame and no repeated title. */
+  embedded?: boolean;
 }) {
   const [hits, setHits] = useState<PrivateDocumentSearchHit[]>([]);
   const [busy, setBusy] = useState(false);
@@ -29,8 +32,8 @@ export function BookContext({
     return () => controller.abort();
   }, [word]);
   return (
-    <aside className="min-h-0 overflow-y-auto border-l border-border p-4">
-      <h2 className="font-serif text-lg">Sobre este livro</h2>
+    <aside className={embedded ? "" : "min-h-0 overflow-y-auto border-l border-border p-4"}>
+      {!embedded && <h2 className="font-serif text-lg">Sobre este livro</h2>}
       {context ? (
         <>
           <p className="mt-2 text-xs text-muted-foreground">

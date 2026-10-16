@@ -27,6 +27,7 @@ import {
 import { bookLabel } from "../../lib/i18n";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { ReviewStateBadge } from "./review-state-badge";
+import { SEMANTIC_DOMAIN_LABELS } from "../../lib/domain/semantic-content";
 
 const RELATION_LABELS: Record<
   WorkspacePassageKnowledgeItem["passageRelation"]["payload"]["relationType"],
@@ -220,7 +221,9 @@ export function PrivateLinkCard({
   const relation = item.passageRelation;
   const target = relation.payload.passage;
   const topics = item.proposals.flatMap((proposal) =>
-    proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
+    proposal.payload.kind === "topic-assignment"
+      ? [SEMANTIC_DOMAIN_LABELS[proposal.payload.domain] ?? proposal.payload.domain]
+      : [],
   );
   const claims = item.proposals.flatMap((proposal) =>
     proposal.payload.kind === "claim" ? [proposal.payload.proposition] : [],
