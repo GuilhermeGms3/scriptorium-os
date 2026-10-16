@@ -133,6 +133,28 @@ function passageRelations(proposals: readonly KnowledgeProposal[]): PassageRelat
   );
 }
 
+/** The authors of each document's source, in their order, for many documents at once. */
+async function documentAuthors(
+  documentIds: readonly string[],
+  db: WorkspaceDatabase,
+): Promise<Map<string, string[]>> {
+  const result = new Map<string, string[]>();
+  for (let offset = 0; offset < documentIds.length; offset += 400) {
+    const batch = documentIds.slice(offset, offset + 400);
+    for (const row of await db.query(
+      `SELECT d.id AS document_id,a.canonical_name FROM authors a
+       JOIN source_authors sa ON sa.author_id=a.id
+       JOIN private_documents d ON d.source_id=sa.source_id
+       WHERE d.id IN (${batch.map(() => "?").join(",")}) ORDER BY d.id,sa.ordinal`,
+      batch,
+    )) {
+      const documentId = String(row["document_id"]);
+      result.set(documentId, [...(result.get(documentId) ?? []), String(row["canonical_name"])]);
+    }
+  }
+  return result;
+}
+
 /** Resolves passage relations into reader items with their evidence unit, context and state. */
 async function buildItems(
   relations: readonly PassageRelationProposal[],
@@ -162,41 +184,52 @@ async function buildItems(
 
   const items: WorkspacePassageKnowledgeItem[] = [];
   const documentIds = [...new Set(relations.map((proposal) => proposal.documentId))];
+  const relationsOf = (documentId: string) =>
+    relations.filter((proposal) => proposal.documentId === documentId);
+  // Every book of the chapter at once, instead of about seven queries per book one after the
+  // other: what can be one query is one (books, authors, translations); the rest runs together.
+  const [documents, authorsByDocument, unitsByDocument] = await Promise.all([
+    PrivateDocumentRepository.getDocuments(documentIds, db),
+    documentAuthors(documentIds, db),
+    Promise.all(
+      documentIds.map((documentId) =>
+        DocumentKnowledgeRepository.listUnits(
+          documentId,
+          relationsOf(documentId).map((proposal) => proposal.semanticUnitId),
+          db,
+        ),
+      ),
+    ),
+  ]);
+  const allUnits = unitsByDocument.flat();
+  const [nodesByDocument, translations] = await Promise.all([
+    Promise.all(
+      documentIds.map((documentId, index) =>
+        DocumentKnowledgeRepository.listNodesByIds(
+          documentId,
+          (unitsByDocument[index] ?? []).flatMap((unit) =>
+            unit.documentNodeId ? [unit.documentNodeId] : [],
+          ),
+          db,
+        ),
+      ),
+    ),
+    LocalTranslationRepository.listForSources(
+      "private-segment",
+      allUnits.map((unit) => unit.id),
+      db,
+    ),
+  ]);
+  const unitsById = new Map(allUnits.map((unit) => [unit.id, unit]));
+  const nodesById = new Map(nodesByDocument.flat().map((node) => [node.id, node]));
+  const translationsBySource = new Map(
+    translations.map((translation) => [translation.sourceId, translation]),
+  );
   for (const documentId of documentIds) {
-    const documentRelations = relations.filter((proposal) => proposal.documentId === documentId);
-    const [document, units, authorRows] = await Promise.all([
-      PrivateDocumentRepository.getDocument(documentId, db),
-      DocumentKnowledgeRepository.listUnits(
-        documentId,
-        documentRelations.map((proposal) => proposal.semanticUnitId),
-        db,
-      ),
-      db.query(
-        `SELECT a.canonical_name FROM authors a JOIN source_authors sa ON sa.author_id=a.id
-         JOIN private_documents d ON d.source_id=sa.source_id WHERE d.id=? ORDER BY sa.ordinal`,
-        [documentId],
-      ),
-    ]);
+    const document = documents.get(documentId);
     if (!document) continue;
-    const unitsById = new Map(units.map((unit) => [unit.id, unit]));
-    const [nodes, translations] = await Promise.all([
-      DocumentKnowledgeRepository.listNodesByIds(
-        documentId,
-        units.flatMap((unit) => (unit.documentNodeId ? [unit.documentNodeId] : [])),
-        db,
-      ),
-      LocalTranslationRepository.listForSources(
-        "private-segment",
-        units.map((unit) => unit.id),
-        db,
-      ),
-    ]);
-    const nodesById = new Map(nodes.map((node) => [node.id, node]));
-    const authors = authorRows.map((row) => String(row["canonical_name"]));
-    const translationsBySource = new Map(
-      translations.map((translation) => [translation.sourceId, translation]),
-    );
-    for (const relation of documentRelations) {
+    const authors = authorsByDocument.get(documentId) ?? [];
+    for (const relation of relationsOf(documentId)) {
       const unit = unitsById.get(relation.semanticUnitId);
       if (!unit) continue;
       const unitProposals = proposalsByUnit.get(unit.id) ?? [relation];

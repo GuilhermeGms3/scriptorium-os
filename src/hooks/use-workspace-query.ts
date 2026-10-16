@@ -1,4 +1,9 @@
-import { useQuery, useQueryClient, type UseQueryResult } from "@tanstack/react-query";
+import {
+  keepPreviousData,
+  useQuery,
+  useQueryClient,
+  type UseQueryResult,
+} from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import {
   connectKnowledgeRefresh,
@@ -9,6 +14,8 @@ export interface WorkspaceQueryOptions {
   enabled?: boolean;
   /** Reload when the private library changes: imports, processing, reviews. */
   refreshOnKnowledgeChange?: boolean;
+  /** While a new key loads, keep showing the previous answer instead of an empty state. */
+  keepPrevious?: boolean;
 }
 
 /**
@@ -19,7 +26,11 @@ export interface WorkspaceQueryOptions {
 export function useWorkspaceQuery<T>(
   key: readonly unknown[],
   load: () => Promise<T>,
-  { enabled = true, refreshOnKnowledgeChange = false }: WorkspaceQueryOptions = {},
+  {
+    enabled = true,
+    refreshOnKnowledgeChange = false,
+    keepPrevious = false,
+  }: WorkspaceQueryOptions = {},
 ): UseQueryResult<T> {
   return useQuery({
     queryKey: workspaceQueryKey(key),
@@ -30,6 +41,7 @@ export function useWorkspaceQuery<T>(
     retry: false,
     refetchOnWindowFocus: false,
     meta: { refreshOnKnowledgeChange },
+    ...(keepPrevious ? { placeholderData: keepPreviousData } : {}),
   });
 }
 

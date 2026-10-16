@@ -2,6 +2,7 @@ import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Search } from "lucide-react";
 import { useWorkbench } from "../lib/workbench/workbench-context";
+import { useWorkspaceQuery } from "../hooks/use-workspace-query";
 import {
   KnowledgeQueryService,
   type ExplorerEntity,
@@ -82,59 +83,56 @@ function kindLabel(kind: string): string {
   return KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
 }
 
+/** The entity to show: the one asked for, or the one holding the claim asked for, or the first. */
+async function selectEntity(
+  entities: readonly ExplorerEntity[],
+  requestedId: string | undefined,
+  requestedClaimId: string | undefined,
+): Promise<{ bundle: KnowledgeExplorerBundle; claim: KnowledgeClaim | null }> {
+  const first = entities[0];
+  if (!first) throw new Error("O mapa de conhecimento está vazio.");
+  let selectedId =
+    requestedId && entities.some((item) => entityId(item) === requestedId)
+      ? requestedId
+      : entityId(first);
+  let selectedBundle = await KnowledgeQueryService.getExplorerBundle(selectedId);
+  if (!selectedBundle) throw new Error(`Knowledge entity ${selectedId} is unavailable.`);
+  const claim = requestedClaimId ? await ArgumentRepository.getClaim(requestedClaimId) : null;
+  if (requestedClaimId && !selectedBundle.claims.some((item) => item.id === requestedClaimId)) {
+    for (const item of entities) {
+      const candidate = await KnowledgeQueryService.getExplorerBundle(entityId(item));
+      if (candidate?.claims.some((entry) => entry.id === requestedClaimId)) {
+        selectedId = entityId(item);
+        selectedBundle = candidate;
+        break;
+      }
+    }
+  }
+  return { bundle: selectedBundle, claim };
+}
+
 function KnowledgePage() {
   const { entity: requestedId, claim: requestedClaimId } = Route.useSearch();
   const navigate = useNavigate({ from: "/knowledge" });
   const { setPassageContext } = useWorkbench();
-  const [entities, setEntities] = useState<ExplorerEntity[]>([]);
-  const [bundle, setBundle] = useState<KnowledgeExplorerBundle | null>(null);
-  const [focusedClaim, setFocusedClaim] = useState<KnowledgeClaim | null>(null);
-  const [status, setStatus] = useState<"loading" | "ready" | "error">("loading");
   const [entityQuery, setEntityQuery] = useState("");
   useEffect(() => setPassageContext(null), [setPassageContext]);
 
-  useEffect(() => {
-    let active = true;
-    setStatus("loading");
-    void KnowledgeQueryService.listEntities()
-      .then(async (loaded) => {
-        if (!active) return;
-        setEntities(loaded);
-        let selectedId =
-          requestedId && loaded.some((item) => entityId(item) === requestedId)
-            ? requestedId
-            : entityId(loaded[0]!);
-        let selectedBundle = await KnowledgeQueryService.getExplorerBundle(selectedId);
-        if (!selectedBundle) throw new Error(`Knowledge entity ${selectedId} is unavailable.`);
-        const requestedClaim = requestedClaimId
-          ? await ArgumentRepository.getClaim(requestedClaimId)
-          : null;
-        if (
-          requestedClaimId &&
-          !selectedBundle.claims.some((claim) => claim.id === requestedClaimId)
-        ) {
-          for (const item of loaded) {
-            const candidate = await KnowledgeQueryService.getExplorerBundle(entityId(item));
-            if (candidate?.claims.some((claim) => claim.id === requestedClaimId)) {
-              selectedId = entityId(item);
-              selectedBundle = candidate;
-              break;
-            }
-          }
-        }
-        if (active) {
-          setBundle(selectedBundle);
-          setFocusedClaim(requestedClaim);
-          setStatus("ready");
-        }
-      })
-      .catch(() => {
-        if (active) setStatus("error");
-      });
-    return () => {
-      active = false;
-    };
-  }, [requestedId, requestedClaimId]);
+  // The list of entities is read once; a click only loads the chosen entity (it used to reload
+  // the whole list first, and blank the page while doing it).
+  const entitiesQuery = useWorkspaceQuery(["knowledge-entities"], () =>
+    KnowledgeQueryService.listEntities(),
+  );
+  const entities = useMemo(() => entitiesQuery.data ?? [], [entitiesQuery.data]);
+  const selection = useWorkspaceQuery(
+    ["knowledge-selection", requestedId ?? null, requestedClaimId ?? null],
+    () => selectEntity(entities, requestedId, requestedClaimId),
+    { enabled: entitiesQuery.data !== undefined, keepPrevious: true },
+  );
+  const bundle = selection.data?.bundle ?? null;
+  const focusedClaim = selection.data?.claim ?? null;
+  const status: "loading" | "ready" | "error" =
+    entitiesQuery.error || selection.error ? "error" : selection.data ? "ready" : "loading";
 
   const grouped = useMemo(() => {
     const map = new Map<string, ExplorerEntity[]>();

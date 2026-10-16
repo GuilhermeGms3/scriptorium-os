@@ -85,6 +85,12 @@ export class InstallationWorkspace {
       database.close();
       throw error;
     }
+    try {
+      // Statistics for the query planner, as SQLite recommends on open (bounded cost).
+      database.exec("PRAGMA optimize=0x10002");
+    } catch {
+      // Only an optimization.
+    }
     return database;
   }
   #migrate(database: DatabaseSync): void {
@@ -371,7 +377,10 @@ export class InstallationWorkspace {
           /\b(?:attach|detach|pragma|load_extension|readfile|writefile|vacuum|create|drop|alter)\b/iu.test(
             sql,
           ) ||
-          /;\s*\S/u.test(sql)
+          /;\s*\S/u.test(sql) ||
+          // Table-valued pragmas slip past the word check above (pragma_database_list reveals
+          // the file's path); only the read-only foreign key check is needed by the app.
+          /\bpragma_(?!foreign_key_check\b)\w+/iu.test(sql)
         )
           throw new Error("SQL fora do contrato do workspace.");
       };

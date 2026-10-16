@@ -116,7 +116,21 @@ async function openDatabase(): Promise<Database> {
       throw error;
     }
   }
+  optimize(database);
   return database;
+}
+
+/**
+ * Refreshes the statistics SQLite uses to choose an index, as its documentation recommends on
+ * every open (0x10002: analyze only what changed, with a bounded cost). Without statistics the
+ * planner had picked a library-wide index for a single book. Only an optimization: never fatal.
+ */
+function optimize(database: { exec(sql: string): unknown }): void {
+  try {
+    database.exec("PRAGMA optimize=0x10002");
+  } catch {
+    // Plans stay as they were.
+  }
 }
 
 async function handle(request: WorkspaceRequest): Promise<unknown> {

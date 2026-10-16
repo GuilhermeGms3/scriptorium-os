@@ -208,6 +208,24 @@ describe("workspace backup privacy", () => {
     expect(JSON.parse(restored.evidence_json)).not.toHaveProperty("quote");
     expect(target.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
   });
+
+  it("finds a research question by its provisional conclusion after a restore", async () => {
+    const source = database();
+    source
+      .prepare(
+        "INSERT INTO research_questions(id,question,status,provisional_conclusion,created_at,updated_at) VALUES('question:1','Quem é o Verbo?','provisional','A preexistência do Logos','2026-10-16','2026-10-16')",
+      )
+      .run();
+    const backup = await ResearchWorkspaceService.exportJson(adapter(source));
+
+    const target = database();
+    await ResearchWorkspaceService.importJson(backup, adapter(target));
+    expect(
+      target
+        .prepare("SELECT entity_id FROM workspace_fts WHERE workspace_fts MATCH 'preexistência'")
+        .all(),
+    ).toEqual([{ entity_id: "question:1" }]);
+  });
 });
 
 describe("editorial staging export privacy", () => {

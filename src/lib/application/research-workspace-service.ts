@@ -193,7 +193,9 @@ function rebuildFtsStatements(): { sql: string; bind?: WorkspaceSqlValue[] }[] {
       sql: "INSERT INTO workspace_fts(entity_kind,entity_id,title,body) SELECT 'note',id,coalesce(title,''),content FROM notes",
     },
     {
-      sql: "INSERT INTO workspace_fts(entity_kind,entity_id,title,body) SELECT 'research-question',id,question,coalesce(description,'') FROM research_questions",
+      // The same body the study page indexes, provisional conclusion included: after a restore
+      // the conclusions were no longer found by the search.
+      sql: "INSERT INTO workspace_fts(entity_kind,entity_id,title,body) SELECT 'research-question',id,question,coalesce(description,'') || ' ' || coalesce(provisional_conclusion,'') FROM research_questions",
     },
   ];
 }
@@ -520,9 +522,13 @@ export const ResearchWorkspaceService = {
     statements.push({ sql: "UPDATE knowledge_trace_control SET enabled=1 WHERE id=1" });
     statements.push(...rebuildFtsStatements());
     await db.transaction(statements);
-    const violations = await db.query("PRAGMA foreign_key_check");
-    if (violations.length)
-      throw new Error(`Workspace restore produced ${violations.length} foreign-key violations.`);
+    // A query, not a PRAGMA: the installation server refuses PRAGMAs, so a restore there used to
+    // report failure after the data had already been written.
+    const violations = Number(
+      (await db.query("SELECT count(*) AS n FROM pragma_foreign_key_check"))[0]?.["n"] ?? 0,
+    );
+    if (violations)
+      throw new Error(`Workspace restore produced ${violations} foreign-key violations.`);
     if (!database) await StudyRepository.refresh();
     notifyKnowledgeMutation();
     return {

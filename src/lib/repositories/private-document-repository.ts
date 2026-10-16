@@ -117,6 +117,28 @@ export const PrivateDocumentRepository = {
     return row ? mapDocument(row) : null;
   },
 
+  /** Several documents by id in one query per 400 ids; missing ids are simply absent. */
+  async getDocuments(
+    ids: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<Map<string, PrivateDocument>> {
+    const result = new Map<string, PrivateDocument>();
+    if (!ids.length) return result;
+    const db = database ?? (await getWorkspaceDatabase());
+    const unique = [...new Set(ids)];
+    for (let offset = 0; offset < unique.length; offset += 400) {
+      const batch = unique.slice(offset, offset + 400);
+      for (const row of await db.query(
+        `SELECT * FROM private_documents WHERE id IN (${batch.map(() => "?").join(",")})`,
+        batch,
+      )) {
+        const document = mapDocument(row);
+        result.set(document.id, document);
+      }
+    }
+    return result;
+  },
+
   async getDocument(id: string, database?: WorkspaceDatabase): Promise<PrivateDocument | null> {
     const db = database ?? (await getWorkspaceDatabase());
     const row = (await db.query("SELECT * FROM private_documents WHERE id=?", [id]))[0];

@@ -514,3 +514,24 @@ describe("sessions and uploads that recover by themselves", () => {
     expect(readdirSync(documents).sort()).toEqual([`${checksum}.pdf`, `${checksum}.pdf.tmp`]);
   });
 });
+
+describe("the SQL the page may send", () => {
+  it("allows the foreign key check a backup restore needs, but not other table-valued pragmas", async () => {
+    const workspace = create();
+    const session = await cookie(workspace);
+    const check = await command(workspace, session, {
+      type: "query",
+      sql: "SELECT count(*) AS n FROM pragma_foreign_key_check",
+    });
+    expect(check.status).toBe(200);
+    expect(await check.json()).toEqual([{ n: 0 }]);
+    for (const sql of [
+      "SELECT file FROM pragma_database_list",
+      "SELECT * FROM \"PRAGMA_table_info\"('studies')",
+    ]) {
+      const refused = await command(workspace, session, { type: "query", sql });
+      expect(refused.status).toBe(400);
+      expect(await refused.json()).toEqual({ error: "SQL fora do contrato do workspace." });
+    }
+  });
+});
