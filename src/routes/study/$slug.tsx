@@ -224,14 +224,14 @@ function StudyWorkspace() {
               onChange={(e) => setTitle(e.target.value)}
               placeholder={t("common.title")}
               aria-label={t("study.noteTitle")}
-              className="h-8 w-full border-b border-border bg-transparent text-sm outline-none"
+              className="h-8 w-full border-b border-border bg-transparent text-sm outline-none focus-visible:border-primary"
             />
             <textarea
               value={body}
               onChange={(e) => setBody(e.target.value)}
               placeholder={t("study.notePlaceholder")}
               aria-label={t("study.noteBody")}
-              className="min-h-24 w-full resize-y bg-transparent text-sm leading-relaxed outline-none"
+              className="min-h-24 w-full resize-y rounded-sm bg-transparent text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring"
             />
             <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
               {t("common.saveLocally")}
@@ -273,7 +273,7 @@ function ResearchQuestionItem({
           aria-label="Status da pergunta"
           value={status}
           onChange={(event) => setStatus(event.target.value as ResearchQuestion["status"])}
-          className="h-7 min-w-0 flex-1 rounded border border-input bg-background px-1 text-xs"
+          className="h-8 min-w-0 flex-1 rounded border border-input bg-background px-1 text-xs"
         >
           <option value="open">Aberta</option>
           <option value="investigating">Investigando</option>

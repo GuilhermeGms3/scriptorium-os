@@ -42,7 +42,7 @@ export function EntityRelationPicker({
       <legend className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Relacionar a…
       </legend>
-      <label className="flex h-8 items-center gap-2 rounded border border-input bg-background px-2">
+      <label className="flex h-8 items-center gap-2 rounded border border-input bg-background px-2 focus-within:ring-2 focus-within:ring-ring">
         <Search className="size-3 text-muted-foreground" />
         <span className="sr-only">Pesquisar entidade relacionada</span>
         <input

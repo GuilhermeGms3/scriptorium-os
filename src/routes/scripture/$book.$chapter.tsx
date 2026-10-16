@@ -263,7 +263,7 @@ function ChapterReader() {
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="h-7"
+                    className="h-8"
                     onClick={confirmNow}
                   >
                     Confirmar agora

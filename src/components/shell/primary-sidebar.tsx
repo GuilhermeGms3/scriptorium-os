@@ -32,7 +32,7 @@ function NavigationLink({
         active
           ? "bg-sidebar-accent font-medium text-sidebar-accent-foreground"
           : quiet
-            ? "text-sidebar-foreground/70 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
+            ? "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground"
             : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
       )}
     >

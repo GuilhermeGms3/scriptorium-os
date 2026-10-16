@@ -107,7 +107,7 @@ function ScriptureIndex() {
             ) : (
               <span
                 key={b.id}
-                className="rounded border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground/60"
+                className="rounded border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground"
                 title={t("scripture.notImported")}
               >
                 {bookLabel(b.id, b.name)}

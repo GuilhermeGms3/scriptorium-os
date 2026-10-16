@@ -324,7 +324,7 @@ export function DocumentKnowledgeWorkbench({
             onChange={(event) =>
               setAnalyzerMode(event.target.value as "deterministic" | "contextual")
             }
-            className="h-7 rounded border border-input bg-background px-1.5 text-xs"
+            className="h-8 rounded border border-input bg-background px-1.5 text-xs"
           >
             <option value="deterministic">Determinístico</option>
             <option value="contextual">Contextual local</option>
@@ -333,7 +333,7 @@ export function DocumentKnowledgeWorkbench({
             type="button"
             onClick={() => void run()}
             disabled={Boolean(progress) || pipelineBusy}
-            className="inline-flex h-7 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
+            className="inline-flex h-8 items-center gap-1 rounded border border-input px-2 text-xs disabled:opacity-50"
           >
             {progress ? (
               <LoaderCircle className="size-3 animate-spin" />

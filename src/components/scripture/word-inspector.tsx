@@ -553,7 +553,7 @@ function AddToStudy({
           void addToStudy(id, { kind: "word", refId: wordId, label: wordLabel });
           e.target.value = "";
         }}
-        className="h-7 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground"
+        className="h-8 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground"
       >
         <option value="" disabled>
           {t("common.chooseStudy")}

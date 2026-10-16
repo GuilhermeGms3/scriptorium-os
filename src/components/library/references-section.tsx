@@ -142,7 +142,7 @@ export function ReferencesSection({
         </div>
       </aside>
       <div className="min-w-0 md:border-r-0 xl:border-r xl:border-border">
-        <label className="flex h-10 items-center gap-2 border-b border-border px-3">
+        <label className="flex h-10 items-center gap-2 border-b border-border px-3 focus-within:ring-2 focus-within:ring-inset focus-within:ring-ring">
           <Search className="size-4 text-muted-foreground" aria-hidden="true" />
           <span className="sr-only">Procurar nas referências</span>
           <input

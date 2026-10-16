@@ -81,7 +81,7 @@ export function DocumentProfileControl({ document }: { document: PrivateDocument
         }}
         disabled={saving}
       >
-        <SelectTrigger aria-labelledby={labelId} className="h-7 w-52 text-xs">
+        <SelectTrigger aria-labelledby={labelId} className="h-8 w-52 text-sm">
           <SelectValue placeholder="Escolha um perfil" />
         </SelectTrigger>
         <SelectContent>
@@ -96,7 +96,7 @@ export function DocumentProfileControl({ document }: { document: PrivateDocument
         type="button"
         size="sm"
         variant="outline"
-        className="h-7 text-xs"
+        className="h-8 text-sm"
         disabled={!choice || saving || (accepted && unchanged)}
         onClick={() => void save()}
       >

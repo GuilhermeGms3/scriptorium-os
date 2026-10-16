@@ -175,14 +175,14 @@ function LinkCorrectionPanel({
         </p>
       )}
       <div className="mt-2.5 flex flex-wrap gap-2">
-        <Button type="submit" size="sm" className="h-7" disabled={busy}>
+        <Button type="submit" size="sm" className="h-8" disabled={busy}>
           Mover para cá
         </Button>
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className="h-7"
+          className="h-8"
           disabled={busy}
           onClick={onReject}
         >
@@ -192,7 +192,7 @@ function LinkCorrectionPanel({
           type="button"
           size="sm"
           variant="ghost"
-          className="h-7"
+          className="h-8"
           disabled={busy}
           onClick={onCancel}
         >
@@ -403,7 +403,7 @@ export function PrivateLinkCard({
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 gap-1 px-2.5"
+              className="h-8 gap-1 px-2.5"
               disabled={busy}
               onClick={() =>
                 void act(() =>
@@ -417,7 +417,7 @@ export function PrivateLinkCard({
               type="button"
               size="sm"
               variant="outline"
-              className="h-7 gap-1 px-2.5"
+              className="h-8 gap-1 px-2.5"
               disabled={busy}
               onClick={() => setCorrecting(true)}
             >

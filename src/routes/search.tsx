@@ -59,7 +59,7 @@ function SearchPage() {
         title={t("search.workspace")}
         description={t("search.description")}
       />
-      <label className="mt-5 flex h-12 items-center gap-2 rounded-md border border-input bg-card px-3 shadow-sm">
+      <label className="mt-5 flex h-12 items-center gap-2 rounded-md border border-input bg-card px-3 shadow-sm focus-within:ring-2 focus-within:ring-ring">
         <SearchIcon className="size-4 text-muted-foreground" />
         <span className="sr-only">{t("search.query")}</span>
         <input

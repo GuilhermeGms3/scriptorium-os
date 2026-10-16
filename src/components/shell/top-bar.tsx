@@ -30,7 +30,7 @@ export function TopBar() {
       <div className="flex flex-1 justify-center px-2">
         <button
           onClick={() => setPaletteOpen(true)}
-          className="flex h-7 w-full max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+          className="flex h-8 w-full max-w-md items-center gap-2 rounded-md border border-input bg-muted/50 px-2.5 text-sm text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
           aria-label={t("shell.openSearch")}
         >
           <Search className="size-3.5" />
@@ -44,7 +44,7 @@ export function TopBar() {
       <div className="flex items-center gap-1">
         <button
           onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           aria-label={t("shell.toggleTheme")}
           title={t("shell.toggleTheme")}
         >
