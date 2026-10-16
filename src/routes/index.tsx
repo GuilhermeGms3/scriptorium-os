@@ -75,7 +75,11 @@ function Home() {
   const [lastPosition, setLastPosition] = useState<ReadingPosition | null>(null);
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => {
-    void LibraryRepository.listSources().then((sources) => setRecentResources(sources.slice(0, 4)));
+    // The four most recently added or changed, not the first four of the whole catalog by title.
+    void LibraryRepository.listSources({ orderBy: "recent", limit: 4 }).then(
+      setRecentResources,
+      () => setRecentResources([]),
+    );
   }, []);
   useEffect(() => setLastPosition(readLastPosition()), []);
   useEffect(() => {

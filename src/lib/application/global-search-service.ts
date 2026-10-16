@@ -132,7 +132,7 @@ export const GlobalSearchService = {
             : `/knowledge?entity=${encodeURIComponent(hit.id)}`,
       } as SearchResult);
     }
-    for (const resource of await LibraryRepository.listSources({ query: q })) {
+    for (const resource of await LibraryRepository.listSources({ query: q, limit })) {
       results.push({
         kind: "source",
         id: `library:${resource.id}`,

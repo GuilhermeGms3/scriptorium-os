@@ -24,6 +24,10 @@ const migrations = import.meta.glob<string>("./migrations/*.sql", {
   query: "?raw",
   import: "default",
 });
+/** The newest migration this build ships: newer databases and other snapshots are refused. */
+const SCHEMA_VERSION = Math.max(
+  ...Object.keys(migrations).map((name) => Number(name.match(/\/(\d{3})_/)?.[1] ?? 0)),
+);
 const scalar = z.union([z.string(), z.number().finite(), z.null()]);
 const statement = z.object({
   sql: z.string().min(1).max(100_000),
@@ -74,7 +78,7 @@ export class InstallationWorkspace {
     const version = database
       .prepare("SELECT max(version) AS version FROM workspace_migrations")
       .get()?.["version"];
-    if (typeof version === "number" && version > 22)
+    if (typeof version === "number" && version > SCHEMA_VERSION)
       throw new Error("Unsupported workspace schema");
     for (const [name, sql] of Object.entries(migrations).sort()) {
       const number = Number(name.match(/\/(\d{3})_/)?.[1]);
@@ -236,7 +240,7 @@ export class InstallationWorkspace {
             const version = candidate
               .prepare("SELECT max(version) AS n FROM workspace_migrations")
               .get()?.["n"];
-            if (version !== 22) throw new Error("Versão do snapshot incompatível.");
+            if (version !== SCHEMA_VERSION) throw new Error("Versão do snapshot incompatível.");
             counts = Object.fromEntries(
               [
                 "private_documents",

@@ -46,6 +46,13 @@ function mapDocument(row: WorkspaceRow): PrivateDocument {
   });
 }
 
+/**
+ * Page columns without the pdf.js layout kept in quality_json: it holds every text item of the page,
+ * nothing on screen reads it, and it was being copied on every page read and analysis batch.
+ */
+const PAGE_COLUMNS =
+  "id,document_id,page_index,page_label,text,character_count,extraction_method,json_remove(quality_json,'$.layout') AS quality_json";
+
 function mapPage(row: WorkspaceRow): PrivateDocumentPage {
   return PrivateDocumentPageSchema.parse({
     id: text(row, "id"),
@@ -169,10 +176,10 @@ export const PrivateDocumentRepository = {
     if (!Number.isInteger(pageIndex) || pageIndex < 0) return null;
     const db = database ?? (await getWorkspaceDatabase());
     const row = (
-      await db.query("SELECT * FROM private_document_pages WHERE document_id=? AND page_index=?", [
-        documentId,
-        pageIndex,
-      ])
+      await db.query(
+        `SELECT ${PAGE_COLUMNS} FROM private_document_pages WHERE document_id=? AND page_index=?`,
+        [documentId, pageIndex],
+      )
     )[0];
     return row ? mapPage(row) : null;
   },
@@ -187,7 +194,7 @@ export const PrivateDocumentRepository = {
     const db = database ?? (await getWorkspaceDatabase());
     return (
       await db.query(
-        `SELECT * FROM private_document_pages
+        `SELECT ${PAGE_COLUMNS} FROM private_document_pages
          WHERE document_id=? ORDER BY page_index LIMIT ? OFFSET ?`,
         [documentId, limit, offset],
       )

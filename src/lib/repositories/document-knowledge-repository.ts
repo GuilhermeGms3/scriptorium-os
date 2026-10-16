@@ -91,6 +91,8 @@ function mapProposal(row: WorkspaceRow): KnowledgeProposal {
   });
 }
 
+type TransactionStatement = Parameters<WorkspaceDatabase["transaction"]>[0][number];
+
 function chunks<T>(values: readonly T[], size = 150): T[][] {
   const result: T[][] = [];
   for (let index = 0; index < values.length; index += size)
@@ -331,34 +333,37 @@ export const DocumentKnowledgeRepository = {
     }
   },
 
+  /** The insert of one proposal, for callers that write it together with other rows. */
+  proposalStatement(proposal: KnowledgeProposal): TransactionStatement {
+    return {
+      sql: `INSERT OR IGNORE INTO knowledge_proposals(
+        id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,
+        review_status,reviewed_at,review_note,created_at,updated_at
+      ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`,
+      bind: [
+        proposal.id,
+        proposal.documentId,
+        proposal.semanticUnitId,
+        proposal.proposalKind,
+        JSON.stringify(proposal.payload),
+        proposal.method,
+        proposal.confidence,
+        proposal.reviewStatus,
+        proposal.reviewedAt ?? null,
+        proposal.reviewNote ?? null,
+        proposal.createdAt,
+        proposal.updatedAt,
+      ],
+    };
+  },
+
   async storeProposals(
     proposals: readonly KnowledgeProposal[],
     database?: WorkspaceDatabase,
   ): Promise<void> {
     const db = database ?? (await getWorkspaceDatabase());
     for (const batch of chunks(proposals))
-      await db.transaction(
-        batch.map((proposal) => ({
-          sql: `INSERT OR IGNORE INTO knowledge_proposals(
-            id,document_id,semantic_unit_id,proposal_kind,payload_json,method,confidence,
-            review_status,reviewed_at,review_note,created_at,updated_at
-          ) VALUES(?,?,?,?,?,?,?,?,?,?,?,?)`,
-          bind: [
-            proposal.id,
-            proposal.documentId,
-            proposal.semanticUnitId,
-            proposal.proposalKind,
-            JSON.stringify(proposal.payload),
-            proposal.method,
-            proposal.confidence,
-            proposal.reviewStatus,
-            proposal.reviewedAt ?? null,
-            proposal.reviewNote ?? null,
-            proposal.createdAt,
-            proposal.updatedAt,
-          ],
-        })),
-      );
+      await db.transaction(batch.map((proposal) => this.proposalStatement(proposal)));
   },
 
   async complete(
@@ -544,6 +549,31 @@ export const DocumentKnowledgeRepository = {
     ).map(mapProposal);
   },
 
+  /** The proposals of many units in a few queries, grouped by unit (each list ordered by id). */
+  async listProposalsForUnits(
+    unitIds: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<Map<string, KnowledgeProposal[]>> {
+    const result = new Map<string, KnowledgeProposal[]>();
+    if (!unitIds.length) return result;
+    const db = database ?? (await getWorkspaceDatabase());
+    for (const batch of chunks([...new Set(unitIds)], 400)) {
+      const placeholders = batch.map(() => "?").join(",");
+      for (const row of await db.query(
+        `SELECT * FROM knowledge_proposals WHERE semantic_unit_id IN (${placeholders})
+         ORDER BY semantic_unit_id,id`,
+        batch,
+      )) {
+        const proposal = mapProposal(row);
+        result.set(proposal.semanticUnitId, [
+          ...(result.get(proposal.semanticUnitId) ?? []),
+          proposal,
+        ]);
+      }
+    }
+    return result;
+  },
+
   async listProposalsForUnit(
     unitId: string,
     database?: WorkspaceDatabase,
@@ -646,7 +676,9 @@ export const DocumentKnowledgeRepository = {
     const db = database ?? (await getWorkspaceDatabase());
     return (
       await db.query(
-        `SELECT p.* FROM knowledge_proposals p
+        // Without ANALYZE statistics SQLite picked the library-wide passage index and read every
+        // passage relation of every book on each page turn; this index starts from the book.
+        `SELECT p.* FROM knowledge_proposals p INDEXED BY idx_knowledge_trace_document_page
          JOIN semantic_units u ON u.id=p.semantic_unit_id
          WHERE p.document_id=? AND p.proposal_kind='passage-relation'
            AND EXISTS(SELECT 1 FROM semantic_unit_spans s WHERE s.unit_id=p.semantic_unit_id AND s.page_index=?)

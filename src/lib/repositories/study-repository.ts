@@ -22,94 +22,94 @@ function uid(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;
 }
 
-async function linksFor(
-  table: "note_links" | "research_question_links",
-  ownerColumn: "note_id" | "research_question_id",
-  ownerId: string,
-  database?: WorkspaceDatabase,
-): Promise<NoteLink[]> {
-  const db = database ?? (await getWorkspaceDatabase());
-  return (
-    await db.query(
-      `SELECT target_kind,target_id,target_json FROM ${table} WHERE ${ownerColumn}=?`,
-      [ownerId],
-    )
-  ).map((row) => {
-    const kind = text(row, "target_kind");
-    const target = optionalText(row, "target_id") ?? "structured-target";
-    const structured = optionalText(row, "target_json");
-    return {
-      kind: (kind === "source" ? "resource" : kind) as NoteLink["kind"],
-      target,
-      label: target,
-      ...(structured ? (JSON.parse(structured) as Pick<NoteLink, "anchor">) : {}),
-    };
-  });
+/** Child rows grouped by their owner, in the order they were read. */
+function groupBy<T>(
+  rows: readonly WorkspaceRow[],
+  ownerColumn: string,
+  map: (row: WorkspaceRow) => T,
+): Map<string, T[]> {
+  const groups = new Map<string, T[]>();
+  for (const row of rows) {
+    const owner = text(row, ownerColumn);
+    const group = groups.get(owner);
+    if (group) group.push(map(row));
+    else groups.set(owner, [map(row)]);
+  }
+  return groups;
 }
-async function mapNote(row: WorkspaceRow, database?: WorkspaceDatabase): Promise<Note> {
+function noteLink(row: WorkspaceRow): NoteLink {
+  const kind = text(row, "target_kind");
+  const target = optionalText(row, "target_id") ?? "structured-target";
+  const structured = optionalText(row, "target_json");
   return {
+    kind: (kind === "source" ? "resource" : kind) as NoteLink["kind"],
+    target,
+    label: target,
+    ...(structured ? (JSON.parse(structured) as Pick<NoteLink, "anchor">) : {}),
+  };
+}
+function researchLink(row: WorkspaceRow): ResearchLink {
+  const structured = optionalText(row, "target_json");
+  const parsed = structured
+    ? (JSON.parse(structured) as {
+        anchor?: ResearchLink["anchor"];
+        locator?: ResearchLink["locator"];
+      })
+    : {};
+  return {
+    targetKind: text(row, "target_kind") as ResearchLink["targetKind"],
+    ...(optionalText(row, "target_id") ? { targetId: optionalText(row, "target_id") } : {}),
+    ...(parsed.anchor ? { anchor: parsed.anchor } : {}),
+    ...(parsed.locator ? { locator: parsed.locator } : {}),
+  };
+}
+function studyItem(item: WorkspaceRow): StudyItem {
+  const targetJson = optionalText(item, "target_json");
+  const parsed = targetJson ? (JSON.parse(targetJson) as { passageRef?: PassageRef }) : {};
+  return {
+    id: text(item, "id"),
+    kind: text(item, "target_kind") as StudyItem["kind"],
+    refId: optionalText(item, "target_id") ?? "structured-target",
+    label: text(item, "label"),
+    ...(parsed.passageRef ? { passageRef: parsed.passageRef } : {}),
+    addedAt: text(item, "added_at"),
+  };
+}
+/** All notes with their links: two queries, however many notes there are. */
+async function loadNotes(db: WorkspaceDatabase): Promise<Note[]> {
+  const [rows, links] = await Promise.all([
+    db.query("SELECT * FROM notes ORDER BY updated_at DESC"),
+    db.query("SELECT note_id,target_kind,target_id,target_json FROM note_links"),
+  ]);
+  const linksByNote = groupBy(links, "note_id", noteLink);
+  return rows.map((row) => ({
     id: text(row, "id"),
     title: optionalText(row, "title") ?? "",
     body: text(row, "content"),
-    links: await linksFor("note_links", "note_id", text(row, "id"), database),
+    links: linksByNote.get(text(row, "id")) ?? [],
     createdAt: text(row, "created_at"),
     updatedAt: text(row, "updated_at"),
-  };
+  }));
 }
-async function researchLinksFor(
-  questionId: string,
-  database?: WorkspaceDatabase,
-): Promise<ResearchLink[]> {
-  const db = database ?? (await getWorkspaceDatabase());
-  return (
-    await db.query(
-      "SELECT target_kind,target_id,target_json FROM research_question_links WHERE research_question_id=?",
-      [questionId],
-    )
-  ).map((row) => {
-    const structured = optionalText(row, "target_json");
-    const parsed = structured
-      ? (JSON.parse(structured) as {
-          anchor?: ResearchLink["anchor"];
-          locator?: ResearchLink["locator"];
-        })
-      : {};
+/** All studies with their items: two queries, however many studies there are. */
+async function loadStudies(db: WorkspaceDatabase): Promise<Study[]> {
+  const [rows, links] = await Promise.all([
+    db.query("SELECT * FROM studies ORDER BY updated_at DESC"),
+    db.query("SELECT * FROM study_links ORDER BY added_at"),
+  ]);
+  const itemsByStudy = groupBy(links, "study_id", studyItem);
+  return rows.map((row) => {
+    const description = optionalText(row, "description");
     return {
-      targetKind: text(row, "target_kind") as ResearchLink["targetKind"],
-      ...(optionalText(row, "target_id") ? { targetId: optionalText(row, "target_id") } : {}),
-      ...(parsed.anchor ? { anchor: parsed.anchor } : {}),
-      ...(parsed.locator ? { locator: parsed.locator } : {}),
+      id: text(row, "id"),
+      slug: text(row, "slug"),
+      title: text(row, "title"),
+      ...(description ? { description } : {}),
+      items: itemsByStudy.get(text(row, "id")) ?? [],
+      createdAt: text(row, "created_at"),
+      updatedAt: text(row, "updated_at"),
     };
   });
-}
-async function mapStudy(row: WorkspaceRow, database?: WorkspaceDatabase): Promise<Study> {
-  const db = database ?? (await getWorkspaceDatabase());
-  const items: StudyItem[] = (
-    await db.query("SELECT * FROM study_links WHERE study_id=? ORDER BY added_at", [
-      text(row, "id"),
-    ])
-  ).map((item) => {
-    const targetJson = optionalText(item, "target_json");
-    const parsed = targetJson ? (JSON.parse(targetJson) as { passageRef?: PassageRef }) : {};
-    return {
-      id: text(item, "id"),
-      kind: text(item, "target_kind") as StudyItem["kind"],
-      refId: optionalText(item, "target_id") ?? "structured-target",
-      label: text(item, "label"),
-      ...(parsed.passageRef ? { passageRef: parsed.passageRef } : {}),
-      addedAt: text(item, "added_at"),
-    };
-  });
-  const description = optionalText(row, "description");
-  return {
-    id: text(row, "id"),
-    slug: text(row, "slug"),
-    title: text(row, "title"),
-    ...(description ? { description } : {}),
-    items,
-    createdAt: text(row, "created_at"),
-    updatedAt: text(row, "updated_at"),
-  };
 }
 
 export interface WorkspaceExport {
@@ -126,18 +126,7 @@ let noteCache: Note[] = [];
 export const StudyRepository = {
   async refresh(): Promise<void> {
     const db = await getWorkspaceDatabase();
-    [studyCache, noteCache] = await Promise.all([
-      Promise.all(
-        (await db.query("SELECT * FROM studies ORDER BY updated_at DESC")).map((row) =>
-          mapStudy(row, db),
-        ),
-      ),
-      Promise.all(
-        (await db.query("SELECT * FROM notes ORDER BY updated_at DESC")).map((row) =>
-          mapNote(row, db),
-        ),
-      ),
-    ]);
+    [studyCache, noteCache] = await Promise.all([loadStudies(db), loadNotes(db)]);
   },
   listStudies(): Study[] {
     return studyCache;
@@ -269,28 +258,38 @@ export const StudyRepository = {
     database?: WorkspaceDatabase,
   ): Promise<ResearchQuestion[]> {
     const db = database ?? (await getWorkspaceDatabase());
-    const rows = await db.query(
-      `SELECT * FROM research_questions${studyId ? " WHERE study_id=?" : ""} ORDER BY updated_at DESC`,
-      studyId ? [studyId] : [],
-    );
-    return Promise.all(
-      rows.map(async (row) =>
-        ResearchQuestionSchema.parse({
-          id: text(row, "id"),
-          question: text(row, "question"),
-          status: text(row, "status"),
-          ...(optionalText(row, "description")
-            ? { description: optionalText(row, "description") }
-            : {}),
-          ...(optionalText(row, "study_id") ? { studyId: optionalText(row, "study_id") } : {}),
-          links: await researchLinksFor(text(row, "id"), db),
-          ...(optionalText(row, "provisional_conclusion")
-            ? { provisionalConclusion: optionalText(row, "provisional_conclusion") }
-            : {}),
-          createdAt: text(row, "created_at"),
-          updatedAt: text(row, "updated_at"),
-        }),
+    const [rows, links] = await Promise.all([
+      db.query(
+        `SELECT * FROM research_questions${studyId ? " WHERE study_id=?" : ""} ORDER BY updated_at DESC`,
+        studyId ? [studyId] : [],
       ),
+      db.query(
+        `SELECT l.research_question_id,l.target_kind,l.target_id,l.target_json
+         FROM research_question_links l${
+           studyId
+             ? " JOIN research_questions q ON q.id=l.research_question_id WHERE q.study_id=?"
+             : ""
+         }`,
+        studyId ? [studyId] : [],
+      ),
+    ]);
+    const linksByQuestion = groupBy(links, "research_question_id", researchLink);
+    return rows.map((row) =>
+      ResearchQuestionSchema.parse({
+        id: text(row, "id"),
+        question: text(row, "question"),
+        status: text(row, "status"),
+        ...(optionalText(row, "description")
+          ? { description: optionalText(row, "description") }
+          : {}),
+        ...(optionalText(row, "study_id") ? { studyId: optionalText(row, "study_id") } : {}),
+        links: linksByQuestion.get(text(row, "id")) ?? [],
+        ...(optionalText(row, "provisional_conclusion")
+          ? { provisionalConclusion: optionalText(row, "provisional_conclusion") }
+          : {}),
+        createdAt: text(row, "created_at"),
+        updatedAt: text(row, "updated_at"),
+      }),
     );
   },
   async updateResearchQuestion(
@@ -322,16 +321,8 @@ export const StudyRepository = {
   async exportWorkspace(database?: WorkspaceDatabase): Promise<WorkspaceExport> {
     const db = database ?? (await getWorkspaceDatabase());
     const [studies, notes, researchQuestions] = await Promise.all([
-      Promise.all(
-        (await db.query("SELECT * FROM studies ORDER BY updated_at DESC")).map((row) =>
-          mapStudy(row, db),
-        ),
-      ),
-      Promise.all(
-        (await db.query("SELECT * FROM notes ORDER BY updated_at DESC")).map((row) =>
-          mapNote(row, db),
-        ),
-      ),
+      loadStudies(db),
+      loadNotes(db),
       this.listResearchQuestions(undefined, db),
     ]);
     return {

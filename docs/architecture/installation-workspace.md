@@ -104,6 +104,14 @@ ou do bind mount Docker. O índice levou 1.935 ms para ser criado. Rollback adit
 o índice 022 e seu recibo de migration, ou restaurar o backup consistente com o runtime parado;
 nunca restaurar o arquivo original sem considerar WAL/SHM. O código novo requer schema 22.
 
+A migration 023 (outubro de 2026) só cria índices nas chaves estrangeiras cuja coluna filha não
+tinha índice próprio: membros de lote de revisão, unidades por nó, nós filhos, ligações de perguntas,
+relações de citação e destaques. Sem eles, cada exclusão ou cascata varria a tabela filha uma vez
+por linha (reprocessar um livro, apagar sua estrutura, montar a auditoria). É aditiva: o rollback é
+remover os índices e o recibo da 023. O servidor deixa de ter o número do schema escrito à mão: usa
+a maior migration que conhece, tanto para recusar acervos mais novos quanto para aceitar o snapshot
+importado do navegador. Todos os escritores precisam ser atualizados juntos, como antes.
+
 Na retomada de 14/10, a mesma camada completa pelo adapter HTTP contra Docker retornou os 200 itens
 em 5.440 ms, incluindo serialização e várias requisições. É uma medida diferente da consulta nativa
 acima, não uma promessa de abertura instantânea no browser.

@@ -97,27 +97,37 @@ export function explicitPublicationForProfile(
     : "exception";
 }
 
-async function prepareInferenceReviewBatches(
+/**
+ * Groups the inferred links of a document into review batches. Each batch is its own transaction
+ * (a whole library would not fit in one), so an interrupted run leaves some links unbatched: the
+ * next run batches exactly those, after the ones already there, instead of skipping the document.
+ */
+export async function prepareInferenceReviewBatches(
   db: WorkspaceDatabase,
   documentId: string,
   configurationKey: string,
 ): Promise<void> {
-  const existing = await db.query(
-    "SELECT 1 FROM pipeline_review_batches WHERE document_id=? AND configuration_key=? LIMIT 1",
-    [documentId, configurationKey],
-  );
-  if (existing.length) return;
   const members = await db.query(
     `SELECT d.proposal_id FROM pipeline_decisions d
      JOIN knowledge_proposals p ON p.id=d.proposal_id
      JOIN semantic_units u ON u.id=p.semantic_unit_id
      WHERE p.document_id=? AND d.configuration_key=? AND d.origin='inferred'
+       AND NOT EXISTS(
+         SELECT 1 FROM pipeline_review_batch_members m
+         JOIN pipeline_review_batches b ON b.id=m.batch_id
+         WHERE m.proposal_id=d.proposal_id AND b.configuration_key=d.configuration_key
+       )
      ORDER BY u.text_checksum,p.id`,
+    [documentId, configurationKey],
+  );
+  if (!members.length) return;
+  const next = await db.query(
+    "SELECT coalesce(max(ordinal)+1,0) AS next FROM pipeline_review_batches WHERE document_id=? AND configuration_key=?",
     [documentId, configurationKey],
   );
   const now = new Date().toISOString();
   for (
-    let offset = 0, ordinal = 0;
+    let offset = 0, ordinal = Number(next[0]?.["next"] ?? 0);
     offset < members.length;
     offset += REVIEW_BATCH_SIZE, ordinal += 1
   ) {
@@ -314,12 +324,16 @@ export const LocalKnowledgePipelineService = {
           db,
         );
         const deterministicStatements: Parameters<WorkspaceDatabase["transaction"]>[0] = [];
+        const explicitByUnit = await DocumentKnowledgeRepository.listProposalsForUnits(
+          units.filter((unit) => explicitUnitIds.has(unit.id)).map((unit) => unit.id),
+          db,
+        );
         for (const unit of units) {
           signal.throwIfAborted();
           if (useLlm || unit.ordinal % 25 === 0 || unit.ordinal + 1 === summary.unitCount)
             progress(`Conectando unidade ${unit.ordinal + 1} de ${summary.unitCount}…`);
           const explicit = explicitUnitIds.has(unit.id)
-            ? (await DocumentKnowledgeRepository.listProposalsForUnit(unit.id, db)).filter(
+            ? (explicitByUnit.get(unit.id) ?? []).filter(
                 (x) => x.proposalKind === "passage-relation" && !x.method.startsWith("local-llm:"),
               )
             : [];
@@ -461,6 +475,9 @@ export const LocalKnowledgePipelineService = {
     if (result.unitId !== unit.id) throw new Error("Resposta aponta para unidade fora do lote.");
     const decisions = result.decisions ?? [];
     const selections = decisions.length ? decisions : result.decision ? [result.decision] : [];
+    // Proposal, decision and receipt together: a proposal without its decision would show up as
+    // "por confirmar" in the reader although the pipeline meant to withhold it.
+    const statements: Parameters<WorkspaceDatabase["transaction"]>[0] = [];
     if (selections.length) {
       const validated = selections.map((selection) => {
         const candidate = result.candidates.find((x) => x.id === selection.candidateId);
@@ -508,29 +525,34 @@ export const LocalKnowledgePipelineService = {
         createdAt: now,
         updatedAt: now,
       };
-      await DocumentKnowledgeRepository.storeProposals([proposal], db);
-      await saveDecision(
-        db,
-        proposal,
-        "inferred",
-        "withheld",
-        {
-          decisions: validated,
-          textChecksum: unit.textChecksum,
-          model: result.model,
-          modelRevision: result.modelRevision,
-          retrieval: result.retrieval,
-          calibrated: false,
-        },
-        key,
+      statements.push(
+        DocumentKnowledgeRepository.proposalStatement(proposal),
+        decisionStatement(
+          proposal,
+          "inferred",
+          "withheld",
+          {
+            decisions: validated,
+            textChecksum: unit.textChecksum,
+            model: result.model,
+            modelRevision: result.modelRevision,
+            retrieval: result.retrieval,
+            calibrated: false,
+          },
+          key,
+        ),
       );
     }
-    await db.execute("INSERT OR REPLACE INTO pipeline_unit_receipts VALUES(?,?,?,?,?)", [
-      unit.id,
-      key,
-      selections.length ? "inferred" : result.status === "abstained" ? "abstained" : "candidates",
-      JSON.stringify(result),
-      new Date().toISOString(),
-    ]);
+    statements.push({
+      sql: "INSERT OR REPLACE INTO pipeline_unit_receipts VALUES(?,?,?,?,?)",
+      bind: [
+        unit.id,
+        key,
+        selections.length ? "inferred" : result.status === "abstained" ? "abstained" : "candidates",
+        JSON.stringify(result),
+        new Date().toISOString(),
+      ],
+    });
+    await db.transaction(statements);
   },
 };

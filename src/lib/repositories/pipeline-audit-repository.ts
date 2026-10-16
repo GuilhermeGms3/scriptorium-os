@@ -2,7 +2,10 @@ import { z } from "zod";
 import { DocumentKnowledgeRepository } from "./document-knowledge-repository";
 import { PipelineLinkSchema } from "../semantic-engine/local-pipeline-client";
 import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
-import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import {
+  getWorkspaceDatabase,
+  type WorkspaceDatabase,
+} from "../workspace-runtime/workspace-database";
 
 export const AuditItemSchema = z.object({
   proposal_id: z.string(),
@@ -91,54 +94,54 @@ export const PipelineAuditRepository = {
       batches,
     };
   },
-  async review(ids: readonly string[], verdict: "confirmed" | "rejected"): Promise<void> {
+  /**
+   * Records the verdict on sampled links and, in the same transaction, settles their batches: a
+   * rejected sample rejects the batch; once no sample is pending or rejected, the whole batch is
+   * released. A failure halfway can no longer leave decisions changed with the batch unsettled.
+   */
+  async review(
+    ids: readonly string[],
+    verdict: "confirmed" | "rejected",
+    database?: WorkspaceDatabase,
+  ): Promise<void> {
     if (!ids.length || ids.length > 80) throw new Error("Selecione até 80 itens para auditoria.");
-    const db = await getWorkspaceDatabase();
+    const db = database ?? (await getWorkspaceDatabase());
     const now = new Date().toISOString();
-    await db.transaction(
-      [...new Set(ids)].map((id) => ({
+    const unique = [...new Set(ids)];
+    const batchIds = (
+      await db.query(
+        `SELECT DISTINCT batch_id FROM pipeline_review_batch_members
+         WHERE proposal_id IN (${unique.map(() => "?").join(",")})`,
+        unique,
+      )
+    ).map((row) => String(row["batch_id"]));
+    const samplesIn = (statuses: string) =>
+      `SELECT 1 FROM pipeline_review_batch_members m JOIN pipeline_decisions d ON d.proposal_id=m.proposal_id
+       WHERE m.batch_id=? AND m.is_sample=1 AND d.audit_status IN (${statuses})`;
+    await db.transaction([
+      ...unique.map((id) => ({
         sql: `UPDATE pipeline_decisions SET audit_status=?,publication=?,updated_at=? WHERE proposal_id=?`,
         bind: [verdict, verdict === "confirmed" ? "machine-visible" : "revoked", now, id],
       })),
-    );
-    const batchRows = await db.query(
-      `SELECT DISTINCT batch_id FROM pipeline_review_batch_members
-       WHERE proposal_id IN (${[...new Set(ids)].map(() => "?").join(",")})`,
-      [...new Set(ids)],
-    );
-    for (const row of batchRows) {
-      const batchId = String(row["batch_id"]);
-      const status = (
-        await db.query(
-          `SELECT
-            sum(CASE WHEN m.is_sample=1 AND d.audit_status='pending' THEN 1 ELSE 0 END) pending,
-            sum(CASE WHEN m.is_sample=1 AND d.audit_status='rejected' THEN 1 ELSE 0 END) rejected
-           FROM pipeline_review_batch_members m JOIN pipeline_decisions d ON d.proposal_id=m.proposal_id
-           WHERE m.batch_id=?`,
-          [batchId],
-        )
-      )[0];
-      const pending = Number(status?.["pending"] ?? 0);
-      const rejected = Number(status?.["rejected"] ?? 0);
-      if (rejected > 0) {
-        await db.execute(
-          "UPDATE pipeline_review_batches SET status='rejected',updated_at=? WHERE id=?",
-          [now, batchId],
-        );
-      } else if (pending === 0) {
-        await db.transaction([
-          {
-            sql: "UPDATE pipeline_review_batches SET status='released',updated_at=? WHERE id=?",
-            bind: [now, batchId],
-          },
-          {
-            sql: `UPDATE pipeline_decisions SET publication='machine-visible',audit_status='confirmed',updated_at=?
-                  WHERE proposal_id IN (SELECT proposal_id FROM pipeline_review_batch_members WHERE batch_id=?)`,
-            bind: [now, batchId],
-          },
-        ]);
-      }
-    }
+      ...batchIds.flatMap((batchId) => [
+        {
+          sql: `UPDATE pipeline_review_batches SET status='rejected',updated_at=?
+                WHERE id=? AND EXISTS(${samplesIn("'rejected'")})`,
+          bind: [now, batchId, batchId],
+        },
+        {
+          sql: `UPDATE pipeline_review_batches SET status='released',updated_at=?
+                WHERE id=? AND NOT EXISTS(${samplesIn("'pending','rejected'")})`,
+          bind: [now, batchId, batchId],
+        },
+        {
+          sql: `UPDATE pipeline_decisions SET publication='machine-visible',audit_status='confirmed',updated_at=?
+                WHERE proposal_id IN (SELECT proposal_id FROM pipeline_review_batch_members WHERE batch_id=?)
+                  AND EXISTS(SELECT 1 FROM pipeline_review_batches WHERE id=? AND status='released')`,
+          bind: [now, batchId, batchId],
+        },
+      ]),
+    ]);
     notifyKnowledgeMutation();
   },
   async revokeDocument(documentId: string): Promise<void> {

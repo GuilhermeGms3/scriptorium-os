@@ -26,15 +26,20 @@ function errorMessage(cause: unknown): string {
 }
 
 /** @internal Frees the canonical ordinal range before an idempotent run is expanded. */
+function reserveOrdinalsStatement(runId: string, documentCount: number) {
+  return {
+    sql: "UPDATE library_pipeline_documents SET ordinal=ordinal+? WHERE run_id=?",
+    bind: [1_000_000 + documentCount, runId],
+  };
+}
+
 export async function reserveLibraryRunOrdinals(
   db: WorkspaceDatabase,
   runId: string,
   documentCount: number,
 ): Promise<void> {
-  await db.execute("UPDATE library_pipeline_documents SET ordinal=ordinal+? WHERE run_id=?", [
-    1_000_000 + documentCount,
-    runId,
-  ]);
+  const statement = reserveOrdinalsStatement(runId, documentCount);
+  await db.execute(statement.sql, statement.bind);
 }
 
 /** Coordinates the existing canonical per-document services; it does not own document knowledge. */
@@ -71,10 +76,12 @@ export const LibraryKnowledgeOrchestrator = {
     // A biblioteca pode crescer depois de uma execução concluída. Libere primeiro o
     // intervalo ordinal canônico para que os upserts abaixo não colidam entre si ao
     // reordenar documentos antigos e inserir os novos na mesma configuração.
-    await reserveLibraryRunOrdinals(db, runId, documents.length);
-    for (const [ordinal, document] of documents.entries())
-      await db.execute(
-        `INSERT INTO library_pipeline_documents(
+    // One transaction: an interruption between the shift and the inserts left every document of
+    // the run with an ordinal a million places away.
+    await db.transaction([
+      reserveOrdinalsStatement(runId, documents.length),
+      ...documents.map((document, ordinal) => ({
+        sql: `INSERT INTO library_pipeline_documents(
           run_id,document_id,ordinal,stage,status,source_checksum,result_json,error,updated_at
         ) VALUES(?,?,?,'queued','pending',?,'{}',NULL,?)
         ON CONFLICT(run_id,document_id) DO UPDATE SET ordinal=excluded.ordinal,
@@ -82,8 +89,9 @@ export const LibraryKnowledgeOrchestrator = {
           stage=CASE WHEN library_pipeline_documents.status='complete' AND library_pipeline_documents.source_checksum=excluded.source_checksum THEN library_pipeline_documents.stage ELSE 'queued' END,
           status=CASE WHEN library_pipeline_documents.status='complete' AND library_pipeline_documents.source_checksum=excluded.source_checksum THEN 'complete' ELSE 'pending' END,
           error=NULL,updated_at=excluded.updated_at`,
-        [runId, document.id, ordinal, document.checksum, startedAt],
-      );
+        bind: [runId, document.id, ordinal, document.checksum, startedAt],
+      })),
+    ]);
 
     if (options.useLlm) {
       listener({

@@ -13,6 +13,7 @@ import {
 import type { WorkspaceLockOptions } from "./workspace-lock.server";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import type { WorkspaceDatabase, WorkspaceRow } from "./protocol";
+import { WORKSPACE_SCHEMA_VERSION } from "../../../scripts/database/workspace-migrate";
 
 const workspaces: InstallationWorkspace[] = [];
 afterEach(() => {
@@ -176,7 +177,7 @@ describe("single-user installation workspace", () => {
       ).toBe(403);
     }
   });
-  it("migrates schema 22 and persists the same state between client sessions", async () => {
+  it("migrates to the current schema and persists the same state between client sessions", async () => {
     const workspace = create();
     const one = await cookie(workspace);
     const two = await cookie(workspace);
@@ -184,7 +185,7 @@ describe("single-user installation workspace", () => {
       type: "query",
       sql: "SELECT max(version) AS n FROM workspace_migrations",
     });
-    expect(await response.json()).toEqual([{ n: 22 }]);
+    expect(await response.json()).toEqual([{ n: WORKSPACE_SCHEMA_VERSION }]);
     expect(
       (
         await command(workspace, one, {
