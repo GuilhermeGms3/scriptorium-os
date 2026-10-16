@@ -47,6 +47,11 @@ npm run semantic:test
 npm run preview
 ```
 
+No dia a dia, `npm run test:quick` roda tudo menos os cinco arquivos que leem os corpora
+(TAGNT, Bíblia Livre, SBLGNT, motor de conhecimento e runtime SQLite) e não reconstrói o índice
+antes: cerca de 35 s. `npm test` roda todos; como os testes de corpus levam vários segundos cada no
+Windows, o limite por teste é de 60 s.
+
 `npm run dev` fixa deliberadamente a origem local em `http://127.0.0.1:5173`.
 Sem `SCRIPTORIUM_WORKSPACE_DIR`, o workspace privado usa OPFS e pertence à origem
 completa do navegador; trocar host, protocolo ou porta cria outro armazenamento.
