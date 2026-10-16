@@ -122,7 +122,7 @@ function RootShell({ children }: { children: ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {/* In the server HTML, so a first visit sees it on the very first frame. */}
+        {/* In the server HTML, so every document load sees it on the very first frame. */}
         <IntroSplash />
         {children}
         <Scripts />

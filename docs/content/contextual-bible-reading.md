@@ -81,8 +81,42 @@ não são backups restauráveis. Backups são privados e não são removidos aut
 
 ## Continuidade e limites
 
-Continuar a leitura na ordem bíblica: notas restantes desses capítulos, capítulos seguintes das
-duas fontes, depois outras Bíblias/comentários disponíveis. Cada lote precisa registrar o que
+### Expansão por comentários originais — 16/10/2026
+
+O extrator Python especializado percorreu as 935 páginas da Shedd e 1.740 da Genebra, com
+cabeçalhos identificados dos 66 livros em ambas. Foram incorporados **24.057 comentários
+originais adicionais**: **11.876 da Shedd** e **12.181 da Genebra**. Não são 24.057 sínteses
+novas nem uma leitura intelectual integral feita pelo assistente.
+
+São 21.297 notas pontuais, 2.514 intervalos, 212 perícopes entre capítulos e 34 notas de capítulo.
+Os intervalos/perícopes alcançam endereços adicionais, mas não equivalem a comentários individuais
+para cada verso. As notas pontuais explicam **16.276 endereços distintos**. Incluindo intervalos
+e perícopes, a contagem de endereços distintos abrangidos é **28.142**.
+
+As 116 notas editoriais anteriores, suas 232 propostas associadas, 49.345 unidades antigas e
+metadados dos 37 documentos foram preservados por comparação de hashes. `quick_check` e
+`foreign_key_check` passaram. A reimportação completa da Shedd retornou `imported: 0, reused: 11876`.
+Na Genebra, uma colisão de evidência interrompeu o segundo lote e o reverteu integralmente; após
+migration 024, a retomada reutilizou as 100 notas do primeiro lote e importou outras 12.081.
+
+As notas novas permanecem machine-proposed/machine-visible por política documental, com auditoria
+pendente, nunca como revisão humana individual. A amostragem de calibração identificou referências
+quebradas de linha e remissões sem explicação; o motor recebeu filtros e testes para esses casos.
+Não há estimativa estatística de precisão/recall. Referências corrompidas e casos ambíguos foram
+registrados como exceções, não corrigidos silenciosamente nem publicados como exegese.
+
+Pacotes, recibos, relatório de cobertura e backups consistentes ficam privados em `data/workspace/`.
+O relatório canônico desta execução é `commentary-baseline-20261016.json.verification.json`, junto
+aos relatórios de `shedd-commentary-publish-v1` e `genebra-commentary-publish-v1`. O SQLite é schema
+24; atualizar todos os runtimes antes de abrir a pasta compartilhada. Detalhes de operação e
+rollback: [extração de comentários originais](../architecture/original-commentary-extraction.md).
+
+Essa execução não processou novamente os outros livros do acervo, não adicionou traduções bíblicas
+e não garante todas as notas dos dois PDFs ou todos os versículos. Próximas prioridades: exceções
+e avaliação da extração, outros comentários/layouts, depois monografias, dicionários e fontes antigas.
+
+Continuar pela avaliação das exceções e dos outros layouts, mantendo a ordem bíblica nas fontes.
+Cada lote precisa registrar o que
 foi realmente lido, suas evidências e os destinos; não basta promover citações automáticas.
 Nag Hammadi, léxicos e tradução mantêm as integrações da entrega anterior e não receberam
 novos textos neste lote. Tradução local continua inglês→português; espanhol não deve ser

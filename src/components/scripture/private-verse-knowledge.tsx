@@ -304,7 +304,9 @@ export function PrivateLinkCard({
             {relation.payload.contextualAnalysis.summary}
           </a>
           <p className="text-xs text-muted-foreground">
-            Síntese contextual assistida por máquina · não revisada por pessoa.
+            {relation.payload.contextualAnalysis.mode === "source-excerpt"
+              ? "Comentário original extraído · ligação automática, não revisada por pessoa."
+              : "Síntese contextual assistida por máquina · não revisada por pessoa."}
           </p>
           {relation.payload.contextualAnalysis.limitations.map((value) => (
             <p key={value} className="border-l-2 border-amber-500/40 pl-2 text-muted-foreground">
@@ -571,9 +573,11 @@ export function PrivateVerseKnowledge({
                 commentary
               )}
               <p className="mt-1 text-xs text-muted-foreground">
-                {preview.passageRelation.payload.contextualAnalysis
-                  ? "Síntese contextual assistida"
-                  : "Trecho literal da fonte"}{" "}
+                {preview.passageRelation.payload.contextualAnalysis?.mode === "source-excerpt"
+                  ? "Comentário original da fonte"
+                  : preview.passageRelation.payload.contextualAnalysis
+                    ? "Síntese contextual assistida"
+                    : "Trecho literal da fonte"}{" "}
                 ·{" "}
                 {preview.reviewState === "confirmed"
                   ? "ligação confirmada"

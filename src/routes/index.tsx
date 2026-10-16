@@ -143,7 +143,7 @@ function Home() {
   };
 
   return (
-    <PageContainer className="space-y-10">
+    <PageContainer className="today-inscriptions space-y-10">
       <PageHeader eyebrow={t("home.workspace")} title={t("home.resume")} />
 
       <div className="grid gap-4 md:grid-cols-3">

@@ -634,8 +634,11 @@ export const DocumentKnowledgeRepository = {
                       coalesce(json_extract(target.value,'$.verseEnd'),json_extract(target.value,'$.verseStart')) >= ?)
                    )))
              )
-         )
-         SELECT p.* FROM target_matches t JOIN knowledge_proposals p ON p.id=t.id
+         ), ranked AS (
+         SELECT p.*,row_number() OVER (
+           PARTITION BY (json_extract(p.payload_json,'$.contextualAnalysis') IS NOT NULL)
+           ORDER BY p.updated_at DESC,p.id
+         ) AS contextual_rank FROM target_matches t JOIN knowledge_proposals p ON p.id=t.id
          WHERE p.review_status='accepted' OR
            (?=1 AND p.review_status='machine-proposed' AND EXISTS(
              SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id AND d.publication='machine-visible'
@@ -643,8 +646,11 @@ export const DocumentKnowledgeRepository = {
            (?=1 AND p.review_status='machine-proposed' AND NOT EXISTS(
              SELECT 1 FROM pipeline_decisions d WHERE d.proposal_id=p.id
            ))
-         ORDER BY (json_extract(p.payload_json,'$.contextualAnalysis') IS NOT NULL) DESC,
-                  p.updated_at DESC,p.id LIMIT 200`,
+         )
+         SELECT r.* FROM ranked r
+         WHERE contextual_rank <= CASE WHEN json_extract(r.payload_json,'$.contextualAnalysis') IS NOT NULL THEN 2000 ELSE 200 END
+         ORDER BY (json_extract(r.payload_json,'$.contextualAnalysis') IS NOT NULL) DESC,
+                  r.updated_at DESC,r.id`,
         [
           passage.bookId,
           passageRefScheme(passage),

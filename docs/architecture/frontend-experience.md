@@ -177,9 +177,8 @@ Conhecimento voltou a ter entrada própria no menu).
 ### Abertura
 
 - Toda vez que o app começa numa página aparece a abertura do Scriptorium OS, na mesma identidade
-  da barra do topo:
-  IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e só as cores do tema. O ícone é
-  desenhado, cada letra de SCRIPTORIUM passa por letras hebraicas e gregas até cair na latina
+  da barra do topo: IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e só as cores do tema.
+  O ícone é desenhado, cada letra de SCRIPTORIUM passa por letras hebraicas e gregas até cair na latina
   (passando pela letra grega de onde vem: S ← Σ, P ← Π…), o "OS" chega, o lema é datilografado e,
   no fim, o nome voa até o logotipo do topo enquanto o app aparece. Cerca de 5 s; um clique, Esc,
   Enter ou espaço pulam. Com "reduzir movimento", a página já vem pronta e só se desvanece.
@@ -193,6 +192,12 @@ Conhecimento voltou a ter entrada própria no menu).
   para segundo plano e continuou viva não repete. Se a página começa escondida (aberta em segundo
   plano, janela minimizada), a abertura fica parada no primeiro quadro (`intro-wait`) e corre quando
   a página aparece na tela. "Ver a abertura de novo", em Ajuda e sobre, a repete a qualquer momento.
+- Não depende de `localStorage` nem de `sessionStorage`; a antiga chave `scriptorium.intro.v1`
+  é ignorada. Navegação interna não repete a abertura.
+- Em Hoje, os blocos recebem uma revelação progressiva de tinta/papiro, inspirada em inscrições
+  antigas, sem substituir letras ou alterar conteúdo. O efeito espera a abertura terminar e dura
+  até 1,25 s. Não usa animação por caractere nem dependências. Reduzir movimento desativa o efeito;
+  foco de teclado revela imediatamente o bloco, sem recortar controles.
 
 ### Leitura de dados nas telas
 

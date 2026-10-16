@@ -11,6 +11,12 @@ envia apenas as unidades semânticas do lote escolhido para `127.0.0.1:8018`.
 
 ## Python
 
+A extração offline de comentários originais usa `app.commentary_cli`, com perfis calibrados de
+Shedd/Genebra e sem LLM. Requer o extra opcional `commentary` para evidência de fontes do PDF.
+Operação, integração canônica, cobertura e limites:
+[extração de comentários originais](../../docs/architecture/original-commentary-extraction.md).
+Não é um endpoint que recebe caminhos enviados pelo navegador.
+
 O projeto aceita Python 3.11 a 3.13 e fixa `3.13.3` em `.python-version`. No Windows, `python` pode
 continuar apontando para uma instalação antiga; os comandos npm abaixo procuram primeiro a `.venv` e
 depois `py -3.13`, evitando depender do `PATH` global:

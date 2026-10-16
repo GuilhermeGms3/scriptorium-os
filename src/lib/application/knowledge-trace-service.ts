@@ -31,6 +31,16 @@ export function explainKnowledgeTrace(row: TraceRow): KnowledgeTraceItem {
       : "pending";
   const inferred = row.origin === "inferred" || row.method.startsWith("local-llm:");
   const explanation: string[] = [];
+  if (payload.contextualAnalysis?.mode === "source-excerpt") {
+    explanation.push(payload.contextualAnalysis.rationale);
+    explanation.push(
+      "Comentário original extraído, sem síntese de LLM. Referências secundárias não são destinos de publicação.",
+    );
+    for (const reference of payload.secondaryReferences ?? [])
+      explanation.push(
+        `${reference.relationType === "comparison" ? "Comparação" : "Menção"}: ${reference.rawReference}.`,
+      );
+  }
   if (inferred) {
     // The structural backup removes quoted evidence, not the canonical contextual analysis.
     if (payload.contextualAnalysis) explanation.push(payload.contextualAnalysis.rationale);

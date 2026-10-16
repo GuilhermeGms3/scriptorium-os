@@ -9,6 +9,7 @@ import {
 } from "../workspace-runtime/workspace-database";
 import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
 import { sha256Hex } from "../workspace-runtime/secure-context";
+import { parseBiblicalReferences } from "../semantic-engine/biblical-reference-parser";
 
 async function digest(value: string) {
   return sha256Hex(value, { operation: "A leitura contextual" });
@@ -47,8 +48,13 @@ export const ContextualReadingService = {
     const ids = new Set<string>();
     const plannedUnits = new Map<string, string>();
     let reused = 0;
-    const method = `assistant-contextual-reading:v1:${batch.analyst}`;
     for (const note of batch.notes) {
+      const literal = note.analysis.mode === "source-excerpt";
+      if (!literal && note.analysis.summary.length > 3000)
+        throw new Error("Síntese editorial excede 3000 caracteres.");
+      const method = literal
+        ? `deterministic-source-commentary:v1:${batch.analyst}`
+        : `assistant-contextual-reading:v1:${batch.analyst}`;
       for (const target of [note.passage, ...note.additionalPassages]) {
         const book = ScriptureRepository.getBook(target.bookId);
         if (
@@ -58,6 +64,8 @@ export const ContextualReadingService = {
           (target.workId && target.workId !== `work:${target.bookId}`)
         )
           throw new Error("Destino ou esquema não suportado neste lote contextual.");
+        if (literal && ((target.verseStart ?? 1) > 500 || (target.verseEnd ?? 1) > 500))
+          throw new Error("Destino fora dos limites do extrator de comentários bíblicos.");
       }
       if (
         (note.relationScope === "book") !== (note.passage.chapter === undefined) ||
@@ -108,6 +116,11 @@ export const ContextualReadingService = {
           additional: note.additionalPassages,
         }),
       );
+      const unitText = spans.map((s) => s.text).join(" ");
+      if (literal && unitText.replace(/\s/gu, "") !== note.analysis.summary.replace(/\s/gu, ""))
+        throw new Error(
+          "Comentário original deve coincidir integralmente com a evidência da fonte.",
+        );
       const proposalId = `${document.id}:contextual:${seed}`;
       if (ids.has(proposalId)) throw new Error("Lote contém a mesma nota duas vezes.");
       ids.add(proposalId);
@@ -128,8 +141,7 @@ export const ContextualReadingService = {
         reused++;
         continue;
       }
-      const unitText = spans.map((s) => s.text).join(" ");
-      // Reuse an exact existing unit span; a page range cannot belong to two units.
+      // Reuse an equivalent single-span unit; distinct units may share source evidence.
       const spanKey = JSON.stringify(
         spans.map(({ pageId, start, end }) => ({ pageId, start, end })),
       );
@@ -181,6 +193,30 @@ export const ContextualReadingService = {
         passage: note.passage,
         additionalPassages: note.additionalPassages,
         contextualAnalysis: note.analysis,
+        ...(literal
+          ? {
+              secondaryReferences: parseBiblicalReferences(unitText)
+                .slice(0, 100)
+                .map((reference) => ({
+                  rawReference: reference.rawReference,
+                  passage: {
+                    workId: reference.workId,
+                    bookId: reference.bookId,
+                    chapter: reference.chapter,
+                    ...(reference.verseStart === undefined
+                      ? {}
+                      : { verseStart: reference.verseStart }),
+                    ...(reference.verseEnd === undefined ? {} : { verseEnd: reference.verseEnd }),
+                    versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+                  },
+                  relationType: /(?:cf\.?|compare|comparar|veja|ver)\s*$/iu.test(
+                    unitText.slice(Math.max(0, reference.startOffset - 30), reference.startOffset),
+                  )
+                    ? "comparison"
+                    : "mention",
+                })),
+            }
+          : {}),
       });
       const now = new Date().toISOString();
       statements.push({
@@ -190,11 +226,14 @@ export const ContextualReadingService = {
       });
       statements.push({
         sql: `INSERT INTO pipeline_decisions(proposal_id,publication,origin,evidence_json,configuration_key,audit_status,updated_at)
-        VALUES(?,'machine-visible','inferred',?,?,'pending',?)`,
+        VALUES(?,'machine-visible',?,?,?,'pending',?)`,
         bind: [
           proposalId,
+          literal ? "explicit" : "inferred",
           JSON.stringify({
-            policy: "operator-requested-contextual-reading-v1",
+            policy: literal
+              ? "operator-calibrated-original-commentary-v1"
+              : "operator-requested-contextual-reading-v1",
             batchId: batch.batchId,
             analyst: batch.analyst,
             coverage: batch.coverage,
