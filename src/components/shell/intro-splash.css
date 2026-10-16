@@ -1,5 +1,5 @@
 /*
- * Abertura do Scriptorium OS (só na primeira visita).
+ * Abertura do Scriptorium OS (toda vez que o app começa numa página).
  *
  * Na mesma identidade da barra do topo: IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e
  * as cores do tema (papel, tinta e a cor primária). O ícone é desenhado, cada letra de SCRIPTORIUM
@@ -313,6 +313,13 @@ html.intro-out:not(.intro-fly) .intro-paper {
   html.intro-on .intro-skip {
     animation: intro-appear 0.5s ease-out 0.8s both;
   }
+}
+
+/* Página que começou escondida (aberta em segundo plano, janela minimizada): a abertura espera
+   parada no primeiro quadro e só corre quando a página aparece na tela. */
+html.intro-wait .intro,
+html.intro-wait .intro * {
+  animation-play-state: paused !important;
 }
 
 @keyframes intro-begin {

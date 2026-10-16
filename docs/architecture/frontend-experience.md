@@ -176,7 +176,8 @@ Conhecimento voltou a ter entrada própria no menu).
 
 ### Abertura
 
-- Na primeira visita aparece a abertura do Scriptorium OS, na mesma identidade da barra do topo:
+- Toda vez que o app começa numa página aparece a abertura do Scriptorium OS, na mesma identidade
+  da barra do topo:
   IBM Plex Mono em maiúsculas espaçadas, o ícone do livro e só as cores do tema. O ícone é
   desenhado, cada letra de SCRIPTORIUM passa por letras hebraicas e gregas até cair na latina
   (passando pela letra grega de onde vem: S ← Σ, P ← Π…), o "OS" chega, o lema é datilografado e,
@@ -184,11 +185,14 @@ Conhecimento voltou a ter entrada própria no menu).
   Enter ou espaço pulam. Com "reduzir movimento", a página já vem pronta e só se desvanece.
 - Aparece no primeiro quadro, sem esperar o app carregar: a marcação está no HTML do servidor
   (`IntroSplash`, no `<body>` do `RootShell`) e toda a animação é CSS (`intro-splash.css`). Um
-  script no `<head>` (`intro-controller.ts`) decide antes da primeira pintura se ela aparece (classe
+  script no `<head>` (`intro-controller.ts`) liga a abertura antes da primeira pintura (classe
   `intro-on` no `<html>`), conta o tempo a partir do início real da animação, cuida do "pular" e do
   voo até `[data-brand-mark]` da barra do topo. O React só desenha a marcação, que nunca muda.
-- Depois de vista fica marcada em `localStorage` (`scriptorium.intro.v1`); "Ver a abertura de novo"
-  em Ajuda e sobre a repete.
+- "Começa numa página" é aba nova, recarregar, abrir de novo depois de fechar ou voltar a uma aba
+  que o navegador ou o celular descartou para liberar memória (ela recarrega). Uma aba que só foi
+  para segundo plano e continuou viva não repete. Se a página começa escondida (aberta em segundo
+  plano, janela minimizada), a abertura fica parada no primeiro quadro (`intro-wait`) e corre quando
+  a página aparece na tela. "Ver a abertura de novo", em Ajuda e sobre, a repete a qualquer momento.
 
 ### Leitura de dados nas telas
 
