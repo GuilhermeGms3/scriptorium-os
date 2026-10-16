@@ -113,7 +113,9 @@ export class InstallationWorkspace {
       new Response(JSON.stringify(value), { status, headers });
     if (!InstallationWorkspace.isLocalRequest(request))
       return json({ error: "Acesso somente pela instalação local na mesma origem." }, 403);
-    if (this.lock.lost)
+    try {
+      this.lock.assertOwned();
+    } catch {
       return json(
         {
           error:
@@ -122,6 +124,7 @@ export class InstallationWorkspace {
         },
         423,
       );
+    }
     const url = new URL(request.url);
     if (url.pathname === "/api/workspace/session" && request.method === "POST") {
       const now = Date.now();
@@ -155,6 +158,7 @@ export class InstallationWorkspace {
             task = coverQueue
               .catch(() => undefined)
               .then(async () => {
+                this.lock.assertOwned();
                 await runFile(
                   "pdftoppm",
                   [
@@ -275,6 +279,7 @@ export class InstallationWorkspace {
         if (!existsSync(staging) || statSync(staging).size !== offset)
           return json({ error: "Offset divergente; nenhuma sobrescrita realizada." }, 409);
         const chunk = await boundedBody(request, 4 * 1024 * 1024);
+        this.lock.assertOwned();
         if (offset + chunk.byteLength > 2 * 1024 * 1024 * 1024)
           throw new Error("Snapshot excede 2 GiB.");
         appendFileSync(staging, chunk);
@@ -294,6 +299,7 @@ export class InstallationWorkspace {
         }
         if (request.method === "PUT") {
           const bytes = await boundedBody(request, 256 * 1024 * 1024);
+          this.lock.assertOwned();
           if (
             createHash("sha256").update(bytes).digest("hex") !== checksum ||
             !Buffer.from(bytes.subarray(0, 1024)).includes(Buffer.from("%PDF-"))
@@ -313,6 +319,7 @@ export class InstallationWorkspace {
           new TextDecoder().decode(await boundedBody(request, 16 * 1024 * 1024)),
         ) as unknown,
       );
+      this.lock.assertOwned();
       const validate = (sql: string) => {
         // No filesystem access, schema changes, attached databases or arbitrary SQLite pragmas.
         if (
@@ -342,6 +349,8 @@ export class InstallationWorkspace {
       prepared.run(...input.bind);
       return json(null);
     } catch (error) {
+      if (error instanceof WorkspaceLockedError)
+        return json({ error: error.message, code: error.code }, 423);
       return json(
         {
           error:
