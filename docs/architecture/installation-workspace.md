@@ -125,12 +125,32 @@ grava `pid`, `hostname`, `platform`, `startedAt`, `heartbeatAt` e um token de do
 `heartbeatAt` é renovado a cada 30 s; o pid não decide nada, porque Windows e o contentor Docker
 não veem os processos um do outro.
 
-- Lock com heartbeat de menos de 2 minutos: o segundo processo é recusado e o navegador recebe
+- Lock existente, independentemente da idade: o segundo processo é recusado e o navegador recebe
   HTTP 423 com “Este acervo já está aberto por outro processo (<host>, desde <hora>). Feche-o antes
   de abrir aqui.”, mostrado na barra de estado e na Biblioteca. A próxima requisição tenta de novo.
-- Heartbeat com mais de 2 minutos: o lock é considerado abandonado, movido de lado atomicamente e
-  recuperado; a recuperação é registrada no log do servidor.
+- Heartbeat antigo **não autoriza recuperação automática**. Suspensão do Windows, event loop
+  ocupado, importação ou query demorada não provam que o dono morreu. Essa política substitui o
+  timeout de 2 minutos introduzido em `8c58d9a`, que podia admitir dois donos vivos.
+- Locks incompletos/malformados também bloqueiam a abertura. Falha ao renovar ou verificar o
+  lock interrompe o acesso, em vez de continuar escrevendo sem exclusividade comprovada.
 - `close()`, `exit`, `SIGINT` e `SIGTERM` libertam o lock, mas só se ele ainda pertencer ao
-  processo. Um processo que volte de uma pausa longa e encontre o lock com outro dono deixa de
-  servir comandos (423) em vez de escrever no banco.
+  processo. A API verifica a posse em cada requisição e novamente após a leitura assíncrona de
+  comandos/uploads, antes de acessar o armazenamento. Não depende do próximo tick do heartbeat.
+- `content:import:contextual` adquire o mesmo lock antes de abrir SQLite e o mantém até fechar a
+  conexão, incluindo backup e importação. `--runtime-stopped` não contorna a exclusividade.
+
+Após crash/kill forçado, o arquivo pode permanecer. **Pare todos os Vite, containers e importadores
+que usam essa pasta, confirme que não restam conexões e preserve backup antes de recuperar.** Só
+então renomeie `workspace.lock` para um nome de diagnóstico único (por exemplo,
+`workspace.lock.crash-<data-hora>`) e inicie apenas um runtime atualizado. Não remova/renomeie locks
+com um processo vivo, nem confunda `workspace.lock` com o banco ou os arquivos SQLite WAL/SHM.
+Não existe endpoint ou flag de force-unlock.
+
+O protocolo é cooperativo: editores SQLite, scripts externos ou imagens antigas que ignoram o lock
+não são impedidos pelo arquivo. Atualize **todos os escritores**, inclusive reconstruindo a imagem
+Docker, antes de alternar entre Windows e Docker. Não use este mecanismo para compartilhamento NFS
+ou operação multi-host; a exclusividade pressupõe criação exclusiva coerente no filesystem local
+e no bind mount. Um teste com processos Node separados verifica a recusa do importador; não equivale
+a um teste simultâneo em Docker Desktop sobre o acervo real.
+
 No desenvolvimento local, configure `SCRIPTORIUM_WORKSPACE_DIR` em `.env.local` (não versionado).

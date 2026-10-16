@@ -1,22 +1,10 @@
 import { randomBytes } from "node:crypto";
-import {
-  closeSync,
-  existsSync,
-  openSync,
-  readFileSync,
-  renameSync,
-  statSync,
-  unlinkSync,
-  writeFileSync,
-  writeSync,
-} from "node:fs";
+import { closeSync, openSync, readFileSync, ftruncateSync, unlinkSync, writeSync } from "node:fs";
 import { hostname as osHostname } from "node:os";
 import { join } from "node:path";
 
 export const WORKSPACE_LOCK_FILE = "workspace.lock";
 export const LOCK_HEARTBEAT_MS = 30_000;
-/** A lock without a heartbeat for this long belongs to a process that died or was killed. */
-export const LOCK_STALE_AFTER_MS = 120_000;
 
 export interface WorkspaceLockRecord {
   pid: number;
@@ -92,8 +80,8 @@ function intervalSchedule(beat: () => void, intervalMs: number): () => void {
 
 /**
  * Exclusive lock on an installation folder, so the Vite server on Windows and the Docker container
- * never write the same SQLite database at the same time. Liveness is the heartbeat in the file, not
- * the pid, which neither side can check for the other.
+ * cooperate on one writer. A heartbeat is diagnostic, NOT permission to steal a lock: a blocked
+ * event loop or suspended host may still own an open SQLite connection.
  */
 export class WorkspaceLock {
   readonly path: string;
@@ -103,7 +91,7 @@ export class WorkspaceLock {
   #stopHeartbeat: () => void = () => undefined;
   #removeExitHooks: () => void = () => undefined;
   #released = false;
-  /** Another process recovered the lock while this one was not beating (sleep, long pause). */
+  /** Ownership was lost or could no longer be verified. Fail closed until restart. */
   lost = false;
 
   private constructor(path: string, record: WorkspaceLockRecord, options: WorkspaceLockOptions) {
@@ -120,7 +108,6 @@ export class WorkspaceLock {
 
   static acquire(root: string, options: WorkspaceLockOptions = {}): WorkspaceLock {
     const now = options.now ?? Date.now;
-    const log = options.log ?? ((message: string) => console.warn(message));
     const path = join(root, WORKSPACE_LOCK_FILE);
     const stamp = new Date(now()).toISOString();
     const record: WorkspaceLockRecord = {
@@ -145,33 +132,9 @@ export class WorkspaceLock {
       }
       const holder = readRecord(path);
       if (holder === undefined) continue;
-      // A half-written lock has no heartbeat yet; the file's own time stands in for it.
-      const heartbeat = holder ? Date.parse(holder.heartbeatAt) : statSync(path).mtimeMs;
-      if (now() - heartbeat < LOCK_STALE_AFTER_MS)
-        throw new WorkspaceLockedError(
-          holder ?? {
-            hostname: "processo desconhecido",
-            startedAt: new Date(heartbeat).toISOString(),
-          },
-        );
-      // Moving the abandoned lock aside is atomic, so only one process can recover it.
-      const aside = `${path}.abandoned-${record.owner}`;
-      try {
-        renameSync(path, aside);
-      } catch (error) {
-        if (errorCode(error) === "ENOENT") continue;
-        throw error;
-      }
-      const moved = readRecord(aside);
-      if ((moved?.owner ?? null) !== (holder?.owner ?? null)) {
-        // Another process recovered it first and wrote a fresh lock: give it back.
-        if (!existsSync(path)) renameSync(aside, path);
-        if (moved) throw new WorkspaceLockedError(moved);
-        continue;
-      }
-      unlinkSync(aside);
-      log(
-        `Lock abandonado do acervo recuperado em ${root}: ${holder?.hostname ?? "processo desconhecido"} (pid ${holder?.pid ?? "?"}, ${holder?.platform ?? "?"}), último sinal em ${holder?.heartbeatAt ?? new Date(heartbeat).toISOString()}.`,
+      // Fail closed even for old/malformed records: cross-OS liveness cannot be proved by a timer.
+      throw new WorkspaceLockedError(
+        holder ?? { hostname: "processo desconhecido", startedAt: "desconhecido" },
       );
     }
     throw new Error("Não foi possível obter o lock do acervo.");
@@ -185,21 +148,38 @@ export class WorkspaceLock {
     return readRecord(this.path)?.owner === this.#record.owner;
   }
 
+  /** Check synchronously before storage access, including after any awaited work. */
+  assertOwned(): void {
+    try {
+      if (!this.#released && !this.lost && this.#owns()) return;
+    } catch {
+      // An unreadable lock is not authorization to write.
+    }
+    this.lost = true;
+    this.#stopHeartbeat();
+    throw new WorkspaceLockedError(this.#record);
+  }
+
   #beat(): void {
     if (this.#released || this.lost) return;
     try {
-      if (!this.#owns()) {
-        this.lost = true;
-        this.#stopHeartbeat();
-        this.#log(
-          `O lock do acervo em ${this.path} foi recuperado por outro processo; este processo deixou de escrever nele.`,
-        );
-        return;
-      }
+      this.assertOwned();
       this.#record = { ...this.#record, heartbeatAt: new Date(this.#now()).toISOString() };
-      // Written in place: a reader that catches it half-written falls back to the file time.
-      writeFileSync(this.path, JSON.stringify(this.#record, null, 2));
+      // Never recreate a missing lock or overwrite a replacement by pathname after checking it.
+      const descriptor = openSync(this.path, "r+");
+      try {
+        const current = JSON.parse(readFileSync(descriptor, "utf8")) as WorkspaceLockRecord;
+        if (current.owner !== this.#record.owner) throw new WorkspaceLockedError(current);
+        const bytes = Buffer.from(JSON.stringify(this.#record, null, 2));
+        writeSync(descriptor, bytes, 0, bytes.length, 0);
+        ftruncateSync(descriptor, bytes.length);
+      } finally {
+        closeSync(descriptor);
+      }
+      this.assertOwned();
     } catch (error) {
+      this.lost = true;
+      this.#stopHeartbeat();
       this.#log(
         `Falha ao renovar o lock do acervo: ${error instanceof Error ? error.message : String(error)}`,
       );

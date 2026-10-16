@@ -1,4 +1,5 @@
-import { existsSync, mkdtempSync, rmSync, readFileSync } from "node:fs";
+import { existsSync, mkdtempSync, rmSync, readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import { backup } from "node:sqlite";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
@@ -299,20 +300,114 @@ describe("installation workspace lock", () => {
     expect(lockOf(path)).toMatchObject({ hostname: "windows-vite" });
   });
 
-  it("recovers a lock whose heartbeat stopped more than two minutes ago", () => {
+  it("never steals a stale lock from a paused or busy process", () => {
     const path = root();
     const crashed = environment("windows-vite");
-    const abandoned = openWorkspace(path, crashed.options);
+    openWorkspace(path, crashed.options);
 
     const docker = environment("docker", Date.parse("2026-10-15T12:02:01.000Z"));
-    openWorkspace(path, docker.options);
-    expect(lockOf(path)).toMatchObject({ hostname: "docker" });
-    expect(docker.log.join(" ")).toMatch(/abandonado.*windows-vite/u);
-
-    // The old process waking up neither steals nor deletes the recovered lock.
+    expect(() => openWorkspace(path, docker.options)).toThrow(/já está aberto/u);
+    docker.advance(24 * 60 * 60 * 1000);
+    expect(() => openWorkspace(path, docker.options)).toThrow(/já está aberto/u);
     crashed.heartbeat();
-    abandoned.close();
-    expect(lockOf(path)).toMatchObject({ hostname: "docker" });
+    expect(lockOf(path)).toMatchObject({ hostname: "windows-vite" });
+  });
+
+  it("fails closed for a malformed lock instead of recovering it", () => {
+    const path = root();
+    writeFileSync(join(path, "workspace.lock"), "{incomplete");
+    expect(() => openWorkspace(path, environment("docker").options)).toThrow(/já está aberto/u);
+    expect(existsSync(join(path, "workspace.sqlite3"))).toBe(false);
+  });
+
+  it("checks ownership before a request without waiting for a heartbeat", async () => {
+    const path = root();
+    const previous = openWorkspace(path, environment("windows").options);
+    writeFileSync(
+      join(path, "workspace.lock"),
+      JSON.stringify({ ...lockOf(path), owner: "other" }),
+    );
+    const response = await previous.handle(
+      new Request("http://localhost:3000/api/workspace/session", {
+        method: "POST",
+        headers: { "x-scriptorium-workspace": "1" },
+      }),
+    );
+    expect(response.status).toBe(423);
+    expect(previous.lock.lost).toBe(true);
+    previous.close();
+    expect(lockOf(path)["owner"]).toBe("other");
+  });
+
+  it("refuses a mutation when ownership changes during body streaming", async () => {
+    const path = root();
+    const workspace = openWorkspace(path, environment("windows").options);
+    const session = await cookie(workspace);
+    workspace.database.exec(
+      "INSERT INTO studies(id,slug,title,description,created_at,updated_at) VALUES('keep','keep','Preservar','Fixture','2026-10-15','2026-10-15')",
+    );
+    let stream: ReadableStreamDefaultController<Uint8Array> | undefined;
+    const body = new ReadableStream<Uint8Array>({
+      start(controller) {
+        stream = controller;
+      },
+    });
+    // Node's Request requires duplex for a streaming body.
+    const init: RequestInit & { duplex: "half" } = {
+      method: "POST",
+      headers: { "x-scriptorium-workspace": "1", cookie: session },
+      body,
+      duplex: "half",
+    };
+    const pending = workspace.handle(
+      new Request("http://localhost:3000/api/workspace/command", init),
+    );
+    // The handler has checked ownership and is now waiting for the request body.
+    expect(workspace.lock.lost).toBe(false);
+    writeFileSync(
+      join(path, "workspace.lock"),
+      JSON.stringify({ ...lockOf(path), owner: "other" }),
+    );
+    stream!.enqueue(
+      new TextEncoder().encode(JSON.stringify({ type: "execute", sql: "DELETE FROM studies" })),
+    );
+    stream!.close();
+    const response = await pending;
+    expect(response.status).toBe(423);
+    expect(await response.json()).toMatchObject({ code: "workspace-locked" });
+    expect(workspace.database.prepare("SELECT id FROM studies").all()).toEqual([{ id: "keep" }]);
+  });
+
+  it("fails closed if heartbeat renewal fails and does not recreate a missing lock", () => {
+    const path = root();
+    const env = environment("windows");
+    const workspace = openWorkspace(path, env.options);
+    unlinkSync(join(path, "workspace.lock"));
+    env.heartbeat();
+    expect(workspace.lock.lost).toBe(true);
+    expect(() => workspace.lock.assertOwned()).toThrow(/já está aberto/u);
+    expect(existsSync(join(path, "workspace.lock"))).toBe(false);
+  });
+
+  it("blocks the offline importer in a separate process even with --runtime-stopped", () => {
+    const path = root();
+    openWorkspace(path, environment("windows").options);
+    const result = spawnSync(
+      process.execPath,
+      [
+        "--import",
+        "tsx",
+        "scripts/content/import-contextual-reading.ts",
+        join(path, "workspace.sqlite3"),
+        join(path, "workspace.lock"),
+        "--runtime-stopped",
+      ],
+      { encoding: "utf8", timeout: 30_000 },
+    );
+    expect(result.error).toBeUndefined();
+    expect(result.status).not.toBe(0);
+    expect(result.stderr).toContain("Este acervo já está aberto por outro processo");
+    expect(lockOf(path)["hostname"]).toBe("windows");
   });
 
   it("releases the lock when the workspace is closed", () => {

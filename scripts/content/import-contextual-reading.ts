@@ -1,10 +1,11 @@
 import { readFileSync, existsSync } from "node:fs";
-import { resolve } from "node:path";
+import { resolve, dirname } from "node:path";
 import { DatabaseSync, backup } from "node:sqlite";
 import { ContextualReadingService } from "../../src/lib/application/contextual-reading-service";
 import { ContextualReadingPackageSchema } from "../../src/lib/domain/contextual-reading";
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
 import { WORKSPACE_SCHEMA_VERSION } from "../database/workspace-migrate";
+import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.server";
 
 // Offline operator command. Never run against a Linux bind mount while Docker is writing it.
 const [databasePath, batchPath, confirmation] = process.argv.slice(2);
@@ -15,11 +16,14 @@ if (!databasePath || !batchPath || confirmation !== "--runtime-stopped")
 const path = resolve(databasePath);
 if (!existsSync(path))
   throw new Error("Workspace existente não encontrado; nenhum banco foi criado.");
-const raw = readFileSync(resolve(batchPath), "utf8");
-const batch = ContextualReadingPackageSchema.parse(JSON.parse(raw) as unknown);
-const db = new DatabaseSync(path);
+const lock = WorkspaceLock.acquire(dirname(path));
+let db: DatabaseSync | undefined;
 try {
-  db.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
+  const raw = readFileSync(resolve(batchPath), "utf8");
+  const batch = ContextualReadingPackageSchema.parse(JSON.parse(raw) as unknown);
+  const database = new DatabaseSync(path);
+  db = database;
+  database.exec("PRAGMA foreign_keys=ON; PRAGMA busy_timeout=5000;");
   const version = db.prepare("SELECT max(version) n FROM workspace_migrations").get()?.["n"];
   if (version !== WORKSPACE_SCHEMA_VERSION)
     throw new Error("Schema incompatível: migre antes do lote.");
@@ -31,19 +35,22 @@ try {
   const adapter: WorkspaceDatabase = {
     persistence: "installation",
     async query(sql, bind = []) {
-      return db.prepare(sql).all(...bind) as WorkspaceRow[];
+      lock.assertOwned();
+      return database.prepare(sql).all(...bind) as WorkspaceRow[];
     },
     async execute(sql, bind = []) {
-      db.prepare(sql).run(...bind);
+      lock.assertOwned();
+      database.prepare(sql).run(...bind);
     },
     async transaction(statements) {
-      db.exec("BEGIN IMMEDIATE");
+      lock.assertOwned();
+      database.exec("BEGIN IMMEDIATE");
       try {
         for (const statement of statements)
-          db.prepare(statement.sql).run(...(statement.bind ?? []));
-        db.exec("COMMIT");
+          database.prepare(statement.sql).run(...(statement.bind ?? []));
+        database.exec("COMMIT");
       } catch (error) {
-        db.exec("ROLLBACK");
+        database.exec("ROLLBACK");
         throw error;
       }
     },
@@ -54,5 +61,9 @@ try {
   const result = await ContextualReadingService.importJson(raw, adapter);
   console.log(JSON.stringify({ ...result, backup: destination }, null, 2));
 } finally {
-  db.close();
+  try {
+    db?.close();
+  } finally {
+    lock.release();
+  }
 }

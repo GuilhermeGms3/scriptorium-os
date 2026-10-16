@@ -1,5 +1,20 @@
 # Project Memory
 
+## Exclusividade do acervo (2026-10-15)
+
+- Corrigido o protocolo de `8c58d9a`: heartbeat antigo não prova morte de processo Windows/Docker;
+  não há takeover automático por timeout. Locks inválidos também falham fechados.
+- API verifica posse antes das operações e após leitura assíncrona de uploads/comandos; heartbeat
+  usa descriptor sem recriar lock ausente e qualquer falha suspende acesso. Importador contextual
+  compartilha o lock até fechar SQLite, inclusive durante backup.
+- Crash exige recuperação offline com todos os escritores parados. Atualizar todos os runtimes/
+  imagem Docker; scripts/editores externos que ignoram o protocolo não são protegidos.
+- Fonte canônica: `docs/architecture/installation-workspace.md`. Acervo privado não usado para
+  testes de concorrência; sem alteração de schema, reprocessamento ou redesign nesta correção.
+- Verificação: 360 testes/45 arquivos, typecheck, lint completo, build e formatação passaram.
+  Inclui importador em processo separado e perda de posse durante streaming sem apagar registro.
+  SQLite privado manteve tamanho/mtime; Docker não foi reconstruído nem iniciado nesta correção.
+
 ## Acervo compartilhado da instalação (2026-10-13)
 
 - Escopo ativo: migração integral OPFS → pasta local do projeto/Docker e biblioteca/leitor reais.
