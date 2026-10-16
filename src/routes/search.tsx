@@ -1,7 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { errorMessage } from "@/lib/utils";
+import { useDebouncedValue, useWorkspaceQuery } from "../hooks/use-workspace-query";
 import { BookOpen, Library, Search as SearchIcon, Sparkles } from "lucide-react";
-import { searchWorkspace, type SearchHit } from "../lib/application/search-workspace";
+import { searchWorkspace } from "../lib/application/search-workspace";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
@@ -22,33 +24,22 @@ function SearchPage() {
   const { q = "" } = Route.useSearch();
   const { setPassageContext } = useWorkbench();
   const [query, setQuery] = useState(q);
-  const [hits, setHits] = useState<SearchHit[]>([]);
-  const [searching, setSearching] = useState(false);
   const [group, setGroup] = useState<string>("all");
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  useEffect(() => {
-    setGroup("all");
-    if (!query.trim()) {
-      setHits([]);
-      setSearching(false);
-      return;
-    }
-    let active = true;
-    setSearching(true);
-    const timer = window.setTimeout(() => {
-      void searchWorkspace(query)
-        .then((results) => {
-          if (active) setHits(results);
-        })
-        .finally(() => {
-          if (active) setSearching(false);
-        });
-    }, 180);
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [query]);
+  useEffect(() => setGroup("all"), [query]);
+  const settledQuery = useDebouncedValue(query.trim(), 180);
+  const searchQuery = useWorkspaceQuery(
+    ["search", settledQuery],
+    () => searchWorkspace(settledQuery),
+    { enabled: settledQuery !== "" },
+  );
+  // Only the answer to what is typed now: a failed or slower search never shows older results.
+  const hits = useMemo(
+    () => (settledQuery === query.trim() ? (searchQuery.data ?? []) : []),
+    [query, searchQuery.data, settledQuery],
+  );
+  const searching = query.trim() !== "" && (settledQuery !== query.trim() || searchQuery.isPending);
+  const searchError = searchQuery.error ? errorMessage(searchQuery.error) : undefined;
   const groups = [...new Set(hits.map((hit) => hit.group))];
   const visibleHits = group === "all" ? hits : hits.filter((hit) => hit.group === group);
 
@@ -151,6 +142,10 @@ function SearchPage() {
           </div>
         ) : searching ? (
           <p className="text-sm italic text-muted-foreground">Pesquisando no índice SQLite…</p>
+        ) : searchError ? (
+          <p role="alert" className="text-sm text-destructive">
+            A busca falhou: {searchError}
+          </p>
         ) : hits.length === 0 ? (
           <EmptyState icon={SearchIcon} title={t("search.noResults")}>
             Tente outra palavra, um nome de livro (por exemplo, “Romanos 8”) ou menos termos.

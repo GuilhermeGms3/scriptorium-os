@@ -1,9 +1,8 @@
 import { ChevronRight, Cog } from "lucide-react";
-import { useEffect, useState } from "react";
-import {
-  LibraryCoverageService,
-  type LibraryQuickSummary,
-} from "../../lib/application/library-coverage-service";
+import { useState } from "react";
+import { errorMessage } from "@/lib/utils";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { LibraryCoverageService } from "../../lib/application/library-coverage-service";
 import { LibraryPipelineOverview } from "./library-pipeline-overview";
 import { processingSummaryLine } from "./processing-summary";
 
@@ -13,23 +12,13 @@ import { processingSummaryLine } from "./processing-summary";
  */
 export function LibraryProcessingSection({ refreshKey }: { refreshKey: number }) {
   const [open, setOpen] = useState(false);
-  const [summary, setSummary] = useState<LibraryQuickSummary>();
-  const [error, setError] = useState<string>();
-
-  useEffect(() => {
-    let active = true;
-    void LibraryCoverageService.quickSummary().then(
-      (value) => {
-        if (active) setSummary(value);
-      },
-      (cause: unknown) => {
-        if (active) setError(cause instanceof Error ? cause.message : String(cause));
-      },
-    );
-    return () => {
-      active = false;
-    };
-  }, [refreshKey]);
+  const summaryQuery = useWorkspaceQuery(
+    ["library-quick-summary", refreshKey],
+    () => LibraryCoverageService.quickSummary(),
+    { refreshOnKnowledgeChange: true },
+  );
+  const summary = summaryQuery.data;
+  const error = summaryQuery.error ? errorMessage(summaryQuery.error) : undefined;
 
   return (
     <section aria-labelledby="library-processing-title" className="rounded-md border border-border">

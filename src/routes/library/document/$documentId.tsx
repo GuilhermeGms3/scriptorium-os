@@ -10,11 +10,10 @@ import {
 } from "lucide-react";
 import { useEffect, useRef, useState, type ReactNode } from "react";
 import { Button } from "@/components/ui/button";
-import type {
-  PrivateDocument,
-  PrivateDocumentPage,
-  PrivateDocumentSearchHit,
-} from "../../../lib/domain/private-document";
+import { errorMessage } from "@/lib/utils";
+import type { PrivateDocumentSearchHit } from "../../../lib/domain/private-document";
+import { useWorkspaceQuery } from "../../../hooks/use-workspace-query";
+import { EmptyState } from "../../../components/layout/empty-state";
 import { DocumentKnowledgeRepository } from "../../../lib/repositories/document-knowledge-repository";
 import { PrivateDocumentRepository } from "../../../lib/repositories/private-document-repository";
 import { useWorkbench } from "../../../lib/workbench/workbench-context";
@@ -66,19 +65,14 @@ function PrivateDocumentReaderPage() {
   const { documentId } = Route.useParams();
   const { page: requestedPage, unit: requestedUnit } = Route.useSearch();
   const { setPassageContext } = useWorkbench();
-  const [bookContext, setBookContext] =
-    useState<Awaited<ReturnType<typeof BookReadingService.context>>>();
-  const [contextError, setContextError] = useState<string>();
   const [word, setWord] = useState("");
   const [evidenceSpans, setEvidenceSpans] = useState<{ start: number; end: number }[]>([]);
   const [evidenceError, setEvidenceError] = useState<string>();
-  const [document, setDocument] = useState<PrivateDocument | null>();
   const [pageIndex, setPageIndex] = useState(() => Math.max(0, (requestedPage ?? 1) - 1));
-  const [page, setPage] = useState<PrivateDocumentPage | null>();
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<PrivateDocumentSearchHit[]>();
   const [searching, setSearching] = useState(false);
-  const [error, setError] = useState<string>();
+  const [searchError, setSearchError] = useState<string>();
   const [panelTab, setPanelTab] = useState<DocumentPanelTab>("links");
   const panelRef = useRef<HTMLElement>(null);
   const pageLinks = usePageLinks(documentId, pageIndex);
@@ -87,26 +81,29 @@ function PrivateDocumentReaderPage() {
   ).length;
 
   useEffect(() => setPassageContext(null), [setPassageContext]);
+  const documentQuery = useWorkspaceQuery(["private-document", documentId], () =>
+    PrivateDocumentRepository.getDocument(documentId),
+  );
+  const document = documentQuery.data;
+  // Reprocessing in "Processamento" changes the structure and the state line; OCR, the page.
+  const contextQuery = useWorkspaceQuery(
+    ["book-context", documentId],
+    () => BookReadingService.context(documentId),
+    { refreshOnKnowledgeChange: true },
+  );
+  const bookContext = contextQuery.data;
+  const contextError = contextQuery.error ? errorMessage(contextQuery.error) : undefined;
+  const pageQuery = useWorkspaceQuery(
+    ["private-document-page", documentId, pageIndex],
+    () => PrivateDocumentRepository.getPage(documentId, pageIndex),
+    { enabled: Boolean(document), refreshOnKnowledgeChange: true },
+  );
+  const page = pageQuery.data;
+  const pageError = pageQuery.error ? errorMessage(pageQuery.error) : undefined;
   useEffect(() => {
-    let active = true;
-    const load = () =>
-      void BookReadingService.context(documentId)
-        .then((value) => {
-          if (active) setBookContext(value);
-        })
-        .catch((cause: unknown) => {
-          if (active) setContextError(cause instanceof Error ? cause.message : String(cause));
-        });
-    setBookContext(undefined);
-    setContextError(undefined);
     setWord("");
-    load();
-    // Reprocessing in "Processamento" changes the structure and the state line.
-    window.addEventListener("scriptorium:knowledge-changed", load);
-    return () => {
-      active = false;
-      window.removeEventListener("scriptorium:knowledge-changed", load);
-    };
+    setResults(undefined);
+    setSearchError(undefined);
   }, [documentId]);
   useEffect(() => {
     let active = true;
@@ -135,37 +132,6 @@ function PrivateDocumentReaderPage() {
   useEffect(() => {
     if (requestedPage !== undefined) setPageIndex(Math.max(0, requestedPage - 1));
   }, [requestedPage]);
-  useEffect(() => {
-    let active = true;
-    setDocument(undefined);
-    void PrivateDocumentRepository.getDocument(documentId).then(
-      (value) => {
-        if (active) setDocument(value);
-      },
-      (cause: unknown) => {
-        if (active) setError(cause instanceof Error ? cause.message : String(cause));
-      },
-    );
-    return () => {
-      active = false;
-    };
-  }, [documentId]);
-  useEffect(() => {
-    if (!document) return;
-    let active = true;
-    setPage(undefined);
-    void PrivateDocumentRepository.getPage(document.id, pageIndex).then(
-      (value) => {
-        if (active) setPage(value);
-      },
-      (cause: unknown) => {
-        if (active) setError(cause instanceof Error ? cause.message : String(cause));
-      },
-    );
-    return () => {
-      active = false;
-    };
-  }, [document, pageIndex]);
 
   const runSearch = async () => {
     if (!document || !query.trim()) {
@@ -173,11 +139,11 @@ function PrivateDocumentReaderPage() {
       return;
     }
     setSearching(true);
-    setError(undefined);
+    setSearchError(undefined);
     try {
       setResults(await PrivateDocumentRepository.search(query, { documentId: document.id }));
     } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
+      setSearchError(errorMessage(cause));
     } finally {
       setSearching(false);
     }
@@ -188,9 +154,41 @@ function PrivateDocumentReaderPage() {
     panelRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
+  if (documentQuery.error)
+    return (
+      <div className="px-5 py-10">
+        <EmptyState
+          title="Não foi possível abrir este livro"
+          action={
+            <div className="flex flex-wrap justify-center gap-2">
+              <Button onClick={() => void documentQuery.refetch()}>Tentar novamente</Button>
+              <Button variant="outline" asChild>
+                <Link to="/library">Voltar à Biblioteca</Link>
+              </Button>
+            </div>
+          }
+        >
+          {errorMessage(documentQuery.error)}
+        </EmptyState>
+      </div>
+    );
   if (document === undefined)
     return <p className="p-8 text-sm italic text-muted-foreground">Abrindo o livro…</p>;
-  if (!document) return <p className="p-8 text-sm text-destructive">Livro não encontrado.</p>;
+  if (!document)
+    return (
+      <div className="px-5 py-10">
+        <EmptyState
+          title="Livro não encontrado"
+          action={
+            <Button variant="outline" asChild>
+              <Link to="/library">Voltar à Biblioteca</Link>
+            </Button>
+          }
+        >
+          Ele pode ter sido removido deste computador.
+        </EmptyState>
+      </div>
+    );
 
   return (
     <div className="grid h-full min-h-0 grid-rows-[auto_minmax(0,1fr)]">
@@ -270,6 +268,14 @@ function PrivateDocumentReaderPage() {
             </form>
           </div>
 
+          {searchError && (
+            <p
+              role="alert"
+              className="border-b border-border px-4 py-2 text-sm text-destructive md:px-6"
+            >
+              A busca falhou: {searchError}
+            </p>
+          )}
           {results && (
             <section
               aria-label="Resultados da busca neste livro"
@@ -310,10 +316,18 @@ function PrivateDocumentReaderPage() {
             </section>
           )}
 
-          {error ? (
-            <p role="alert" className="p-8 text-sm text-destructive">
-              {error}
-            </p>
+          {pageError ? (
+            <div role="alert" className="p-8 text-sm text-destructive">
+              <p>A página não pôde ser carregada: {pageError}</p>
+              <Button
+                variant="outline"
+                size="sm"
+                className="mt-3"
+                onClick={() => void pageQuery.refetch()}
+              >
+                Tentar novamente
+              </Button>
+            </div>
           ) : page === undefined ? (
             <p className="p-8 text-sm italic text-muted-foreground">Carregando a página…</p>
           ) : page ? (

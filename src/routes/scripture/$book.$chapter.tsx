@@ -12,11 +12,15 @@ import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseExplanations } from "../../components/scripture/verse-explanations";
 import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
 import { Button } from "@/components/ui/button";
+import { errorMessage } from "@/lib/utils";
+import { RouteError } from "../../components/layout/route-error";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
 import {
   knowledgeItemCoversVerse,
-  type WorkspacePassageKnowledgeLayer,
+  type WorkspacePassageKnowledgeItem,
 } from "../../lib/domain/workspace-passage-knowledge";
+import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
 import { SEMANTIC_DOMAIN_LABELS, type SemanticDomain } from "../../lib/domain/semantic-content";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
@@ -34,7 +38,13 @@ export const Route = createFileRoute("/scripture/$book/$chapter")({
     return null;
   },
   pendingComponent: () => <EmptyReader message={t("scripture.loadingCorpusChapter")} />,
-  errorComponent: () => <EmptyReader message={t("scripture.corpusChapterError")} />,
+  errorComponent: (props) => (
+    <RouteError
+      {...props}
+      title={t("scripture.corpusChapterError")}
+      description="Tente novamente ou escolha outro capítulo."
+    />
+  ),
   head: ({ params }) => {
     const book = ScriptureKnowledgeEngine.getBook(params.book);
     const localizedBook = book ? bookLabel(book.id, book.name) : t("navigation.scripture");
@@ -63,8 +73,6 @@ function ChapterReader() {
   );
   const [view, setView] = useState<ReaderView>("single");
   const [showExplanations, setShowExplanations] = useState(true);
-  const [privateKnowledge, setPrivateKnowledge] = useState<WorkspacePassageKnowledgeLayer>();
-  const [privateKnowledgeError, setPrivateKnowledgeError] = useState<string>();
   const [sourceFilter, setSourceFilter] = useState("");
   const [domainFilter, setDomainFilter] = useState("");
   const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
@@ -85,7 +93,21 @@ function ChapterReader() {
     }),
     [activeRef, selectedVerse],
   );
-  const bundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef) ?? loadedBundle;
+  // Built once per chapter: the engine returns a new object on every call, and effects below
+  // depend on it (as a dependency it made the reader reload without end).
+  const bundle = useMemo(
+    () => ScriptureKnowledgeEngine.getPassageKnowledgeBundle(activeRef) ?? loadedBundle,
+    [activeRef, loadedBundle],
+  );
+  const privateKnowledgeQuery = useWorkspaceQuery(
+    ["passage-knowledge", bookId, chapter],
+    () => WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null),
+    { refreshOnKnowledgeChange: true },
+  );
+  const privateKnowledge = privateKnowledgeQuery.data;
+  const privateKnowledgeError = privateKnowledgeQuery.error
+    ? errorMessage(privateKnowledgeQuery.error)
+    : undefined;
   const editions = bundle?.passage.editions ?? ScriptureKnowledgeEngine.listEditions();
   const effectiveEditionId = editions.some((edition) => edition.id === editionId)
     ? editionId
@@ -129,28 +151,6 @@ function ChapterReader() {
     setSelectedVerse(null);
   }, [activeRef]);
 
-  useEffect(() => {
-    let active = true;
-    const load = () => {
-      setPrivateKnowledgeError(undefined);
-      void WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null).then(
-        (value) => {
-          if (active) setPrivateKnowledge(value);
-        },
-        (cause: unknown) => {
-          if (active)
-            setPrivateKnowledgeError(cause instanceof Error ? cause.message : String(cause));
-        },
-      );
-    };
-    load();
-    window.addEventListener("scriptorium:knowledge-changed", load);
-    return () => {
-      active = false;
-      window.removeEventListener("scriptorium:knowledge-changed", load);
-    };
-  }, [activeRef, bundle]);
-
   const privateSources = useMemo(
     () => [
       ...new Map(
@@ -172,18 +172,36 @@ function ChapterReader() {
       ].sort(),
     [privateKnowledge],
   );
+  // Grouped once per answer, not re-filtered by every verse on every render.
+  const privateItemsByVerse = useMemo(() => {
+    const items = privateKnowledge?.items ?? [];
+    return new Map(
+      (bundle?.passage.verses ?? []).map((verse) => [
+        verse.verse,
+        items.filter((item) => knowledgeItemCoversVerse(item, bookId, chapter, verse.verse)),
+      ]),
+    );
+  }, [bookId, bundle, chapter, privateKnowledge]);
+  const annotationsByToken = useMemo(() => {
+    const byToken = new Map<string, LinguisticAnnotation[]>();
+    if (bundle && hasAvailableData(bundle.linguisticAnnotations))
+      for (const annotation of bundle.linguisticAnnotations.data)
+        byToken.set(annotation.targetTokenId, [
+          ...(byToken.get(annotation.targetTokenId) ?? []),
+          annotation,
+        ]);
+    return byToken;
+  }, [bundle]);
   const unconfirmedItems = useMemo(
     () => (privateKnowledge?.items ?? []).filter((item) => item.reviewState === "pending"),
     [privateKnowledge],
   );
   const unconfirmedVerses = useMemo(
     () =>
-      (bundle?.passage.verses ?? [])
-        .map((verse) => verse.verse)
-        .filter((verse) =>
-          unconfirmedItems.some((item) => knowledgeItemCoversVerse(item, bookId, chapter, verse)),
-        ),
-    [bookId, bundle, chapter, unconfirmedItems],
+      [...privateItemsByVerse]
+        .filter(([, items]) => items.some((item) => item.reviewState === "pending"))
+        .map(([verse]) => verse),
+    [privateItemsByVerse],
   );
   const setVerseOpen = (verse: number, open: boolean) =>
     setOpenVerses((current) => {
@@ -343,7 +361,7 @@ function ChapterReader() {
                           bookId={book.id}
                           chapter={chapter}
                           verse={v.verse}
-                          items={privateKnowledge?.items ?? []}
+                          items={privateItemsByVerse.get(v.verse) ?? NO_ITEMS}
                           open={openVerses.has(v.verse)}
                           onOpenChange={(open) => setVerseOpen(v.verse, open)}
                           {...(sourceFilter ? { sourceId: sourceFilter } : {})}
@@ -399,13 +417,9 @@ function ChapterReader() {
                       verse={v}
                       bookName={bookLabel(book.id, book.name)}
                       chapter={chapter}
-                      annotations={
-                        hasAvailableData(bundle.linguisticAnnotations)
-                          ? bundle.linguisticAnnotations.data.filter((annotation) =>
-                              v.original?.some((token) => token.id === annotation.targetTokenId),
-                            )
-                          : []
-                      }
+                      annotations={(v.original ?? []).flatMap(
+                        (token) => annotationsByToken.get(token.id) ?? [],
+                      )}
                     />
                   ))}
                 </div>
@@ -443,6 +457,8 @@ function ChapterReader() {
     </div>
   );
 }
+
+const NO_ITEMS: WorkspacePassageKnowledgeItem[] = [];
 
 function EmptyReader({ message, hint }: { message: string; hint?: string }) {
   return (

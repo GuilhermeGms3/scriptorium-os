@@ -1,11 +1,10 @@
 import { Search } from "lucide-react";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import type { BibliographicSource } from "../../lib/domain/bibliography";
-import { LibraryRepository, type SourceDetails } from "../../lib/repositories/library-repository";
+import { useEffect, useMemo, useRef, useState } from "react";
+import { errorMessage } from "@/lib/utils";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { LibraryRepository } from "../../lib/repositories/library-repository";
 import { ResourceDetails } from "./resource-details";
 import { ResourceRow } from "./resource-row";
-
-type Collections = Awaited<ReturnType<typeof LibraryRepository.listCollections>>;
 
 /** Bibliographic records and the reader's collections, with the selected record's details. */
 export function ReferencesSection({
@@ -17,66 +16,48 @@ export function ReferencesSection({
   initialSourceId?: string;
   onCountChange?: (count: number) => void;
 }) {
-  const [sources, setSources] = useState<BibliographicSource[]>([]);
-  const [collections, setCollections] = useState<Collections>([]);
   const [collectionId, setCollectionId] = useState<string>();
   const [selectedId, setSelectedId] = useState<string | undefined>(initialSourceId);
-  const [details, setDetails] = useState<SourceDetails | null>(null);
   const [query, setQuery] = useState("");
   const [newCollection, setNewCollection] = useState("");
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string>();
+  const [actionError, setActionError] = useState<string>();
   const reportCount = useRef(onCountChange);
   useEffect(() => {
     reportCount.current = onCountChange;
   }, [onCountChange]);
 
-  const refresh = useCallback(async () => {
-    setLoading(true);
-    setError(undefined);
-    try {
-      const [nextSources, nextCollections] = await Promise.all([
-        LibraryRepository.listSources(collectionId ? { collectionId } : {}),
-        LibraryRepository.listCollections(),
-      ]);
-      setSources(nextSources);
-      setCollections(nextCollections);
-      if (!collectionId) reportCount.current?.(nextSources.length);
-      setSelectedId((current) =>
-        current && nextSources.some((source) => source.id === current)
-          ? current
-          : nextSources[0]?.id,
-      );
-    } catch (cause) {
-      setError(cause instanceof Error ? cause.message : String(cause));
-    } finally {
-      setLoading(false);
-    }
-  }, [collectionId]);
-
+  // Each collection keeps its own answer: switching quickly can no longer show the wrong list.
+  const allSources = useWorkspaceQuery(["library-sources", "all", refreshKey], () =>
+    LibraryRepository.listSources(),
+  );
+  const collectionSources = useWorkspaceQuery(
+    ["library-sources", collectionId, refreshKey],
+    () => LibraryRepository.listSources(collectionId ? { collectionId } : {}),
+    { enabled: collectionId !== undefined },
+  );
+  const collectionsQuery = useWorkspaceQuery(["library-collections", refreshKey], () =>
+    LibraryRepository.listCollections(),
+  );
+  const listQuery = collectionId ? collectionSources : allSources;
+  const sources = useMemo(() => listQuery.data ?? [], [listQuery.data]);
+  const collections = collectionsQuery.data ?? [];
+  const loading = listQuery.isPending;
+  const error = listQuery.error ?? collectionsQuery.error;
   useEffect(() => {
-    void refresh();
-  }, [refresh, refreshKey]);
-  useEffect(() => {
-    if (!selectedId) {
-      setDetails(null);
-      return;
-    }
-    let active = true;
-    void LibraryRepository.getSourceDetails(selectedId)
-      .then((value) => {
-        if (active) setDetails(value);
-      })
-      .catch((cause: unknown) => {
-        if (active) setError(cause instanceof Error ? cause.message : String(cause));
-      });
-    return () => {
-      active = false;
-    };
-  }, [selectedId]);
-  const refreshDetails = useCallback(async () => {
-    if (selectedId) setDetails(await LibraryRepository.getSourceDetails(selectedId));
-  }, [selectedId]);
+    if (allSources.data) reportCount.current?.(allSources.data.length);
+  }, [allSources.data]);
+  // The chosen record while it is in the list shown; otherwise the first one.
+  const activeId =
+    selectedId && sources.some((source) => source.id === selectedId) ? selectedId : sources[0]?.id;
+  const detailsQuery = useWorkspaceQuery(
+    ["library-source-details", activeId],
+    () => LibraryRepository.getSourceDetails(activeId ?? ""),
+    { enabled: activeId !== undefined },
+  );
+  const details = activeId ? (detailsQuery.data ?? null) : null;
+  const refreshDetails = async () => {
+    await detailsQuery.refetch();
+  };
 
   const filtered = useMemo(() => {
     const normalized = query.toLocaleLowerCase().trim();
@@ -91,11 +72,16 @@ export function ReferencesSection({
 
   const createCollection = async () => {
     if (!newCollection.trim()) return;
-    const id = await LibraryRepository.createCollection(newCollection);
-    if (selectedId) await LibraryRepository.addSourceToCollection(selectedId, id);
-    setNewCollection("");
-    setCollectionId(id);
-    await refresh();
+    setActionError(undefined);
+    try {
+      const id = await LibraryRepository.createCollection(newCollection);
+      if (activeId) await LibraryRepository.addSourceToCollection(activeId, id);
+      setNewCollection("");
+      setCollectionId(id);
+      await collectionsQuery.refetch();
+    } catch (cause) {
+      setActionError(errorMessage(cause));
+    }
   };
 
   return (
@@ -107,7 +93,7 @@ export function ReferencesSection({
           onClick={() => setCollectionId(undefined)}
           className={`flex w-full items-center justify-between rounded px-2 py-1.5 text-left text-sm ${!collectionId ? "bg-accent font-medium" : "text-muted-foreground hover:bg-accent/50"}`}
         >
-          Todas <span className="font-mono text-xs">{sources.length}</span>
+          Todas <span className="font-mono text-xs">{allSources.data?.length ?? "…"}</span>
         </button>
         {collections.map((collection) => (
           <button
@@ -137,8 +123,13 @@ export function ReferencesSection({
             disabled={!newCollection.trim()}
             className="mt-1 h-9 w-full rounded-md bg-primary text-sm text-primary-foreground disabled:opacity-50"
           >
-            Criar{selectedId ? " e adicionar" : ""}
+            Criar{activeId ? " e adicionar" : ""}
           </button>
+          {actionError && (
+            <p role="alert" className="mt-1 px-2 text-xs text-destructive">
+              {actionError}
+            </p>
+          )}
         </div>
       </aside>
       <div className="min-w-0 md:border-r-0 xl:border-r xl:border-border">
@@ -156,7 +147,7 @@ export function ReferencesSection({
           <p className="p-6 text-sm italic text-muted-foreground">Abrindo índice local…</p>
         ) : error ? (
           <p role="alert" className="p-6 text-sm text-destructive">
-            {error}
+            {errorMessage(error)}
           </p>
         ) : filtered.length ? (
           filtered.map((source) => (
@@ -168,7 +159,7 @@ export function ReferencesSection({
                   ? details.authors.map((author) => author.canonicalName)
                   : []
               }
-              active={source.id === selectedId}
+              active={source.id === activeId}
               onSelect={() => setSelectedId(source.id)}
             />
           ))
@@ -184,6 +175,10 @@ export function ReferencesSection({
       <aside className="hidden overflow-y-auto xl:block">
         {details ? (
           <ResourceDetails details={details} onChanged={refreshDetails} />
+        ) : detailsQuery.error ? (
+          <p role="alert" className="p-5 text-sm text-destructive">
+            Os detalhes não puderam ser carregados: {errorMessage(detailsQuery.error)}
+          </p>
         ) : (
           <p className="p-5 text-sm italic text-muted-foreground">Selecione uma referência.</p>
         )}

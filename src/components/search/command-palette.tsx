@@ -11,40 +11,30 @@ import {
   Settings,
   Sun,
 } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { errorMessage } from "@/lib/utils";
+import { useDebouncedValue, useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
-import { searchWorkspace, type SearchHit } from "../../lib/application/search-workspace";
+import { searchWorkspace } from "../../lib/application/search-workspace";
 import { t } from "../../lib/i18n";
 
 export function CommandPalette() {
   const { paletteOpen, setPaletteOpen, resolvedTheme, setTheme, createStudy } = useWorkbench();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
-  const [hits, setHits] = useState<SearchHit[]>([]);
-  const [searching, setSearching] = useState(false);
-
-  useEffect(() => {
-    if (!query.trim()) {
-      setHits([]);
-      setSearching(false);
-      return;
-    }
-    let active = true;
-    setSearching(true);
-    const timer = window.setTimeout(() => {
-      void searchWorkspace(query)
-        .then((results) => {
-          if (active) setHits(results);
-        })
-        .finally(() => {
-          if (active) setSearching(false);
-        });
-    }, 180);
-    return () => {
-      active = false;
-      window.clearTimeout(timer);
-    };
-  }, [query]);
+  const settledQuery = useDebouncedValue(query.trim(), 180);
+  const searchQuery = useWorkspaceQuery(
+    ["search", settledQuery],
+    () => searchWorkspace(settledQuery),
+    { enabled: settledQuery !== "" },
+  );
+  // Only the answer to what is typed now: a failed or slower search never shows older results.
+  const hits = useMemo(
+    () => (settledQuery === query.trim() ? (searchQuery.data ?? []) : []),
+    [query, searchQuery.data, settledQuery],
+  );
+  const searching = query.trim() !== "" && (settledQuery !== query.trim() || searchQuery.isPending);
+  const searchError = searchQuery.error ? errorMessage(searchQuery.error) : undefined;
 
   const commands = useMemo(
     () => [
@@ -143,7 +133,12 @@ export function CommandPalette() {
                 </span>
               }
             >
-              {!searching && hits.length === 0 && (
+              {searchError && (
+                <p role="alert" className="py-8 text-center text-sm text-destructive">
+                  A busca falhou: {searchError}
+                </p>
+              )}
+              {!searching && !searchError && hits.length === 0 && (
                 <p className="py-8 text-center text-sm text-muted-foreground">
                   {t("search.noResults")}
                 </p>

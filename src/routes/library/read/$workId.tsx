@@ -8,6 +8,8 @@ import {
   type PrimarySourceDocument,
 } from "../../../lib/repositories/primary-source-repository";
 import { StudyRepository } from "../../../lib/repositories/study-repository";
+import { errorMessage } from "@/lib/utils";
+import { useWorkspaceQuery } from "../../../hooks/use-workspace-query";
 
 interface ReaderSearch {
   unit?: string;
@@ -22,7 +24,10 @@ export const Route = createFileRoute("/library/read/$workId")({
 function PrimarySourceReader() {
   const { workId } = Route.useParams();
   const { unit: requestedUnit } = Route.useSearch();
-  const [document, setDocument] = useState<PrimarySourceDocument | null>();
+  const documentQuery = useWorkspaceQuery(["primary-source", workId], () =>
+    PrimarySourceRepository.getDocument(workId),
+  );
+  const document: PrimarySourceDocument | null | undefined = documentQuery.data;
   const [selectedId, setSelectedId] = useState<string | undefined>(requestedUnit);
   const [unitQuery, setUnitQuery] = useState("");
   const [copied, setCopied] = useState(false);
@@ -35,16 +40,8 @@ function PrimarySourceReader() {
   const pendingTranslation = useRef<AbortController | null>(null);
 
   useEffect(() => {
-    let active = true;
-    void PrimarySourceRepository.getDocument(workId).then((value) => {
-      if (!active) return;
-      setDocument(value);
-      setSelectedId((current) => current ?? value?.units[0]?.id);
-    });
-    return () => {
-      active = false;
-    };
-  }, [workId]);
+    if (document) setSelectedId((current) => current ?? document.units[0]?.id);
+  }, [document]);
 
   const selected = useMemo(
     () => document?.units.find((unit) => unit.id === selectedId) ?? document?.units[0],
@@ -97,6 +94,19 @@ function PrimarySourceReader() {
       controller.abort();
     };
   }, [document?.language, selected]);
+  if (documentQuery.error)
+    return (
+      <div role="alert" className="p-6 text-sm text-destructive">
+        <p>Esta obra não pôde ser aberta: {errorMessage(documentQuery.error)}</p>
+        <button
+          type="button"
+          onClick={() => void documentQuery.refetch()}
+          className="mt-3 h-9 rounded-md border border-input px-3 text-sm text-foreground hover:bg-accent"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
   if (document === undefined)
     return <p className="p-6 text-sm text-muted-foreground">Abrindo corpus primário…</p>;
   if (!document)

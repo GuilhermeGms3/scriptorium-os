@@ -1,11 +1,10 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
+import { errorMessage } from "@/lib/utils";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { BarChart3, Pause, Play, RefreshCw } from "lucide-react";
 import { LibraryCoverageService } from "../../lib/application/library-coverage-service";
 import { LibraryKnowledgeOrchestrator } from "../../lib/application/library-knowledge-orchestrator";
-import type {
-  LibraryCoverageReport,
-  LibraryPipelineProgress,
-} from "../../lib/domain/library-pipeline";
+import type { LibraryPipelineProgress } from "../../lib/domain/library-pipeline";
 import { ScriptureRepository } from "../../lib/repositories/scripture-repository";
 import {
   DOCUMENT_PROFILE_LABELS,
@@ -41,7 +40,6 @@ export function LibraryPipelineOverview() {
     edition.language.startsWith("pt"),
   );
   const [editionId, setEditionId] = useState(editions[0]?.id ?? "");
-  const [report, setReport] = useState<LibraryCoverageReport>();
   const [progress, setProgress] = useState<LibraryPipelineProgress>();
   const [error, setError] = useState<string>();
   const [result, setResult] = useState<string>();
@@ -53,18 +51,18 @@ export function LibraryPipelineOverview() {
   const [contextual, setContextual] = useState(false);
   const [sourceSchemeConfirmed, setSourceSchemeConfirmed] = useState(false);
   const controller = useRef<AbortController | null>(null);
-  const refresh = useCallback(async () => setReport(await LibraryCoverageService.report()), []);
-  useEffect(() => {
-    void refresh().catch((cause) =>
-      setError(cause instanceof Error ? cause.message : String(cause)),
-    );
-    const reload = () => void refresh();
-    window.addEventListener("scriptorium:knowledge-changed", reload);
-    return () => {
-      controller.current?.abort();
-      window.removeEventListener("scriptorium:knowledge-changed", reload);
-    };
-  }, [refresh]);
+  // Six aggregate queries: refreshed at most a few times a second while processing, never twice
+  // at once (it used to restart on every change event, competing with the processing itself).
+  const reportQuery = useWorkspaceQuery(
+    ["library-coverage-report"],
+    () => LibraryCoverageService.report(),
+    { refreshOnKnowledgeChange: true },
+  );
+  const report = reportQuery.data;
+  const refresh = async () => {
+    await reportQuery.refetch();
+  };
+  useEffect(() => () => controller.current?.abort(), []);
   const run = async () => {
     if (!editionId || controller.current) return;
     setError(undefined);
@@ -274,6 +272,11 @@ export function LibraryPipelineOverview() {
             </ul>
           </details>
         ) : null}
+        {reportQuery.error && (
+          <p role="alert" className="text-sm text-destructive">
+            O relatório não pôde ser calculado: {errorMessage(reportQuery.error)}
+          </p>
+        )}
         {error && (
           <p role="alert" className="mt-2 text-xs text-destructive">
             {error}

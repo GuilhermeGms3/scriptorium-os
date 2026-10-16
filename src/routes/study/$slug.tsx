@@ -6,6 +6,8 @@ import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../../lib/i18n";
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import type { ResearchQuestion } from "../../lib/domain/research";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { errorMessage } from "@/lib/utils";
 import { studyGuideById } from "../../lib/content/study-guides";
 import { PageContainer } from "../../components/layout/page-container";
 import { PageHeader } from "../../components/layout/page-header";
@@ -35,12 +37,17 @@ function StudyWorkspace() {
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [question, setQuestion] = useState("");
-  const [questions, setQuestions] = useState<ResearchQuestion[]>([]);
   const lenses = AnalysisRepository.listLenses();
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  useEffect(() => {
-    if (study) void StudyRepository.listResearchQuestions(study.id).then(setQuestions);
-  }, [study]);
+  // Keyed by id: `study` is a new object after every note, which used to refetch the questions.
+  const studyId = study?.id;
+  const questionsQuery = useWorkspaceQuery(
+    ["research-questions", studyId],
+    () => StudyRepository.listResearchQuestions(studyId),
+    { enabled: studyId !== undefined },
+  );
+  const questions = questionsQuery.data ?? [];
+  const [questionError, setQuestionError] = useState<string>();
 
   if (!study && workspacePersistence === "loading")
     return <p className="p-8 text-sm text-muted-foreground">Abrindo workspace local…</p>;
@@ -109,13 +116,17 @@ function StudyWorkspace() {
             event.preventDefault();
             const clean = question.trim();
             if (!clean) return;
+            setQuestionError(undefined);
             void StudyRepository.createResearchQuestion({
               question: clean,
               studyId: study.id,
-            }).then(async () => {
-              setQuestion("");
-              setQuestions(await StudyRepository.listResearchQuestions(study.id));
-            });
+            }).then(
+              async () => {
+                setQuestion("");
+                await questionsQuery.refetch();
+              },
+              (cause: unknown) => setQuestionError(errorMessage(cause)),
+            );
           }}
         >
           <label className="min-w-0 flex-1">
@@ -134,14 +145,20 @@ function StudyWorkspace() {
             Adicionar
           </button>
         </form>
+        {(questionError || questionsQuery.error) && (
+          <p role="alert" className="mt-2 text-xs text-destructive">
+            {questionError ??
+              `As perguntas não puderam ser carregadas: ${errorMessage(questionsQuery.error)}`}
+          </p>
+        )}
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {questions.map((item) => (
             <ResearchQuestionItem
               key={item.id}
               item={item}
-              onChanged={async () =>
-                setQuestions(await StudyRepository.listResearchQuestions(study.id))
-              }
+              onChanged={async () => {
+                await questionsQuery.refetch();
+              }}
             />
           ))}
         </ul>

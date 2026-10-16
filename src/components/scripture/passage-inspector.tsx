@@ -1,13 +1,11 @@
 /** Passage inspector backed by the PassageKnowledgeBundle. */
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import type { Argument } from "../../lib/domain/argument";
 import type { TextAnchor } from "../../lib/domain/knowledge";
 import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import { knowledgeLabel } from "../../lib/content/knowledge-presentation";
-import type { ResearchQuestion } from "../../lib/domain/research";
-import type { WorkspacePassageKnowledgeLayer } from "../../lib/domain/workspace-passage-knowledge";
 import {
   COVERAGE_LABELS,
   PASSAGE_KNOWLEDGE_GROUPS,
@@ -24,6 +22,8 @@ import { StudyRepository } from "../../lib/repositories/study-repository";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { errorMessage } from "@/lib/utils";
 import { SourceReferenceCard } from "../common/source-reference";
 import {
   bookLabel,
@@ -126,79 +126,57 @@ function PassageViewpoints({ bundle }: { bundle: PassageKnowledgeBundle | null }
 export function PassageInspector() {
   const { passageContext } = useWorkbench();
   const verseSelected = passageContext?.ref.verseStart !== undefined;
-  const [researchQuestions, setResearchQuestions] = useState<ResearchQuestion[]>([]);
-  const [workspaceKnowledge, setWorkspaceKnowledge] =
-    useState<WorkspacePassageKnowledgeLayer | null>(null);
-  useEffect(() => {
-    let active = true;
-    if (!passageContext) {
-      setResearchQuestions([]);
-      return;
-    }
-    void StudyRepository.listResearchQuestions().then((questions) => {
-      if (!active) return;
-      setResearchQuestions(
-        questions.filter((question) =>
-          question.links.some(
-            (link) =>
-              link.targetKind === "passage" &&
-              link.anchor?.kind === "passage" &&
-              link.anchor.passage?.bookId !== undefined &&
-              link.anchor.passage.chapter !== undefined &&
-              passageRefsOverlap(
-                {
-                  workId: link.anchor.passage.workId,
-                  bookId: link.anchor.passage.bookId,
-                  chapter: link.anchor.passage.chapter,
-                  ...(link.anchor.passage.verseStart !== undefined
-                    ? { verseStart: link.anchor.passage.verseStart }
-                    : {}),
-                  ...(link.anchor.passage.verseEnd !== undefined
-                    ? { verseEnd: link.anchor.passage.verseEnd }
-                    : {}),
-                  versificationSchemeId: link.anchor.passage.versificationSchemeId,
-                },
-                passageContext.ref,
-              ),
+  const ref = passageContext?.ref;
+  // All questions once (they are few), filtered here: a verse click no longer reloads them all.
+  const questionsQuery = useWorkspaceQuery(
+    ["research-questions", "all"],
+    () => StudyRepository.listResearchQuestions(),
+    { enabled: ref !== undefined },
+  );
+  const researchQuestions = useMemo(
+    () =>
+      !ref
+        ? []
+        : (questionsQuery.data ?? []).filter((question) =>
+            question.links.some(
+              (link) =>
+                link.targetKind === "passage" &&
+                link.anchor?.kind === "passage" &&
+                link.anchor.passage?.bookId !== undefined &&
+                link.anchor.passage.chapter !== undefined &&
+                passageRefsOverlap(
+                  {
+                    workId: link.anchor.passage.workId,
+                    bookId: link.anchor.passage.bookId,
+                    chapter: link.anchor.passage.chapter,
+                    ...(link.anchor.passage.verseStart !== undefined
+                      ? { verseStart: link.anchor.passage.verseStart }
+                      : {}),
+                    ...(link.anchor.passage.verseEnd !== undefined
+                      ? { verseEnd: link.anchor.passage.verseEnd }
+                      : {}),
+                    versificationSchemeId: link.anchor.passage.versificationSchemeId,
+                  },
+                  ref,
+                ),
+            ),
           ),
-        ),
-      );
-    });
-    return () => {
-      active = false;
-    };
-  }, [passageContext]);
-  useEffect(() => {
-    let active = true;
-    if (!passageContext) {
-      setWorkspaceKnowledge(null);
-      return;
-    }
-    const curated = ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref);
-    let generation = 0;
-    const reload = () => {
-      const requestGeneration = ++generation;
-      void WorkspacePassageKnowledgeService.load(passageContext.ref, curated, undefined, {
-        includePending: true,
-      }).then(
-        (layer) => {
-          if (active && requestGeneration === generation) setWorkspaceKnowledge(layer);
-        },
-        () => {
-          if (active && requestGeneration === generation) setWorkspaceKnowledge(null);
-        },
-      );
-    };
-    reload();
-    window.addEventListener("scriptorium:knowledge-changed", reload);
-    return () => {
-      active = false;
-      window.removeEventListener("scriptorium:knowledge-changed", reload);
-    };
-  }, [passageContext]);
-  const bundle = passageContext
-    ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(passageContext.ref)
-    : null;
+    [questionsQuery.data, ref],
+  );
+  // Built once per passage; the engine returns a new object on every call.
+  const bundle = useMemo(
+    () => (ref ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(ref) : null),
+    [ref],
+  );
+  const knowledgeQuery = useWorkspaceQuery(
+    ["passage-inspector-knowledge", ref],
+    () =>
+      ref
+        ? WorkspacePassageKnowledgeService.load(ref, bundle, undefined, { includePending: true })
+        : Promise.resolve(null),
+    { enabled: ref !== undefined, refreshOnKnowledgeChange: true },
+  );
+  const workspaceKnowledge = knowledgeQuery.data ?? null;
   const label = passageContext ? passageLabel(passageContext.ref) : t("shell.noPassage");
   const historicalAnalyses =
     bundle && hasAvailableData(bundle.analyses)
@@ -370,6 +348,11 @@ export function PassageInspector() {
               </section>
             ) : null}
             {workspaceKnowledge && <CoverageSummary coverage={workspaceKnowledge.coverage} />}
+            {knowledgeQuery.error && (
+              <p role="alert" className="text-xs text-destructive">
+                A biblioteca privada não pôde ser carregada: {errorMessage(knowledgeQuery.error)}
+              </p>
+            )}
             {bundle && hasAvailableData(bundle.lemmas) && (
               <section>
                 <h3 className="meta-label">{t("scripture.keyTerms")}</h3>

@@ -13,6 +13,7 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WorkbenchProvider } from "../lib/workbench/workbench-context";
 import { AppShell } from "../components/shell/app-shell";
+import { WorkspaceQueryRefresh } from "../hooks/use-workspace-query";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
 
 function NotFoundComponent() {
@@ -130,6 +131,7 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <WorkspaceQueryRefresh />
       <WorkbenchProvider>
         <AppShell>
           <Outlet />
