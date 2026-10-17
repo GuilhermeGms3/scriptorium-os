@@ -114,6 +114,17 @@ export const ContextualReadingService = {
           text: page.text.slice(start, end),
         });
       }
+      const visual = note.analysis.sourceVisual;
+      if (
+        visual &&
+        (!literal ||
+          !spans.some(
+            (span) =>
+              span.pageIndex + 1 === visual.physicalPage &&
+              span.text.replace(/\s/gu, "").includes(visual.caption.replace(/\s/gu, "")),
+          ))
+      )
+        throw new Error("Ilustração exige legenda literal na página citada da própria fonte.");
       const seed = await digest(
         JSON.stringify({
           source: note.sourceChecksum,

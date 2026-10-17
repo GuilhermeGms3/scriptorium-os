@@ -182,9 +182,24 @@ export class InstallationWorkspace {
     try {
       const cover = /^\/api\/workspace\/covers\/([a-f0-9]{64})$/.exec(url.pathname)?.[1];
       if (cover && request.method === "GET") {
-        const folder = join(this.root, "covers");
+        const pageValue = url.searchParams.get("page");
+        const page = pageValue === null ? 1 : Number(pageValue);
+        if (
+          !Number.isSafeInteger(page) ||
+          page < 1 ||
+          (pageValue !== null && !/^[1-9]\d{0,3}$/u.test(pageValue))
+        )
+          return json({ error: "Página inválida." }, 422);
+        if (pageValue !== null) {
+          const document = this.database
+            .prepare("SELECT page_count FROM private_documents WHERE checksum=?")
+            .get(cover);
+          if (!document || page > Number(document["page_count"]))
+            return json({ error: "Página não instalada." }, 404);
+        }
+        const folder = join(this.root, pageValue === null ? "covers" : "page-previews");
         mkdirSync(folder, { recursive: true });
-        const path = join(folder, `${cover}.png`);
+        const path = join(folder, `${cover}${pageValue === null ? "" : `-${page}`}.png`);
         if (!existsSync(path)) {
           const pdf = join(this.root, "documents", `${cover}.pdf`);
           if (!existsSync(pdf)) return json({ error: "Original indisponível." }, 404);
@@ -198,7 +213,18 @@ export class InstallationWorkspace {
                 try {
                   await runFile(
                     "pdftoppm",
-                    ["-f", "1", "-l", "1", "-scale-to", "420", "-singlefile", "-png", pdf, partial],
+                    [
+                      "-f",
+                      String(page),
+                      "-l",
+                      String(page),
+                      "-scale-to",
+                      pageValue === null ? "420" : "1000",
+                      "-singlefile",
+                      "-png",
+                      pdf,
+                      partial,
+                    ],
                     { timeout: 30_000, maxBuffer: 1024 * 1024 },
                   );
                   renameSync(`${partial}.png`, path);

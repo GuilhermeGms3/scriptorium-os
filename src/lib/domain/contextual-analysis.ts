@@ -7,11 +7,25 @@ export const ContextualAnalysisSchema = z.object({
   mode: z.enum(["source-excerpt"]).optional(),
   sourceContext: z
     .object({
-      kind: z.enum(["patristic-exposition", "catechism", "confession"]),
+      kind: z.enum([
+        "patristic-exposition",
+        "catechism",
+        "confession",
+        "intertextual-commentary",
+        "biblical-handbook",
+      ]),
       locator: z.string().min(1).max(300),
       sectionPath: z.array(z.string().min(1).max(300)).max(8),
       authorLabel: z.string().min(1).max(200).optional(),
       traditionLabel: z.string().min(1).max(200).optional(),
+    })
+    .optional(),
+  /** A real page of this source, not an externally supplied image URL. */
+  sourceVisual: z
+    .object({
+      physicalPage: z.number().int().positive(),
+      kind: z.enum(["map", "archaeological-illustration"]),
+      caption: z.string().min(3).max(600),
     })
     .optional(),
   rationale: z.string().min(20).max(2000),

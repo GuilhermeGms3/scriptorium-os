@@ -20,6 +20,8 @@ cookies aleatórios HttpOnly/SameSite=Strict; não há CORS nem credenciais no b
   canônicas 001–022 são internas. Limites: 16 MiB e 2.000 statements por transação.
 - `GET/PUT /api/workspace/documents/<sha256>`: PDF até 256 MiB, verificado por assinatura e hash.
 - `GET /api/workspace/covers/<sha256>`: primeira página real via Poppler, cacheada por checksum.
+  `?page=<n>` solicita uma prévia de página instalada, com sessão e limites validados;
+  cache separado em `page-previews/`. Utilizado pelos mapas/contextos da passagem.
 - `POST /api/workspace/migration?offset=...`: snapshot em blocos de 4 MiB; `finish=1` valida e ativa.
 - `/api/workspace/translation/v1/info` e `/translate`: proxy para o companion configurado no servidor.
 

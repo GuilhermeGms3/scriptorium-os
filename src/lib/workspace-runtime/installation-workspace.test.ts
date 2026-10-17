@@ -1,6 +1,7 @@
 import {
   existsSync,
   mkdtempSync,
+  mkdirSync,
   readdirSync,
   rmSync,
   readFileSync,
@@ -59,6 +60,30 @@ async function command(workspace: InstallationWorkspace, session: string, body: 
   );
 }
 describe("single-user installation workspace", () => {
+  it("protects page previews with session and strict installed-page bounds", async () => {
+    const workspace = create();
+    const checksum = "a".repeat(64);
+    const base = `http://localhost:3000/api/workspace/covers/${checksum}`;
+    expect(
+      (
+        await workspace.handle(
+          new Request(`${base}?page=1`, { headers: { "x-scriptorium-workspace": "1" } }),
+        )
+      ).status,
+    ).toBe(401);
+    const session = await cookie(workspace);
+    const headers = { "x-scriptorium-workspace": "1", cookie: session };
+    for (const page of ["0", "-1", "1.5", "1e2", "../1", "10000", ""]) {
+      expect(
+        (
+          await workspace.handle(
+            new Request(`${base}?page=${encodeURIComponent(page)}`, { headers }),
+          )
+        ).status,
+      ).toBe(422);
+    }
+    expect((await workspace.handle(new Request(`${base}?page=1`, { headers }))).status).toBe(404);
+  });
   it("copies a complete validated snapshot without overwriting a nonempty destination", async () => {
     const source = create();
     const destination = create();
@@ -154,6 +179,23 @@ describe("single-user installation workspace", () => {
     expect(
       source.database.prepare("SELECT count(*) AS n FROM private_documents").get()?.["n"],
     ).toBe(1);
+    const previews = join(destination.root, "page-previews");
+    mkdirSync(previews);
+    const png = new Uint8Array([137, 80, 78, 71]);
+    writeFileSync(join(previews, `${checksum}-1.png`), png);
+    const preview = await destination.handle(
+      new Request(`http://localhost:3000/api/workspace/covers/${checksum}?page=1`, { headers }),
+    );
+    expect(preview.status).toBe(200);
+    expect(preview.headers.get("content-type")).toBe("image/png");
+    expect(new Uint8Array(await preview.arrayBuffer())).toEqual(png);
+    expect(
+      (
+        await destination.handle(
+          new Request(`http://localhost:3000/api/workspace/covers/${checksum}?page=2`, { headers }),
+        )
+      ).status,
+    ).toBe(404);
     expect(
       (
         await destination.handle(

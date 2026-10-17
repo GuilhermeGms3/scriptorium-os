@@ -427,14 +427,14 @@ def publish_staging(result: Extraction, snapshot: Snapshot, output: Path) -> Non
     files: list[dict[str, object]] = []
     for start in range(0, len(result.notes), 100):
         notes = result.notes[start : start + 100]
-        identifier = batch_id(snapshot.checksum, notes, VERSION)
+        identifier = batch_id(snapshot.checksum, notes, result.version)
         raw = json.dumps(
             {
                 "format": "scriptorium-contextual-reading-v1",
                 "batchId": identifier,
-                "analyst": f"deterministic-{VERSION}",
+                "analyst": f"deterministic-{result.version}",
                 "createdAt": datetime.now(UTC).isoformat().replace("+00:00", "Z"),
-                "coverage": "Contextos patrísticos/confessionais explícitos; notas originais, "
+                "coverage": "Contextos documentais explícitos; trechos originais, "
                 "sem inferência LLM; exceções no relatório privado.",
                 "notes": notes,
             },
@@ -449,7 +449,7 @@ def publish_staging(result: Extraction, snapshot: Snapshot, output: Path) -> Non
         "sourceChecksum": snapshot.checksum,
         "structureResolved": True,
         "sourceType": "source-context",
-        "version": VERSION,
+        "version": result.version,
         "processedPages": result.processed_pages,
         "extractedNotes": len(result.notes),
         "sections": result.sections,

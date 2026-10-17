@@ -605,3 +605,26 @@
 - Próximo: auditar exceções/alcances patrísticos finos, demais volumes de Agostinho e crosswalk
   do Saltério; obter aparato real de Jerusalém e tratar confissões sem inventar referências.
   Não anunciar leitura humana integral, cobertura individual universal ou todas as obras concluídas.
+
+## Beale, Crisóstomo/Mateus e MacArthur — 2026-10-17
+
+- `app.outlined_sources` e três perfis por checksum reutilizam o importador canônico, sem LLM.
+  Incorporados 1.414 vínculos: Beale 391 (120 seções/419 páginas, 11 livros do NT), Crisóstomo
+  521 (424 + 97 de recuperação, 85 lemas/895 páginas), MacArthur 502 (contextos de 66 livros).
+  Beale mantém 410 marcadores em exceção/27 páginas duplicadas; não anunciar integração integral.
+- Recuperação das homilias exclui folios/cabeçalhos de 11pt e desconta os spans existentes antes
+  de formar blocos. Não sobrescreveu os 424 iniciais. Introduções/índices não viraram exegese.
+- Campo opcional `sourceVisual` exige legenda literal na própria página citada. Três mapas
+  MacArthur conferidos nas páginas 36/81/407; não são fotografias arqueológicas. Painel direito
+  mostra contexto geral identificado, fonte/página e imagem lazy via endpoint local autenticado.
+  `covers/<sha>?page=n` usa cache privado e limites de documento; capa antiga preservada.
+- Dados continuam em `data/workspace`, não Git/Docker image. Dois backups consistentes antes
+  dos lotes; baseline, quick_check/FK e idempotência 0 novas/1.414 reutilizadas passaram.
+  Total contextual 45.949 incluindo 116 editoriais; cobertura com intervalos 30.559 endereços.
+- 397 TS/55 arquivos, 81 Python, typecheck/lint/build/Ruff/mypy passaram. Teste concorrente com
+  build pegou checksum transitório; repetido após build passou, sem enfraquecer integridade.
+  QA produção desktop/móvel: mapa Josué 11, fonte p.81 com mark, filtros Mateus, ausência em
+  Êxodo, teclado/lazy; sem erros de aplicação. Cabeçalho móvel estreito é dívida anterior.
+  Preview encerrado/lock liberado; Docker e tradução não reconstruídos. Próximo: calibrar
+  marcadores Beale restantes, mapear referências internas das homilias e classificar outros
+  mapas/imagens do acervo. Guia: `docs/architecture/outlined-source-contexts.md`.

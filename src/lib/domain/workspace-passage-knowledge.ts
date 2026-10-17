@@ -70,6 +70,29 @@ export interface WorkspacePassageKnowledgeLayer {
   coverage: PassageCoverageEntry[];
 }
 
+/** Only published, source-backed contexts. Pending detections are not explanations. */
+export function chapterContextItems(items: readonly WorkspacePassageKnowledgeItem[]) {
+  return items
+    .filter(
+      (item) =>
+        item.reviewState !== "pending" &&
+        item.passageRelation.payload.contextualAnalysis?.mode === "source-excerpt" &&
+        (item.passageRelation.payload.contextualAnalysis.sourceVisual ||
+          item.proposals.some(
+            (proposal) =>
+              proposal.payload.kind === "topic-assignment" &&
+              ["geography", "archaeology", "historical-context"].includes(proposal.payload.domain),
+          )),
+    )
+    .sort(
+      (a, b) =>
+        Number(Boolean(b.passageRelation.payload.contextualAnalysis?.sourceVisual)) -
+          Number(Boolean(a.passageRelation.payload.contextualAnalysis?.sourceVisual)) ||
+        a.document.title.localeCompare(b.document.title, "pt-BR") ||
+        (a.pages[0] ?? 0) - (b.pages[0] ?? 0),
+    );
+}
+
 export const COVERAGE_LABELS: Record<PassageCoverageArea, string> = {
   text: "Texto",
   "textual-criticism": "Crítica textual",

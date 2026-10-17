@@ -25,6 +25,7 @@ import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { errorMessage } from "@/lib/utils";
 import { SourceReferenceCard } from "../common/source-reference";
+import { ChapterSourceContext } from "./chapter-source-context";
 import {
   bookLabel,
   claimKindLabel,
@@ -254,6 +255,12 @@ export function PassageInspector() {
 
         <div className="min-h-0 flex-1 overflow-y-auto px-4 py-3">
           <Tabs.Content value="overview" className="space-y-4">
+            {workspaceKnowledge && (
+              <ChapterSourceContext
+                key={`${ref?.bookId}:${ref?.chapter}:${ref?.verseStart ?? "chapter"}`}
+                items={workspaceKnowledge.items}
+              />
+            )}
             {!hasOverviewContent && (
               <section className="rounded-md border border-dashed border-border p-3">
                 <h3 className="text-sm font-medium">

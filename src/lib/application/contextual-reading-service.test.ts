@@ -15,6 +15,8 @@ import { WorkspacePassageKnowledgeService } from "./workspace-passage-knowledge-
 import { renderToStaticMarkup } from "react-dom/server";
 import { createElement } from "react";
 import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
+import { ChapterSourceContext } from "../../components/scripture/chapter-source-context";
+import { chapterContextItems } from "../domain/workspace-passage-knowledge";
 
 const databases: DatabaseSync[] = [];
 function workspace() {
@@ -106,6 +108,60 @@ async function source(text = quote) {
   return { ...state, document };
 }
 describe("contextual reading and profile branch integration", () => {
+  it("validates literal image provenance and exposes work contexts in the inspector, not every verse", async () => {
+    const { adapter } = await source();
+    const pkg = batch();
+    const note = pkg.notes[0]!;
+    note.passage = { bookId: "genesis", versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION };
+    note.relationScope = "book";
+    note.domains = ["geography"];
+    note.analysis = {
+      ...analysis,
+      mode: "source-excerpt",
+      summary: quote,
+      contentType: "historical-context",
+      sourceContext: {
+        kind: "biblical-handbook",
+        locator: "Contexto do livro",
+        sectionPath: ["Gênesis"],
+      },
+      sourceVisual: { physicalPage: 2, kind: "map", caption: "Texto de evidência" },
+    };
+    await expect(ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).rejects.toThrow(
+      "legenda literal",
+    );
+    note.analysis.sourceVisual!.physicalPage = 1;
+    note.analysis.sourceVisual!.caption = "Legenda inventada";
+    await expect(ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).rejects.toThrow(
+      "legenda literal",
+    );
+    note.analysis.sourceVisual!.caption = "Texto de evidência";
+    await ContextualReadingService.importJson(JSON.stringify(pkg), adapter);
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 2 },
+      null,
+      adapter,
+    );
+    expect(chapterContextItems(layer.items)).toHaveLength(1);
+    const markup = renderToStaticMarkup(
+      createElement(ChapterSourceContext, { items: layer.items }),
+    );
+    expect(markup).toContain("Contexto do livro — não exclusivo deste capítulo");
+    expect(markup).not.toContain("<img"); // SSR and collapsed contexts do not render/download PDF pages.
+    expect(
+      chapterContextItems(layer.items.map((item) => ({ ...item, reviewState: "pending" }))),
+    ).toEqual([]);
+    const unrelated = await WorkspacePassageKnowledgeService.load(
+      { bookId: "exodus", chapter: 2 },
+      null,
+      adapter,
+    );
+    expect(chapterContextItems(unrelated.items)).toEqual([]);
+    expect(await ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).toMatchObject({
+      imported: 0,
+      reused: 1,
+    });
+  });
   it("preserves confessional citation semantics and source context on idempotent import", async () => {
     const { adapter, document, db } = await source();
     const pkg = batch();
