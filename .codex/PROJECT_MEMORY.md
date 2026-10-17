@@ -1,5 +1,37 @@
 # Project Memory
 
+## Fila de incorporação privada — 2026-10-16
+
+- Usuário autorizou incorporar os livros adicionais, com execução independente dos tokens/chat.
+  Inventário SHA-256: 52 arquivos na pasta de origem (51 PDF/1 EPUB), 31 já importados,
+  21 novos candidatos. Banco anterior: 37 documentos, incluindo seis vindos de outros locais.
+- Worker CLI `scripts/content/process-library-queue.ts` reutiliza repositório de documentos,
+  desmontagem determinística em lotes, perfis/papéis e pipeline canônico de referências explícitas.
+  Sem LLM; `sourceSchemeConfirmed=false`, propostas ficam para revisão, não são comentários
+  originais aprovados. Não aplicar perfis Shedd/Genebra automaticamente aos novos livros.
+- Fila operacional privada: `data/workspace/library-import-queue/queue.json`; comandos
+  `library:enqueue/run/status/retry/pause`. JSON guarda só jobs, não conhecimento/texto paralelo.
+  Helper `start-library-queue.ps1` inicia Node oculto fora do chat; `-RetryFailed` retoma falhas
+  com menos de três tentativas. Aguarda locks até quatro horas sem takeover. Sem auto-start no reboot.
+- Agendados 20 PDFs + EPUB Anchor bloqueado (importador ainda não implementado).
+  Worker real iniciado; snapshot durante execução: 41 documentos no banco, Wesley importado
+  com 4.465 páginas, Mar Morto concluído (1.387 páginas/1.964 unidades/4.408 propostas),
+  Beale em desmontagem. Doutrina Cristã incorporada sem texto, exige OCR. Consultar a fila/logs
+  para estado atual; não considerar todos concluídos a partir deste registro.
+- Falha transitória Windows EPERM na troca atômica do recibo interrompeu a estruturação Wesley.
+  Adicionado retry limitado de rename sem apagar recibo vivo, testado; worker atualizado aguarda
+  pausa normal do primeiro e retoma falhas/checkpoints. Recursos PDF.js de fontes/CMap/WASM locais.
+- Backup consistente `workspace.sqlite3.before-library-queue-*` criado antes de alterar o acervo.
+  Worker adquire o mesmo lock exclusivo de Vite/Docker, mantém posse até fechar SQLite; front pode
+  receber 423 enquanto a manutenção processa. Não iniciar outro escritor nem remover lock vivo.
+- Conferência durante execução: 232 propostas editoriais antigas com hash preservado, todos os
+  24.057 comentários originais anteriores intactos. Novos documentos não foram certificados.
+- Validação: 391 testes/54 arquivos passaram, typecheck, lint e build Node passaram;
+  teste de integração nativo importa/desmonta PDF sintético, mantém EPUB bloqueado, verifica
+  idempotência/FKs e recusa outro escritor. Sem redesign/frontend QA ou Docker nesta entrega.
+- Fonte canônica: `docs/architecture/library-import-queue.md`. Pendentes: OCR onde necessário,
+  EPUB, calibração contextual das novas fontes e isolamento/timeout forte por parser.
+
 ## Próxima prioridade editorial preservada (2026-10-16)
 
 - Antes de expandir módulos, completar/operar o pipeline especializado nas Bíblias comentadas:

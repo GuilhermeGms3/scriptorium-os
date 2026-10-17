@@ -1,4 +1,3 @@
-import pdfWorkerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import type { ExtractedPrivateDocument } from "../domain/private-document";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { PrivateDocumentStorage } from "../private-documents/private-document-storage";
@@ -147,6 +146,7 @@ async function extract(
   listener?: (progress: PrivateDocumentImportProgress) => void,
 ): Promise<ExtractedPrivateDocument> {
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs");
+  const { default: pdfWorkerUrl } = await import("pdfjs-dist/legacy/build/pdf.worker.min.mjs?url");
   pdfjs.GlobalWorkerOptions.workerSrc = pdfWorkerUrl;
   const task = pdfjs.getDocument({ data: new Uint8Array(buffer), isEvalSupported: false });
   const pdf = await task.promise;

@@ -219,8 +219,9 @@ export const LocalKnowledgePipelineService = {
     progress: (message: string) => void,
     signal: AbortSignal,
     sourceSchemeConfirmed = false,
+    database?: WorkspaceDatabase,
   ): Promise<void> {
-    const db = await getWorkspaceDatabase();
+    const db = database ?? (await getWorkspaceDatabase());
     const summary = await DocumentKnowledgeRepository.getSummary(documentId, db);
     if (summary?.status !== "ready")
       throw new Error("Desmonte o livro primeiro para obter unidades citáveis.");
