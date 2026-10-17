@@ -9,10 +9,10 @@ import {
   unlinkSync,
 } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { backup } from "node:sqlite";
+import { backup, DatabaseSync } from "node:sqlite";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   handleInstallationRequest,
@@ -61,6 +61,47 @@ async function command(workspace: InstallationWorkspace, session: string, body: 
   );
 }
 describe("single-user installation workspace", () => {
+  it("backs up the committed database before the notebook migration", () => {
+    const root = mkdtempSync(join(tmpdir(), "scriptorium-installation-"));
+    const original = new DatabaseSync(join(root, "workspace.sqlite3"));
+    original.exec(
+      "CREATE TABLE workspace_migrations(version INTEGER PRIMARY KEY,name TEXT UNIQUE NOT NULL,applied_at TEXT NOT NULL) STRICT",
+    );
+    const directory = resolve("src/lib/workspace-runtime/migrations");
+    for (const file of readdirSync(directory)
+      .filter((name) => /^\d{3}_.*\.sql$/.test(name) && Number(name.slice(0, 3)) <= 25)
+      .sort()) {
+      original.exec(readFileSync(join(directory, file), "utf8"));
+      original
+        .prepare("INSERT INTO workspace_migrations VALUES(?,?,?)")
+        .run(Number(file.slice(0, 3)), file, "old");
+    }
+    original.exec(
+      "PRAGMA journal_mode=WAL; INSERT INTO notes VALUES('note:before','Anterior','Não perder','markdown','old','old')",
+    );
+    original.close();
+    const workspace = new InstallationWorkspace(root);
+    workspaces.push(workspace);
+    const filename = readdirSync(root).find((name) =>
+      name.startsWith("workspace.before-notebook-v25-"),
+    );
+    expect(filename).toBeTruthy();
+    const saved = new DatabaseSync(join(root, filename!), { readOnly: true });
+    try {
+      expect(
+        saved.prepare("SELECT max(version) version FROM workspace_migrations").get()?.["version"],
+      ).toBe(25);
+      expect(saved.prepare("SELECT content FROM notes").get()?.["content"]).toBe("Não perder");
+      expect(saved.prepare("PRAGMA quick_check").get()?.["quick_check"]).toBe("ok");
+    } finally {
+      saved.close();
+    }
+    expect(
+      workspace.database.prepare("SELECT max(version) version FROM workspace_migrations").get()?.[
+        "version"
+      ],
+    ).toBe(26);
+  });
   it("proxies only authenticated pipeline operations and preserves recoverable status", async () => {
     const workspace = create();
     const base = "http://localhost:3000/api/workspace/pipeline/v1/search";

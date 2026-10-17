@@ -103,6 +103,15 @@ export class InstallationWorkspace {
       .get()?.["version"];
     if (typeof version === "number" && version > SCHEMA_VERSION)
       throw new Error("Unsupported workspace schema");
+    if (typeof version === "number" && version > 0 && version < 26) {
+      // Exclusive process lock is held. VACUUM INTO includes committed WAL data, unlike a
+      // filesystem copy of the main file. Failure aborts startup before changing the schema.
+      const backup = join(
+        this.root,
+        `workspace.before-notebook-v${version}-${Date.now()}-${randomBytes(4).toString("hex")}.sqlite3`,
+      );
+      database.prepare("VACUUM INTO ?").run(backup);
+    }
     for (const [name, sql] of Object.entries(migrations).sort()) {
       const number = Number(name.match(/\/(\d{3})_/)?.[1]);
       if (database.prepare("SELECT 1 FROM workspace_migrations WHERE version=?").get(number))

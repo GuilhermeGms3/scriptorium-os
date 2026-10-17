@@ -1,69 +1,16 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { passageReadingSource } from "../../lib/application/reading-source";
+import { useSourceReader } from "../study/source-reader-context";
 import type { WorkspacePassageKnowledgeItem } from "../../lib/domain/workspace-passage-knowledge";
 import { chapterContextItems } from "../../lib/domain/workspace-passage-knowledge";
-import {
-  installationAvailable,
-  installationFetch,
-} from "../../lib/workspace-runtime/installation-client";
-
-function SourcePagePreview({
-  documentId,
-  page,
-  caption,
-}: {
-  documentId: string;
-  page: number;
-  caption: string;
-}) {
-  const [image, setImage] = useState<string>();
-  const [failed, setFailed] = useState(false);
-  useEffect(() => {
-    let active = true;
-    let url: string | undefined;
-    const abort = new AbortController();
-    setImage(undefined);
-    setFailed(false);
-    void (async () => {
-      const checksum = /^private-document:([a-f0-9]{64})$/u.exec(documentId)?.[1];
-      if (!checksum || !(await installationAvailable()))
-        throw new Error("Prévia requer instalação local.");
-      const response = await installationFetch(`covers/${checksum}?page=${page}`, {
-        signal: abort.signal,
-      });
-      const blob = await response.blob();
-      if (!active) return;
-      url = URL.createObjectURL(blob);
-      setImage(url);
-    })().catch(() => {
-      if (active) setFailed(true);
-    });
-    return () => {
-      active = false;
-      abort.abort();
-      if (url) URL.revokeObjectURL(url);
-    };
-  }, [documentId, page]);
-  return image ? (
-    <img
-      src={image}
-      alt={`${caption} — página original ${page}`}
-      className="mt-2 h-auto w-full rounded border border-border"
-    />
-  ) : (
-    <p className="mt-2 text-xs text-muted-foreground" role="status">
-      {failed
-        ? "Prévia indisponível. Abra a fonte pelo link abaixo; nenhum texto foi perdido."
-        : "Carregando página original…"}
-    </p>
-  );
-}
+import { SourcePagePreview } from "../common/source-page-preview";
 
 function ContextEntry({ item }: { item: WorkspacePassageKnowledgeItem }) {
   const [open, setOpen] = useState(false);
+  const openSource = useSourceReader();
   const analysis = item.passageRelation.payload.contextualAnalysis!;
   const visual = analysis.sourceVisual;
   const page = visual?.physicalPage ?? (item.pages[0] ?? 0) + 1;
-  const href = `/library/document/${encodeURIComponent(item.document.id)}?page=${page}&unit=${encodeURIComponent(item.unit.id)}`;
   const scope = item.passageRelation.payload.relationScope;
   return (
     <details
@@ -83,12 +30,30 @@ function ContextEntry({ item }: { item: WorkspacePassageKnowledgeItem }) {
       {open && (
         <div className="mt-3 space-y-2">
           {visual && (
-            <SourcePagePreview documentId={item.document.id} page={page} caption={visual.caption} />
+            <button
+              type="button"
+              className="block w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`Ler ${visual.caption} e criar nota`}
+              onClick={() => openSource(passageReadingSource(item))}
+            >
+              <SourcePagePreview
+                documentId={item.document.id}
+                page={page}
+                caption={visual.caption}
+              />
+              <span className="mt-2 block text-xs text-primary underline">
+                Ampliar imagem e ler a fonte
+              </span>
+            </button>
           )}
           <p className="whitespace-pre-line text-sm leading-relaxed">{analysis.summary}</p>
-          <a href={href} className="block text-xs text-primary underline underline-offset-4">
-            {item.document.title} · p. {page} · abrir trecho destacado
-          </a>
+          <button
+            type="button"
+            onClick={() => openSource(passageReadingSource(item))}
+            className="block text-left text-xs text-primary underline underline-offset-4"
+          >
+            {item.document.title} · p. {page} · ler e anotar
+          </button>
           <p className="text-xs text-muted-foreground">
             Interpretação e cronologia da fonte.{" "}
             {item.reviewState === "confirmed"

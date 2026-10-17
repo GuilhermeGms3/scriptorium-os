@@ -201,6 +201,10 @@ Conhecimento voltou a ter entrada própria no menu).
 
 ### Leitura de dados nas telas
 
+- O [leitor contextual e caderno de notas](study-notebook.md) permite consultar as fontes da
+  sidebar sobre a passagem, guardar notas por grupo e conectar pontos coloridos. Biblioteca
+  continua uma navegação explícita, não um desvio obrigatório ao clicar em uma imagem.
+
 - Telas novas leem o banco com `useWorkspaceQuery` (`src/hooks/use-workspace-query.ts`), sobre o
   React Query: cada chave guarda a sua resposta (trocar depressa não mostra o resultado anterior),
   erros chegam à tela e nada repete sozinho. `refreshOnKnowledgeChange` recarrega quando a

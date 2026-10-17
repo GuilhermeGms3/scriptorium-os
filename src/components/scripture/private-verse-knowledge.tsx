@@ -28,6 +28,8 @@ import { bookLabel } from "../../lib/i18n";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { ReviewStateBadge } from "./review-state-badge";
 import { SEMANTIC_DOMAIN_LABELS } from "../../lib/domain/semantic-content";
+import { passageReadingSource } from "../../lib/application/reading-source";
+import { useSourceReader } from "../study/source-reader-context";
 
 const RELATION_LABELS: Record<
   WorkspacePassageKnowledgeItem["passageRelation"]["payload"]["relationType"],
@@ -214,6 +216,7 @@ export function PrivateLinkCard({
   item: WorkspacePassageKnowledgeItem;
   context?: PassageLinkReviewContext;
 }) {
+  const openSource = useSourceReader();
   const [correcting, setCorrecting] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
@@ -269,12 +272,13 @@ export function PrivateLinkCard({
         </div>
       ) : (
         <div className="flex flex-wrap items-center justify-between gap-2">
-          <a
-            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+          <button
+            type="button"
+            onClick={() => openSource(passageReadingSource(item))}
             className="text-xs font-medium text-primary underline underline-offset-4"
           >
             {item.document.title}
-          </a>
+          </button>
           <span className="inline-flex items-center gap-1 font-mono text-xs text-muted-foreground">
             <LockKeyhole className="size-3" /> páginas{" "}
             {item.pages.map((page) => page + 1).join(", ")}
@@ -297,12 +301,13 @@ export function PrivateLinkCard({
       {relation.payload.contextualAnalysis && (
         <section className="mt-3 space-y-2 text-xs leading-relaxed">
           <h3 className="font-serif text-base">{relation.payload.contextualAnalysis.title}</h3>
-          <a
-            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
-            className="block underline decoration-primary/30 underline-offset-4"
+          <button
+            type="button"
+            onClick={() => openSource(passageReadingSource(item))}
+            className="block text-left underline decoration-primary/30 underline-offset-4"
           >
             {relation.payload.contextualAnalysis.summary}
-          </a>
+          </button>
           <p className="text-xs text-muted-foreground">
             {relation.payload.contextualAnalysis.mode === "source-excerpt"
               ? relation.payload.referenceRole === "proof-text"
@@ -327,12 +332,13 @@ export function PrivateLinkCard({
       )}
       {!relation.payload.contextualAnalysis && context === "bible-reader" && (
         <blockquote className="mt-3 border-l-2 border-primary/30 pl-3 text-sm leading-relaxed">
-          <a
-            className="underline decoration-primary/30 underline-offset-4"
-            href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`}
+          <button
+            type="button"
+            className="text-left underline decoration-primary/30 underline-offset-4"
+            onClick={() => openSource(passageReadingSource(item))}
           >
             {item.translation?.translatedText ?? item.unit.text}
-          </a>
+          </button>
           <p className="mt-2 text-xs text-muted-foreground">
             Trecho literal da fonte · ligação{" "}
             {item.reviewState === "confirmed"

@@ -7,6 +7,8 @@
 import { ArrowUpRight, BookOpen } from "lucide-react";
 import type { SourceFragment, SourceReference } from "../../lib/domain/source";
 import { languageLabel, provenanceLabel, statusLabel, t } from "../../lib/i18n";
+import { useSourceReader } from "../study/source-reader-context";
+import { passageRefKey } from "../../lib/domain/scripture";
 
 export function SourceReferenceCard({
   source,
@@ -15,6 +17,7 @@ export function SourceReferenceCard({
   source: SourceReference;
   fragment?: SourceFragment | undefined;
 }) {
+  const openSource = useSourceReader();
   return (
     <figure className="rounded-md border border-border bg-muted/30 p-3">
       <figcaption className="meta-label">{t("source.label")}</figcaption>
@@ -46,16 +49,46 @@ export function SourceReferenceCard({
                 : (source.license?.name ?? t("source.licenseUnknown"))}
             </span>
           </p>
-          {source.url && (
-            <a
-              href={source.url}
-              target="_blank"
-              rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-            >
-              {t("source.openResource")} <ArrowUpRight className="size-3" />
-            </a>
-          )}
+          <button
+            type="button"
+            onClick={() =>
+              openSource({
+                source: {
+                  kind: "bibliographic",
+                  sourceId: source.id,
+                  title: source.work,
+                  ...(fragment?.locator ? { locator: fragment.locator } : {}),
+                },
+                ...(fragment?.fragment ? { excerpt: fragment.fragment } : {}),
+                ...(source.url && /^https?:\/\//iu.test(source.url)
+                  ? { externalUrl: source.url }
+                  : {}),
+                context: [
+                  source.author,
+                  source.edition,
+                  source.language ? languageLabel(source.language) : undefined,
+                ]
+                  .filter(Boolean)
+                  .join(" · "),
+                links: [
+                  { kind: "resource", target: source.id, label: source.work },
+                  ...(fragment?.passage
+                    ? [
+                        {
+                          kind: "passage" as const,
+                          target: passageRefKey(fragment.passage),
+                          label: fragment.locator,
+                          anchor: { type: "passage" as const, ref: fragment.passage },
+                        },
+                      ]
+                    : []),
+                ],
+              })
+            }
+            className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
+          >
+            Consultar referência e anotar <ArrowUpRight className="size-3" />
+          </button>
         </div>
       </div>
     </figure>

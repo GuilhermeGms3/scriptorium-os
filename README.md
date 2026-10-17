@@ -21,6 +21,9 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 
 Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles não são importados nos chunks JavaScript do Vite; o Reader abre o shard da obra necessária, a busca usa shards FTS compactos e a concordância usa um índice linguístico global separado. O workspace mutável usa OPFS no modo navegador ou SQLite nativo em `data/workspace/` na instalação local. Consulte [acervo da instalação](docs/architecture/installation-workspace.md).
 
+O [leitor contextual e caderno](docs/architecture/study-notebook.md) permite abrir fontes sem sair
+da passagem, salvar notas por grupo e conectá-las num mapa pessoal colorido, usando esse mesmo banco.
+
 ## Desenvolvimento
 
 Requer Node.js 22 ou superior.

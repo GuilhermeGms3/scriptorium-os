@@ -8,6 +8,7 @@ import {
   type WorkspaceSqlValue,
 } from "../workspace-runtime/workspace-database";
 import { sha256Hex } from "../workspace-runtime/secure-context";
+import { StudySourceSchema } from "../domain/study-notebook";
 
 const scalar = z.union([z.string(), z.number(), z.null()]);
 const rows = z.array(z.record(scalar));
@@ -51,6 +52,7 @@ const BackupV2Schema = z.object({
     annotations: rows,
     highlights: rows,
     bookmarks: rows,
+    noteConnections: rows.optional(),
   }),
 });
 
@@ -142,6 +144,7 @@ const researchTables = {
   annotations: "annotations",
   highlights: "highlights",
   bookmarks: "bookmarks",
+  noteConnections: "note_connections",
 } as const;
 
 async function sha256(value: string): Promise<string> {
@@ -169,6 +172,11 @@ function insertStatements(
   tableRows: WorkspaceRow[],
 ): { sql: string; bind: WorkspaceSqlValue[] }[] {
   return tableRows.map((row) => {
+    if (table === "notes" && row["source_json"] !== undefined && row["source_json"] !== null) {
+      const source = row["source_json"];
+      if (typeof source !== "string") throw new Error("Origem da nota inválida no backup.");
+      StudySourceSchema.parse(JSON.parse(source));
+    }
     const columns = Object.keys(row);
     if (!columns.length) throw new Error(`Backup row for ${table} has no columns.`);
     if (columns.some((column) => !/^[a-z_]+$/.test(column)))
@@ -468,7 +476,7 @@ export const ResearchWorkspaceService = {
         );
       for (const [key, table] of Object.entries(researchTables))
         statements.push(
-          ...insertStatements(table, backup.research[key as keyof typeof backup.research]),
+          ...insertStatements(table, backup.research[key as keyof typeof backup.research] ?? []),
         );
       statements.push(...rebuildFtsStatements());
       await db.transaction(statements);
@@ -507,7 +515,7 @@ export const ResearchWorkspaceService = {
       );
     for (const [key, table] of Object.entries(researchTables))
       statements.push(
-        ...insertStatements(table, backup.research[key as keyof typeof backup.research]),
+        ...insertStatements(table, backup.research[key as keyof typeof backup.research] ?? []),
       );
     // Restoring captured history must not generate a second, fictitious history.
     if (backup.privateKnowledge.traceEvents !== undefined)

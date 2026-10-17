@@ -125,6 +125,7 @@ function PassageViewpoints({ bundle }: { bundle: PassageKnowledgeBundle | null }
 }
 
 export function PassageInspector() {
+  const openSource = useSourceReader();
   const { passageContext } = useWorkbench();
   const verseSelected = passageContext?.ref.verseStart !== undefined;
   const ref = passageContext?.ref;
@@ -164,11 +165,9 @@ export function PassageInspector() {
           ),
     [questionsQuery.data, ref],
   );
-  // Built once per passage; the engine returns a new object on every call.
-  const bundle = useMemo(
-    () => (ref ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(ref) : null),
-    [ref],
-  );
+  // This synchronous view also contains mutable user notes. A ref-only memo kept freshly
+  // saved notes invisible until the reader selected another passage or reloaded.
+  const bundle = ref ? ScriptureKnowledgeEngine.getPassageKnowledgeBundle(ref) : null;
   const knowledgeQuery = useWorkspaceQuery(
     ["passage-inspector-knowledge", ref],
     () =>
@@ -427,14 +426,25 @@ export function PassageInspector() {
                         <p className="mt-1 text-sm leading-relaxed text-muted-foreground">
                           {relation.description}
                         </p>
-                        <Link
-                          to="/library/read/$workId"
-                          params={{ workId: source.anchor.workId }}
-                          search={{ unit: source.anchor.startUnitId }}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openSource({
+                              source: {
+                                kind: "primary-text",
+                                workId: source.anchor.workId,
+                                ...(source.anchor.startUnitId
+                                  ? { unitId: source.anchor.startUnitId }
+                                  : {}),
+                                title: "Fonte primária relacionada",
+                              },
+                              context: relation.description,
+                            })
+                          }
                           className="mt-2 inline-flex rounded border border-input px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
                         >
-                          Abrir exatamente este trecho
-                        </Link>
+                          Ler este trecho e anotar
+                        </button>
                       </article>
                     ))}
                   </div>
@@ -595,12 +605,13 @@ export function PassageInspector() {
                                           .join(" · ")}
                                       </p>
                                     )}
-                                    <a
-                                      href={`/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}`}
+                                    <button
+                                      type="button"
+                                      onClick={() => openSource(passageReadingSource(item))}
                                       className="mt-2 inline-block text-xs underline underline-offset-2"
                                     >
-                                      Abrir evidência local
-                                    </a>
+                                      Ler evidência e anotar
+                                    </button>
                                   </li>
                                 );
                               })}
@@ -803,3 +814,5 @@ function CoverageSummary({ coverage }: { coverage: readonly PassageCoverageEntry
     </section>
   );
 }
+import { passageReadingSource } from "../../lib/application/reading-source";
+import { useSourceReader } from "../study/source-reader-context";

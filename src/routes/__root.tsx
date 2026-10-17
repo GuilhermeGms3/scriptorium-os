@@ -17,6 +17,7 @@ import { WorkspaceQueryRefresh } from "../hooks/use-workspace-query";
 import { IntroSplash } from "../components/shell/intro-splash";
 import { INTRO_INIT } from "../components/shell/intro-controller";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
+import { SourceReaderProvider } from "../components/study/source-reader";
 import { THEME_INIT } from "../lib/workbench/theme";
 
 function NotFoundComponent() {
@@ -137,9 +138,11 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <WorkspaceQueryRefresh />
       <WorkbenchProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <SourceReaderProvider>
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </SourceReaderProvider>
       </WorkbenchProvider>
     </QueryClientProvider>
   );

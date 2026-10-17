@@ -1,4 +1,5 @@
 import type { Note, NoteLink, Study, StudyItem } from "../domain/study";
+import { StudySourceSchema } from "../domain/study-notebook";
 import type { PassageRef } from "../domain/scripture";
 import { passageRefKey, passageRefsOverlap } from "../domain/scripture";
 import type { ResearchQuestion, ResearchLink } from "../domain/research";
@@ -86,6 +87,10 @@ async function loadNotes(db: WorkspaceDatabase): Promise<Note[]> {
     id: text(row, "id"),
     title: optionalText(row, "title") ?? "",
     body: text(row, "content"),
+    ...(optionalText(row, "color") ? { color: optionalText(row, "color")! } : {}),
+    ...(optionalText(row, "source_json")
+      ? { source: StudySourceSchema.parse(JSON.parse(text(row, "source_json"))) }
+      : {}),
     links: linksByNote.get(text(row, "id")) ?? [],
     createdAt: text(row, "created_at"),
     updatedAt: text(row, "updated_at"),
@@ -104,6 +109,7 @@ async function loadStudies(db: WorkspaceDatabase): Promise<Study[]> {
       id: text(row, "id"),
       slug: text(row, "slug"),
       title: text(row, "title"),
+      ...(optionalText(row, "color") ? { color: optionalText(row, "color")! } : {}),
       ...(description ? { description } : {}),
       items: itemsByStudy.get(text(row, "id")) ?? [],
       createdAt: text(row, "created_at"),

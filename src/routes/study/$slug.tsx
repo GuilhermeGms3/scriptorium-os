@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FormEvent, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { BookOpen, Library, Network, StickyNote } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
@@ -11,6 +11,7 @@ import { errorMessage } from "@/lib/utils";
 import { studyGuideById } from "../../lib/content/study-guides";
 import { PageContainer } from "../../components/layout/page-container";
 import { PageHeader } from "../../components/layout/page-header";
+import { StudyNotebook } from "../../components/study/study-notebook";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -31,11 +32,9 @@ const KIND_ICON = {
 
 function StudyWorkspace() {
   const { slug } = Route.useParams();
-  const { notes, studies, addNote, refreshUserData, setPassageContext, workspacePersistence } =
+  const { notes, studies, refreshUserData, setPassageContext, workspacePersistence } =
     useWorkbench();
   const study = studies.find((candidate) => candidate.slug === slug);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
   const [question, setQuestion] = useState("");
   const lenses = AnalysisRepository.listLenses();
   useEffect(() => setPassageContext(null), [setPassageContext]);
@@ -68,17 +67,6 @@ function StudyWorkspace() {
     .find((item) => item.refId.startsWith("study-guide:"))
     ?.refId.slice("study-guide:".length);
   const guide = guideId ? studyGuideById(guideId) : undefined;
-
-  const saveNote = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!title.trim() && !body.trim()) return;
-    await addNote(title.trim() || t("study.untitledDeduction"), body.trim(), [
-      { kind: "study", target: study.id, label: study.title },
-    ]);
-    setTitle("");
-    setBody("");
-    await refreshUserData();
-  };
 
   return (
     <PageContainer width="wide">
@@ -232,30 +220,11 @@ function StudyWorkspace() {
 
         <aside id="notes">
           <h2 className="meta-label">3. {t("study.notesDeductions")}</h2>
-          <form
-            onSubmit={(event) => void saveNote(event)}
-            className="mt-2 space-y-2 rounded-md border border-border bg-card p-3"
-          >
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("common.title")}
-              aria-label={t("study.noteTitle")}
-              className="h-8 w-full border-b border-border bg-transparent text-sm outline-none focus-visible:border-primary"
-            />
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={t("study.notePlaceholder")}
-              aria-label={t("study.noteBody")}
-              className="min-h-24 w-full resize-y rounded-sm bg-transparent text-sm leading-relaxed outline-none focus-visible:ring-2 focus-visible:ring-ring"
-            />
-            <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-              {t("common.saveLocally")}
-            </button>
-          </form>
+          <a href="#notebook" className="mt-3 inline-block text-sm text-primary underline">
+            Criar, editar e conectar notas no caderno
+          </a>
           <ul className="mt-3 space-y-2">
-            {linkedNotes.map((note) => (
+            {linkedNotes.slice(0, 3).map((note) => (
               <li key={note.id} className="border-l-2 border-border pl-3">
                 <p className="text-sm font-medium">{note.title}</p>
                 <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
@@ -268,6 +237,9 @@ function StudyWorkspace() {
             )}
           </ul>
         </aside>
+      </div>
+      <div id="notebook" className="mt-8 scroll-mt-6 border-t border-border pt-6">
+        <StudyNotebook studyId={study.id} />
       </div>
     </PageContainer>
   );

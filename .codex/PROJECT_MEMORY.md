@@ -1,5 +1,25 @@
 # Project Memory
 
+## Leitor contextual e caderno conectado — 2026-10-17
+
+- Pedido atual: fontes/imagens da sidebar abrem janela sobre a Bíblia; notas por grupo com
+  cores e conexões pessoais em Estudos. Preservar árvore/guia e mapa acadêmico separado.
+- Migração026 aditiva: cores de studies/notes, notes.source_json e note_connections com FKs,
+  canonical pair e idempotência. Mesmo WorkspaceDatabase; nenhum reprocessamento de livros.
+- SourceReaderProvider único; StudySourceService consulta unidade limitada, sem carregar obra
+  inteira. Biblioteca é botão explícito com página física e unit; referências sem texto integral
+  identificadas como metadados. Inglês reutiliza tradutor existente; não adicionar LLM.
+- Caderno em /study?view=notebook e em cada investigação. Notas antigas editáveis, FTS atualizado
+  transacionalmente, controle de edição concorrente, guard de rascunhos e cores herdadas.
+- OPFS worker alinhado a025/026. Instalação faz VACUUM INTO pré026 sob lock exclusivo; a cópia
+  exige espaço equivalente ao DB inteiro. Não migrar o DB real durante QA nem recriar Docker
+  sem pedido. Usar workspace temporário e preservar os PDFs/revisões/propostas canônicos.
+- Especificação operacional: docs/architecture/study-notebook.md.
+- Validação:425 testes/62 arquivos, typecheck, lint focado e build; QA1440/390 com notas, cores,
+  conexões, reload nativo/OPFS e vínculo imediato à passagem. Usar Playwright quando Browser
+  plugin indisponível. Corrigida sobreposição com drawer móvel; modal mantém fechar visível.
+- Trabalho paralelo de árvore/tema entrou separadamente em88a0a2c; não reverter nem misturar.
+
 ## Fila de incorporação privada — 2026-10-16
 
 - Usuário autorizou incorporar os livros adicionais, com execução independente dos tokens/chat.
@@ -661,6 +681,7 @@
   Dockerfile usa lock e `/models/semantic-index`; imagem não reconstruída. Índice antigo efêmero
   do container não é migrado automaticamente para esse volume: reindexar, sem afetar a biblioteca.
 - Guia operacional: `docs/architecture/semantic-search-vectors-lexical-statistics.md`.
+
 
 ## Estudos e leitura — 2026-10-17
 

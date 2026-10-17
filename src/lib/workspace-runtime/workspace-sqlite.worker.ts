@@ -24,6 +24,8 @@ import migration21 from "./migrations/021_trace_lookup_indexes.sql?raw";
 import migration22 from "./migrations/022_additional_passage_index.sql?raw";
 import migration23 from "./migrations/023_foreign_key_lookup_indexes.sql?raw";
 import migration24 from "./migrations/024_shared_commentary_evidence.sql?raw";
+import migration25 from "./migrations/025_source_context_paragraphs.sql?raw";
+import migration26 from "./migrations/026_study_notebook.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -51,6 +53,8 @@ const migrations = [
   migration22,
   migration23,
   migration24,
+  migration25,
+  migration26,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

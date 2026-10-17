@@ -733,6 +733,9 @@ export const KnowledgeRepository = {
   ): Promise<{ references: SourceReference[]; fragments: SourceFragment[] }> {
     return sourcesFor(await getKnowledgeIndex(), "claim", claimIds);
   },
+  async sourceReference(id: string): Promise<SourceReference | null> {
+    return (await getKnowledgeIndex()).sources.get(id)?.reference ?? null;
+  },
   async sourcesForRelations(
     relationIds: string[],
   ): Promise<{ references: SourceReference[]; fragments: SourceFragment[] }> {
