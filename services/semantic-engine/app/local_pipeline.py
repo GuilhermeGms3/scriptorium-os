@@ -11,28 +11,37 @@ import math
 import os
 import re
 import shutil
-import sqlite3
 import subprocess
 import tempfile
 import threading
-from contextlib import contextmanager
 from functools import lru_cache
 from pathlib import Path
+from typing import cast
 from urllib.parse import urlsplit
 from urllib.request import HTTPRedirectHandler, ProxyHandler, Request, build_opener
 
+import numpy as np
 from fastapi import APIRouter, HTTPException
+from numpy.typing import NDArray
 
 from .pipeline_contracts import (
+    Candidate,
+    ChatResponse,
+    EmbeddingResponse,
     IndexBatch,
     IndexResponse,
+    LinkDecision,
     LinkRequest,
     LinkResponse,
     OcrRequest,
     OcrResponse,
     PipelineInfo,
+    SearchHit,
+    SearchRequest,
+    SearchResponse,
     SelectionBatch,
 )
+from .vector_store import database, decode_vector, encode_vector, index_path
 
 router = APIRouter(prefix="/v1/pipeline", tags=["private pipeline"])
 gate = threading.BoundedSemaphore(1)
@@ -41,7 +50,9 @@ EMBEDDING_RECIPE = "chunk-mean-1800-v1"
 
 
 class NoRedirect(HTTPRedirectHandler):
-    def redirect_request(self, req, fp, code, msg, headers, newurl):
+    def redirect_request(
+        self, req: Request, fp: object, code: int, msg: str, headers: object, newurl: str
+    ) -> Request | None:
         raise ValueError("O serviço local não pode redirecionar requisições.")
 
 
@@ -67,7 +78,7 @@ def model_config(kind: str) -> tuple[str, str, str]:
     return url, name, revision
 
 
-def local_post(kind: str, endpoint: str, payload: dict) -> dict:
+def local_post(kind: str, endpoint: str, payload: dict[str, object]) -> dict[str, object]:
     url, _, _ = model_config(kind)
     opener = build_opener(NoRedirect(), ProxyHandler({}))
     request = Request(
@@ -80,23 +91,25 @@ def local_post(kind: str, endpoint: str, payload: dict) -> dict:
         raw = response.read(8 * 1024 * 1024 + 1)
         if len(raw) > 8 * 1024 * 1024:
             raise ValueError("Resposta do modelo excedeu o limite.")
-        result = json.loads(raw)
-    if not isinstance(result, dict):
+        result: object = json.loads(raw)
+    if not isinstance(result, dict) or not all(isinstance(key, str) for key in result):
         raise ValueError("Resposta inválida do modelo.")
-    return result
+    return cast(dict[str, object], result)
 
 
 def embeddings(texts: list[str]) -> list[list[float]]:
     _, model, _ = model_config("embedding")
-    data = local_post("embedding", "embeddings", {"model": model, "input": texts})[
-        "data"
-    ]
-    ordered = sorted(data, key=lambda item: item["index"])
-    if len(ordered) != len(texts) or [x["index"] for x in ordered] != list(
-        range(len(texts))
+    data = EmbeddingResponse.model_validate(
+        local_post("embedding", "embeddings", {"model": model, "input": texts})
+    ).data
+    ordered = sorted(data, key=lambda item: item.index)
+    if (
+        not texts
+        or len(ordered) != len(texts)
+        or [x.index for x in ordered] != list(range(len(texts)))
     ):
         raise ValueError("Quantidade/ordem inválida de embeddings.")
-    vectors = [item["embedding"] for item in ordered]
+    vectors = [item.embedding for item in ordered]
     dimension = len(vectors[0])
     if not 1 <= dimension <= 4096 or any(
         len(v) != dimension
@@ -119,51 +132,8 @@ def document_vector(text: str) -> list[float]:
     return [x / length for x in mean]
 
 
-@contextmanager
-def database():
-    root = Path(
-        os.getenv(
-            "SCRIPTORIUM_PIPELINE_DATA",
-            str(Path.home() / ".scriptorium" / "semantic-index"),
-        )
-    )
-    root.mkdir(parents=True, exist_ok=True)
-    connection = sqlite3.connect(root / "candidates.sqlite", timeout=30)
-    connection.row_factory = sqlite3.Row
-    connection.execute("PRAGMA foreign_keys=ON")
-    version = connection.execute("PRAGMA user_version").fetchone()[0]
-    if version not in (0, 1, 2):
-        connection.close()
-        raise ValueError("Índice local em versão incompatível.")
-    connection.execute("PRAGMA journal_mode=WAL")
-    connection.execute(
-        "CREATE TABLE IF NOT EXISTS candidates(id TEXT PRIMARY KEY,edition TEXT NOT NULL,payload "
-        "TEXT NOT NULL,checksum TEXT NOT NULL)"
-    )
-    connection.execute(
-        "CREATE VIRTUAL TABLE IF NOT EXISTS candidate_fts USING fts5(id UNINDEXED,edition "
-        "UNINDEXED,text,tokenize='unicode61 remove_diacritics 2')"
-    )
-    connection.execute(
-        "CREATE TABLE IF NOT EXISTS embedding_cache(checksum TEXT NOT NULL,model TEXT NOT "
-        "NULL,revision TEXT NOT NULL,vector TEXT NOT NULL,PRIMARY KEY(checksum,model,revision))"
-    )
-    connection.execute(
-        "CREATE TABLE IF NOT EXISTS candidate_embeddings(candidate_id TEXT NOT NULL REFERENCES "
-        "candidates(id) ON DELETE CASCADE,model TEXT NOT NULL,revision TEXT NOT NULL,recipe TEXT "
-        "NOT NULL,checksum TEXT NOT NULL,vector TEXT NOT NULL,PRIMARY "
-        "KEY(candidate_id,model,revision,recipe))"
-    )
-    connection.execute("PRAGMA user_version=2")
-    try:
-        with connection:
-            yield connection
-    finally:
-        connection.close()
-
-
 @router.get("/info", response_model=PipelineInfo, response_model_exclude_none=True)
-def info() -> dict:
+def info() -> dict[str, object]:
     models = {}
     for kind in ("embedding", "llm"):
         try:
@@ -172,18 +142,16 @@ def info() -> dict:
         except ValueError:
             models[kind] = {"configured": False}
     return {
-        "version": "2",
+        "version": "3",
         "models": models,
-        "ocrAvailable": bool(
-            shutil.which(os.getenv("SCRIPTORIUM_TESSERACT", "tesseract"))
-        ),
-        "retrieval": "fts5+global-embedding+similarity-rerank",
+        "ocrAvailable": bool(shutil.which(os.getenv("SCRIPTORIUM_TESSERACT", "tesseract"))),
+        "retrieval": "fts5+global-embedding+rrf",
         "automaticInferencePublication": False,
     }
 
 
 @router.post("/index", response_model=IndexResponse)
-def index(batch: IndexBatch) -> dict:
+def index(batch: IndexBatch) -> dict[str, int]:
     global index_generation
     try:
         _, model, revision = model_config("embedding")
@@ -207,19 +175,21 @@ def index(batch: IndexBatch) -> dict:
         gate.release()
 
 
-def index_candidates(
-    batch: IndexBatch, model: str | None, revision: str | None
-) -> dict:
+def index_candidates(batch: IndexBatch, model: str | None, revision: str | None) -> dict[str, int]:
     with database() as db:
         changed = 0
         for candidate in batch.candidates:
+            if candidate.editionId != batch.candidates[0].editionId:
+                raise HTTPException(422, "Lote deve pertencer a uma única edição.")
             if candidate.passage.verseEnd < candidate.passage.verseStart:
                 raise HTTPException(422, "Range textual inválido.")
             payload = candidate.model_dump_json()
             checksum = hashlib.sha256(payload.encode()).hexdigest()
             existing = db.execute(
-                "SELECT checksum FROM candidates WHERE id=?", (candidate.id,)
+                "SELECT checksum,edition FROM candidates WHERE id=?", (candidate.id,)
             ).fetchone()
+            if existing and existing["edition"] != candidate.editionId:
+                raise HTTPException(422, "Identidade de candidato pertence a outra edição.")
             if not existing or existing["checksum"] != checksum:
                 db.execute(
                     "INSERT INTO candidates VALUES(?,?,?,?) ON CONFLICT(id) DO UPDATE SET "
@@ -239,16 +209,34 @@ def index_candidates(
                     (candidate.id, model, revision, EMBEDDING_RECIPE),
                 ).fetchone()
                 if not cached or cached[0] != checksum:
-                    vector = document_vector(candidate.text)
+                    text_checksum = hashlib.sha256(
+                        (EMBEDDING_RECIPE + candidate.text).encode()
+                    ).hexdigest()
+                    prior = db.execute(
+                        "SELECT vector,dimension FROM embedding_cache "
+                        "WHERE checksum=? AND model=? AND revision=?",
+                        (text_checksum, model, revision),
+                    ).fetchone()
+                    vector = (
+                        [float(x) for x in decode_vector(prior[0], prior[1])]
+                        if prior
+                        else document_vector(candidate.text)
+                    )
+                    if not prior:
+                        db.execute(
+                            "INSERT INTO embedding_cache VALUES(?,?,?,?,?)",
+                            (text_checksum, model, revision, encode_vector(vector), len(vector)),
+                        )
                     db.execute(
-                        "INSERT OR REPLACE INTO candidate_embeddings VALUES(?,?,?,?,?,?)",
+                        "INSERT OR REPLACE INTO candidate_embeddings VALUES(?,?,?,?,?,?,?)",
                         (
                             candidate.id,
                             model,
                             revision,
                             EMBEDDING_RECIPE,
                             checksum,
-                            json.dumps(vector),
+                            encode_vector(vector),
+                            len(vector),
                         ),
                     )
         count = db.execute(
@@ -259,26 +247,33 @@ def index_candidates(
 
 
 @lru_cache(maxsize=1)
-def vector_matrix(edition: str, model: str, revision: str, generation: int):
-    import torch  # Lazy; CPU retrieval leaves GPU memory for the separate LLM server.
-
-    ids, tensors = [], []
+def vector_matrix(
+    edition: str, model: str, revision: str, generation: int, path: str
+) -> tuple[list[str], NDArray[np.float32] | None]:
+    ids: list[str] = []
+    vectors: list[NDArray[np.float32]] = []
     with database() as db:
         cursor = db.execute(
-            "SELECT e.candidate_id,e.vector FROM candidate_embeddings e JOIN candidates c ON "
+            "SELECT e.candidate_id,e.vector,e.dimension "
+            "FROM candidate_embeddings e JOIN candidates c ON "
             "c.id=e.candidate_id WHERE c.edition=? AND e.model=? AND e.revision=? AND e.recipe=? "
             "AND e.checksum=c.checksum ORDER BY e.candidate_id",
             (edition, model, revision, EMBEDDING_RECIPE),
         )
         while rows := cursor.fetchmany(256):
             ids.extend(row[0] for row in rows)
-            tensors.append(
-                torch.tensor([json.loads(row[1]) for row in rows], dtype=torch.float32)
-            )
-    return ids, torch.cat(tensors) if tensors else None
+            vectors.extend(decode_vector(row[1], row[2]) for row in rows)
+    if not vectors:
+        return ids, None
+    matrix = np.stack(vectors)
+    lengths = np.linalg.norm(matrix, axis=1, keepdims=True)
+    if np.any(lengths == 0):
+        raise ValueError("Índice contém vetor sem direção.")
+    matrix /= lengths
+    return ids, matrix
 
 
-def retrieve(text: str, edition: str) -> tuple[list[dict], str]:
+def retrieve_ranked(text: str, edition: str) -> tuple[list[SearchHit], str]:
     # Union of lexical and global multilingual candidates, then deterministic semantic rerank.
     stopwords = {
         "para",
@@ -320,9 +315,7 @@ def retrieve(text: str, edition: str) -> tuple[list[dict], str]:
         if not db.execute(
             "SELECT 1 FROM candidates WHERE edition=? LIMIT 1", (edition,)
         ).fetchone():
-            raise HTTPException(
-                409, "Prepare o índice de candidatos da edição selecionada."
-            )
+            raise HTTPException(409, "Prepare o índice de candidatos da edição selecionada.")
         rows = (
             db.execute(
                 "SELECT c.payload FROM candidate_fts f JOIN candidates c ON c.id=f.id WHERE "
@@ -332,95 +325,94 @@ def retrieve(text: str, edition: str) -> tuple[list[dict], str]:
             if query
             else []
         )
-        candidates = [json.loads(row[0]) for row in rows]
+        candidates = [Candidate.model_validate_json(row[0]) for row in rows]
+        lexical_ranks = {candidate.id: rank for rank, candidate in enumerate(candidates, 1)}
         try:
             _, model, revision = model_config("embedding")
         except ValueError:
-            return candidates, "fts5"
-        question = document_vector(text)
-        import torch
-
-        ids, matrix = vector_matrix(edition, model, revision, index_generation)
-        if matrix is None:
+            return [
+                SearchHit(candidate=c, score=1 / (60 + rank), lexicalRank=rank)
+                for rank, c in enumerate(candidates, 1)
+            ], "fts5"
+        ids, matrix = vector_matrix(edition, model, revision, index_generation, str(index_path()))
+        candidate_count = db.execute(
+            "SELECT count(*) FROM candidates WHERE edition=?", (edition,)
+        ).fetchone()[0]
+        if matrix is None or len(ids) != candidate_count:
             raise HTTPException(
                 409,
                 "Modelo de embedding mudou ou índice vetorial não existe; prepare o índice "
                 "novamente.",
             )
+        question = document_vector(text)
         if matrix.shape[1] != len(question):
             raise ValueError("Dimensão do modelo mudou sem nova revisão.")
-        scores = matrix @ torch.tensor(question, dtype=torch.float32)
-        top_ids = [
-            ids[i] for i in torch.topk(scores, min(24, len(ids))).indices.tolist()
-        ]
+        scores = matrix @ np.asarray(question, dtype=np.float32)
+        # Stable tie-break by candidate ID (matrix already sorted by ID).
+        top_ids = [ids[int(i)] for i in np.argsort(-scores, kind="stable")[:24]]
+        semantic_ranks = {identifier: rank for rank, identifier in enumerate(top_ids, 1)}
         placeholders = ",".join("?" for _ in top_ids)
         semantic = db.execute(
-            f"SELECT payload FROM candidates WHERE id IN ({placeholders})", top_ids
+            f"SELECT payload FROM candidates WHERE edition=? AND id IN ({placeholders})",
+            [edition, *top_ids],
         ).fetchall()
         candidates = list(
             {
-                candidate["id"]: candidate
-                for candidate in candidates + [json.loads(row[0]) for row in semantic]
+                candidate.id: candidate
+                for candidate in candidates
+                + [Candidate.model_validate_json(row[0]) for row in semantic]
             }.values()
         )
-        vectors = []
-        for candidate in candidates:
-            checksum = hashlib.sha256(
-                (EMBEDDING_RECIPE + candidate["text"]).encode()
-            ).hexdigest()
-            cached = db.execute(
-                "SELECT e.vector FROM candidate_embeddings e JOIN candidates c ON "
-                "c.id=e.candidate_id WHERE e.candidate_id=? AND e.model=? AND e.revision=? AND "
-                "e.recipe=? AND e.checksum=c.checksum",
-                (candidate["id"], model, revision, EMBEDDING_RECIPE),
-            ).fetchone()
-            if not cached:
-                cached = db.execute(
-                    "SELECT vector FROM embedding_cache WHERE checksum=? AND model=? AND "
-                    "revision=?",
-                    (checksum, model, revision),
-                ).fetchone()
-            vector = (
-                json.loads(cached[0]) if cached else document_vector(candidate["text"])
-            )
-            if not cached:
-                db.execute(
-                    "INSERT OR IGNORE INTO embedding_cache VALUES(?,?,?,?)",
-                    (checksum, model, revision, json.dumps(vector)),
+        # Reciprocal-rank fusion avoids mixing BM25 scores with cosine scales.
+        hits = [
+            SearchHit(
+                candidate=candidate,
+                score=(
+                    1 / (60 + lexical_ranks[candidate.id]) if candidate.id in lexical_ranks else 0
                 )
-            vectors.append(vector)
-
-        def similarity(vector):
-            if len(vector) != len(question):
-                raise ValueError(
-                    "Dimensão mudou; configure uma nova revisão de embedding."
-                )
-            denominator = math.sqrt(
-                sum(x * x for x in vector) * sum(x * x for x in question)
+                + (
+                    1 / (60 + semantic_ranks[candidate.id]) if candidate.id in semantic_ranks else 0
+                ),
+                lexicalRank=lexical_ranks.get(candidate.id),
+                semanticRank=semantic_ranks.get(candidate.id),
             )
-            return (
-                sum(x * y for x, y in zip(vector, question, strict=False)) / denominator
-                if denominator
-                else 0
-            )
+            for candidate in candidates
+        ]
+    return sorted(hits, key=lambda hit: (-hit.score, hit.candidate.id)), "fts5+global-embedding+rrf"
 
-        ranked = sorted(
-            zip(candidates, vectors, strict=False),
-            key=lambda pair: (-similarity(pair[1]), pair[0]["id"]),
+
+def retrieve(text: str, edition: str) -> tuple[list[Candidate], str]:
+    hits, method = retrieve_ranked(text, edition)
+    return [hit.candidate for hit in hits], method
+
+
+@router.post("/search", response_model=SearchResponse)
+def search(request: SearchRequest) -> SearchResponse:
+    if not gate.acquire(blocking=False):
+        raise HTTPException(429, "Pipeline ocupado; tente novamente.")
+    try:
+        hits, method = retrieve_ranked(request.query, request.editionId)
+        return SearchResponse(
+            hits=hits[: request.limit], retrieval=method, embeddingConfigured=method != "fts5"
         )
-    return [
-        candidate for candidate, _ in ranked
-    ], "fts5+global-embedding+similarity-rerank"
+    except HTTPException:
+        raise
+    except Exception as error:
+        raise HTTPException(
+            503, "Busca por sentido indisponível; confira o índice e o embedding local."
+        ) from error
+    finally:
+        gate.release()
 
 
 @router.post("/link", response_model=LinkResponse, response_model_exclude_unset=True)
-def link(request: LinkRequest) -> dict:
+def link(request: LinkRequest) -> dict[str, object]:
     if not gate.acquire(blocking=False):
         raise HTTPException(429, "Inferência ocupada; retome depois.")
     try:
         candidates, method = retrieve(request.text, request.editionId)
         shortlist = candidates[:8]
-        base = {
+        base: dict[str, object] = {
             "unitId": request.unitId,
             "retrieval": method,
             "candidates": shortlist,
@@ -434,7 +426,7 @@ def link(request: LinkRequest) -> dict:
         selection_schema = schema["$defs"]["Selection"]
         selection_schema["properties"]["candidateId"] = {
             "anyOf": [
-                {"type": "string", "enum": [x["id"] for x in shortlist]},
+                {"type": "string", "enum": [x.id for x in shortlist]},
                 {"type": "null"},
             ]
         }
@@ -468,7 +460,10 @@ def link(request: LinkRequest) -> dict:
                     {
                         "role": "user",
                         "content": json.dumps(
-                            {"excerpt": request.text, "candidates": shortlist},
+                            {
+                                "excerpt": request.text,
+                                "candidates": [c.model_dump() for c in shortlist],
+                            },
                             ensure_ascii=False,
                         ),
                     },
@@ -476,12 +471,10 @@ def link(request: LinkRequest) -> dict:
             },
         )
         selected_batch = SelectionBatch.model_validate_json(
-            response["choices"][0]["message"]["content"]
+            ChatResponse.model_validate(response).choices[0].message.content
         )
         selected_values = [
-            value
-            for value in selected_batch.selections
-            if value.candidateId is not None
+            value for value in selected_batch.selections if value.candidateId is not None
         ]
         if not selected_values:
             return {
@@ -494,30 +487,32 @@ def link(request: LinkRequest) -> dict:
         def utf16(value: str) -> int:
             return len(value.encode("utf-16-le")) // 2
 
-        decisions = []
-        used_candidates = set()
+        decisions: list[LinkDecision] = []
+        used_candidates: set[str | None] = set()
         for selected in selected_values:
             if selected.candidateId in used_candidates:
                 raise ValueError("O modelo duplicou um candidato.")
             used_candidates.add(selected.candidateId)
-            candidate = next(
-                (x for x in shortlist if x["id"] == selected.candidateId), None
-            )
+            candidate = next((x for x in shortlist if x.id == selected.candidateId), None)
             start = request.text.find(selected.evidenceQuote)
-            if not candidate or not selected.evidenceQuote.strip() or start < 0:
-                raise ValueError(
-                    "O modelo retornou candidato ou evidência fora da fonte."
-                )
+            if (
+                not candidate
+                or candidate.editionId != request.editionId
+                or not selected.evidenceQuote.strip()
+                or start < 0
+            ):
+                raise ValueError("O modelo retornou candidato ou evidência fora da fonte.")
             decisions.append(
-                {
-                    **selected.model_dump(),
-                    "passage": candidate["passage"],
-                    "editionId": candidate["editionId"],
-                    "evidenceStart": utf16(request.text[:start]),
-                    "evidenceEnd": utf16(
-                        request.text[: start + len(selected.evidenceQuote)]
-                    ),
-                }
+                LinkDecision(
+                    candidateId=candidate.id,
+                    evidenceQuote=selected.evidenceQuote,
+                    relationType=selected.relationType,
+                    rationale=selected.rationale,
+                    passage=candidate.passage,
+                    editionId=candidate.editionId,
+                    evidenceStart=utf16(request.text[:start]),
+                    evidenceEnd=utf16(request.text[: start + len(selected.evidenceQuote)]),
+                )
             )
         return {
             **base,
@@ -540,12 +535,10 @@ def link(request: LinkRequest) -> dict:
 
 
 @router.post("/ocr", response_model=OcrResponse)
-def ocr(request: OcrRequest) -> dict:
+def ocr(request: OcrRequest) -> dict[str, object]:
     binary = shutil.which(os.getenv("SCRIPTORIUM_TESSERACT", "tesseract"))
     if not binary:
-        raise HTTPException(
-            503, "Instale Tesseract e os idiomas por/eng para OCR local."
-        )
+        raise HTTPException(503, "Instale Tesseract e os idiomas por/eng para OCR local.")
     if not gate.acquire(blocking=False):
         raise HTTPException(429, "Pipeline ocupado; retome depois.")
     try:
@@ -567,10 +560,8 @@ def ocr(request: OcrRequest) -> dict:
                 timeout=120,
                 check=True,
             )
-        rows = csv.DictReader(
-            io.StringIO(process.stdout.decode("utf-8")), delimiter="\t"
-        )
-        lines: dict[tuple, list] = {}
+        rows = csv.DictReader(io.StringIO(process.stdout.decode("utf-8")), delimiter="\t")
+        lines: dict[tuple[str, str, str], list[dict[str, str]]] = {}
         for row in rows:
             if row["level"] == "5" and row["text"].strip():
                 key = (row["block_num"], row["par_num"], row["line_num"])

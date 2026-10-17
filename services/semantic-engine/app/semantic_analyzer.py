@@ -1,7 +1,10 @@
 from __future__ import annotations
 
 import re
+from collections.abc import Mapping
 from dataclasses import dataclass
+
+from .checkpoint import Checkpoint, CheckpointValue
 
 ANALYZER_ID = "contextual-rule-analyzer"
 ANALYZER_REVISION = "3"
@@ -93,9 +96,7 @@ def _relation(verb: str) -> str:
 
 
 def _sentences(text: str) -> list[str]:
-    protected = _ABBREVIATION.sub(
-        lambda match: match.group(0)[:-1] + _PROTECTED_PERIOD, text
-    )
+    protected = _ABBREVIATION.sub(lambda match: match.group(0)[:-1] + _PROTECTED_PERIOD, text)
     return [
         sentence
         for part in re.split(r"(?<=[.!?…])\s+", protected)
@@ -145,8 +146,8 @@ def _bibliography(text: str) -> dict[str, object] | None:
 
 
 def analyze_units(
-    units: list[AnalyzerUnit], checkpoint: dict[str, object] | None = None
-) -> tuple[list[AnalyzerProposal], dict[str, object]]:
+    units: list[AnalyzerUnit], checkpoint: Mapping[str, CheckpointValue] | None = None
+) -> tuple[list[AnalyzerProposal], Checkpoint]:
     state = dict(checkpoint or {})
     processed = state.get("processedUnits", 0)
     first_index = processed if isinstance(processed, int) else 0

@@ -6,7 +6,8 @@ requires-python = ">=3.11,<3.14"
 dependencies = [
   "fastapi>=0.115,<1",
   "huggingface-hub>=0.28,<1",
-  "pydantic>=2.10,<3",
+  "pydantic>=2.11,<3",
+  "numpy>=2.2,<3",
   "torch>=2.6,<3",
   "transformers>=4.48,<5",
   "sentencepiece>=0.2,<1",
@@ -31,6 +32,13 @@ select = ["E", "F", "W", "I", "B", "UP", "RUF"]
 ignore = ["B008", "RUF001"]
 
 [tool.mypy]
-python_version = "3.11"
 strict = true
+
+[tool.uv.sources]
+torch = [{ index = "pytorch-cpu", marker = "sys_platform == 'linux' or sys_platform == 'win32'" }]
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true
 

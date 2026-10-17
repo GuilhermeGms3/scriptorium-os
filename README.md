@@ -44,6 +44,8 @@ npm run lint
 npm run build
 npm run benchmark:corpus
 npm run semantic:test
+npm run semantic:typecheck
+npm run semantic:lint
 npm run preview
 ```
 
@@ -63,6 +65,10 @@ continuam no modo navegador, sem habilitar o backend nativo implicitamente.
 No Windows, os comandos `semantic:*` procuram a `.venv` e depois `py -3.13`; assim, uma instalação
 antiga chamada apenas `python` no `PATH` não mascara o Python 3.13.3. Consulte o
 [README do motor semântico](services/semantic-engine/README.md).
+O serviço tem lock de dependências (`uv.lock`), migração segura para vetores float32, glossário
+teológico versionado e busca híbrida opcional. O inspetor de palavras mostra distribuição por
+livro e vizinhos nos corpora grego/hebraico. Operação e medições:
+[busca semântica e estatísticas](docs/architecture/semantic-search-vectors-lexical-statistics.md).
 
 ## Docker
 

@@ -22,19 +22,23 @@ continuar apontando para uma instalação antiga; os comandos npm abaixo procura
 depois `py -3.13`, evitando depender do `PATH` global:
 
 ```bash
+# Instale uv 0.11.26 (https://docs.astral.sh/uv/getting-started/installation/).
 npm run semantic:install
 npm run semantic:test
+npm run semantic:typecheck
+npm run semantic:lint
+npm run semantic:benchmark
 npm run semantic:dev
 ```
 
 Também é possível executar manualmente, a partir desta pasta:
 
 ```powershell
-py -3.13 -m pip install -e ".[test]"
-py -3.13 -m pytest tests -q
-py -3.13 -m ruff check .
-py -3.13 -m mypy --strict app/semantic_analyzer.py
-py -3.13 -m uvicorn app.main:app --host 127.0.0.1 --port 8018
+uv sync --locked --extra test --extra commentary --python 3.13
+uv run --locked --extra test --extra commentary pytest tests -q
+uv run --locked --extra test --extra commentary ruff check app tests scripts
+uv run --locked --extra test --extra commentary mypy --strict app
+uv run --locked uvicorn app.main:app --host 127.0.0.1 --port 8018
 ```
 
 `ruff` e `mypy` vêm com as dependências de teste e leem a configuração do `pyproject.toml`
@@ -46,7 +50,8 @@ py -3.13 -m uvicorn app.main:app --host 127.0.0.1 --port 8018
 - `POST /v1/analyze/batch`: até 200 unidades e 20.000 caracteres por unidade;
 - `checkpoint`: estado opaco devolvido ao cliente e persistido no workspace; guarda a última pessoa
   nomeada e a posição dela (`lastPersonUnit`), porque “Ele afirma…” só é resolvido até 3 unidades
-  depois do nome, inclusive entre lotes;
+  depois do nome, inclusive entre lotes. O contrato compartilhado aceita somente valores escalares
+  (`str/int/float/bool/null`), não objetos aninhados;
 - toda saída continua `machine-proposed` até revisão humana no Scriptorium.
 
 A revisão 3 das regras procura o agente só em palavras com maiúscula (com “de/da/do/dos/das/e”),
@@ -62,6 +67,8 @@ do documento.
 
 `GET /v1/pipeline/info`, `POST /v1/pipeline/ocr`, `POST /v1/pipeline/index`
 e `POST /v1/pipeline/link` são consumidos pelo painel local de cada livro.
+`POST /v1/pipeline/search` reutiliza a recuperação híbrida para a opção **Por sentido** da Busca.
+Não chama uma LLM geradora. A preparação é explícita por edição e revisão do embedding.
 Contrato completo e limites: [arquitetura](../../docs/architecture/local-knowledge-pipeline.md).
 
 Instale Tesseract com os idiomas `por`, `eng` e, para PDFs espanhóis, `spa`.
@@ -87,3 +94,24 @@ o fluxo usa FTS; sem LLM configurado, recupera candidatos sem inferir.
 
 Os modelos não são baixados/iniciados por esses endpoints. Chamada sem índice,
 configuração inválida ou saída não verificável falha de forma recuperável.
+
+## Índice e glossário
+
+`uv.lock` fixa dependências transitivas; Torch usa a distribuição CPU em Windows/Linux. Docker usa
+o mesmo lock e uv 0.11.26. CI verifica Python 3.11/3.13 em Windows/Linux; a execução desse workflow
+no GitHub deve ser conferida separadamente. A validação local usa Python 3.13.3.
+
+O índice derivado `candidates.sqlite` usa schema 3, vetores BLOB float32 little-endian e NumPy
+na recuperação (sem carregar Torch). Migração transacional cria `*.before-v3-*` consistente e
+recusa versões desconhecidas. Não altera `workspace.sqlite3`, PDFs ou associações publicadas.
+No Docker o índice passa a `/models/semantic-index`, persistido no volume já existente `/models`.
+Índices antigos no home efêmero do container não são movidos automaticamente: reindexe a edição.
+
+O arquivo `app/theological-glossary.json` é versionado e editável. Pode ser substituído pelo caminho
+local `SCRIPTORIUM_TRANSLATION_GLOSSARY`. Regras são literais, sensíveis a maiúsculas e a limites de
+palavra: `LORD` → `SENHOR`, sem mudar `Lord` ou `LORDship`. O fingerprint das regras compõe
+`modelRevision`, invalidando o cache exato quando o glossário muda, sem apagar revisões humanas.
+Placeholders são verificados; se o Marian os alterar, traduzem-se segmentos circundantes e mantêm-se
+os termos protegidos literalmente. Isso pode reduzir a fluência, não autoriza perda de termos.
+
+Detalhes, operação e medições: [busca, vetores e estatísticas](../../docs/architecture/semantic-search-vectors-lexical-statistics.md).

@@ -13,7 +13,7 @@ import { backup } from "node:sqlite";
 import { createHash } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   handleInstallationRequest,
   InstallationWorkspace,
@@ -26,6 +26,7 @@ import { WORKSPACE_SCHEMA_VERSION } from "../../../scripts/database/workspace-mi
 
 const workspaces: InstallationWorkspace[] = [];
 afterEach(() => {
+  vi.unstubAllGlobals();
   for (const workspace of workspaces.splice(0)) {
     workspace.close();
     if (!workspace.root.startsWith(join(tmpdir(), "scriptorium-installation-")))
@@ -60,6 +61,48 @@ async function command(workspace: InstallationWorkspace, session: string, body: 
   );
 }
 describe("single-user installation workspace", () => {
+  it("proxies only authenticated pipeline operations and preserves recoverable status", async () => {
+    const workspace = create();
+    const base = "http://localhost:3000/api/workspace/pipeline/v1/search";
+    expect(
+      (
+        await workspace.handle(
+          new Request(base, { method: "POST", headers: { "x-scriptorium-workspace": "1" } }),
+        )
+      ).status,
+    ).toBe(401);
+    const session = await cookie(workspace);
+    const headers = { "x-scriptorium-workspace": "1", cookie: session };
+    const upstream = vi
+      .fn()
+      .mockResolvedValue(
+        new Response(JSON.stringify({ detail: "Prepare o índice." }), { status: 409 }),
+      );
+    vi.stubGlobal("fetch", upstream);
+    const body = JSON.stringify({ query: "perdão", editionId: "test" });
+    const response = await workspace.handle(new Request(base, { method: "POST", headers, body }));
+    expect(response.status).toBe(409);
+    expect(upstream).toHaveBeenCalledWith(
+      expect.stringMatching(/\/v1\/pipeline\/search$/u),
+      expect.objectContaining({ method: "POST", redirect: "error", body: Buffer.from(body) }),
+    );
+    expect((await workspace.handle(new Request(base, { headers }))).status).toBe(405);
+    expect(
+      (await workspace.handle(new Request(base.replace("search", "admin"), { headers }))).status,
+    ).toBe(404);
+    expect(
+      (
+        await workspace.handle(
+          new Request(base, {
+            method: "POST",
+            headers: { ...headers, origin: "https://evil.example" },
+            body,
+          }),
+        )
+      ).status,
+    ).toBe(403);
+    expect(upstream).toHaveBeenCalledTimes(1);
+  });
   it("protects page previews with session and strict installed-page bounds", async () => {
     const workspace = create();
     const checksum = "a".repeat(64);

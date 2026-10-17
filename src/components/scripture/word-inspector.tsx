@@ -93,7 +93,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
   const visibleTabs = TABS.filter((tab) => {
     if (tab.id === "lexicon" || tab.id === "notes") return true;
     if (tab.id === "morphology") return morphRows.some(([, value]) => Boolean(value));
-    if (tab.id === "occurrences") return Boolean(annotation?.normalized.lexemeId);
+    if (tab.id === "occurrences") return Boolean(annotation?.normalized.lexemeId || token.lemmaId);
     if (tab.id === "sources") return Boolean(annotation || wordBundle?.sources.references.length);
     return false;
   });

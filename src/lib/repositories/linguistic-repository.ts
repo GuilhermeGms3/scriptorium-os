@@ -276,6 +276,14 @@ export const LinguisticRepository = {
     };
   },
 
+  async getLexicalStatistics(id: string, token?: TokenOccurrence) {
+    const storage = await corpusPackageRegistry.openPart(
+      token?.editionId ?? manifest.targetEditionId,
+      "linguistic",
+    );
+    return storage.getLexicalStatistics(token?.lemmaId ?? id);
+  },
+
   async getOccurrencesByLexeme(
     id: string,
     offset = 0,

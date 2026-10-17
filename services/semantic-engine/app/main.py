@@ -10,6 +10,7 @@ from fastapi.responses import JSONResponse
 from pydantic import BaseModel, ConfigDict, Field
 from starlette.middleware.trustedhost import TrustedHostMiddleware
 
+from .checkpoint import Checkpoint
 from .local_pipeline import router as pipeline_router
 from .semantic_analyzer import (
     ANALYZER_ID,
@@ -62,7 +63,7 @@ class SemanticUnitRequest(BaseModel):
 
 class SemanticBatchRequest(BaseModel):
     units: list[SemanticUnitRequest] = Field(min_length=1, max_length=200)
-    checkpoint: dict[str, str | int | float | bool | None] = Field(default_factory=dict)
+    checkpoint: Checkpoint = Field(default_factory=dict)
 
 
 class SemanticProposalResponse(BaseModel):
@@ -79,7 +80,7 @@ class SemanticBatchResponse(BaseModel):
     analyzer_id: str = Field(alias="analyzerId")
     analyzer_revision: str = Field(alias="analyzerRevision")
     proposals: list[SemanticProposalResponse]
-    checkpoint: dict[str, str | int | float | bool | None]
+    checkpoint: Checkpoint
 
 
 @lru_cache(maxsize=1)
@@ -129,7 +130,7 @@ def model_info(
     return ModelInfoResponse(
         provider="transformers-local",
         model=translation_backend.model_name,
-        modelRevision=translation_backend.resolved_model_revision,
+        modelRevision=translation_backend.translation_revision,
     )
 
 
@@ -168,10 +169,7 @@ def analyzer_info() -> dict[str, object]:
 @app.post("/v1/analyze/batch", response_model=SemanticBatchResponse)
 def analyze_batch(request: SemanticBatchRequest) -> SemanticBatchResponse:
     proposals, checkpoint = analyze_units(
-        [
-            AnalyzerUnit(unit.id, unit.text, unit.kind, unit.language)
-            for unit in request.units
-        ],
+        [AnalyzerUnit(unit.id, unit.text, unit.kind, unit.language) for unit in request.units],
         request.checkpoint,
     )
     return SemanticBatchResponse(

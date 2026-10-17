@@ -40,9 +40,33 @@ if (!python) {
 }
 
 const action = process.argv[2] ?? "test";
+if (action === "install") {
+  const result = spawnSync(
+    "uv",
+    [
+      "sync",
+      "--locked",
+      "--extra",
+      "test",
+      "--extra",
+      "commentary",
+      "--python",
+      python.command === "py" ? "3.13" : python.command,
+    ],
+    { cwd: service, stdio: "inherit", shell: false },
+  );
+  if (result.error)
+    console.error(
+      "Instale uv 0.11.26 e mantenha-o no PATH. O ambiente é criado em services/semantic-engine/.venv.",
+      result.error.message,
+    );
+  process.exit(result.status ?? 1);
+}
 const argumentsByAction: Record<string, string[]> = {
-  install: ["-m", "pip", "install", "-e", ".[test]"],
   test: ["-m", "pytest", "tests", "-q"],
+  typecheck: ["-m", "mypy", "--strict", "app"],
+  lint: ["-m", "ruff", "check", "app", "tests", "scripts"],
+  benchmark: ["scripts/benchmark_vectors.py"],
   dev: ["-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8018"],
 };
 const args = argumentsByAction[action];

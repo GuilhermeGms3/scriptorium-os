@@ -579,6 +579,8 @@ export function createScriptureKnowledgeEngine(
         provenance: [provenance],
       };
     },
+    getLexicalStatistics: (lexemeId: string, token?: TokenOccurrence) =>
+      dependencies.linguistic.getLexicalStatistics(lexemeId, token),
     getLexicalOccurrences: (lexemeId: string, offset = 0, limit = 30) =>
       dependencies.linguistic.getOccurrencesByLexeme(lexemeId, offset, limit),
   };

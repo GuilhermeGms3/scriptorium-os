@@ -245,6 +245,28 @@ export class InstallationWorkspace {
           headers: { "content-type": "image/png", "cache-control": "private, max-age=86400" },
         });
       }
+      const pipelineOperation =
+        /^\/api\/workspace\/pipeline\/v1\/(info|index|search|link|ocr)$/u.exec(url.pathname)?.[1];
+      if (pipelineOperation) {
+        const info = pipelineOperation === "info";
+        if (request.method !== (info ? "GET" : "POST"))
+          return json({ error: "Método inválido." }, 405);
+        const base = process.env["SCRIPTORIUM_SEMANTIC_URL"] ?? "http://127.0.0.1:8018";
+        const limit =
+          pipelineOperation === "ocr"
+            ? 16 * 1024 * 1024
+            : pipelineOperation === "index"
+              ? 4 * 1024 * 1024
+              : 64 * 1024;
+        const upstream = await fetch(`${base}/v1/pipeline/${pipelineOperation}`, {
+          method: request.method,
+          redirect: "error",
+          headers: { "content-type": "application/json" },
+          ...(info ? {} : { body: Buffer.from(await boundedBody(request, limit)) }),
+          signal: AbortSignal.timeout(info ? 30_000 : 150_000),
+        });
+        return new Response(upstream.body, { status: upstream.status, headers: { ...headers } });
+      }
       if (
         url.pathname === "/api/workspace/translation/v1/info" ||
         url.pathname === "/api/workspace/translation/v1/translate"

@@ -60,3 +60,57 @@ def test_analyze_batch_rejects_oversized_units() -> None:
     )
 
     assert response.status_code == 422
+
+
+def test_checkpoint_roundtrip_preserves_scalars_and_resumes_coreference() -> None:
+    first = client.post(
+        "/v1/analyze/batch",
+        json={
+            "units": [
+                {
+                    "id": "unit:first",
+                    "text": "Agostinho afirma que o Verbo existe desde a eternidade.",
+                    "kind": "paragraph",
+                    "language": "pt-BR",
+                }
+            ],
+            "checkpoint": {"custom": "preserved", "enabled": True, "nullable": None, "ratio": 0.5},
+        },
+    )
+    assert first.status_code == 200
+    checkpoint = first.json()["checkpoint"]
+    second = client.post(
+        "/v1/analyze/batch",
+        json={
+            "units": [
+                {
+                    "id": "unit:second",
+                    "text": "Ele sustenta que todas as coisas foram criadas pelo Verbo.",
+                    "kind": "paragraph",
+                    "language": "pt-BR",
+                }
+            ],
+            "checkpoint": checkpoint,
+        },
+    )
+    assert second.status_code == 200
+    assert second.json()["checkpoint"]["processedUnits"] == 2
+    assert second.json()["checkpoint"]["custom"] == "preserved"
+    assert any(p["payload"].get("resolvedLabel") == "Agostinho" for p in second.json()["proposals"])
+    assert (
+        client.post(
+            "/v1/analyze/batch",
+            json={
+                "units": [
+                    {
+                        "id": "unit:valid",
+                        "text": "Texto válido.",
+                        "kind": "paragraph",
+                        "language": "pt-BR",
+                    }
+                ],
+                "checkpoint": {"nested": {}},
+            },
+        ).status_code
+        == 422
+    )

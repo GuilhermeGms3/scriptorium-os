@@ -2,7 +2,7 @@
 
 from typing import Annotated, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, StringConstraints
 
 
 class Contract(BaseModel):
@@ -39,6 +39,46 @@ class LinkRequest(Contract):
     text: str = Field(min_length=1, max_length=12000)
     editionId: str = Field(min_length=1, max_length=250)
     useLlm: bool = False
+
+
+class SearchRequest(Contract):
+    query: Annotated[str, StringConstraints(strip_whitespace=True, min_length=1, max_length=2000)]
+    editionId: str = Field(min_length=1, max_length=250)
+    limit: int = Field(default=24, ge=1, le=50)
+
+
+class SearchHit(Contract):
+    candidate: Candidate
+    score: float
+    lexicalRank: int | None = None
+    semanticRank: int | None = None
+
+
+class SearchResponse(Contract):
+    hits: list[SearchHit] = Field(max_length=50)
+    retrieval: str
+    embeddingConfigured: bool
+
+
+class EmbeddingDatum(BaseModel):
+    index: int
+    embedding: list[Annotated[float, Field(strict=True, allow_inf_nan=False)]]
+
+
+class EmbeddingResponse(BaseModel):
+    data: list[EmbeddingDatum]
+
+
+class ChatMessage(BaseModel):
+    content: str
+
+
+class ChatChoice(BaseModel):
+    message: ChatMessage
+
+
+class ChatResponse(BaseModel):
+    choices: list[ChatChoice] = Field(min_length=1)
 
 
 class Selection(Contract):

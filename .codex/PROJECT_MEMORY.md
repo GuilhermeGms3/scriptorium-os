@@ -628,3 +628,36 @@
   Preview encerrado/lock liberado; Docker e tradução não reconstruídos. Próximo: calibrar
   marcadores Beale restantes, mapear referências internas das homilias e classificar outros
   mapas/imagens do acervo. Guia: `docs/architecture/outlined-source-contexts.md`.
+
+## Pipeline tipado, vetores, busca e léxico — 2026-10-17
+
+- Contrato escalar compartilhado de checkpoint entre API/analisador; testes HTTP de retomada.
+  `local_pipeline.py` tem testes diretos com modelos falsos/SQLite temporário: evidência literal,
+  offsets UTF-16, candidato/edição, rollback, revisão/dimensão, abstinência, gate e índice ausente.
+- Ambiente `.venv` via uv 0.11.26 + `uv.lock`, Python 3.11–3.13, Torch CPU no Windows/Linux.
+  `semantic:typecheck` verifica `mypy --strict app` inteiro; `semantic:lint` app/tests/scripts.
+  CI configurado Windows/Linux × Python 3.11/3.13, mas execução remota não certificada aqui.
+- Somente índice derivado `candidates.sqlite` migra a schema3 BLOB `<f4`; backup SQLite consistente,
+  transação/rollback, dimensão/checks/FKs; nunca modifica schema/PDFs/associações do workspace.
+  Matriz NumPy, sem Torch no retrieval, cache invalidado ao indexar; revisão/recipe/checksum/edição.
+  Benchmark sintético 10k×768: JSON163.938.304B/2.450,95ms leitura, BLOB41.058.304B/62,76ms.
+- `/v1/pipeline/search` compartilha FTS5/BM25 + embedding global com o linker, fusão RRF explícita.
+  Busca ganhou Por sentido, edição, preparação em lotes/cancelamento e fallback FTS identificado.
+  Índice incompleto ou revisão alterada dá409; não exige LLM geradora nem publica inferências.
+  Proxy local autenticado/whitelist integra Docker; modo browser-only mantém loopback.
+  Resultados preservam edição via `?edition=` e hash de verso. Busca textual permanece padrão.
+- Glossário JSON versionado protege Logos/Torá/Septuaginta/LORD; fingerprint no modelRevision
+  invalida cache exato sem sobrescrever revisão humana. Se Marian danifica placeholders, fallback
+  traduz segmentos circundantes preservando termos. Fluência/modelos reais ainda não validados.
+- Estatísticas no inspetor/Ocorrências: SQL por lema/edição, distribuição por livro e janela ±2
+  na mesma unidade. Sem duplicar por endereços alternativos; surface hebraica em vez de códigos
+  OSHB, sem unificar automaticamente referências compostas em raízes. Corpus linguístico lazy.
+- Validação local: 403 TS/57 arquivos, 110 Python, build/typecheck/lint/Ruff/mypy passaram.
+  QA produção1440×1000/390×844: preparo/cancelamento, restart do companion, edição solicitada,
+  fallback/409 legível e estatísticas gregas/hebraicas; sem pageerrors/overflow global. Header
+  móvel tem clipping anterior. Correção final de prefixos OSHB coberta por testes relacionados.
+- Integridade real read-only: 57 documentos, 45.949 propostas contextuais, quick_check ok/FKs0;
+  não reimportou/acrescentou livros. Previews/companion de QA encerrados, lock liberado.
+  Dockerfile usa lock e `/models/semantic-index`; imagem não reconstruída. Índice antigo efêmero
+  do container não é migrado automaticamente para esse volume: reindexar, sem afetar a biblioteca.
+- Guia operacional: `docs/architecture/semantic-search-vectors-lexical-statistics.md`.

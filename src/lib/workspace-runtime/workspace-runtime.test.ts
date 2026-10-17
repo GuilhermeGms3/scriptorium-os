@@ -682,6 +682,39 @@ describe("Phase 9.5 workspace schema", () => {
       modelRevision: "fixture-revision",
     });
   });
+  it("invalidates exact translation cache when glossary revision changes", async () => {
+    const workspace = adapter(database());
+    let revision = "model-sha:glossary:1";
+    const fetchMock = vi.spyOn(globalThis, "fetch").mockImplementation(
+      async (input) =>
+        new Response(
+          JSON.stringify(
+            String(input).endsWith("/v1/info")
+              ? { provider: "test-local", model: "fixture", modelRevision: revision }
+              : {
+                  translatedText: "SENHOR",
+                  provider: "test-local",
+                  model: "fixture",
+                  modelRevision: revision,
+                },
+          ),
+          { status: 200 },
+        ),
+    );
+    const request = {
+      sourceKind: "primary-text-unit" as const,
+      sourceId: "unit:glossary",
+      sourceLanguage: "en",
+      text: "LORD",
+    };
+    const first = await LocalTranslationService.translate(request, workspace);
+    expect((await LocalTranslationService.translate(request, workspace)).id).toBe(first.id);
+    revision = "model-sha:glossary:2";
+    const changed = await LocalTranslationService.translate(request, workspace);
+    expect(changed.id).not.toBe(first.id);
+    expect(changed.modelRevision).toBe(revision);
+    expect(fetchMock).toHaveBeenCalledTimes(5);
+  });
   it("roundtrips private knowledge and human-reviewed translations without exporting protected text", async () => {
     const db = database();
     const workspace = adapter(db);

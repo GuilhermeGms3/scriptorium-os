@@ -147,6 +147,7 @@ export interface CorpusSearchHit {
 }
 
 export interface CorpusStorage {
+  getLexicalStatistics(lemmaId: string, window?: number): Promise<LexicalStatistics>;
   getPackageManifest(): Promise<CorpusPackageManifest>;
   getWork(workId: string): Promise<{ id: string; title: string; sequence: number } | null>;
   getTextUnits(address: PassageAddress, editionId?: string): Promise<StoredTextUnit[]>;
@@ -163,4 +164,13 @@ export interface CorpusStorage {
   getCrosswalk(anchor: TextAnchor, targetSchemeId: string): Promise<CrosswalkRelation[]>;
   search(query: CorpusSearchQuery): Promise<CorpusSearchHit[]>;
   close(): void;
+}
+
+export interface LexicalStatistics {
+  editionId: string;
+  lemmaId: string;
+  total: number;
+  window: number;
+  books: { bookId: string; count: number }[];
+  neighbors: { lemma: string; direction: "before" | "after"; distance: number; count: number }[];
 }

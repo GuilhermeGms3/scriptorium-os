@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { DocumentPassageSchema } from "../domain/document-knowledge";
+import { installationAvailable, installationFetch } from "../workspace-runtime/installation-client";
 
 export const PipelinePassageSchema = DocumentPassageSchema.and(
   z.object({ chapter: z.number().int().positive() }),
@@ -13,7 +14,13 @@ export const PipelineCandidateSchema = z.object({
   id: z.string().min(1),
   editionId: z.string().min(1),
   text: z.string().min(1),
-  passage: PipelinePassageSchema,
+  passage: PipelinePassageSchema.and(
+    z.object({
+      workId: z.string().min(1),
+      verseStart: z.number().int().positive(),
+      verseEnd: z.number().int().positive(),
+    }),
+  ),
 });
 export const PipelineInfoSchema = z.object({
   version: z.string(),
@@ -93,6 +100,29 @@ export async function pipelineRequest<T>(
   body?: unknown,
   signal?: AbortSignal,
 ): Promise<T> {
+  if (!["info", "index", "search", "link", "ocr"].includes(path))
+    throw new Error("Operação do pipeline inválida.");
+  const init: RequestInit = {
+    method: body === undefined ? "GET" : "POST",
+    redirect: "error",
+    headers: { "content-type": "application/json" },
+    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
+    signal: signal
+      ? AbortSignal.any([signal, AbortSignal.timeout(150_000)])
+      : AbortSignal.timeout(150_000),
+  };
+  if (typeof window !== "undefined" && (await installationAvailable())) {
+    try {
+      const response = await installationFetch(`pipeline/v1/${path}`, init);
+      return schema.parse(await response.json());
+    } catch (error) {
+      if (error instanceof Error && error.message.includes("(409)"))
+        throw new Error("Índice não preparado para esta edição/modelo. Prepare o índice abaixo.");
+      if (error instanceof Error && error.message.includes("(429)"))
+        throw new Error("Pipeline ocupado. Aguarde a operação atual e tente novamente.");
+      throw error;
+    }
+  }
   const configured = import.meta.env["VITE_SEMANTIC_ENGINE_URL"];
   const url = new URL(
     typeof configured === "string" && configured.trim() ? configured : "http://127.0.0.1:8018",
@@ -107,18 +137,14 @@ export async function pipelineRequest<T>(
   )
     throw new Error("O pipeline privado exige um serviço HTTP local sem credenciais.");
   const response = await fetch(`${url.href.replace(/\/$/u, "")}/v1/pipeline/${path}`, {
-    method: body === undefined ? "GET" : "POST",
-    redirect: "error",
+    ...init,
     credentials: "omit",
-    headers: { "content-type": "application/json" },
-    ...(body === undefined ? {} : { body: JSON.stringify(body) }),
-    signal: signal
-      ? AbortSignal.any([signal, AbortSignal.timeout(150_000)])
-      : AbortSignal.timeout(150_000),
   });
   if (!response.ok)
     throw new Error(
-      `Serviço local indisponível (${response.status}). Verifique modelos, OCR e configuração.`,
+      response.status === 409
+        ? "Índice não preparado para esta edição/modelo. Prepare o índice abaixo."
+        : `Serviço local indisponível (${response.status}). Verifique modelos, OCR e configuração.`,
     );
   return schema.parse(await response.json());
 }

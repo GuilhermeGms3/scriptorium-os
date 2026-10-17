@@ -25,7 +25,7 @@ export interface WorkspaceQueryOptions {
  */
 export function useWorkspaceQuery<T>(
   key: readonly unknown[],
-  load: () => Promise<T>,
+  load: (signal: AbortSignal) => Promise<T>,
   {
     enabled = true,
     refreshOnKnowledgeChange = false,
@@ -35,7 +35,7 @@ export function useWorkspaceQuery<T>(
   return useQuery({
     queryKey: workspaceQueryKey(key),
     // Boxed: React Query refuses `undefined`, which several repositories return for "not found".
-    queryFn: async () => ({ value: await load() }),
+    queryFn: async ({ signal }) => ({ value: await load(signal) }),
     select: (box: { value: T }) => box.value,
     enabled,
     retry: false,

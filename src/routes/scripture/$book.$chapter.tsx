@@ -24,6 +24,10 @@ import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
 import { SEMANTIC_DOMAIN_LABELS, type SemanticDomain } from "../../lib/domain/semantic-content";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
+  validateSearch: (search: Record<string, unknown>): { edition?: string } =>
+    typeof search["edition"] === "string" && search["edition"].length <= 250
+      ? { edition: search["edition"] }
+      : {},
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
   // loader from initializing WASM or attempting OPFS access during SSR.
   ssr: false,
@@ -65,11 +69,12 @@ export const Route = createFileRoute("/scripture/$book/$chapter")({
 function ChapterReader() {
   const { book: bookId, chapter: chapterParam } = Route.useParams();
   const loadedBundle = Route.useLoaderData();
+  const requestedEdition = Route.useSearch().edition;
   const chapter = Number(chapterParam);
   const { setPassageContext, selectWord, readingPrefs, setInspectorOpen } = useWorkbench();
 
-  const [editionId, setEditionId] = useState(() =>
-    ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
+  const [editionId, setEditionId] = useState(
+    () => requestedEdition ?? ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
   );
   const [view, setView] = useState<ReaderView>("single");
   const [showExplanations, setShowExplanations] = useState(true);

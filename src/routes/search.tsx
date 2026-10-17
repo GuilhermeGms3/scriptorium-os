@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { errorMessage } from "@/lib/utils";
 import { useDebouncedValue, useWorkspaceQuery } from "../hooks/use-workspace-query";
 import { BookOpen, Library, Search as SearchIcon, Sparkles } from "lucide-react";
@@ -9,6 +9,12 @@ import { t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
 import { EmptyState } from "../components/layout/empty-state";
+import { searchByMeaning } from "../lib/application/semantic-search-service";
+import { corpusPackageRegistry } from "../lib/corpus-runtime/corpus-package-registry";
+import type { SearchHit } from "../lib/application/search-workspace";
+import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
+import { Button } from "../components/ui/button";
+import { ScriptureRepository } from "../lib/repositories/scripture-repository";
 
 interface SearchParams {
   q?: string;
@@ -25,21 +31,47 @@ function SearchPage() {
   const { setPassageContext } = useWorkbench();
   const [query, setQuery] = useState(q);
   const [group, setGroup] = useState<string>("all");
+  const [mode, setMode] = useState<"text" | "meaning">("text");
+  const [editionId, setEditionId] = useState("");
+  const [indexMessage, setIndexMessage] = useState("");
+  const indexing = useRef<AbortController | null>(null);
+  const [preparing, setPreparing] = useState(false);
+  const editions = useWorkspaceQuery(["semantic-search-editions"], async () => {
+    const scriptureEditions = new Set(
+      ScriptureRepository.listEditions().map((edition) => edition.id),
+    );
+    return (await corpusPackageRegistry.listEnabled()).filter((edition) =>
+      scriptureEditions.has(edition.editionId),
+    );
+  });
+  const selectedEdition = editionId || editions.data?.[0]?.editionId || "";
+  useEffect(() => () => indexing.current?.abort(), []);
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => setGroup("all"), [query]);
   const settledQuery = useDebouncedValue(query.trim(), 180);
   const searchQuery = useWorkspaceQuery(
-    ["search", settledQuery],
-    () => searchWorkspace(settledQuery),
-    { enabled: settledQuery !== "" },
+    ["search", mode, selectedEdition, settledQuery],
+    async (signal): Promise<{ hits: SearchHit[]; semantic?: boolean }> =>
+      mode === "text"
+        ? { hits: await searchWorkspace(settledQuery) }
+        : searchByMeaning(settledQuery, selectedEdition, signal),
+    { enabled: settledQuery !== "" && (mode === "text" || selectedEdition !== "") },
   );
   // Only the answer to what is typed now: a failed or slower search never shows older results.
   const hits = useMemo(
-    () => (settledQuery === query.trim() ? (searchQuery.data ?? []) : []),
+    () => (settledQuery === query.trim() ? (searchQuery.data?.hits ?? []) : []),
     [query, searchQuery.data, settledQuery],
   );
-  const searching = query.trim() !== "" && (settledQuery !== query.trim() || searchQuery.isPending);
-  const searchError = searchQuery.error ? errorMessage(searchQuery.error) : undefined;
+  const searching =
+    query.trim() !== "" &&
+    (settledQuery !== query.trim() ||
+      (mode === "meaning" && !selectedEdition ? editions.isPending : searchQuery.isPending));
+  const searchError =
+    mode === "meaning" && !selectedEdition && !editions.isPending
+      ? "Nenhuma edição bíblica habilitada está disponível. Confira os corpora instalados."
+      : searchQuery.error
+        ? errorMessage(searchQuery.error)
+        : undefined;
   const groups = [...new Set(hits.map((hit) => hit.group))];
   const visibleHits = group === "all" ? hits : hits.filter((hit) => hit.group === group);
 
@@ -50,6 +82,107 @@ function SearchPage() {
         title={t("search.workspace")}
         description={t("search.description")}
       />
+      <ToggleGroup
+        type="single"
+        variant="outline"
+        value={mode}
+        onValueChange={(value) => {
+          if (value === "text" || value === "meaning") {
+            setMode(value);
+            setGroup("all");
+          }
+        }}
+        className="mt-4 justify-start"
+        aria-label="Modo de busca"
+      >
+        <ToggleGroupItem value="text">Texto e referências</ToggleGroupItem>
+        <ToggleGroupItem value="meaning">Por sentido</ToggleGroupItem>
+      </ToggleGroup>
+      {mode === "meaning" && (
+        <section
+          className="mt-3 flex flex-col items-start gap-2 rounded-md border border-border p-3 text-sm"
+          aria-label="Configuração da busca por sentido"
+        >
+          <p>
+            Combina palavras e embeddings locais. A relevância não indica verdade teológica e não
+            usa LLM geradora.
+          </p>
+          <label className="flex w-full min-w-0 flex-wrap items-center gap-2">
+            Edição
+            <select
+              aria-label="Edição"
+              value={selectedEdition}
+              disabled={preparing || !editions.data?.length}
+              onChange={(event) => {
+                setEditionId(event.target.value);
+                setIndexMessage("");
+              }}
+              className="w-full min-w-0 rounded border border-input bg-card p-1"
+            >
+              {editions.data?.map((edition) => (
+                <option key={edition.editionId} value={edition.editionId}>
+                  {edition.title}
+                </option>
+              ))}
+            </select>
+          </label>
+          {editions.isPending && <p role="status">Carregando edições instaladas…</p>}
+          {editions.error && <p role="alert">Não foi possível carregar as edições.</p>}
+          <p className="text-xs text-muted-foreground">
+            Prepare uma vez por edição e versão do modelo. A pesquisa não importa o corpus
+            automaticamente. Sem embeddings, o serviço informa que usou apenas palavras.
+          </p>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={preparing || !selectedEdition}
+            onClick={async () => {
+              const controller = new AbortController();
+              indexing.current = controller;
+              setPreparing(true);
+              setIndexMessage("Preparando índice…");
+              try {
+                const { LocalKnowledgePipelineService } =
+                  await import("../lib/application/local-knowledge-pipeline-service");
+                await LocalKnowledgePipelineService.indexEdition(
+                  selectedEdition,
+                  setIndexMessage,
+                  controller.signal,
+                );
+                setIndexMessage("Índice preparado. Você já pode pesquisar.");
+                if (settledQuery) await searchQuery.refetch();
+              } catch (error) {
+                setIndexMessage(
+                  controller.signal.aborted
+                    ? "Preparação cancelada; os lotes concluídos foram preservados."
+                    : errorMessage(error),
+                );
+              } finally {
+                indexing.current = null;
+                setPreparing(false);
+              }
+            }}
+          >
+            Preparar índice desta edição
+          </Button>
+          {preparing && (
+            <Button
+              type="button"
+              variant="link"
+              size="sm"
+              onClick={() => indexing.current?.abort()}
+            >
+              Cancelar
+            </Button>
+          )}
+          {indexMessage && (
+            <p role="status" className="text-xs">
+              {indexMessage}
+            </p>
+          )}
+        </section>
+      )}
       <label className="mt-5 flex h-12 items-center gap-2 rounded-md border border-input bg-card px-3 shadow-sm focus-within:ring-2 focus-within:ring-ring">
         <SearchIcon className="size-4 text-muted-foreground" />
         <span className="sr-only">{t("search.query")}</span>
@@ -135,6 +268,11 @@ function SearchPage() {
         </div>
       )}
       <div className="mt-5">
+        {mode === "meaning" && searchQuery.data?.semantic === false && (
+          <p role="status" className="mb-3 text-sm text-muted-foreground">
+            Embeddings não configurados: estes resultados usam somente busca por palavras (FTS5).
+          </p>
+        )}
         {!query.trim() ? (
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <Sparkles className="size-4" aria-hidden="true" /> A busca consulta índices locais;
