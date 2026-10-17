@@ -209,3 +209,31 @@ Conhecimento voltou a ter entrada própria no menu).
 - Uma página que falha mostra `RouteError` dentro do app, com "Tentar novamente"; o menu continua.
 - A barra do leitor se ajusta à largura da própria coluna (`@container`): com o painel de estudo
   aberto fica numa linha, e só o modo de leitura escolhido mostra o nome.
+
+## Estudos, ambientes e comentários — 2026-10-17
+
+- A árvore de Estudos incorpora o catálogo existente, consultado por `KnowledgeQueryService`.
+  Os sete núcleos de `study-knowledge.ts` agrupam tipos canônicos por finalidade de estudo:
+  interpretação, questões da fé, campos teológicos, ideias, tradições, testemunhos históricos e obras.
+  A classificação é pedagógica; linhas e proximidade não afirmam influência ou concordância.
+  Cada registro abre as mesmas afirmações, argumentos e fontes existentes, sem uma cópia do banco.
+- O antigo mapa deixa a navegação principal. `/knowledge?entity=…` e `?claim=…` redirecionam
+  para Estudos preservando a seleção. Não se gera conhecimento, aprovação ou progresso automático.
+  O caderno de notas e suas conexões continuam uma funcionalidade independente; sua futura
+  projeção na árvore não é inferida a partir desses agrupamentos.
+- O diagrama usa círculos por nível, títulos externos, quatro cores de ramo e guia horizontal.
+  Em telas estreitas, ramos e diagrama possuem rolagem própria, sem alargar a página.
+  Os guias mostram uma etapa por vez, com navegação horizontal, perguntas destacadas e anterior/próxima.
+  O texto editorial permanece íntegro. Trocar etapa não registra aprendizado ou conclusão.
+- Os ambientes Branco, Preto, Cinza e Marrom usam os mesmos tokens semânticos e a mesma preferência
+  `scriptorium.theme.v1`. Sistema continua seguindo a preferência do dispositivo. O script anterior
+  à primeira pintura e o provider compartilham o contrato de tema, com teste de consistência.
+- O leitor oferece comentários no texto, em painel inferior redimensionável ou ocultos.
+  A escolha é local (`scriptorium.commentary-layout.v1`). O painel segue a seleção do versículo,
+  permite consultar o capítulo inteiro e usa `VerseCommentary`, o mesmo caminho de renderização
+  e revisão do modo inline. Não reprocessa PDFs nem muda vínculos, filtros ou estados editoriais.
+  O separador aceita teclado; fechar devolve o foco ao seletor. Abrir o painel fecha o inspetor
+  lateral para evitar regiões concorrentes; o usuário ainda pode abri-lo explicitamente.
+- Texto bíblico conserva a serifa e as preferências de tamanho/entrelinha. Comentários usam sans,
+  entrelinha confortável, fonte destacada e procedência separada; somente o hover sublinha o corpo.
+  Tradução auxiliar e comentário original mantêm os rótulos de revisão e proveniência.

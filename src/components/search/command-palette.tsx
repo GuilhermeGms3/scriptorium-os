@@ -58,9 +58,9 @@ export function CommandPalette() {
       },
       {
         id: "cmd-knowledge",
-        label: t("command.openKnowledge"),
+        label: "Abrir árvore de estudos",
         icon: Network,
-        run: () => navigate({ to: "/knowledge" }),
+        run: () => navigate({ to: "/study", search: {} }),
       },
       {
         id: "cmd-new-study",

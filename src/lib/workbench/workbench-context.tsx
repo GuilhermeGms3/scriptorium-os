@@ -17,7 +17,8 @@ import type { PassageRef, TokenOccurrence } from "../domain/scripture";
 import type { Note, NoteLink, Study } from "../domain/study";
 import { StudyRepository } from "../repositories/study-repository";
 
-export type ThemeMode = "light" | "dark" | "system";
+import { parseTheme, resolveTheme, type ThemeMode, type ResolvedTheme } from "./theme";
+export type { ThemeMode } from "./theme";
 
 export interface ReadingPreferences {
   fontSize: number; // rem
@@ -38,7 +39,7 @@ export interface PassageContext {
 interface WorkbenchState {
   theme: ThemeMode;
   setTheme: (t: ThemeMode) => void;
-  resolvedTheme: "light" | "dark";
+  resolvedTheme: ResolvedTheme;
 
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
@@ -78,9 +79,9 @@ const PREFS_KEY = "scriptorium.reading-prefs.v1";
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window === "undefined") return "system";
-    return (window.localStorage.getItem(THEME_KEY) as ThemeMode) || "system";
+    return parseTheme(window.localStorage.getItem(THEME_KEY));
   });
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [wordSelection, setWordSelection] = useState<WordSelection | null>(null);
@@ -139,9 +140,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
-      const dark = theme === "dark" || (theme === "system" && mq.matches);
-      setResolvedTheme(dark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", dark);
+      const resolved = resolveTheme(theme, mq.matches);
+      setResolvedTheme(resolved);
+      document.documentElement.dataset["theme"] = resolved;
+      document.documentElement.classList.toggle("dark", resolved !== "light");
     };
     apply();
     mq.addEventListener("change", apply);

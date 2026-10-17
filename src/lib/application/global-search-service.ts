@@ -128,8 +128,8 @@ export const GlobalSearchService = {
         ...(kind === "concept" ? { entityId: hit.id } : { recordKind: hit.kind, recordId: hit.id }),
         to:
           hit.kind === "claim"
-            ? `/knowledge?claim=${encodeURIComponent(hit.id)}`
-            : `/knowledge?entity=${encodeURIComponent(hit.id)}`,
+            ? `/study?claim=${encodeURIComponent(hit.id)}`
+            : `/study?entity=${encodeURIComponent(hit.id)}`,
       } as SearchResult);
     }
     for (const resource of await LibraryRepository.listSources({ query: q, limit })) {

@@ -46,7 +46,7 @@ export function VerseExplanations({
 
   return (
     <aside
-      className="mb-5 ml-4 border-l-2 border-primary/25 pl-3"
+      className="mb-6 ml-4 border-l-2 border-primary/25 pl-4 font-sans"
       aria-label={`Explicações do versículo ${verse}`}
     >
       <div className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-[0.14em] text-muted-foreground">
@@ -77,11 +77,7 @@ export function VerseExplanations({
                     {range}
                   </p>
                   <h3 className="mt-1 text-sm font-medium">{analysis.title}</h3>
-                  {analysis.summary && (
-                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                      {analysis.summary}
-                    </p>
-                  )}
+                  {analysis.summary && <p className="commentary-text mt-2">{analysis.summary}</p>}
                   <p className="mt-2 font-mono text-xs text-muted-foreground">
                     {reviewStatusLabel(analysis.reviewStatus)} ·{" "}
                     {analysis.status === "reviewed" ? "revisado" : "síntese em revisão"}
@@ -105,7 +101,7 @@ export function VerseExplanations({
             >
               <Quote className="mt-0.5 size-3.5 shrink-0 text-muted-foreground" />
               <div>
-                <p className="text-xs leading-relaxed">{claim.proposition}</p>
+                <p className="commentary-text">{claim.proposition}</p>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">
                   {claim.kind.replaceAll("-", " ")} · {reviewStatusLabel(claim.reviewStatus)}
                 </p>

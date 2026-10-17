@@ -29,12 +29,12 @@ export function PageHeader({
     >
       <div className="min-w-0">
         {eyebrow && <p className="meta-label">{eyebrow}</p>}
-        <h1 className="mt-1 flex items-center gap-2 font-serif text-2xl font-semibold tracking-tight">
+        <h1 className="mt-1 flex items-center gap-2 font-serif text-3xl font-semibold tracking-tight md:text-4xl">
           {icon}
           {title}
         </h1>
         {description && (
-          <div className="mt-1.5 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+          <div className="mt-3 max-w-[68ch] text-base leading-relaxed text-muted-foreground">
             {description}
           </div>
         )}

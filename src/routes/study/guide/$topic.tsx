@@ -54,6 +54,14 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
   const [attempt, setAttempt] = useState(0);
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState("");
+  const [activeModule, setActiveModule] = useState(0);
+  const stepsRef = useRef<HTMLElement>(null);
+  useEffect(() => {
+    const rail = stepsRef.current;
+    const active = rail?.querySelector<HTMLElement>('[aria-current="step"]');
+    if (rail && active)
+      rail.scrollTo({ left: active.offsetLeft - rail.clientWidth / 2 + active.offsetWidth / 2 });
+  }, [activeModule]);
   const actionLock = useRef(false);
   const existing = studyForGuide(guide, studies);
   useEffect(() => setPassageContext(null), [setPassageContext]);
@@ -110,7 +118,10 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
       setBusy(false);
     }
   };
-  const canSave = workspacePersistence === "opfs" || workspacePersistence === "memory";
+  const canSave =
+    workspacePersistence === "opfs" ||
+    workspacePersistence === "memory" ||
+    workspacePersistence === "installation";
 
   return (
     <article data-study-guide className="mx-auto w-full min-w-0 max-w-6xl px-5 py-6 md:px-9">
@@ -191,17 +202,36 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
           Leia, registre observações, compare fontes e formule sua síntese. As perguntas abaixo
           orientam investigação; não são conclusões doutrinárias nem citações dos livros.
         </p>
-        <ol className="mt-5 divide-y divide-border border-y border-border">
+        <nav ref={stepsRef} aria-label="Etapas do roteiro" className="guide-steps">
           {guide.modules.map((module, index) => (
-            <li key={module.title} className="grid gap-3 py-6 sm:grid-cols-[42px_minmax(0,1fr)]">
+            <button
+              key={module.title}
+              type="button"
+              aria-current={activeModule === index ? "step" : undefined}
+              onClick={() => setActiveModule(index)}
+            >
+              <span className="guide-step-number">{String(index + 1).padStart(2, "0")}</span>
+              <span>{module.title}</span>
+            </button>
+          ))}
+        </nav>
+        <ol className="guide-module" aria-label="Etapa selecionada">
+          {guide.modules.map((module, index) => (
+            <li
+              key={module.title}
+              hidden={activeModule !== index}
+              className={
+                activeModule === index
+                  ? "grid gap-5 py-8 sm:grid-cols-[58px_minmax(0,1fr)]"
+                  : "hidden"
+              }
+            >
               <span aria-hidden="true" className="font-mono text-lg text-primary/70">
                 {String(index + 1).padStart(2, "0")}
               </span>
               <div>
-                <h3 className="font-serif text-xl font-semibold">{module.title}</h3>
-                <p className="mt-2 max-w-3xl text-sm leading-7 text-muted-foreground">
-                  {module.explanation}
-                </p>
+                <h3 className="font-serif text-2xl font-semibold">{module.title}</h3>
+                <p className="guide-explanation">{module.explanation}</p>
                 {module.passages.length > 0 && (
                   <div className="mt-3 flex flex-wrap gap-2">
                     {module.passages.map((passage) => (
@@ -218,8 +248,8 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
                   </div>
                 )}
                 {module.questions.map((question) => (
-                  <div key={question} className="mt-4 border-l-2 border-primary/40 pl-4">
-                    <p className="text-sm leading-6">{question}</p>
+                  <div key={question} className="guide-question">
+                    <p className="font-serif text-lg leading-8">{question}</p>
                     <button
                       type="button"
                       disabled={busy || !canSave}
@@ -234,6 +264,27 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
             </li>
           ))}
         </ol>
+        <div className="flex items-center justify-between gap-4 border-t border-border pt-4 text-sm">
+          <button
+            disabled={activeModule === 0}
+            onClick={() => setActiveModule((index) => Math.max(0, index - 1))}
+            className="min-h-10 text-primary disabled:opacity-35"
+          >
+            ← Etapa anterior
+          </button>
+          <span className="text-xs text-muted-foreground">
+            {activeModule + 1} de {guide.modules.length} · roteiro, sem progresso automático
+          </span>
+          <button
+            disabled={activeModule === guide.modules.length - 1}
+            onClick={() =>
+              setActiveModule((index) => Math.min(guide.modules.length - 1, index + 1))
+            }
+            className="min-h-10 text-primary disabled:opacity-35"
+          >
+            Próxima etapa →
+          </button>
+        </div>
       </section>
       <section
         id="fontes"
@@ -400,7 +451,7 @@ function GuideContent({ guide }: { guide: StudyGuide }) {
               {materials.concepts.map((concept) => (
                 <Link
                   key={concept.id}
-                  to="/knowledge"
+                  to="/study"
                   search={{ entity: concept.id }}
                   className="border border-input px-3 py-2 text-xs hover:bg-accent"
                 >

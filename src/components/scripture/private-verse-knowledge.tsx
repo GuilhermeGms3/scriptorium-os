@@ -566,7 +566,7 @@ export function PrivateVerseKnowledge({
           const commentary = (
             <a
               href={previewHref}
-              className="mt-2 block font-serif text-sm leading-relaxed underline decoration-primary/30 underline-offset-4"
+              className="commentary-text mt-3 block hover:underline hover:decoration-primary/40 hover:underline-offset-4"
             >
               {preview.passageRelation.payload.contextualAnalysis?.summary ??
                 preview.translation?.translatedText ??
@@ -576,10 +576,13 @@ export function PrivateVerseKnowledge({
           return (
             <aside
               key={preview.id}
-              className="mb-2 border-l-2 border-primary/25 pl-3"
+              className="mb-5 border-l-2 border-primary/25 bg-muted/20 py-3 pl-4 pr-3"
               aria-label={`Trecho da biblioteca para o versículo ${verse}`}
             >
-              <a href={previewHref} className="text-xs text-primary underline underline-offset-4">
+              <a
+                href={previewHref}
+                className="commentary-source hover:underline hover:underline-offset-4"
+              >
                 {preview.document.title} · p. {preview.pages.map((page) => page + 1).join(", ")}
               </a>
               {broad ? (
@@ -593,7 +596,7 @@ export function PrivateVerseKnowledge({
               ) : (
                 commentary
               )}
-              <p className="mt-1 text-xs text-muted-foreground">
+              <p className="commentary-meta mt-3">
                 {preview.passageRelation.payload.contextualAnalysis?.mode === "source-excerpt"
                   ? preview.passageRelation.payload.referenceRole === "proof-text"
                     ? `Texto confessional original · ${preview.passageRelation.payload.contextualAnalysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`

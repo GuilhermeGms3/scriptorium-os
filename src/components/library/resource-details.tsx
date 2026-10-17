@@ -195,7 +195,7 @@ export function ResourceDetails({
             {relatedClaimIds.map((id) => (
               <li key={id}>
                 <a
-                  href={`/knowledge?claim=${encodeURIComponent(id)}`}
+                  href={`/study?claim=${encodeURIComponent(id)}`}
                   className="inline-flex items-center gap-1 text-xs underline underline-offset-2"
                 >
                   Abrir claim relacionada

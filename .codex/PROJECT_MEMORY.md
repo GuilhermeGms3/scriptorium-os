@@ -661,3 +661,15 @@
   Dockerfile usa lock e `/models/semantic-index`; imagem não reconstruída. Índice antigo efêmero
   do container não é migrado automaticamente para esse volume: reindexar, sem afetar a biblioteca.
 - Guia operacional: `docs/architecture/semantic-search-vectors-lexical-statistics.md`.
+
+## Estudos e leitura — 2026-10-17
+
+- Árvore incorpora os 95 registros existentes em sete núcleos pedagógicos, sem inferir relações.
+  `/knowledge` redireciona seleções para Estudos; o caderno de notas de outro trabalho é preservado.
+- Ambientes Branco/Preto/Cinza/Marrom/Sistema; guias por etapas horizontais; comentários inline,
+  em painel inferior redimensionável ou ocultos. Mesmos serviços e revisão, sem alterar o acervo.
+- Fonte canônica: `docs/architecture/frontend-experience.md`, seção Estudos, ambientes e comentários.
+- QA em 1536×1024 e 390×844: temas persistem, entidades/links antigos abrem, etapas navegam,
+  comentários mudam de posição, seleção acompanha versículo, teclado redimensiona e sem overflow.
+  Preview OPFS isolado; comentários privados não conferidos no acervo de produção.
+- Verificado: 425 testes/62 arquivos, typecheck, lint e build Node passaram. Sem nova ingestão.

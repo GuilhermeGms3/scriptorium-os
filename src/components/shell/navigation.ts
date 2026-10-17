@@ -4,7 +4,6 @@ import {
   HelpCircle,
   Home,
   Library,
-  Network,
   NotebookPen,
   Search,
   Settings,
@@ -32,10 +31,7 @@ export const NAVIGATION_GROUPS: readonly { label: string; items: readonly Naviga
   },
   {
     label: "Estudar",
-    items: [
-      { to: "/study", label: t("navigation.study"), icon: NotebookPen },
-      { to: "/knowledge", label: "Mapa de conhecimento", icon: Network },
-    ],
+    items: [{ to: "/study", label: t("navigation.study"), icon: NotebookPen }],
   },
   {
     label: "Biblioteca",

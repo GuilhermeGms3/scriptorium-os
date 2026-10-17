@@ -4,7 +4,8 @@
 
 import { useLocation } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookMarked, Moon, PanelRight, Search, Sun } from "lucide-react";
+import { BookMarked, Palette, PanelRight, Search } from "lucide-react";
+import { THEMES, parseTheme } from "../../lib/workbench/theme";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { cn } from "../../lib/utils";
 import { t } from "../../lib/i18n";
@@ -20,8 +21,7 @@ function useShortcutLabel(): string {
 }
 
 export function TopBar() {
-  const { setPaletteOpen, resolvedTheme, setTheme, inspectorOpen, setInspectorOpen } =
-    useWorkbench();
+  const { setPaletteOpen, theme, setTheme, inspectorOpen, setInspectorOpen } = useWorkbench();
   const pathname = useLocation({ select: (location) => location.pathname });
   const passageInspectorAvailable = supportsPassageInspector(pathname);
   const shortcut = useShortcutLabel();
@@ -48,7 +48,7 @@ export function TopBar() {
           aria-label={t("shell.openSearch")}
         >
           <Search className="size-3.5" />
-          <span className="flex-1 text-left">{t("shell.searchCommand")}</span>
+          <span className="hidden flex-1 text-left sm:inline">{t("shell.searchCommand")}</span>
           <kbd className="hidden rounded border border-border bg-background px-1 font-mono text-xs text-muted-foreground sm:inline">
             {shortcut}
           </kbd>
@@ -56,18 +56,21 @@ export function TopBar() {
       </div>
 
       <div className="flex items-center gap-1">
-        <button
-          onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
-          className="flex size-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-          aria-label={t("shell.toggleTheme")}
-          title={t("shell.toggleTheme")}
-        >
-          {resolvedTheme === "dark" ? (
-            <Sun className="size-4" strokeWidth={1.75} />
-          ) : (
-            <Moon className="size-4" strokeWidth={1.75} />
-          )}
-        </button>
+        <label className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Palette className="hidden size-4 sm:block" aria-hidden="true" />
+          <select
+            aria-label="Ambiente de leitura"
+            value={theme}
+            onChange={(event) => setTheme(parseTheme(event.target.value))}
+            className="h-8 max-w-24 rounded border border-input bg-background px-1.5 text-xs text-foreground"
+          >
+            {THEMES.map((item) => (
+              <option key={item.id} value={item.id}>
+                {item.label}
+              </option>
+            ))}
+          </select>
+        </label>
         {passageInspectorAvailable && (
           <button
             onClick={() => setInspectorOpen(!inspectorOpen)}

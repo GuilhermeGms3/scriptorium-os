@@ -19,6 +19,7 @@ import type { ReaderView } from "./verse";
 import { cn } from "../../lib/utils";
 import { t } from "../../lib/i18n";
 import { BookChapterPicker } from "./book-chapter-picker";
+import type { CommentaryLayout } from "./commentary-dock";
 
 const VIEWS: { id: ReaderView; label: string; icon: typeof Rows3 }[] = [
   { id: "single", label: t("scripture.view.single"), icon: Rows3 },
@@ -38,8 +39,8 @@ export function ScriptureToolbar({
   hasPrev,
   hasNext,
   availableViews,
-  showExplanations,
-  onShowExplanationsChange,
+  commentaryLayout,
+  onCommentaryLayoutChange,
   explanationsAvailable,
 }: {
   book: Book;
@@ -52,8 +53,8 @@ export function ScriptureToolbar({
   hasPrev: boolean;
   hasNext: boolean;
   availableViews: Record<ReaderView, boolean>;
-  showExplanations: boolean;
-  onShowExplanationsChange: (value: boolean) => void;
+  commentaryLayout: CommentaryLayout;
+  onCommentaryLayoutChange: (value: CommentaryLayout) => void;
   explanationsAvailable: boolean;
 }) {
   const navigate = useNavigate();
@@ -121,26 +122,26 @@ export function ScriptureToolbar({
 
       <div className="flex-1" />
 
-      <button
-        type="button"
-        onClick={() => onShowExplanationsChange(!showExplanations)}
-        disabled={!explanationsAvailable || view !== "single"}
-        aria-pressed={showExplanations}
-        title={
-          explanationsAvailable
-            ? "Mostrar ou ocultar explicações junto aos versículos"
-            : "Ainda não há explicações indexadas para este capítulo"
-        }
-        className={cn(
-          "flex h-9 items-center gap-1.5 rounded-md border border-input px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-35",
-          showExplanations && view === "single"
-            ? "bg-accent text-foreground"
-            : "text-muted-foreground hover:bg-accent hover:text-foreground",
-        )}
-      >
+      <label className="flex items-center gap-1.5 text-sm">
         <MessagesSquare className="size-4" aria-hidden="true" />
-        <span className="hidden sm:inline">Explicações</span>
-      </button>
+        <select
+          aria-label="Posição dos comentários"
+          id="commentary-layout"
+          title={
+            explanationsAvailable
+              ? "Escolha onde ler os comentários"
+              : "Sem comentários indexados neste capítulo"
+          }
+          value={commentaryLayout}
+          disabled={!explanationsAvailable || view !== "single"}
+          onChange={(event) => onCommentaryLayoutChange(event.target.value as CommentaryLayout)}
+          className="h-9 max-w-48 rounded-md border border-input bg-background px-2 text-sm disabled:opacity-40"
+        >
+          <option value="inline">Comentários no texto</option>
+          <option value="dock">Comentários no painel</option>
+          <option value="hidden">Ocultar comentários</option>
+        </select>
+      </label>
 
       {/* View mode */}
       <div

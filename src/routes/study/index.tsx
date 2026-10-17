@@ -1,7 +1,8 @@
 import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, Map, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
+import { ArrowRight, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
 import { StudyLearningMap } from "../../components/study/study-learning-map";
+import { StudyKnowledgeDetail } from "../../components/study/study-knowledge-detail";
 import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
 import { formatNumber, t } from "../../lib/i18n";
 import type { Study } from "../../lib/domain/study";
@@ -11,18 +12,28 @@ import { SecureContextNotice } from "../../components/common/secure-context-noti
 import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
 import { PageHeader } from "../../components/layout/page-header";
 import { EmptyState } from "../../components/layout/empty-state";
+import { z } from "zod";
 
 type StudyView = "journey" | "investigations";
 
 export const Route = createFileRoute("/study/")({
+  validateSearch: z.object({
+    view: z.enum(["journey", "investigations"]).optional().catch(undefined),
+    entity: z.string().max(500).optional().catch(undefined),
+    claim: z.string().max(500).optional().catch(undefined),
+  }),
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
   component: StudyIndex,
 });
 
 function StudyIndex() {
+  const search = Route.useSearch();
   const { studies, createStudy, refreshUserData, setPassageContext } = useWorkbench();
   const navigate = useNavigate();
-  const [view, setView] = useState<StudyView>("journey");
+  const view: StudyView = search.view ?? "journey";
+  const setView = (next: StudyView) => {
+    void navigate({ to: "/study", search: { view: next } });
+  };
   const [title, setTitle] = useState("");
   const [backupStatus, setBackupStatus] = useState<string>();
   useEffect(() => setPassageContext(null), [setPassageContext]);
@@ -49,7 +60,7 @@ function StudyIndex() {
           description="Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso inventado."
           actions={
             <div
-              className="flex border border-input bg-card p-0.5"
+              className="flex flex-wrap border border-input bg-card p-0.5"
               role="group"
               aria-label="Modo de estudo"
             >
@@ -63,12 +74,6 @@ function StudyIndex() {
               >
                 <RouteIcon className="size-3.5" /> Jornada
               </button>
-              <Link
-                to="/knowledge"
-                className="inline-flex h-8 items-center gap-1.5 px-2.5 text-xs hover:bg-accent"
-              >
-                <Map className="size-3.5" /> Mapa livre
-              </Link>
               <button
                 type="button"
                 aria-pressed={view === "investigations"}
@@ -86,8 +91,25 @@ function StudyIndex() {
         />
       </header>
 
-      {view === "journey" ? (
-        <StudyLearningMap studies={studies} />
+      {search.entity || search.claim ? (
+        <section className="mx-auto max-w-6xl px-5 py-6 md:px-8" aria-label="Tema do acervo">
+          <button
+            type="button"
+            className="text-sm text-primary hover:underline"
+            onClick={() => void navigate({ to: "/study", search: {} })}
+          >
+            ← Voltar à árvore de estudos
+          </button>
+          <StudyKnowledgeDetail
+            {...(search.entity ? { entityId: search.entity } : {})}
+            {...(search.claim ? { claimId: search.claim } : {})}
+          />
+        </section>
+      ) : view === "journey" ? (
+        <StudyLearningMap
+          studies={studies}
+          onSelectEntity={(entity) => void navigate({ to: "/study", search: { entity } })}
+        />
       ) : (
         <PersonalInvestigations
           studies={studies}

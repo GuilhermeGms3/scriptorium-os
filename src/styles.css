@@ -3,6 +3,7 @@
 @import "tw-animate-css";
 @import "./components/shell/intro-splash.css";
 @import "./components/shell/today-inscriptions.css";
+@import "./study-reading.css";
 
 @custom-variant dark (&:is(.dark *));
 

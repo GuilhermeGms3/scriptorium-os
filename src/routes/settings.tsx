@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useWorkbench, type ThemeMode } from "../lib/workbench/workbench-context";
+import { useWorkbench } from "../lib/workbench/workbench-context";
+import { THEMES } from "../lib/workbench/theme";
 import { DEFAULT_LOCALE, formatDecimal, languageLabel, t } from "../lib/i18n";
 import { PageContainer } from "../components/layout/page-container";
 import { PageHeader } from "../components/layout/page-header";
@@ -22,18 +23,14 @@ function SettingsPage() {
       />
       <SettingSection title={t("settings.appearance")}>
         <div className="flex flex-wrap gap-2">
-          {(["light", "dark", "system"] as ThemeMode[]).map((mode) => (
+          {THEMES.map(({ id: mode, label }) => (
             <button
               key={mode}
               onClick={() => setTheme(mode)}
               aria-pressed={theme === mode}
               className={`rounded-md border px-3 py-1.5 text-xs capitalize ${theme === mode ? "border-primary bg-accent" : "border-input"}`}
             >
-              {mode === "light"
-                ? t("settings.light")
-                : mode === "dark"
-                  ? t("settings.dark")
-                  : t("settings.system")}
+              {label}
             </button>
           ))}
         </div>

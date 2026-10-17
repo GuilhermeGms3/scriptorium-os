@@ -1,203 +1,306 @@
 import { Link } from "@tanstack/react-router";
-import { Check, Compass } from "lucide-react";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Check, Compass, ArrowRight } from "lucide-react";
+import { useMemo, useState } from "react";
 import { clsx } from "clsx";
 import {
   STUDY_JOURNEYS,
-  STUDY_MAP_EDGES,
   STUDY_MAP_NODES,
   journeyStartCount,
   studyPathById,
   studyPathProgress,
-  type StudyJourneyId,
-  type StudyMapNode,
 } from "../../lib/content/study-learning-map";
 import { guideIdForNode, JOURNEY_GUIDE_IDS } from "../../lib/content/study-guides";
+import { groupStudyKnowledge, studyEntityTitle } from "../../lib/content/study-knowledge";
+import { KnowledgeQueryService } from "../../lib/application/knowledge-query-service";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import type { Study } from "../../lib/domain/study";
 
-const JOURNEY_STYLE: Readonly<Record<StudyJourneyId, { node: string; line: string; dot: string }>> =
-  {
-    biblia: {
-      node: "border-amber-500/50 bg-amber-100 text-amber-950 dark:bg-amber-950/70 dark:text-amber-100",
-      line: "stroke-amber-500/65",
-      dot: "bg-amber-500",
-    },
-    teologia: {
-      node: "border-violet-500/50 bg-violet-100 text-violet-950 dark:bg-violet-950/70 dark:text-violet-100",
-      line: "stroke-violet-500/65",
-      dot: "bg-violet-500",
-    },
-    historia: {
-      node: "border-teal-500/50 bg-teal-100 text-teal-950 dark:bg-teal-950/70 dark:text-teal-100",
-      line: "stroke-teal-500/65",
-      dot: "bg-teal-500",
-    },
-    literatura: {
-      node: "border-rose-500/50 bg-rose-100 text-rose-950 dark:bg-rose-950/70 dark:text-rose-100",
-      line: "stroke-rose-500/65",
-      dot: "bg-rose-500",
-    },
-  };
+const BRANCH_CENTERS = {
+  biblia: { x: 390, y: 205 },
+  teologia: { x: 890, y: 205 },
+  historia: { x: 390, y: 525 },
+  literatura: { x: 890, y: 525 },
+} as const;
+const CENTER = { x: 640, y: 365 };
 
-export function StudyLearningMap({ studies }: { studies: readonly Study[] }) {
-  const viewportRef = useRef<HTMLDivElement>(null);
-  const [focusedJourneyId, setFocusedJourneyId] = useState("");
-  const nodeLookup = useMemo(() => new Map(STUDY_MAP_NODES.map((node) => [node.id, node])), []);
-  useEffect(() => {
-    const viewport = viewportRef.current;
-    if (viewport)
-      viewport.scrollTo({
-        left: Math.max(0, 520 - viewport.clientWidth / 2),
-        top: Math.max(0, 355 - viewport.clientHeight / 2),
-      });
-  }, []);
+export function StudyLearningMap({
+  studies,
+  onSelectEntity,
+}: {
+  studies: readonly Study[];
+  onSelectEntity: (id: string) => void;
+}) {
+  const [focused, setFocused] = useState("");
+  const [selectedGroup, setSelectedGroup] = useState("");
+  const [query, setQuery] = useState("");
+  const catalog = useWorkspaceQuery(["knowledge-entities"], () =>
+    KnowledgeQueryService.listEntities(),
+  );
+  const groups = useMemo(() => groupStudyKnowledge(catalog.data ?? []), [catalog.data]);
+  const selected = groups.find((group) => group.id === selectedGroup);
+  const entries =
+    selected?.entities.filter((item) =>
+      studyEntityTitle(item).toLocaleLowerCase("pt-BR").includes(query.toLocaleLowerCase("pt-BR")),
+    ) ?? [];
+  const leaves = STUDY_JOURNEYS.flatMap((journey) => {
+    const paths = STUDY_MAP_NODES.filter(
+      (node) => node.kind === "path" && node.journeyId === journey.id,
+    );
+    const additions = groups.filter(
+      (group) => group.journeyId === journey.id && group.entities.length > 0,
+    );
+    const count = paths.length + additions.length;
+    const left = journey.id === "biblia" || journey.id === "historia";
+    const center = BRANCH_CENTERS[journey.id];
+    return [
+      ...paths.map((node) => ({ key: node.id, title: node.shortTitle, node, group: undefined })),
+      ...additions.map((group) => ({ key: group.id, title: group.title, node: undefined, group })),
+    ].map((leaf, i) => ({
+      ...leaf,
+      journeyId: journey.id,
+      left,
+      x: left ? 235 : 1045,
+      y: center.y + (i - (count - 1) / 2) * 41,
+    }));
+  });
   return (
-    <div className="grid min-h-[690px] border-y border-border bg-card lg:grid-cols-[210px_minmax(0,1fr)]">
-      <nav
-        className="border-b border-border bg-sidebar/55 p-3 lg:border-b-0 lg:border-r"
-        aria-label="Jornadas de estudo"
+    <section aria-label="Árvore de estudos e fontes" className="study-atlas">
+      <nav aria-label="Ramos de estudo" className="atlas-journeys">
+        <button
+          type="button"
+          aria-pressed={!focused}
+          onClick={() => setFocused("")}
+          className="atlas-journey-all"
+        >
+          <Compass className="size-4" /> Visão completa
+        </button>
+        {STUDY_JOURNEYS.map((journey) => (
+          <button
+            key={journey.id}
+            type="button"
+            data-journey={journey.id}
+            aria-pressed={focused === journey.id}
+            onClick={() => setFocused(focused === journey.id ? "" : journey.id)}
+            className="atlas-journey"
+          >
+            <span className="atlas-dot" />
+            <span>{journey.title}</span>
+            <span className="sr-only">
+              {journeyStartCount(journey, studies)} investigações iniciadas
+            </span>
+          </button>
+        ))}
+      </nav>
+      <div
+        className="atlas-viewport"
+        tabIndex={0}
+        aria-label="Diagrama de estudo; role horizontalmente em telas menores"
       >
-        <p className="meta-label">Jornadas</p>
-        <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-          Abra um guia para começar a estudar.
-        </p>
-        <ul className="mt-3 grid gap-1.5 sm:grid-cols-2 lg:grid-cols-1">
-          {STUDY_JOURNEYS.map((journey) => (
-            <li key={journey.id}>
+        <div className="atlas-canvas">
+          <svg viewBox="0 0 1280 730" className="absolute inset-0 size-full" aria-hidden="true">
+            <g className="atlas-orbits" fill="none" stroke="currentColor">
+              <circle cx="640" cy="365" r="125" />
+              <circle cx="640" cy="365" r="153" strokeDasharray="2 9" />
+              <circle cx="640" cy="365" r="181" />
+              <path d="M435 365H845M640 160V570" strokeDasharray="2 8" />
+            </g>
+            {STUDY_JOURNEYS.map((journey) => {
+              const p = BRANCH_CENTERS[journey.id];
+              return (
+                <line
+                  key={journey.id}
+                  data-journey={journey.id}
+                  x1={CENTER.x}
+                  y1={CENTER.y}
+                  x2={p.x}
+                  y2={p.y}
+                  className={clsx("atlas-line", focused && focused !== journey.id && "opacity-15")}
+                />
+              );
+            })}
+            {leaves.map((leaf) => {
+              const p = BRANCH_CENTERS[leaf.journeyId];
+              return (
+                <path
+                  key={leaf.key}
+                  data-journey={leaf.journeyId}
+                  d={`M${p.x} ${p.y} C${leaf.left ? p.x - 90 : p.x + 90} ${p.y},${leaf.left ? leaf.x + 55 : leaf.x - 55} ${leaf.y},${leaf.x} ${leaf.y}`}
+                  className={clsx(
+                    "atlas-line",
+                    focused && focused !== leaf.journeyId && "opacity-15",
+                  )}
+                  fill="none"
+                />
+              );
+            })}
+          </svg>
+          <Link
+            to="/study/guide/$topic"
+            params={{ topic: "teologia" }}
+            className="atlas-origin"
+            style={{ left: "50%", top: "50%" }}
+            aria-label="Abrir guia: Teologia"
+          >
+            <span className="meta-label">Estudar e relacionar</span>
+            <span>Teologia</span>
+            <span className="atlas-origin-star" aria-hidden="true">
+              ✦
+            </span>
+          </Link>
+          {STUDY_JOURNEYS.map((journey) => {
+            const p = BRANCH_CENTERS[journey.id];
+            return (
               <Link
+                key={journey.id}
                 to="/study/guide/$topic"
                 params={{ topic: JOURNEY_GUIDE_IDS[journey.id] }}
-                className="block border border-transparent px-2.5 py-2 hover:bg-accent focus-visible:outline focus-visible:outline-2"
+                data-journey={journey.id}
+                className={clsx("atlas-branch", focused && focused !== journey.id && "opacity-25")}
+                style={{ left: `${p.x / 12.8}%`, top: `${p.y / 7.3}%` }}
               >
-                <span className="flex items-center gap-2">
-                  <span
-                    className={clsx("size-2 shrink-0 rounded-full", JOURNEY_STYLE[journey.id].dot)}
-                  />
-                  <span className="flex-1 text-xs font-medium">{journey.title}</span>
-                </span>
-                <span className="mt-1 block pl-4 text-xs text-muted-foreground">
-                  {journeyStartCount(journey, studies)} investigações iniciadas
+                <span>{journey.title}</span>
+                <span className="atlas-branch-caption">
+                  Abrir percurso <ArrowRight className="size-3" />
                 </span>
               </Link>
-            </li>
-          ))}
-        </ul>
-        <p className="mt-5 border-t border-border pt-3 text-xs leading-relaxed text-muted-foreground">
-          Todos os nós abrem roteiros. A marca ✓ indica uma investigação iniciada, não domínio ou
-          conclusão do assunto.
-        </p>
-      </nav>
-      <section className="min-w-0 overflow-hidden" aria-label="Mapa da formação">
-        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-2">
-          <div>
-            <p className="meta-label">Mapa da formação</p>
-            <p className="mt-0.5 text-xs text-muted-foreground">
-              <Compass className="mr-1 inline size-3.5" /> Clique em um tema para abrir seu guia de
-              estudo.
+            );
+          })}
+          {leaves.map((leaf) => {
+            const node = leaf.node;
+            const path = node?.pathId ? studyPathById(node.pathId) : undefined;
+            const started = path && studyPathProgress(path, studies).state === "started";
+            const content = (
+              <>
+                <span className="atlas-leaf-dot">{started && <Check className="size-3" />}</span>
+                <span className="atlas-leaf-label">
+                  {leaf.title}
+                  {leaf.group && <small>{leaf.group.entities.length} registros</small>}
+                </span>
+              </>
+            );
+            const common = {
+              "data-journey": leaf.journeyId,
+              className: clsx(
+                "atlas-leaf",
+                leaf.left && "atlas-leaf-left",
+                focused && focused !== leaf.journeyId && "opacity-25",
+              ),
+              style: { left: `${leaf.x / 12.8}%`, top: `${leaf.y / 7.3}%` },
+            };
+            return node ? (
+              <Link
+                {...common}
+                key={leaf.key}
+                to="/study/guide/$topic"
+                params={{ topic: guideIdForNode(node) }}
+                aria-label={`Abrir guia: ${node.title}${started ? ", investigação iniciada" : ""}`}
+              >
+                {content}
+              </Link>
+            ) : (
+              <button
+                {...common}
+                key={leaf.key}
+                type="button"
+                aria-pressed={selectedGroup === leaf.key}
+                aria-controls="study-branch-content"
+                onClick={() => {
+                  setSelectedGroup(leaf.key);
+                  setQuery("");
+                  requestAnimationFrame(() =>
+                    document.getElementById("study-branch-content")?.scrollIntoView({
+                      block: "start",
+                      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+                        ? "instant"
+                        : "smooth",
+                    }),
+                  );
+                }}
+              >
+                {content}
+              </button>
+            );
+          })}
+          <p className="atlas-legend">
+            Círculos maiores abrem roteiros. Núcleos menores reúnem os registros do acervo.
+            <br />✓ Investigação iniciada · linhas indicam organização de estudo.
+          </p>
+        </div>
+      </div>
+      <div id="study-branch-content" className="atlas-content">
+        {catalog.isPending ? (
+          <p role="status" className="text-sm text-muted-foreground">
+            Consultando os temas do acervo…
+          </p>
+        ) : catalog.error ? (
+          <p role="alert" className="text-sm text-destructive">
+            O catálogo não pôde ser consultado.{" "}
+            <button onClick={() => void catalog.refetch()} className="underline">
+              Tentar novamente
+            </button>
+          </p>
+        ) : selected ? (
+          <>
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <p className="meta-label">
+                  Acervo conectado ·{" "}
+                  {STUDY_JOURNEYS.find((journey) => journey.id === selected.journeyId)?.title}
+                </p>
+                <h2 className="mt-1 font-serif text-2xl">{selected.title}</h2>
+              </div>
+              <label className="text-sm">
+                <span className="sr-only">Buscar neste núcleo</span>
+                <input
+                  className="h-10 max-w-full border border-input bg-background px-3"
+                  placeholder="Buscar neste núcleo…"
+                  value={query}
+                  onChange={(event) => setQuery(event.target.value)}
+                />
+              </label>
+            </div>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Abra um registro para consultar suas fontes e relações. A organização por ramo não
+              implica concordância doutrinária.
             </p>
-          </div>
-          <label className="text-xs text-muted-foreground">
-            Destacar ramo{" "}
-            <select
-              value={focusedJourneyId}
-              onChange={(event) => setFocusedJourneyId(event.target.value)}
-              className="ml-2 h-8 max-w-48 border border-input bg-background px-2"
-            >
-              <option value="">Todos</option>
-              {STUDY_JOURNEYS.map((journey) => (
-                <option key={journey.id} value={journey.id}>
-                  {journey.title}
-                </option>
+            <ul className="atlas-entity-list">
+              {entries.map((item) => (
+                <li key={item.entity.id}>
+                  <button onClick={() => onSelectEntity(item.entity.id)} className="atlas-entity">
+                    <span className="atlas-entity-orb" aria-hidden="true" />
+                    <span>
+                      <span className="block font-serif text-lg">{studyEntityTitle(item)}</span>
+                      {item.entity.description && (
+                        <span className="mt-1 block max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                          {item.entity.description}
+                        </span>
+                      )}
+                    </span>
+                    <ArrowRight className="ml-auto size-4 shrink-0" />
+                  </button>
+                </li>
               ))}
-            </select>
-          </label>
-        </div>
-        <div
-          ref={viewportRef}
-          className="h-[520px] overflow-auto bg-[radial-gradient(circle_at_center,var(--color-border)_0.7px,transparent_0.8px)] bg-[size:22px_22px] lg:h-[638px]"
-        >
-          <div className="relative mx-auto h-[700px] w-[1040px]">
-            <svg className="absolute inset-0 size-full" viewBox="0 0 1040 700" aria-hidden="true">
-              {STUDY_MAP_EDGES.map((edge) => {
-                const from = nodeLookup.get(edge.from);
-                const to = nodeLookup.get(edge.to);
-                if (!from || !to) return null;
-                const journeyId = to.journeyId ?? from.journeyId;
-                return (
-                  <line
-                    key={`${edge.from}-${edge.to}`}
-                    x1={from.x}
-                    y1={from.y}
-                    x2={to.x}
-                    y2={to.y}
-                    className={clsx(
-                      "transition-opacity",
-                      journeyId ? JOURNEY_STYLE[journeyId].line : "stroke-border",
-                      focusedJourneyId && journeyId !== focusedJourneyId
-                        ? "opacity-10"
-                        : "opacity-70",
-                    )}
-                    strokeWidth="1.5"
-                    strokeDasharray={to.kind === "path" ? "4 4" : undefined}
-                  />
-                );
-              })}
-            </svg>
-            {STUDY_MAP_NODES.map((node) => (
-              <MapNodeLink
-                key={node.id}
-                node={node}
-                studies={studies}
-                muted={Boolean(
-                  focusedJourneyId && node.kind !== "origin" && node.journeyId !== focusedJourneyId,
-                )}
-              />
-            ))}
+            </ul>
+            {!entries.length && (
+              <p className="py-5 text-sm text-muted-foreground">
+                Nenhum registro com esse nome neste núcleo.
+              </p>
+            )}
+          </>
+        ) : (
+          <div className="flex items-start gap-4">
+            <Compass className="mt-1 size-6 shrink-0 text-primary" />
+            <div>
+              <h2 className="font-serif text-xl">Uma pergunta abre um caminho.</h2>
+              <p className="mt-2 max-w-3xl text-sm leading-relaxed text-muted-foreground">
+                Explore um percurso ou escolha um dos núcleos para encontrar doutrinas, tradições,
+                obras e ideias já presentes no acervo. Seu caderno continua acessível na aba de
+                notas.
+              </p>
+            </div>
           </div>
-        </div>
-      </section>
-    </div>
-  );
-}
-
-function MapNodeLink({
-  node,
-  studies,
-  muted,
-}: {
-  node: StudyMapNode;
-  studies: readonly Study[];
-  muted: boolean;
-}) {
-  const path = node.pathId ? studyPathById(node.pathId) : undefined;
-  const started = path && studyPathProgress(path, studies).state === "started";
-  const size = node.kind === "origin" ? 94 : node.kind === "journey" ? 82 : 68;
-  return (
-    <Link
-      to="/study/guide/$topic"
-      params={{ topic: guideIdForNode(node) }}
-      aria-label={`Abrir guia: ${node.title}${started ? ", investigação iniciada" : ""}`}
-      style={{
-        left: node.x,
-        top: node.y,
-        width: size,
-        height: size,
-        transform: "translate(-50%, -50%)",
-      }}
-      className={clsx(
-        "absolute z-10 flex items-center justify-center rounded-full border p-2 text-center transition-all hover:-translate-y-[calc(50%+2px)] hover:shadow-md focus-visible:z-20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4",
-        node.kind === "origin"
-          ? "border-foreground/40 bg-foreground text-background"
-          : node.journeyId && JOURNEY_STYLE[node.journeyId].node,
-        muted ? "opacity-25" : "opacity-100",
-      )}
-    >
-      <span className="leading-tight">
-        {started && <Check className="mx-auto mb-0.5 size-3" aria-hidden="true" />}
-        <span className={clsx("block", node.kind === "path" ? "text-xs" : "text-xs font-medium")}>
-          {node.shortTitle}
-        </span>
-      </span>
-    </Link>
+        )}
+      </div>
+    </section>
   );
 }

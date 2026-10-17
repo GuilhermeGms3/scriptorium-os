@@ -372,7 +372,7 @@ export function PassageInspector() {
                       return entity ? (
                         <Link
                           key={lemma.id}
-                          to="/knowledge"
+                          to="/study"
                           search={{ entity: entity.id }}
                           className="original-text rounded border border-border bg-muted/50 px-2 py-0.5 text-sm hover:bg-accent"
                         >

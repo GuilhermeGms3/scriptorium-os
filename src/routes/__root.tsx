@@ -17,6 +17,7 @@ import { WorkspaceQueryRefresh } from "../hooks/use-workspace-query";
 import { IntroSplash } from "../components/shell/intro-splash";
 import { INTRO_INIT } from "../components/shell/intro-controller";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
+import { THEME_INIT } from "../lib/workbench/theme";
 
 function NotFoundComponent() {
   return (
@@ -110,8 +111,6 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   notFoundComponent: NotFoundComponent,
   errorComponent: ErrorComponent,
 });
-
-const THEME_INIT = `(function(){try{var t=localStorage.getItem('scriptorium.theme.v1');if(t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`;
 
 function RootShell({ children }: { children: ReactNode }) {
   return (
