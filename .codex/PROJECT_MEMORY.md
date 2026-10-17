@@ -537,3 +537,31 @@
   sem pageerrors; há dívida visual preexistente no cabeçalho/filtro de fonte em tela estreita.
   OPFS roundtrip e Docker não foram validados nesta execução. Docs canônicos:
   `docs/architecture/original-commentary-extraction.md`, `docs/content/contextual-bible-reading.md`.
+
+# Wesley e Novo AT incorporados — 2026-10-16
+
+- Estado mais recente substitui as contagens anteriores: fila encerrada (14 PDFs completos,
+  seis originais sem texto aguardando OCR, um EPUB bloqueado). Workspace: 57 documentos,
+  47.707 páginas físicas/45.905 com texto; todos os originais presentes.
+- Incorporadas 18.427 entradas adicionais: Wesley 6.232 (5.302 notas pontuais NT + 930
+  trechos de capítulo AT, não versos), Novo AT 11.248, recuperação Shedd 497/Genebra 450.
+  Wesley em inglês; não foi gerada tradução. Não houve LLM ou revisão humana integral.
+- Extração especializada `commentary_structured.py`: outline + layout checksum-pinned,
+  offsets UTF16, serif/body vs boxes, falha fechada para marcadores corrompidos e capítulos
+  faltantes no outline. Recuperação protege todos os spans contextuais antigos.
+- Totais: 42.484 comentários originais + 116 editoriais = 42.600. Incluindo editoriais,
+  20.089 endereços pontuais/30.477 com intervalos; 625 versículos instalados sem cobertura.
+  1.189 capítulos com algum contexto, 87 completos por notas pontuais/1.028 com intervalos.
+  Métricas dos 66 livros, não certificação de qualidade nem comentário individual universal.
+- Baseline preservado: 57 metadados, 89.231 unidades genéricas anteriores, 232 propostas
+  editoriais. SQLite integrity/FKs ok. Serviço canônico read-only confirmou idempotência
+  0 novas/6.232 reutilizadas, 0/11.248, 0/497 e 0/450.
+- Pacotes privados finais: `wesley-commentary-publish-v1`, `novo-at-commentary-publish-v3`,
+  `shedd-adjacent-recovery-v1`, `genebra-adjacent-recovery-v1`; calibrações não publicadas.
+  Auditoria: `data/workspace/commentary-baseline-second-sources-20261016.json.verification.json`.
+- Gates: 391 testes TS/54 arquivos, 64 Python, typecheck, lint, build, Ruff/mypy passaram.
+  QA produção: João 3 filtro Wesley 29 cartões/toggle; Gn 1 Novo AT 29; link p.48 com dois
+  destaques; móvel sem overflow global/console errors. Cabeçalho/filtro móvel ainda têm
+  dívida visual preexistente. Nenhum componente front alterado, Docker não reconstruído.
+- Continuar por Jerusalém, Agostinho e Catecismo/confissões, depois léxicos/temáticos;
+  preservar exceções, revisões e fonte literal. Não anunciar prioridades 3–7 concluídas.

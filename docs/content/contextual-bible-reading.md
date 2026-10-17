@@ -121,3 +121,55 @@ foi realmente lido, suas evidências e os destinos; não basta promover citaçõ
 Nag Hammadi, léxicos e tradução mantêm as integrações da entrega anterior e não receberam
 novos textos neste lote. Tradução local continua inglês→português; espanhol não deve ser
 enviado implicitamente ao modelo inglês. Não há validação automática da verdade de uma doutrina.
+
+### Wesley, Novo Comentário AT e recuperação — 16/10/2026
+
+A fila autônoma terminou: 14 PDFs concluíram importação e desmembramento determinístico;
+seis tiveram seus originais incorporados, mas permanecem sem texto aguardando OCR; um EPUB
+permanece bloqueado por ausência de importador. O workspace contém 57 documentos, 47.707
+páginas físicas e 45.905 páginas com texto. Todos os 57 PDFs originais estão presentes.
+
+Esta entrega incorporou realmente mais **18.427 entradas contextuais**:
+
+| Fonte                      | Entradas adicionais | Tratamento                                                            |
+| -------------------------- | ------------------: | --------------------------------------------------------------------- |
+| Wesley                     |               6.232 | 5.302 notas pontuais do NT; 930 trechos de contexto de capítulo do AT |
+| Novo Comentário Bíblico AT |              11.248 | Comentários originais dos 39 livros do AT                             |
+| Shedd                      |                 497 | Recuperação de marcadores consecutivos separados por vírgula          |
+| Genebra                    |                 450 | Recuperação de marcadores consecutivos separados por vírgula          |
+
+Os 930 trechos de Wesley não são 930 capítulos distintos nem comentários individuais de verso.
+O original de Wesley continua em inglês. A extração usa outline e geometria do PDF; listas
+numeradas internas não são convertidas em versículos. No Novo AT, boxes laterais são separados
+do corpo principal. Marcadores danificados interrompem a nota anterior e seguem para exceções,
+sem anexar silenciosamente seu conteúdo ao versículo errado. Referências não contíguas não
+viram intervalos. Os spans contextuais anteriores foram protegidos na recuperação.
+
+Agora há **42.484 comentários originais** nas quatro fontes, mais **116 notas editoriais**:
+42.600 entradas contextuais no total. Nos 66 livros, incluindo as notas editoriais, são 20.089
+endereços distintos com notas pontuais e 30.477 abrangidos quando incluídos intervalos/perícopes.
+Dos 31.101 versículos efetivamente instalados da Bíblia Livre, 625 não têm essa cobertura.
+Contextos gerais de capítulo não entram nessa contagem. Todos os 1.189 capítulos têm algum
+contexto; 87 possuem notas pontuais para todos os versos e 1.028 cobertura completa quando
+incluídos intervalos. Isso não certifica precisão acadêmica nem revisão humana de cada ligação.
+
+`quick_check`, foreign keys e comparação com o baseline passaram: preservados os metadados
+dos 57 documentos, 89.231 unidades genéricas anteriores e as 232 propostas editoriais.
+A verificação pelo serviço canônico, sem escrita, reutilizou integralmente os quatro pacotes:
+6.232, 11.248, 497 e 450 entradas; nenhuma nova importação na repetição.
+
+Pacotes finais privados: `wesley-commentary-publish-v1`, `novo-at-commentary-publish-v3`,
+`shedd-adjacent-recovery-v1` e `genebra-adjacent-recovery-v1`. Auditoria privada:
+`data/workspace/commentary-baseline-second-sources-20261016.json.verification.json`.
+Diretórios de calibração não são pacotes publicados. Backups consistentes foram preservados.
+
+Validação: 391 testes TypeScript (54 arquivos), 64 Python, typecheck, lint, build Node,
+Ruff e mypy strict passaram. QA no preview de produção confirmou João 3/Wesley (29 cartões
+filtrados), Gênesis 1/Novo AT (29), toggle, fonte sublinhada, página 48 com dois destaques e
+viewport 390×844 sem overflow global ou erros de console. Permanecem problemas visuais
+preexistentes no cabeçalho e seletor de fonte móvel. Docker e tradução não foram validados.
+
+Próximas fontes: notas de Jerusalém, Agostinho e Catecismo/confissões, depois léxicos e obras
+temáticas, cada qual com estrutura própria. Os seis PDFs sem texto continuam exigindo OCR;
+não foram convertidos em comentários. Todas as novas ligações permanecem machine-proposed,
+visíveis por política documental e com auditoria pendente, sem participação de LLM.

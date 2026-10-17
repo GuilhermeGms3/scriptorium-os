@@ -36,6 +36,24 @@ def profile() -> Profile:
     return Profile(id="synthetic", checksum="a" * 64, layout="notes-only", firstPage=1)
 
 
+def test_consecutive_comma_targets_are_preserved_without_filling_gaps() -> None:
+    result = extract(
+        source(
+            [
+                "Gênesis\n1.3,4,5 Explicação sintética dos três versos consecutivos.\n"
+                "1.7,9 Outra nota sintética com uma lacuna explícita."
+            ]
+        ),
+        profile(),
+    )
+    assert len(result.notes) == 1
+    assert result.notes[0]["rawReference"] == "1:3,4,5"
+    passage = result.notes[0]["passage"]
+    assert isinstance(passage, dict)
+    assert passage["verseStart"] == 3 and passage["verseEnd"] == 5
+    assert any(e["reason"] == "noncontiguous-target-needs-review" for e in result.exceptions)
+
+
 def test_primary_marker_is_not_replaced_by_a_cross_reference() -> None:
     result = extract(
         source(

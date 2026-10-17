@@ -10,7 +10,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 from typing import cast
 
-from app.commentary_extractor import VERSION, Profile, Snapshot, batch_id, extract
+from app.commentary_extractor import Profile, Snapshot, batch_id, extract
 
 
 def main() -> None:
@@ -19,6 +19,7 @@ def main() -> None:
     parser.add_argument("profile", type=Path)
     parser.add_argument("output", type=Path)
     parser.add_argument("--pdf", type=Path)
+    parser.add_argument("--layout", type=Path)
     args = parser.parse_args()
     raw = args.snapshot.read_bytes()
     snapshot = Snapshot.model_validate_json(raw)
@@ -30,19 +31,26 @@ def main() -> None:
         from app.commentary_pdf import bold_markers
 
         bold_prefixes = bold_markers(args.pdf, snapshot.checksum)
-    result = extract(snapshot, profile, bold_prefixes)
+    if profile.layout == "notes-only":
+        result = extract(snapshot, profile, bold_prefixes)
+    else:
+        if not args.layout:
+            raise ValueError("--layout required for structured commentary")
+        from app.commentary_structured import extract_structured
+
+        result = extract_structured(snapshot, profile, args.layout, args.pdf)
     args.output.mkdir(parents=True, exist_ok=True)
     created = datetime.now(UTC).isoformat().replace("+00:00", "Z")
     files: list[dict[str, object]] = []
     for start in range(0, len(result.notes), 100):
         notes = result.notes[start : start + 100]
-        identifier = batch_id(snapshot.checksum, notes)
+        identifier = batch_id(snapshot.checksum, notes, result.version)
         package = {
             "format": "scriptorium-contextual-reading-v1",
             "batchId": identifier,
-            "analyst": f"deterministic-{VERSION}",
+            "analyst": f"deterministic-{result.version}",
             "createdAt": created,
-            "coverage": f"Extração notes-only da fonte {snapshot.checksum}; "
+            "coverage": f"Extração {profile.layout} da fonte {snapshot.checksum}; "
             "marcadores explícitos, sem inferência LLM; exceções no relatório privado.",
             "notes": notes,
         }
@@ -64,7 +72,7 @@ def main() -> None:
     )
     report = {
         "format": "scriptorium-commentary-report-v1",
-        "version": VERSION,
+        "version": result.version,
         "sourceChecksum": snapshot.checksum,
         "snapshotChecksum": hashlib.sha256(raw).hexdigest(),
         "processedPages": result.processed_pages,
@@ -77,7 +85,7 @@ def main() -> None:
         "exceptionCounts": dict(Counter(str(x["reason"]) for x in result.exceptions)),
         "publication": "staging-only",
         "files": files,
-        "allBookHeadingsResolved": len(result.sections) == len(snapshot.books),
+        "allBookHeadingsResolved": len(result.sections) == len(profile.bookIds or snapshot.books),
     }
     (args.output / "report.json").write_text(
         json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"

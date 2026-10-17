@@ -73,6 +73,7 @@ class Profile(Contract):
     markerStyle: Literal["calibrated-line", "bold-font"] = "calibrated-line"
     # Operator-calibrated headings override damaged/machine-translated book titles.
     headingAliases: dict[str, list[str]] = Field(default_factory=dict)
+    bookIds: list[str] | None = None
 
 
 def normalize(text: str) -> str:
@@ -137,6 +138,7 @@ class Extraction:
     protected: int = 0
     ignored_pages: int = 0
     processed_pages: int = 0
+    version: str = VERSION
 
 
 def extract(
@@ -395,12 +397,24 @@ def extract(
                     elif ":" in raw_tail or "." in raw_tail:
                         reason = "noncontiguous-target-needs-review"
                     elif "," in raw_tail:
-                        reason = "noncontiguous-target-needs-review"
+                        comma_values = [int(value) for value in values]
+                        # Only an explicit consecutive list is equivalent to a range.
+                        # Preserve its raw notation; never fill a gap in a source list.
+                        if re.fullmatch(r"(?:\s*,\s*\d+)+", raw_tail) and comma_values == list(
+                            range(verse + 1, verse + 1 + len(comma_values))
+                        ):
+                            end_verse = comma_values[-1]
+                            if not 1 <= verse <= end_verse <= limit:
+                                reason = "invalid-canonical-address"
+                        else:
+                            reason = "noncontiguous-target-needs-review"
                     elif (verse == 0 and limit == 0) or (
                         verse != 0 and not 1 <= verse <= end_verse <= limit
                     ):
                         reason = "invalid-canonical-address"
                     elif chapter < last_chapter:
+                        reason = "chapter-regression-needs-review"
+                    if reason is None and chapter < last_chapter:
                         reason = "chapter-regression-needs-review"
                     if reason is None:
                         last_chapter = chapter
@@ -437,11 +451,11 @@ def extract(
     return result
 
 
-def batch_id(checksum: str, notes: list[dict[str, object]]) -> str:
+def batch_id(checksum: str, notes: list[dict[str, object]], version: str = VERSION) -> str:
     # Independent from execution date, so reruns retain stable import/audit identity.
     import json
 
     digest = hashlib.sha256(
         json.dumps(notes, ensure_ascii=False, sort_keys=True).encode("utf-8")
     ).hexdigest()[:16]
-    return f"commentary-{checksum[:12]}-{VERSION}-{digest}"
+    return f"commentary-{checksum[:12]}-{version}-{digest}"

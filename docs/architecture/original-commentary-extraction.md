@@ -121,3 +121,64 @@ muitas fontes simultâneas ainda precisarão de paginação/filtros no repositó
 Ainda exigem trabalho próprio: outros layouts/fontes, notas ambíguas e OCR, qualidade linguística
 da edição digital Genebra, referências implícitas, extração de monografias e validação editorial
 das interpretações. Os perfis não são um motor universal de compreensão de livros.
+
+## Especialistas Wesley e Novo Comentário Bíblico do AT
+
+Os perfis `wesley-outline.json` e `novo-at-serif.json` são vinculados aos respectivos SHA-256,
+sem reaproveitar cegamente o parser notes-only. A versão `structured-commentary-v1` reutiliza o
+mesmo snapshot e o mesmo importador/serviço canônico; não introduz outro banco.
+
+`scripts/content/export-commentary-layout.ts` lê o PDF original com PDF.js, verifica checksum e
+alinha cada item aos offsets UTF-16 do texto já importado. Registra fonte genérica, posição,
+altura e hash por página. Nenhuma página existente é reextraída/substituída no banco. Página
+desalinhada é recusada. Geometria não autoriza alterar o texto-fonte.
+
+- **Wesley:** outline real fornece livro e capítulo; recuo das notas separa os marcadores do NT
+  das listas internas. Cabeçalhos, rodapés, índices e introduções ficam fora. No AT, a numeração
+  interna não é promovida a versículos: trechos originais são ligados ao capítulo, com tamanho
+  limitado. São consultáveis no contexto/inspector, não repetidos abaixo de cada verso.
+- Outlines desta edição têm erros: capítulos intermediários de Provérbios aparecem colapsados
+  no capítulo X, e há divergências entre título de seção e capítulo pai. Esses segmentos ficam
+  como exceções; nenhum destino é corrigido por adivinhação.
+- **Novo Comentário AT:** cabeçalhos dos 39 livros e marcadores principais `capítulo.versículo`
+  seguidos de travessão/hífen fornecem o destino. Geometria e predominância serifada da linha
+  separam comentários dos quadros sans-serif. Versaletes e palavras gregas em outra fonte na
+  mesma linha são preservados: filtrar só um tamanho/família de fonte mutilaria a explicação.
+- Marcadores corrompidos também encerram a nota anterior e geram exceção, em vez de fazer a nota
+  seguinte vazar para um versículo errado. Listas não contíguas não viram intervalos inventados.
+- O inglês do Wesley permanece original; não é uma nova tradução portuguesa. O tradutor local
+  existente e a revisão de traduções mantêm suas próprias limitações.
+
+Exemplo, com caminhos privados e runtimes parados:
+
+```powershell
+npx tsx scripts/content/export-commentary-layout.ts <snapshot.json> <original.pdf> <layout.json>
+# Em services/semantic-engine:
+py -3.13 -m app.commentary_cli <snapshot.json> profiles/wesley-outline.json <lotes> --pdf <original.pdf> --layout <layout.json>
+# Ou profiles/novo-at-serif.json, com --layout.
+# Na raiz:
+npm run content:import:contextual -- data/workspace/workspace.sqlite3 <lotes> --runtime-stopped
+```
+
+As novas associações permanecem `machine-proposed`, com evidência literal e auditoria pendente.
+Testes sintéticos cobrem listas internas, fontes, versaletes, Unicode, marcadores danificados,
+perícopes, conflitos e lacunas de outline. Calibração/amostragem não equivale a revisão humana
+integral ou medição estatística de precisão/recall.
+
+## Recuperação conservadora de exceções existentes
+
+`export-commentary-source ... --protect-all-contextual` protege spans de todas as análises
+contextuais existentes, inclusive quando a análise reutilizou uma unidade genérica. Usa relação
+real entre proposta e unidade, não apenas o método da unidade. Assim, uma execução de recuperação
+não recria, reinterpreta nem substitui comentários ou revisões já incorporados.
+
+O parser notes-only agora reconhece listas **explicitamente consecutivas**, como `3:15,16,17`,
+como o intervalo 15-17, preservando a notação original. `3:15,17` continua em exceção: não inventa
+o versículo 16 nem usa menções no corpo para preencher lacunas. Regressões de capítulo permanecem
+bloqueadas. Essa recuperação não resolve referências corrompidas, notas incompletas ou remissões
+sem explicação; esses casos não são aprovados em massa.
+
+`scripts/content/verify-contextual-reading.ts` verifica um diretório importado com o serviço
+canônico e adapter estritamente **somente leitura**. Recusa qualquer lote que ainda exigiria uma
+escrita, verifica SHA-256 de cada arquivo e registra quantas notas seriam reutilizadas, sem
+criar outro backup ou alterar o workspace.

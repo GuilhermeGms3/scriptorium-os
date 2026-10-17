@@ -5,12 +5,14 @@ import { ScriptureRepository } from "../../src/lib/repositories/scripture-reposi
 import { bookLabel } from "../../src/lib/i18n";
 
 // Read-only snapshot for the Python worker. No second writer or publication path.
-const [workspace, checksum, destination] = process.argv.slice(2);
+const [workspace, checksum, destination, protection] = process.argv.slice(2);
 if (!workspace || !checksum || !destination || !/^[a-f0-9]{64}$/u.test(checksum))
   throw new Error(
     "Uso: tsx scripts/content/export-commentary-source.ts <workspace> <sha256> <snapshot privado.json>",
   );
 if (!existsSync(resolve(workspace))) throw new Error("Workspace ausente.");
+if (protection && protection !== "--protect-all-contextual")
+  throw new Error("Proteção desconhecida.");
 const db = new DatabaseSync(resolve(workspace), { readOnly: true });
 const canon = new DatabaseSync(resolve("public/corpus-packages/biblia-livre-n4-2025.1.0.sqlite3"), {
   readOnly: true,
@@ -27,7 +29,9 @@ try {
     .all(document["id"]!);
   const protectedSpans = db
     .prepare(
-      `SELECT s.page_index+1 AS physicalPage,s.start_offset AS startOffset,s.end_offset AS endOffset FROM semantic_unit_spans s JOIN semantic_units u ON u.id=s.unit_id WHERE u.document_id=? AND u.method LIKE 'assistant-contextual-reading:%'`,
+      `SELECT s.page_index+1 AS physicalPage,s.start_offset AS startOffset,s.end_offset AS endOffset
+       FROM semantic_unit_spans s JOIN semantic_units u ON u.id=s.unit_id WHERE u.document_id=? AND
+       ${protection ? "EXISTS(SELECT 1 FROM knowledge_proposals p WHERE p.semantic_unit_id=u.id AND json_extract(p.payload_json,'$.contextualAnalysis') IS NOT NULL)" : "u.method LIKE 'assistant-contextual-reading:%'"}`,
     )
     .all(document["id"]!);
   const books = ScriptureRepository.listBooks()
