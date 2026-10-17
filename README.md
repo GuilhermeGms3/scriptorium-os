@@ -59,7 +59,7 @@ Sem `SCRIPTORIUM_WORKSPACE_DIR`, o workspace privado usa OPFS e pertence à orig
 completa do navegador; trocar host, protocolo ou porta cria outro armazenamento.
 Na instalação local, configure essa variável em `.env.local` apontando para
 `data/workspace/`: o backend compartilha o mesmo acervo entre navegadores.
-Docker já monta essa pasta automaticamente; previews do Lovable/Cloudflare
+Docker já monta essa pasta automaticamente; previews no Cloudflare
 continuam no modo navegador, sem habilitar o backend nativo implicitamente.
 
 No Windows, os comandos `semantic:*` procuram a `.venv` e depois `py -3.13`; assim, uma instalação
