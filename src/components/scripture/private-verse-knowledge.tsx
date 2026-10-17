@@ -305,9 +305,19 @@ export function PrivateLinkCard({
           </a>
           <p className="text-xs text-muted-foreground">
             {relation.payload.contextualAnalysis.mode === "source-excerpt"
-              ? "Comentário original extraído · ligação automática, não revisada por pessoa."
+              ? relation.payload.referenceRole === "proof-text"
+                ? "Texto confessional original · citação bíblica, não exegese universal."
+                : "Comentário original extraído · ligação automática, não revisada por pessoa."
               : "Síntese contextual assistida por máquina · não revisada por pessoa."}
           </p>
+          {relation.payload.contextualAnalysis.sourceContext && (
+            <p className="text-xs text-muted-foreground">
+              {relation.payload.contextualAnalysis.sourceContext.sectionPath.join(" › ")}
+              {relation.payload.contextualAnalysis.sourceContext.traditionLabel
+                ? ` · ${relation.payload.contextualAnalysis.sourceContext.traditionLabel}`
+                : ""}
+            </p>
+          )}
           {relation.payload.contextualAnalysis.limitations.map((value) => (
             <p key={value} className="border-l-2 border-amber-500/40 pl-2 text-muted-foreground">
               {value}
@@ -530,7 +540,12 @@ export function PrivateVerseKnowledge({
         const address = item.passageRelation.payload.passage;
         return (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0);
       };
-      return width(a) - width(b) || a.document.title.localeCompare(b.document.title, "pt-BR");
+      return (
+        width(a) - width(b) ||
+        a.document.title.localeCompare(b.document.title, "pt-BR") ||
+        (a.pages[0] ?? 0) - (b.pages[0] ?? 0) ||
+        (a.unit.spans[0]?.startOffset ?? 0) - (b.unit.spans[0]?.startOffset ?? 0)
+      );
     });
   // Confirming a reference is not reviewing its contents as exegesis. Literal links stay in
   // the expandable library panel; only contextual reading becomes inline commentary.
@@ -541,8 +556,13 @@ export function PrivateVerseKnowledge({
         previews.map((preview) => {
           const previewHref = `/library/document/${encodeURIComponent(preview.document.id)}?page=${(preview.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(preview.unit.id)}`;
           const address = preview.passageRelation.payload.passage;
+          const analysis = preview.passageRelation.payload.contextualAnalysis;
+          const longPatristicContext =
+            analysis?.sourceContext?.kind === "patristic-exposition" &&
+            analysis.summary.length > 1500;
           const broad =
-            (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0) > 6;
+            (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0) > 6 ||
+            longPatristicContext;
           const commentary = (
             <a
               href={previewHref}
@@ -566,6 +586,7 @@ export function PrivateVerseKnowledge({
                 <details className="mt-2">
                   <summary className="cursor-pointer text-xs text-muted-foreground">
                     Contexto de {passageLinkLabel(address)}
+                    {longPatristicContext ? " · exposição patrística" : ""}
                   </summary>
                   {commentary}
                 </details>
@@ -574,7 +595,9 @@ export function PrivateVerseKnowledge({
               )}
               <p className="mt-1 text-xs text-muted-foreground">
                 {preview.passageRelation.payload.contextualAnalysis?.mode === "source-excerpt"
-                  ? "Comentário original da fonte"
+                  ? preview.passageRelation.payload.referenceRole === "proof-text"
+                    ? `Texto confessional original · ${preview.passageRelation.payload.contextualAnalysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`
+                    : "Comentário original da fonte"
                   : preview.passageRelation.payload.contextualAnalysis
                     ? "Síntese contextual assistida"
                     : "Trecho literal da fonte"}{" "}

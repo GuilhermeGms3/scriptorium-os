@@ -106,6 +106,123 @@ async function source(text = quote) {
   return { ...state, document };
 }
 describe("contextual reading and profile branch integration", () => {
+  it("preserves confessional citation semantics and source context on idempotent import", async () => {
+    const { adapter, document, db } = await source();
+    const pkg = batch();
+    const note = pkg.notes[0]!;
+    note.analysis = {
+      ...analysis,
+      mode: "source-excerpt",
+      summary: quote,
+      contentType: "theological-interpretation",
+      sourceContext: {
+        kind: "catechism",
+        locator: "§ 123",
+        sectionPath: ["Credo", "§ 123"],
+        traditionLabel: "Tradição sintética",
+        authorLabel: "Instituição sintética",
+      },
+    };
+    note.relationType = "cites";
+    note.referenceRole = "proof-text";
+    await ContextualReadingService.importJson(JSON.stringify(pkg), adapter);
+    const repeat = await ContextualReadingService.importJson(JSON.stringify(pkg), adapter);
+    expect(repeat).toMatchObject({ imported: 0, reused: 1 });
+    expect(db.prepare("SELECT unit_kind FROM semantic_units").get()?.["unit_kind"]).toBe(
+      "paragraph",
+    );
+    const proposals = await DocumentKnowledgeRepository.listProposals(document.id, {}, adapter);
+    const payload = proposals.find((p) => p.payload.kind === "passage-relation")!.payload;
+    expect(payload).toMatchObject({
+      relationType: "cites",
+      referenceRole: "proof-text",
+      contextualAnalysis: {
+        sourceContext: { locator: "§ 123", traditionLabel: "Tradição sintética" },
+      },
+    });
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 1 },
+      null,
+      adapter,
+    );
+    const rendered = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(rendered).toContain("Texto confessional original");
+    expect(rendered).toContain("Tradição sintética");
+    expect(rendered).not.toContain("Comentário original da fonte");
+    note.relationType = "discusses";
+    await expect(ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).rejects.toThrow(
+      "Texto-prova",
+    );
+  });
+  it("does not overwrite an existing association with a different relation role", async () => {
+    const { adapter } = await source();
+    const pkg = batch();
+    await ContextualReadingService.importJson(JSON.stringify(pkg), adapter);
+    pkg.notes[0]!.relationType = "cites";
+    await expect(ContextualReadingService.importJson(JSON.stringify(pkg), adapter)).rejects.toThrow(
+      "outra análise",
+    );
+  });
+  it("collapses long patristic excerpts without replacing the literal explanation", async () => {
+    const original =
+      "Exposição inteiramente sintética, longa para testar divulgação progressiva. ".repeat(30);
+    const { adapter } = await source(original);
+    const pkg = batch();
+    pkg.notes[0]!.fragments = [{ physicalPage: 1, quote: original }];
+    pkg.notes[0]!.analysis = {
+      ...analysis,
+      mode: "source-excerpt",
+      summary: original,
+      sourceContext: {
+        kind: "patristic-exposition",
+        locator: "Conferência 1",
+        sectionPath: ["Conferência 1"],
+      },
+    };
+    await ContextualReadingService.importJson(JSON.stringify(pkg), adapter);
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 1 },
+      null,
+      adapter,
+    );
+    const rendered = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+      }),
+    );
+    expect(rendered).toContain("<details");
+    expect(rendered).toContain("exposição patrística");
+    expect(rendered).toContain(original.trim());
+    const item = layer.items[0]!;
+    const ordered = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        open: false,
+        onOpenChange() {},
+        items: [
+          { ...item, id: "later", pages: [3] },
+          { ...item, id: "earlier", pages: [0] },
+        ],
+      }),
+    );
+    expect(ordered.indexOf("?page=1")).toBeLessThan(ordered.indexOf("?page=4"));
+  });
   it("does not truncate chapter commentary at the old 200-relation cap", async () => {
     const { db, adapter } = await source();
     await ContextualReadingService.importJson(JSON.stringify(batch()), adapter);

@@ -173,3 +173,39 @@ Próximas fontes: notas de Jerusalém, Agostinho e Catecismo/confissões, depois
 temáticas, cada qual com estrutura própria. Os seis PDFs sem texto continuam exigindo OCR;
 não foram convertidos em comentários. Todas as novas ligações permanecem machine-proposed,
 visíveis por política documental e com auditoria pendente, sem participação de LLM.
+
+### Contextos patrísticos e confessionais — 16–17/10/2026
+
+Foram incorporados **1.935 vínculos adicionais**, em 23 lotes: Agostinho/João I (125),
+João III (133), Comentário ao Gênesis (388), Sermão da Montanha (129), Catecismo (1.018)
+e Augsburgo (142). São **775 contextos patrísticos e 1.160 citações confessionais**, não
+1.935 comentários individuais de verso. O Catecismo foi segmentado em seus 2.865 parágrafos;
+669 receberam vínculos efetivamente publicados. Augsburgo recebeu vínculos de capítulo em
+dez artigos. João I resolve 20 conferências, João III 48; duas ficaram em exceção.
+
+Gênesis e Sermão permanecem contextos de obra, consultáveis no inspector: sua numeração
+interna não foi confundida com versículos. Citações confessionais são `cites`/`proof-text`,
+com tradição e localizador; o Reader as distingue de comentários originais. Nenhuma posição
+confessional foi apresentada como interpretação universal ou revisão humana.
+
+O total contextual é **44.535** entradas, incluindo as 116 editoriais anteriores. Excluindo
+textos-prova da cobertura de comentários, há 20.090 endereços pontuais e 30.491 incluindo
+intervalos/perícopes; **611 versículos instalados** da Bíblia Livre permanecem sem esse alcance.
+As novas fontes aprofundam sobretudo leituras concorrentes, não apenas a contagem de cobertura.
+
+Jerusalém foi inspecionada nas 1.221 páginas por texto/geometria e em amostras renderizadas:
+não foi identificado aparato de notas comentadas nesse arquivo. Westminster reconheceu
+33 capítulos, sem destinos bíblicos explícitos utilizáveis; nenhuma ligação foi inventada.
+Os documentos importados continuam disponíveis. Os demais volumes de Agostinho, o Saltério
+histórico sem crosswalk, associações finas e exceções continuam pendentes; OCR foi adiado.
+
+O workspace está em schema **25**. A migration normalizou 1.475 unidades geradas por esse
+especialista de `footnote` para `paragraph`, preservando IDs/evidências/revisões e protegendo
+unidades revisadas. Dois backups completos antecederam importação e atualização. A repetição
+dos 23 lotes reutilizou 1.935 entradas, sem duplicação; os 42.484 comentários anteriores também
+foram reutilizados integralmente em verificação somente leitura. Integridade e baseline passaram.
+
+Auditoria privada: `data/workspace/patristic-confessional-baseline-20261016.json.verification.json`.
+Pacote multifonte: `data/workspace/patristic-confessional-delivery-v1`. Para comandos, perfis,
+exceções, compatibilidade e rollback, consulte
+[contextos patrísticos e confessionais](../architecture/patristic-confessional-context.md).

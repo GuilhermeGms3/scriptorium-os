@@ -50,6 +50,12 @@ export const ContextualReadingService = {
     let reused = 0;
     for (const note of batch.notes) {
       const literal = note.analysis.mode === "source-excerpt";
+      if (
+        note.referenceRole === "proof-text" &&
+        (note.relationType !== "cites" ||
+          !["catechism", "confession"].includes(note.analysis.sourceContext?.kind ?? ""))
+      )
+        throw new Error("Texto-prova exige citação e contexto confessional explícito.");
       if (!literal && note.analysis.summary.length > 3000)
         throw new Error("Síntese editorial excede 3000 caracteres.");
       const method = literal
@@ -133,7 +139,9 @@ export const ContextualReadingService = {
         );
         if (
           payload.kind !== "passage-relation" ||
-          JSON.stringify(payload.contextualAnalysis) !== JSON.stringify(note.analysis)
+          JSON.stringify(payload.contextualAnalysis) !== JSON.stringify(note.analysis) ||
+          payload.relationType !== (note.relationType ?? "discusses") ||
+          payload.referenceRole !== note.referenceRole
         )
           throw new Error(
             "Nota já existe com outra análise. Use a revisão, sem sobrescrever seu histórico.",
@@ -167,10 +175,11 @@ export const ContextualReadingService = {
         const ordinal = ordinals.get(document.id)!;
         ordinals.set(document.id, ordinal + 1);
         statements.push({
-          sql: `INSERT INTO semantic_units(id,document_id,unit_kind,ordinal,text_checksum,language,method) VALUES(?,?,'footnote',?,?,?,?)`,
+          sql: `INSERT INTO semantic_units(id,document_id,unit_kind,ordinal,text_checksum,language,method) VALUES(?,?,?,?,?,?,?)`,
           bind: [
             unitId,
             document.id,
+            note.analysis.sourceContext ? "paragraph" : "footnote",
             ordinal,
             await digest(unitText),
             document.language ?? "und",
@@ -188,7 +197,8 @@ export const ContextualReadingService = {
       const payload = KnowledgeProposalPayloadSchema.parse({
         kind: "passage-relation",
         rawReference: note.rawReference,
-        relationType: "discusses",
+        relationType: note.relationType ?? "discusses",
+        ...(note.referenceRole ? { referenceRole: note.referenceRole } : {}),
         relationScope: note.relationScope,
         passage: note.passage,
         additionalPassages: note.additionalPassages,

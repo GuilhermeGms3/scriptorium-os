@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DocumentPassageSchema } from "./document-knowledge";
+import { DocumentPassageSchema, REFERENCE_ROLES } from "./document-knowledge";
 import { SemanticDomainSchema } from "./semantic-content";
 import { ContextualAnalysisSchema } from "./contextual-analysis";
 
@@ -27,6 +27,8 @@ export const ContextualReadingPackageSchema = z.object({
         passage: DocumentPassageSchema,
         additionalPassages: z.array(DocumentPassageSchema).max(100).default([]),
         relationScope: z.enum(["verse", "range", "pericope", "chapter", "book"]),
+        relationType: z.enum(["cites", "discusses", "alludes-to"]).optional(),
+        referenceRole: z.enum(REFERENCE_ROLES).optional(),
         domains: z.array(SemanticDomainSchema).min(1).max(6),
         analysis: ContextualAnalysisSchema,
       }),

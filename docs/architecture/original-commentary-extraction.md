@@ -1,5 +1,9 @@
 # Extração de comentários originais de Bíblias de estudo
 
+Para fontes patrísticas e confessionais, veja o especialista de
+[contextos de fonte](patristic-confessional-context.md): referências confessionais não são
+promovidas a exegese universal e capítulos internos não viram versículos.
+
 ## Responsabilidades
 
 O companion Python agora tem uma ferramenta **offline**, sem LLM, para extrair notas de PDFs

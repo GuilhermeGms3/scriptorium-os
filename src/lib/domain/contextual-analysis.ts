@@ -5,6 +5,15 @@ export const ContextualAnalysisSchema = z.object({
   summary: z.string().min(20).max(12000),
   /** Absent in legacy assistant syntheses; source excerpts must match their literal evidence. */
   mode: z.enum(["source-excerpt"]).optional(),
+  sourceContext: z
+    .object({
+      kind: z.enum(["patristic-exposition", "catechism", "confession"]),
+      locator: z.string().min(1).max(300),
+      sectionPath: z.array(z.string().min(1).max(300)).max(8),
+      authorLabel: z.string().min(1).max(200).optional(),
+      traditionLabel: z.string().min(1).max(200).optional(),
+    })
+    .optional(),
   rationale: z.string().min(20).max(2000),
   contentType: z.enum([
     "exegetical-note",

@@ -125,6 +125,10 @@ O primeiro trabalho de leitura contextual das Bíblias privadas está registrado
 páginas, lotes realmente incorporados e limites de cobertura. Referências automáticas
 não são apresentadas como se fossem comentários de cada versículo.
 
+O especialista de [contextos patrísticos e confessionais](docs/architecture/patristic-confessional-context.md)
+preserva conferência/parágrafo/artigo, distingue exegese de texto-prova e reutiliza o mesmo
+importador privado. Os perfis são calibrados por edição, não um entendimento universal de PDFs.
+
 O pipeline opcional de livros agora inclui recuperação de páginas vazias por OCR local,
 preservação de geometria, candidatos FTS/vetoriais, inferência multialvo via LM Studio/llama.cpp,
 retomada da biblioteca inteira, auditoria amostral por lote, cobertura e conteúdo privado inline.

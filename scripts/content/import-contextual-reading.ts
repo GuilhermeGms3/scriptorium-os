@@ -23,14 +23,35 @@ let db: DatabaseSync | undefined;
 try {
   const input = resolve(batchPath);
   const directory = statSync(input).isDirectory();
-  const reportSchema = z.object({
-    format: z.literal("scriptorium-commentary-report-v1"),
-    allBookHeadingsResolved: z.literal(true),
-    sourceChecksum: z.string().regex(/^[a-f0-9]{64}$/),
-    files: z
-      .array(z.object({ file: z.string().min(1), sha256: z.string().regex(/^[a-f0-9]{64}$/) }))
-      .min(1),
-  });
+  const reportSchema = z
+    .object({
+      format: z.literal("scriptorium-commentary-report-v1"),
+      allBookHeadingsResolved: z.literal(true).optional(),
+      structureResolved: z.literal(true).optional(),
+      sourceType: z.literal("source-context").optional(),
+      sourceChecksum: z
+        .string()
+        .regex(/^[a-f0-9]{64}$/)
+        .optional(),
+      sourceChecksums: z
+        .array(z.string().regex(/^[a-f0-9]{64}$/))
+        .min(1)
+        .max(30)
+        .optional(),
+      files: z
+        .array(z.object({ file: z.string().min(1), sha256: z.string().regex(/^[a-f0-9]{64}$/) }))
+        .min(1),
+    })
+    .refine(
+      (report) =>
+        report.allBookHeadingsResolved === true ||
+        (report.structureResolved === true && report.sourceType === "source-context"),
+      "Estrutura da fonte não foi resolvida.",
+    )
+    .refine(
+      (report) => Boolean(report.sourceChecksum) !== Boolean(report.sourceChecksums),
+      "Declare uma fonte ou uma lista de fontes, não ambas.",
+    );
   const report = directory
     ? reportSchema.parse(JSON.parse(readFileSync(join(input, "report.json"), "utf8")) as unknown)
     : undefined;
@@ -52,7 +73,8 @@ try {
     batches.some((batch) =>
       batch.notes.some(
         (note) =>
-          note.sourceChecksum !== report.sourceChecksum || note.analysis.mode !== "source-excerpt",
+          !(report.sourceChecksums ?? [report.sourceChecksum!]).includes(note.sourceChecksum) ||
+          note.analysis.mode !== "source-excerpt",
       ),
     )
   )
@@ -65,14 +87,14 @@ try {
     // Keep SQLite's synchronous/durability setting unchanged; the WAL remains the recovery log.
     database.exec("PRAGMA cache_size=-65536; PRAGMA wal_autocheckpoint=0;");
   const version = db.prepare("SELECT max(version) n FROM workspace_migrations").get()?.["n"];
-  if (version !== WORKSPACE_SCHEMA_VERSION && version !== 23)
+  if (version !== WORKSPACE_SCHEMA_VERSION && version !== 24 && version !== 23)
     throw new Error("Schema incompatível: migre antes do lote.");
   if (db.prepare("PRAGMA foreign_key_check").all().length)
     throw new Error("Workspace com violação de integridade. Importação recusada.");
   const destination = `${path}.before-contextual-${batches[0]!.batchId}-${Date.now()}`;
   console.info("Criando backup consistente antes da importação:", destination);
   await backup(db, destination, { rate: 4096 });
-  if (version === 23) applyWorkspaceMigrations(database);
+  if (version !== WORKSPACE_SCHEMA_VERSION) applyWorkspaceMigrations(database);
   const adapter: WorkspaceDatabase = {
     persistence: "installation",
     async query(sql, bind = []) {

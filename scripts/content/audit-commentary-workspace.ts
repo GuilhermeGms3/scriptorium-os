@@ -66,6 +66,7 @@ try {
           .all(prefix, `${String(document["id"])}:contextual;`);
         const byBook: Record<string, number> = {};
         const scopes: Record<string, number> = {};
+        let confessionalCitations = 0;
         for (const row of rows) {
           const parsed = KnowledgeProposalPayloadSchema.parse(
             JSON.parse(String(row["payload_json"])) as unknown,
@@ -74,6 +75,10 @@ try {
           byBook[parsed.passage.bookId] = (byBook[parsed.passage.bookId] ?? 0) + 1;
           const scope = parsed.relationScope ?? "verse";
           scopes[scope] = (scopes[scope] ?? 0) + 1;
+          if (parsed.referenceRole === "proof-text") {
+            confessionalCitations++;
+            continue; // A confession citing a verse does not fill its commentary coverage.
+          }
           for (const target of [parsed.passage, ...parsed.additionalPassages]) {
             if (target.verseStart === undefined) continue; // A chapter note is not counted as individual verse coverage.
             if ((target.verseEnd ?? target.verseStart) > 500)
@@ -89,7 +94,14 @@ try {
             }
           }
         }
-        return { checksum: document["checksum"], notes: rows.length, byBook, scopes };
+        return {
+          checksum: document["checksum"],
+          notes: rows.length,
+          confessionalCitations,
+          commentaryContexts: rows.length - confessionalCitations,
+          byBook,
+          scopes,
+        };
       })
       .filter((source) => source.notes > 0);
     const report = {

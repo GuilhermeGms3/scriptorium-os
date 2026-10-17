@@ -1,0 +1,13 @@
+{
+  "id": "augustine-genesis-v1",
+  "checksum": "3663b4c0538cc0e9df7a0c8ded99062903da133b9fe72b6f04a28a5d6d8da85f",
+  "kind": "patristic-exposition",
+  "strategy": "book-exposition",
+  "firstPage": 25,
+  "lastPage": 373,
+  "headingPattern": "^(?:LIVRO [IVXLCDM]+|CAPÍTULO [IVXLCDM]+|COMENTÁRIO LITERAL AO GÊNESIS[^\\n]*)$",
+  "bodyHeight": 13.5,
+  "extraHeights": [10.5, 15, 16.5, 19.5],
+  "bookId": "genesis",
+  "authorLabel": "Agostinho de Hipona"
+}

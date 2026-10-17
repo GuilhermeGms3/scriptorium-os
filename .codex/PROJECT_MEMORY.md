@@ -565,3 +565,43 @@
   dívida visual preexistente. Nenhum componente front alterado, Docker não reconstruído.
 - Continuar por Jerusalém, Agostinho e Catecismo/confissões, depois léxicos/temáticos;
   preservar exceções, revisões e fonte literal. Não anunciar prioridades 3–7 concluídas.
+
+# Patrística e confissões — 2026-10-17
+
+- Entrega realmente incorporada: 1.935 vínculos em 23 lotes. João comentado Agostinho I:
+  125/20 conferências; III: 133/48 conferências (duas sem referência principal resolvida).
+  Gênesis: 388 contextos de obra; Sermão da Montanha: 129 contextos de obra, não versos.
+  Catecismo: 1.018 citações de 669 parágrafos publicados; Augsburgo: 142 citações de capítulo
+  em dez artigos. Total: 775 contextos patrísticos + 1.160 vínculos confessionais.
+- `app.source_context` usa geometria/snapshot/checksum e o parser TS existente exportado por
+  `export-source-references.ts`. Não há LLM. Evita listas internas como parágrafos do CIC e
+  número de rodapé como ordinal de 1 João. Exclui lema/Análise editorial das conferências.
+- `sourceContext` preserva tipo/localizador/caminho/autor/tradição; relações confessionais
+  são `cites` + `proof-text`, não comentário universal. Sem destino explícito não há vínculo.
+  Perfis calibrados por SHA-256; não aplicar a PDFs diferentes com o mesmo título.
+- Jerusalém: não identificado aparato de notas no arquivo de 1.221 páginas; zero comentários
+  inventados. Westminster: 33 capítulos reconhecidos, zero destinos explícitos nesse exemplar.
+  Demais obras/volumes de Agostinho e Saltério sem crosswalk permanecem pendentes. OCR adiado.
+- Schema atual 25: migration 025 normalizou 1.475 unidades deste namespace para `paragraph`,
+  sem mudar IDs/texto/spans/revisões; protege unidades revisadas. Dois backups consistentes
+  antes de importação/migration. Atualizar runtimes antes de abrir schema 25; sem downgrade vivo.
+- Pacote privado final: `data/workspace/patristic-confessional-delivery-v1`, seis fontes.
+  Fontes-base: `augustine-john-i-context-publish-v1`, `augustine-john-iii-context-publish-v1`,
+  `augustine-genesis-context-publish-v2`, `augustine-sermon-context-publish-v2`,
+  `catholic-catechism-context-publish-v1`, `augsburg-confession-context-publish-v1`.
+  Auditoria: `patristic-confessional-baseline-20261016.json.verification.json`; idempotência
+  real 0 novas/1.935 reutilizadas. Verificação read-only dos seis pacotes anteriores reutilizou
+  os 42.484 comentários originais. Baseline, quick_check/FKs, 57 documentos e 232 propostas
+  editoriais preservados. Nenhum job em andamento; originais/extração anteriores não alterados.
+- Total contextual: 44.535 incluindo 116 editoriais; cobertura de comentários exclui textos-prova:
+  20.090 endereços pontuais/30.491 com intervalos, 611 versículos instalados sem cobertura.
+- Reader identifica confissão/tradição, conserva links sublinhados e recolhe exposições longas
+  sem reescrever o conteúdo. Ordena trechos da mesma fonte por página/offset, não pela importação.
+- Gates já executados: 395 testes TS/55 arquivos, 73 Python, build/typecheck/lint/Ruff/mypy.
+  QA produção em 127.0.0.1:5173: João 2/Agostinho, João 3/CIC (21 cartões confessionais),
+  expansão/toggle, citação p.119 com destaque, viewport 390×844 sem overflow global/console errors.
+  Cabeçalho/filtro estreito têm dívida visual anterior. Docker não reconstruído. Documentação:
+  `docs/architecture/patristic-confessional-context.md`, `docs/content/contextual-bible-reading.md`.
+- Próximo: auditar exceções/alcances patrísticos finos, demais volumes de Agostinho e crosswalk
+  do Saltério; obter aparato real de Jerusalém e tratar confissões sem inventar referências.
+  Não anunciar leitura humana integral, cobertura individual universal ou todas as obras concluídas.
