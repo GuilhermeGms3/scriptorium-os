@@ -12,6 +12,9 @@ RUN npm run build
 
 FROM node:22.20.0-bookworm-slim AS runtime
 
+RUN apt-get update && apt-get install -y --no-install-recommends poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
+
 ENV NODE_ENV=production \
     HOST=0.0.0.0 \
     PORT=3000
@@ -19,7 +22,8 @@ ENV NODE_ENV=production \
 WORKDIR /app
 
 RUN groupadd --system --gid 1001 scriptorium \
-    && useradd --system --uid 1001 --gid scriptorium --no-create-home scriptorium
+    && useradd --system --uid 1001 --gid scriptorium --no-create-home scriptorium \
+    && mkdir /app/workspace && chown scriptorium:scriptorium /app/workspace
 
 COPY --from=builder --chown=scriptorium:scriptorium /app/.output ./.output
 

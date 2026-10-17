@@ -39,10 +39,10 @@ export function EntityRelationPicker({
   }, [query, allowedKindsKey]);
   return (
     <fieldset className="space-y-2 rounded border border-border p-2">
-      <legend className="px-1 text-[10px] font-medium uppercase tracking-wider text-muted-foreground">
+      <legend className="px-1 text-xs font-medium uppercase tracking-wider text-muted-foreground">
         Relacionar a…
       </legend>
-      <label className="flex h-8 items-center gap-2 rounded border border-input bg-background px-2">
+      <label className="flex h-8 items-center gap-2 rounded border border-input bg-background px-2 focus-within:ring-2 focus-within:ring-ring">
         <Search className="size-3 text-muted-foreground" />
         <span className="sr-only">Pesquisar entidade relacionada</span>
         <input
@@ -67,7 +67,7 @@ export function EntityRelationPicker({
                 className="block w-full rounded px-2 py-1.5 text-left text-xs hover:bg-accent"
               >
                 <span className="block font-medium">{hit.label}</span>
-                <span className="text-[10px] uppercase text-muted-foreground">
+                <span className="text-xs uppercase text-muted-foreground">
                   {hit.kind.replaceAll("-", " ")}
                 </span>
               </button>
@@ -75,10 +75,8 @@ export function EntityRelationPicker({
           ))}
         </ul>
       )}
-      {selected && (
-        <p className="text-[10px] text-muted-foreground">Selecionado: {selected.label}</p>
-      )}
-      <label className="block text-[10px] text-muted-foreground">
+      {selected && <p className="text-xs text-muted-foreground">Selecionado: {selected.label}</p>}
+      <label className="block text-xs text-muted-foreground">
         Relação
         <select
           value={relationship}

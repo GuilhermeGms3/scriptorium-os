@@ -7,6 +7,7 @@ import type {
   SupportLevel,
 } from "../domain/knowledge";
 import type { ResourceType } from "../domain/library";
+import type { SOURCE_TYPES } from "../domain/bibliography";
 import type { PassageRef } from "../domain/scripture";
 import { ptBR, type TranslationKey } from "./pt-BR";
 export { DEFAULT_LOCALE, DOCUMENT_LANGUAGE_CODES, textDirectionForLanguage } from "./locale";
@@ -238,6 +239,37 @@ export function resourceTypeLabel(type: ResourceType): string {
   return RESOURCE_LABELS[type];
 }
 
+const SOURCE_TYPE_LABELS: Record<(typeof SOURCE_TYPES)[number], string> = {
+  book: "Livro",
+  journal: "Periódico",
+  "journal-issue": "Número de periódico",
+  "journal-article": "Artigo de periódico",
+  chapter: "Capítulo",
+  thesis: "Tese",
+  dissertation: "Dissertação",
+  "conference-paper": "Trabalho de congresso",
+  "encyclopedia-entry": "Verbete de enciclopédia",
+  website: "Site",
+  manuscript: "Manuscrito",
+  papyrus: "Papiro",
+  inscription: "Inscrição",
+  "archaeological-report": "Relatório arqueológico",
+  "council-document": "Documento conciliar",
+  creed: "Credo",
+  confession: "Confissão de fé",
+  catechism: "Catecismo",
+  "ancient-work": "Obra antiga",
+  "patristic-work": "Obra patrística",
+  "rabbinic-source": "Fonte rabínica",
+  "user-document": "Documento pessoal",
+  dataset: "Conjunto de dados",
+};
+
+/** Kind of bibliographic source in Portuguese, e.g. "Obra antiga" for "ancient-work". */
+export function sourceTypeLabel(type: (typeof SOURCE_TYPES)[number]): string {
+  return SOURCE_TYPE_LABELS[type];
+}
+
 const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
   textual: "Textual",
   historical: "Histórica",
@@ -248,7 +280,7 @@ const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
 };
 
 export function evidenceLabel(kind: EvidenceKind | string): string {
-  return EVIDENCE_LABELS[kind as EvidenceKind] ?? kind;
+  return EVIDENCE_LABELS[kind as EvidenceKind] ?? CLAIM_KIND_LABELS[kind as ClaimKind] ?? kind;
 }
 
 const REVIEW_LABELS: Record<ReviewStatus, string> = {
@@ -266,6 +298,8 @@ export function reviewStatusLabel(status: ReviewStatus): string {
 }
 
 const CLAIM_KIND_LABELS: Record<ClaimKind, string> = {
+  "textual-observation": "Observação textual",
+  "historical-source-observation": "Observação de fonte histórica",
   "linguistic-analysis": "Análise linguística",
   "textual-critical-analysis": "Crítica textual",
   "historical-reconstruction": "Reconstrução histórica",
@@ -311,6 +345,24 @@ const RELATION_LABELS: Record<RelationKind, string> = {
 
 export function relationLabel(relation: RelationKind | string): string {
   return RELATION_LABELS[relation as RelationKind] ?? relation;
+}
+
+const ARGUMENT_RELATION_LABELS: Readonly<Record<string, string>> = {
+  supports: "sustenta",
+  opposes: "se opõe a",
+  "objects-to": "objeta a",
+  "responds-to": "responde a",
+  qualifies: "qualifica",
+  "depends-on": "depende de",
+  undercuts: "enfraquece a base de",
+  rebuts: "refuta",
+  "alternative-to": "alternativa a",
+  "competes-with": "concorre com",
+  "derived-from": "deriva de",
+};
+
+export function argumentRelationLabel(relation: string): string {
+  return ARGUMENT_RELATION_LABELS[relation] ?? relation.replaceAll("-", " ");
 }
 
 export function formatNumber(value: number): string {

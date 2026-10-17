@@ -1,0 +1,10 @@
+{
+  "id": "shedd-notes-only-v1",
+  "checksum": "a901dfef17ef8d189814e3229776f6b9520bbffac714e84df13fcc9010cf1cca",
+  "layout": "notes-only",
+  "firstPage": 3,
+  "headingAliases": {
+    "song-of-songs": ["Cântico dos Cânticos de Salomão"],
+    "acts": ["Atos dos Apóstolos"]
+  }
+}

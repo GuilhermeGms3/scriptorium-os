@@ -18,20 +18,45 @@ export function Verse({
   bookName,
   chapter,
   verseMode,
+  selected = false,
+  onSelect,
 }: {
   verse: VerseContent;
   editionId: string;
   bookName: string;
   chapter: number;
   verseMode: "verse" | "paragraph";
+  selected?: boolean;
+  onSelect?: () => void;
 }) {
   const text = verse.translations[editionId];
   const label = `${bookName} ${chapter}:${verse.verse}`;
 
   return (
-    <span id={`verse-${verse.verse}`} className={cn(verseMode === "verse" && "mb-3 block")}>
+    <span
+      id={`verse-${verse.verse}`}
+      role={onSelect ? "button" : undefined}
+      tabIndex={onSelect ? 0 : undefined}
+      aria-pressed={onSelect ? selected : undefined}
+      aria-label={onSelect ? `Selecionar ${label}` : undefined}
+      onClick={onSelect}
+      onKeyDown={(event) => {
+        if (!onSelect || (event.key !== "Enter" && event.key !== " ")) return;
+        event.preventDefault();
+        onSelect();
+      }}
+      className={cn(
+        verseMode === "verse" && "mb-3 block",
+        onSelect &&
+          "cursor-pointer rounded-md outline-none transition-colors hover:bg-accent/40 focus-visible:ring-2 focus-visible:ring-ring",
+        selected && "bg-primary/10 ring-2 ring-primary/60",
+      )}
+    >
       <span
-        className="mr-1.5 align-super font-mono text-[10px] font-medium text-muted-foreground select-none"
+        className={cn(
+          "mr-1.5 align-super font-mono text-xs font-medium select-none",
+          selected ? "text-primary" : "text-muted-foreground",
+        )}
         aria-hidden
       >
         {verse.verse}
@@ -63,7 +88,7 @@ export function OriginalVerse({
   if (!verse.original) {
     return (
       <div className="mb-3 flex items-baseline gap-2">
-        <span className="align-super font-mono text-[10px] text-muted-foreground select-none">
+        <span className="align-super font-mono text-xs text-muted-foreground select-none">
           {verse.verse}
         </span>
         <span className="text-sm text-muted-foreground italic">
@@ -76,7 +101,7 @@ export function OriginalVerse({
   return (
     <div id={`verse-${verse.verse}`} className="mb-4" dir={direction}>
       <span
-        className="me-1.5 align-super font-mono text-[10px] text-muted-foreground select-none"
+        className="me-1.5 align-super font-mono text-xs text-muted-foreground select-none"
         dir="ltr"
       >
         {verse.verse}

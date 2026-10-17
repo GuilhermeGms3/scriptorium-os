@@ -1,5 +1,5 @@
 import type { Argument, ArgumentRelation, EvidenceRecord } from "../domain/argument";
-import { ArgumentRelationSchema, ArgumentSchema, EvidenceRecordSchema } from "../domain/argument";
+import { ArgumentRelationSchema, EvidenceRecordSchema } from "../domain/argument";
 import type { KnowledgeClaim, TextAnchor } from "../domain/knowledge";
 import type { OntologyEntity, OntologyRelation } from "../domain/theology";
 import { OntologyEntitySchema, OntologyRelationSchema } from "../domain/theology";
@@ -12,6 +12,7 @@ import {
   knowledgeText as value,
   type KnowledgeRow as Row,
 } from "./knowledge-database";
+import { getKnowledgeIndex } from "./knowledge-repository";
 
 function ontology(row: Row): OntologyEntity {
   return OntologyEntitySchema.parse(JSON.parse(value(row, "metadata_json")));
@@ -42,32 +43,20 @@ async function getClaimInternal(id: string): Promise<KnowledgeClaim | null> {
   ).map((item) => JSON.parse(value(item, "anchor_json")) as TextAnchor);
   return claim(row, anchors);
 }
-async function argumentFromRow(row: Row): Promise<Argument> {
-  const db = await database();
-  const id = value(row, "id");
-  const premiseClaimIds = query(
-    db,
-    "SELECT claim_id FROM argument_premises WHERE argument_id=? ORDER BY ordinal",
-    [id],
-  ).map((item) => value(item, "claim_id"));
-  const sourceIds = query(db, "SELECT source_id FROM argument_sources WHERE argument_id=?", [
-    id,
-  ]).map((item) => value(item, "source_id"));
-  const perspectiveProfileIds = query(
-    db,
-    "SELECT profile_id FROM argument_perspectives WHERE argument_id=?",
-    [id],
-  ).map((item) => value(item, "profile_id"));
-  return ArgumentSchema.parse({
-    id,
-    title: optional(row, "title"),
-    conclusionClaimId: value(row, "conclusion_claim_id"),
-    premiseClaimIds,
-    argumentType: optional(row, "argument_type"),
-    sourceIds,
-    notes: optional(row, "notes"),
-    perspectiveProfileIds,
-  });
+/** Arguments related to a claim through argument_relations, in relation order. */
+async function argumentsRelatedTo(
+  claimId: string,
+  types: readonly ArgumentRelation["relationType"][],
+): Promise<Argument[]> {
+  const index = await getKnowledgeIndex();
+  const ids = new Set(
+    (index.argumentRelationsToClaim.get(claimId) ?? [])
+      .filter(
+        (relation) => relation.fromKind === "argument" && types.includes(relation.relationType),
+      )
+      .map((relation) => relation.fromId),
+  );
+  return [...ids].flatMap((id) => index.argumentsById.get(id) ?? []);
 }
 
 export const TheologyRepository = {
@@ -145,31 +134,18 @@ export const PerspectiveRepository = {
 export const ArgumentRepository = {
   getClaim: getClaimInternal,
   async getArgumentsForClaim(id: string): Promise<Argument[]> {
-    const db = await database();
-    const rows = query(
-      db,
-      "SELECT DISTINCT a.* FROM arguments a LEFT JOIN argument_premises p ON p.argument_id=a.id WHERE a.conclusion_claim_id=? OR p.claim_id=?",
-      [id, id],
-    );
-    return Promise.all(rows.map(argumentFromRow));
+    const index = await getKnowledgeIndex();
+    const ids = new Set([
+      ...(index.argumentIdsByConclusion.get(id) ?? []),
+      ...(index.argumentIdsByPremise.get(id) ?? []),
+    ]);
+    return index.argumentList.filter((argument) => ids.has(argument.id));
   },
   async getSupportingArguments(id: string): Promise<Argument[]> {
-    const db = await database();
-    const rows = query(
-      db,
-      "SELECT DISTINCT a.* FROM arguments a JOIN argument_relations r ON r.from_kind='argument' AND r.from_id=a.id WHERE r.to_kind='claim' AND r.to_id=? AND r.relation_type='supports'",
-      [id],
-    );
-    return Promise.all(rows.map(argumentFromRow));
+    return argumentsRelatedTo(id, ["supports"]);
   },
   async getOpposingArguments(id: string): Promise<Argument[]> {
-    const db = await database();
-    const rows = query(
-      db,
-      "SELECT DISTINCT a.* FROM arguments a JOIN argument_relations r ON r.from_kind='argument' AND r.from_id=a.id WHERE r.to_kind='claim' AND r.to_id=? AND r.relation_type IN ('opposes','rebuts','undercuts')",
-      [id],
-    );
-    return Promise.all(rows.map(argumentFromRow));
+    return argumentsRelatedTo(id, ["opposes", "rebuts", "undercuts"]);
   },
   async getObjections(argumentId: string): Promise<ArgumentRelation[]> {
     return this.getRelationsTo("argument", argumentId, ["objects-to", "undercuts", "rebuts"]);

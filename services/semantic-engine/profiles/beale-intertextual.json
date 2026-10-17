@@ -1,0 +1,31 @@
+{
+  "checksum": "46f198cfae26a2d62cf1ce3aa94fa3dfb240712cbd01c8e23fdcae05121ffe3f",
+  "strategy": "intertextual",
+  "author": "Autores por livro; organização de G. K. Beale e D. A. Carson",
+  "segments": [
+    { "first": 50, "last": 197, "books": ["matthew"] },
+    { "first": 198, "last": 381, "books": ["mark"] },
+    { "first": 382, "last": 590, "books": ["luke"] },
+    { "first": 591, "last": 713, "books": ["john"] },
+    { "first": 714, "last": 835, "books": ["acts"] },
+    { "first": 836, "last": 943, "books": ["romans"] },
+    { "first": 944, "last": 1017, "books": ["1-corinthians"] },
+    { "first": 1018, "last": 1053, "books": ["2-corinthians"] },
+    { "first": 1054, "last": 1088, "books": ["galatians"] },
+    { "first": 1089, "last": 1113, "books": ["ephesians"] },
+    { "first": 1114, "last": 1121, "books": ["philippians"] },
+    { "first": 1122, "last": 1159, "books": ["colossians"] },
+    { "first": 1160, "last": 1174, "books": ["1-thessalonians"] },
+    { "first": 1175, "last": 1183, "books": ["2-thessalonians"] },
+    { "first": 1184, "last": 1197, "books": ["1-timothy"] },
+    { "first": 1198, "last": 1209, "books": ["2-timothy"] },
+    { "first": 1210, "last": 1218, "books": ["titus"] },
+    { "first": 1219, "last": 1311, "books": ["hebrews"] },
+    { "first": 1312, "last": 1332, "books": ["james"] },
+    { "first": 1333, "last": 1371, "books": ["1-peter"] },
+    { "first": 1372, "last": 1391, "books": ["2-peter"] },
+    { "first": 1392, "last": 1398, "books": ["1-john"] },
+    { "first": 1399, "last": 1413, "books": ["jude"] },
+    { "first": 1414, "last": 1504, "books": ["revelation"] }
+  ]
+}

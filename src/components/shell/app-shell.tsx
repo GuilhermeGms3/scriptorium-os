@@ -2,18 +2,22 @@
  * AppShell — the persistent research shell:
  *
  *   TopBar (search / command)
- *   Sidebar | Workspace (resizable) | Inspector
+ *   Sidebar | Workspace | Study panel (only when opened)
  *   StatusBar
  *
- * On mobile the sidebar becomes a bottom nav and the inspector becomes
- * a bottom sheet (opened by selecting a word or tapping "Details").
+ * The study panel opens when the reader selects a verse or a word. On wide screens it sits
+ * beside the text; below 1280 px it slides over the text from the right; on phones it is a
+ * bottom sheet. So the screen never holds more than three regions.
  */
 
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { Drawer } from "vaul";
+import { useLocation } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { useIsMobile } from "../../hooks/use-mobile";
+import { useMediaQuery, WIDE_READING_QUERY } from "../../hooks/use-media-query";
+import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { PrimarySidebar } from "./primary-sidebar";
 import { TopBar } from "./top-bar";
 import { StatusBar } from "./status-bar";
@@ -21,10 +25,14 @@ import { MobileNav } from "./mobile-nav";
 import { InspectorPanel } from "./inspector-panel";
 import { CommandPalette } from "../search/command-palette";
 import { t } from "../../lib/i18n";
+import { supportsPassageInspector } from "./shell-route-context";
 
 export function AppShell({ children }: { children: ReactNode }) {
-  const { inspectorOpen, wordSelection, selectWord } = useWorkbench();
+  const { inspectorOpen, setInspectorOpen, wordSelection, selectWord } = useWorkbench();
   const isMobile = useIsMobile();
+  const isWide = useMediaQuery(WIDE_READING_QUERY);
+  const pathname = useLocation({ select: (location) => location.pathname });
+  const passageInspectorAvailable = supportsPassageInspector(pathname);
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
@@ -47,13 +55,13 @@ export function AppShell({ children }: { children: ReactNode }) {
               </main>
             </Panel>
 
-            {inspectorOpen && (
+            {passageInspectorAvailable && inspectorOpen && isWide && (
               <>
                 <Separator
                   className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
                   aria-label={t("shell.resizeInspector")}
                 />
-                <Panel defaultSize="26%" minSize="240px" maxSize="40%" className="min-w-[240px]">
+                <Panel defaultSize="32%" minSize="320px" maxSize="45%" className="min-w-[320px]">
                   <aside
                     aria-label={t("shell.inspector")}
                     className="h-full overflow-hidden bg-card"
@@ -71,11 +79,34 @@ export function AppShell({ children }: { children: ReactNode }) {
       <MobileNav />
       <CommandPalette />
 
-      {/* Mobile inspector as bottom sheet */}
-      <Drawer.Root
-        open={isMobile && !!wordSelection}
+      {/* Below 1280 px the study panel slides over the text instead of squeezing it. */}
+      <Sheet
+        open={!isMobile && !isWide && passageInspectorAvailable && inspectorOpen}
         onOpenChange={(open) => {
-          if (!open) selectWord(null);
+          if (open) return;
+          selectWord(null);
+          setInspectorOpen(false);
+        }}
+      >
+        <SheetContent
+          side="right"
+          className="w-[min(30rem,92vw)] p-0 sm:max-w-none [&>button:first-child]:hidden"
+        >
+          <SheetTitle className="sr-only">{t("shell.inspector")}</SheetTitle>
+          <SheetDescription className="sr-only">
+            Estudo do versículo selecionado: visão geral, texto, fontes e notas.
+          </SheetDescription>
+          <InspectorPanel />
+        </SheetContent>
+      </Sheet>
+
+      {/* Mobile study panel as bottom sheet */}
+      <Drawer.Root
+        open={isMobile && passageInspectorAvailable && (!!wordSelection || inspectorOpen)}
+        onOpenChange={(open) => {
+          if (open) return;
+          selectWord(null);
+          setInspectorOpen(false);
         }}
       >
         <Drawer.Portal>

@@ -10,12 +10,19 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 - Identidade textual estável, independente da numeração humana, e crosswalks explícitos N:M.
 - Ontologia teológica multidimensional e grafo de argumentos persistidos em SQLite.
 - Source Engine com Author/Work/Edition/Source, citações estruturadas e importação CSL-JSON, RIS e um subconjunto básico de BibTeX.
-- Workspace pessoal persistente em SQLite/OPFS, separado dos corpora imutáveis, com exportação e reimportação JSON.
-- Motor semântico local para segmentar documentos privados, classificar domínios e propor vínculos bíblicos submetidos a revisão humana.
-- Serviço Python opcional para tradução local inglês→português, sempre mantendo original, modelo e estado de revisão.
+- Workspace pessoal separado dos corpora imutáveis: SQLite nativo na instalação local e OPFS no modo navegador, com exportação e reimportação estrutural JSON.
+- Motor semântico local para reconstruir a estrutura de documentos privados, manter unidades citáveis multi-página e propor assuntos, vínculos bíblicos, claims, argumentos, citações e entidades submetidos a revisão humana.
+- Orquestrador resumível da biblioteca privada, auditoria inferencial por lotes e relatório de cobertura por documento, passagem e área de estudo.
+- Camada privada por passagem que reúne unidades aceitas, claims, assuntos, páginas e traduções e mede lacunas em 15 áreas de conhecimento.
+- Promoção editorial em dois passos, com pacote de staging bloqueado por direitos/evidência e sem escrita automática no conhecimento público.
+- Serviço Python opcional para tradução local inglês→português e análise contextual em lotes,
+  sempre mantendo original, checkpoint, proveniência e estado de revisão.
 - Artefatos de origem, checksums, direitos e transformações preservados pelo pipeline.
 
-Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles não são importados nos chunks JavaScript do Vite; o Reader abre o shard da obra necessária, a busca usa shards FTS compactos e a concordância usa um índice linguístico global separado. O workspace mutável fica no OPFS do navegador e nunca é enviado a um backend.
+Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles não são importados nos chunks JavaScript do Vite; o Reader abre o shard da obra necessária, a busca usa shards FTS compactos e a concordância usa um índice linguístico global separado. O workspace mutável usa OPFS no modo navegador ou SQLite nativo em `data/workspace/` na instalação local. Consulte [acervo da instalação](docs/architecture/installation-workspace.md).
+
+O [leitor contextual e caderno](docs/architecture/study-notebook.md) permite abrir fontes sem sair
+da passagem, salvar notas por grupo e conectá-las num mapa pessoal colorido, usando esse mesmo banco.
 
 ## Desenvolvimento
 
@@ -39,8 +46,32 @@ npm test
 npm run lint
 npm run build
 npm run benchmark:corpus
+npm run semantic:test
+npm run semantic:typecheck
+npm run semantic:lint
 npm run preview
 ```
+
+No dia a dia, `npm run test:quick` roda tudo menos os cinco arquivos que leem os corpora
+(TAGNT, Bíblia Livre, SBLGNT, motor de conhecimento e runtime SQLite) e não reconstrói o índice
+antes: cerca de 35 s. `npm test` roda todos; como os testes de corpus levam vários segundos cada no
+Windows, o limite por teste é de 60 s.
+
+`npm run dev` fixa deliberadamente a origem local em `http://127.0.0.1:5173`.
+Sem `SCRIPTORIUM_WORKSPACE_DIR`, o workspace privado usa OPFS e pertence à origem
+completa do navegador; trocar host, protocolo ou porta cria outro armazenamento.
+Na instalação local, configure essa variável em `.env.local` apontando para
+`data/workspace/`: o backend compartilha o mesmo acervo entre navegadores.
+Docker já monta essa pasta automaticamente; previews no Cloudflare
+continuam no modo navegador, sem habilitar o backend nativo implicitamente.
+
+No Windows, os comandos `semantic:*` procuram a `.venv` e depois `py -3.13`; assim, uma instalação
+antiga chamada apenas `python` no `PATH` não mascara o Python 3.13.3. Consulte o
+[README do motor semântico](services/semantic-engine/README.md).
+O serviço tem lock de dependências (`uv.lock`), migração segura para vetores float32, glossário
+teológico versionado e busca híbrida opcional. O inspetor de palavras mostra distribuição por
+livro e vizinhos nos corpora grego/hebraico. Operação e medições:
+[busca semântica e estatísticas](docs/architecture/semantic-search-vectors-lexical-statistics.md).
 
 ## Docker
 
@@ -64,11 +95,12 @@ docker compose --profile semantic up --build -d
 ```
 
 O container executa como usuário sem privilégios e com filesystem somente
-leitura. Os corpora são servidos pela imagem; estudos, notas e documentos
-privados permanecem no OPFS do navegador, não em um volume Docker. Ao publicar
-em outro computador ou domínio, use HTTPS no proxy reverso: fora de `localhost`,
-o navegador pode negar OPFS em uma origem HTTP e o Scriptorium cairá para o
-armazenamento temporário sinalizado pela interface.
+leitura, exceto a pasta persistente `data/workspace` montada no container. Estudos,
+notas, PDFs e ligações ficam nessa pasta, compartilhados entre navegadores. Esse
+modo é local e single-user, restrito a loopback; não é um servidor pronto para
+internet/LAN. Não execute Vite/Windows e Docker/Linux escrevendo ao mesmo tempo
+no banco montado. Para transportar o acervo, faça backup privado da pasta com o
+runtime parado. Git e a imagem Docker levam o código, não os livros privados.
 
 Os índices grandes de corpus permanecem ignorados e são reconstruídos por
 `npm test` e `npm run build`. O snapshot curado e leve
@@ -87,4 +119,34 @@ Consulte [docs/corpora/README.md](docs/corpora/README.md) para aquisição e ger
 
 ## Limites atuais
 
-O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados com camada textual podem ser indexados, segmentados e vinculados localmente; nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa licenciada de Nag Hammadi, RAG, EPUB/OCR ou alinhamento português↔grego/hebraico.
+O extrator offline especializado em notas de Bíblias comentadas está descrito em
+[extração de comentários originais](docs/architecture/original-commentary-extraction.md).
+Ele produz lotes privados, preserva comentários anteriores e separa o destino principal das
+comparações/menções no corpo. Não depende de LLM nem equivale a cobertura editorial integral.
+
+A [fila local de incorporação](docs/architecture/library-import-queue.md) permite importar e
+desmontar novos PDFs num worker independente do chat, com backup, lock e retomada. Use
+`library:enqueue`, `library:run` e `library:status`; EPUB/OCR e revisão contextual têm estados
+e limites explícitos, sem apresentar referências detectadas como comentários aprovados.
+
+O primeiro trabalho de leitura contextual das Bíblias privadas está registrado em
+[comentários das Bíblias privadas](docs/content/contextual-bible-reading.md), com fontes,
+páginas, lotes realmente incorporados e limites de cobertura. Referências automáticas
+não são apresentadas como se fossem comentários de cada versículo.
+
+O especialista de [contextos patrísticos e confessionais](docs/architecture/patristic-confessional-context.md)
+preserva conferência/parágrafo/artigo, distingue exegese de texto-prova e reutiliza o mesmo
+importador privado. Os perfis são calibrados por edição, não um entendimento universal de PDFs.
+
+O especialista de [comentários intertextuais, homilias e manuais](docs/architecture/outlined-source-contexts.md)
+trata Beale/Carson, Crisóstomo/Mateus e MacArthur com alcances distintos. O painel direito
+mostra contexto histórico/geográfico e mapas reais, com página, fonte e carregamento sob demanda.
+
+O pipeline opcional de livros agora inclui recuperação de páginas vazias por OCR local,
+preservação de geometria, candidatos FTS/vetoriais, inferência multialvo via LM Studio/llama.cpp,
+retomada da biblioteca inteira, auditoria amostral por lote, cobertura e conteúdo privado inline.
+Configuração e limites efetivos:
+[pipeline local de conhecimento](docs/architecture/local-knowledge-pipeline.md).
+Modelos, Tesseract e validação funcional não são instalados/executados automaticamente.
+
+O Content Seed v0.1 e o pacote Phase 10 v0.2 incluem uma vertical source-backed de João 1:1–18, bibliografia real do problema sinótico, TBESG completo e o WLC/OSHB 2.2 completo. Conteúdo machine-assisted permanece rotulado como rascunho, e documentos históricos sem edição digital redistribuível verificada continuam metadata-only. PDFs privados, inclusive escaneados, podem ser importados em lote, ter idioma e perfil detectados, ser indexados, segmentados e vinculados localmente; OCR é uma etapa local opcional e sua indisponibilidade não interrompe os demais arquivos. Nada disso integra os pacotes redistribuíveis. Nag Hammadi possui catálogo integral, mas somente o Evangelho de Tomé copta está instalado no corpus público; volumes privados permanecem no workspace do proprietário. O projeto ainda não inclui Septuaginta, aparato crítico, tradução portuguesa redistribuível de Nag Hammadi, RAG, EPUB ou alinhamento português↔grego/hebraico.

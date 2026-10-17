@@ -13,7 +13,12 @@ import appCss from "../styles.css?url";
 import { reportLovableError } from "../lib/lovable-error-reporting";
 import { WorkbenchProvider } from "../lib/workbench/workbench-context";
 import { AppShell } from "../components/shell/app-shell";
+import { WorkspaceQueryRefresh } from "../hooks/use-workspace-query";
+import { IntroSplash } from "../components/shell/intro-splash";
+import { INTRO_INIT } from "../components/shell/intro-controller";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
+import { SourceReaderProvider } from "../components/study/source-reader";
+import { THEME_INIT } from "../lib/workbench/theme";
 
 function NotFoundComponent() {
   return (
@@ -93,7 +98,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     ],
     links: [
       { rel: "stylesheet", href: appCss },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/scriptorium-icon.svg", type: "image/svg+xml" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
@@ -108,16 +113,17 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
   errorComponent: ErrorComponent,
 });
 
-const THEME_INIT = `(function(){try{var t=localStorage.getItem('scriptorium.theme.v1');if(t==='dark'||((!t||t==='system')&&matchMedia('(prefers-color-scheme: dark)').matches)){document.documentElement.classList.add('dark')}}catch(e){}})()`;
-
 function RootShell({ children }: { children: ReactNode }) {
   return (
     <html lang={DEFAULT_LOCALE} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: THEME_INIT }} />
+        <script dangerouslySetInnerHTML={{ __html: INTRO_INIT }} />
         <HeadContent />
       </head>
       <body>
+        {/* In the server HTML, so every document load sees it on the very first frame. */}
+        <IntroSplash />
         {children}
         <Scripts />
       </body>
@@ -130,10 +136,13 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <WorkspaceQueryRefresh />
       <WorkbenchProvider>
-        <AppShell>
-          <Outlet />
-        </AppShell>
+        <SourceReaderProvider>
+          <AppShell>
+            <Outlet />
+          </AppShell>
+        </SourceReaderProvider>
       </WorkbenchProvider>
     </QueryClientProvider>
   );

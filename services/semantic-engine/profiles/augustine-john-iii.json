@@ -1,0 +1,13 @@
+{
+  "id": "augustine-john-iii-v1",
+  "checksum": "f7f3965049c9b2073d768ecf14723f3ea1ed8f207ec85d53e8b1b2783dd7af37",
+  "kind": "patristic-exposition",
+  "strategy": "john-conferences",
+  "firstPage": 3,
+  "lastPage": 562,
+  "headingPattern": "^Conferência \\d{3}[^\\n]*",
+  "expectedSections": 50,
+  "bodyHeight": 12,
+  "extraHeights": [14.04, 15.96],
+  "authorLabel": "Agostinho de Hipona"
+}
