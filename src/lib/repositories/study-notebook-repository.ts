@@ -13,6 +13,7 @@ import {
   type WorkspaceSqlValue,
 } from "../workspace-runtime/workspace-database";
 import { notifyKnowledgeMutation } from "../workspace-runtime/workspace-events";
+import { wikiReferences } from "../domain/note-document";
 
 const titleSchema = z.string().trim().min(1).max(500);
 export interface NotebookNoteInput {
@@ -25,6 +26,8 @@ export interface NotebookNoteInput {
   color?: string;
   source?: StudySource;
   links?: NoteLink[];
+  /** Undefined preserves placement; null moves to the group's root. */
+  folderId?: string | null;
 }
 export const StudyNotebookRepository = {
   async createGroup(title: string, color: string, database?: WorkspaceDatabase): Promise<string> {
@@ -110,6 +113,31 @@ export const StudyNotebookRepository = {
       sql: "UPDATE studies SET updated_at=? WHERE id=?",
       bind: [now, input.studyId],
     });
+    if (input.folderId !== undefined) {
+      statements.push({
+        sql: "DELETE FROM note_placements WHERE note_id=? AND study_id=?",
+        bind: [id, input.studyId],
+      });
+      if (input.folderId !== null)
+        statements.push({
+          sql: "INSERT INTO note_placements(note_id,study_id,folder_id) VALUES(?,?,?)",
+          bind: [id, input.studyId, input.folderId],
+        });
+    }
+    const targets = (await db.query("SELECT id,title FROM notes")).map((row) => ({
+      id: String(row["id"]),
+      title: String(row["title"] ?? ""),
+    }));
+    statements.push({ sql: "DELETE FROM note_references WHERE source_note_id=?", bind: [id] });
+    for (const target of new Set(
+      wikiReferences(body, targets).flatMap((ref) =>
+        ref.targetId && ref.targetId !== id ? [ref.targetId] : [],
+      ),
+    ))
+      statements.push({
+        sql: "INSERT INTO note_references(source_note_id,target_note_id) VALUES(?,?)",
+        bind: [id, target],
+      });
     try {
       await db.transaction(statements);
     } catch (error) {

@@ -5,6 +5,7 @@ import {
   Home,
   Library,
   NotebookPen,
+  StickyNote,
   Search,
   Settings,
   type LucideIcon,
@@ -31,7 +32,10 @@ export const NAVIGATION_GROUPS: readonly { label: string; items: readonly Naviga
   },
   {
     label: "Estudar",
-    items: [{ to: "/study", label: t("navigation.study"), icon: NotebookPen }],
+    items: [
+      { to: "/study", label: t("navigation.study"), icon: NotebookPen },
+      { to: "/notes", label: "Notas", icon: StickyNote },
+    ],
   },
   {
     label: "Biblioteca",

@@ -1,4 +1,4 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
 import { ArrowRight, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
 import { StudyLearningMap } from "../../components/study/study-learning-map";
@@ -12,7 +12,6 @@ import { SecureContextNotice } from "../../components/common/secure-context-noti
 import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
 import { PageHeader } from "../../components/layout/page-header";
 import { EmptyState } from "../../components/layout/empty-state";
-import { StudyNotebook } from "../../components/study/study-notebook";
 import { z } from "zod";
 
 type StudyView = "journey" | "investigations" | "notebook";
@@ -24,6 +23,9 @@ export const Route = createFileRoute("/study/")({
     claim: z.string().max(500).optional().catch(undefined),
   }),
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
+  beforeLoad: ({ search }) => {
+    if (search.view === "notebook") throw redirect({ to: "/notes", replace: true });
+  },
   component: StudyIndex,
 });
 
@@ -78,14 +80,6 @@ function StudyIndex() {
                 </button>
                 <button
                   type="button"
-                  aria-pressed={view === "notebook"}
-                  onClick={() => setView("notebook")}
-                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${view === "notebook" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
-                >
-                  Caderno de notas
-                </button>
-                <button
-                  type="button"
                   aria-pressed={view === "investigations"}
                   onClick={() => setView("investigations")}
                   className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
@@ -107,10 +101,6 @@ function StudyIndex() {
           {...(search.entity ? { entityId: search.entity } : {})}
           {...(search.claim ? { claimId: search.claim } : {})}
         />
-      ) : view === "notebook" ? (
-        <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">
-          <StudyNotebook />
-        </div>
       ) : view === "journey" ? (
         <StudyLearningMap
           studies={studies}

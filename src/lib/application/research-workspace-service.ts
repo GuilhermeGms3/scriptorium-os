@@ -53,6 +53,9 @@ const BackupV2Schema = z.object({
     highlights: rows,
     bookmarks: rows,
     noteConnections: rows.optional(),
+    noteFolders: rows.optional(),
+    notePlacements: rows.optional(),
+    noteReferences: rows.optional(),
   }),
 });
 
@@ -145,6 +148,9 @@ const researchTables = {
   highlights: "highlights",
   bookmarks: "bookmarks",
   noteConnections: "note_connections",
+  noteFolders: "note_folders",
+  notePlacements: "note_placements",
+  noteReferences: "note_references",
 } as const;
 
 async function sha256(value: string): Promise<string> {
@@ -171,6 +177,27 @@ function insertStatements(
   table: string,
   tableRows: WorkspaceRow[],
 ): { sql: string; bind: WorkspaceSqlValue[] }[] {
+  if (table === "note_folders") {
+    // Backups have no natural row order: parents must precede children for immediate FKs.
+    const pending = new Map(tableRows.map((row) => [String(row["id"]), row]));
+    const ordered: WorkspaceRow[] = [];
+    while (pending.size) {
+      let progressed = false;
+      for (const [id, row] of pending) {
+        if (
+          row["parent_id"] !== null &&
+          row["parent_id"] !== undefined &&
+          pending.has(String(row["parent_id"]))
+        )
+          continue;
+        ordered.push(row);
+        pending.delete(id);
+        progressed = true;
+      }
+      if (!progressed) throw new Error("O backup contém pastas com uma hierarquia circular.");
+    }
+    tableRows = ordered;
+  }
   return tableRows.map((row) => {
     if (table === "notes" && row["source_json"] !== undefined && row["source_json"] !== null) {
       const source = row["source_json"];

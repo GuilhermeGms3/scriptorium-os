@@ -1,5 +1,24 @@
 # Project Memory
 
+## Notas independentes e explorador — 2026-10-18
+
+- Escopo: separar Notas na navegação, editor de página/abas inspirado no Obsidian, pastas
+  aninhadas, grupos/cores e referências escritas, preservando Estudos/Biblioteca celeste e acervo.
+- `/notes?group=&note=`; URL antiga `/study?view=notebook` redireciona. Investigações apontam
+  para o grupo; captura contextual permanece e seu sucesso abre a nota específica.
+- Migração027 somente aditiva: note_folders, note_placements por nota/grupo, note_references
+  dirigidas separadas das arestas manuais. FKs, ciclos, nomes irmãos e restauração pai→filho.
+  Worker OPFS/CLI atualizados; backupv3 inclui arrays opcionais, mantendo leitura dos anteriores.
+- Seletor `/`/`[[`/Inserir link grava destino por ID; título ambíguo não cria aresta. Leitura
+  Markdown parcial escapada, sem HTML/URLs executáveis. Links do texto não apagam arestas manuais.
+- Salvar explícito/Ctrl+S, rascunhos em memória entre abas, guard de descarte e controle de versão.
+  Sem autosave ou restauração de rascunho após fechamento forçado. Último grupo é preferência local.
+  AppShell usa contêiner estável em /notes para não perder abas/rascunhos ao cruzar o breakpoint móvel.
+- 452 testes/69 arquivos passaram; QA1536/390 e OPFS real/reload em workspace temporário.
+  Typecheck, lint completo, build e produção/reinício/breakpoints passaram sem erros de console.
+  Acervo real não migrado/reimportado, sem rebuild Docker. Guia: docs/architecture/study-notebook.md.
+- Trabalho concorrente em Estudos/Rastro deve ser preservado; baseline desta entrega ae0a572.
+
 ## Leitor contextual e caderno conectado — 2026-10-17
 
 - Pedido atual: fontes/imagens da sidebar abrem janela sobre a Bíblia; notas por grupo com

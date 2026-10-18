@@ -16,7 +16,7 @@ import { t } from "../../lib/i18n";
 import { isNavigationActive, NAVIGATION_GROUPS, UTILITY_NAVIGATION } from "./navigation";
 
 const ALL_ITEMS = NAVIGATION_GROUPS.flatMap((group) => group.items);
-const PRIMARY_PATHS = new Set(["/", "/scripture", "/study", "/library", "/search"]);
+const PRIMARY_PATHS = new Set(["/", "/scripture", "/study", "/notes", "/library"]);
 const PRIMARY = ALL_ITEMS.filter((item) => PRIMARY_PATHS.has(item.to));
 const MORE = [...ALL_ITEMS.filter((item) => !PRIMARY_PATHS.has(item.to)), ...UTILITY_NAVIGATION];
 

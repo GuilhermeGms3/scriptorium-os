@@ -332,7 +332,7 @@ export function StudyNotebook({
   );
 }
 
-function NoteMap({
+export function NoteMap({
   notes,
   connections,
   color,

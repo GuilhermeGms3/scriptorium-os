@@ -13,6 +13,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LibraryRouteImport } from './routes/library'
+import { Route as NotesRouteImport } from './routes/notes'
 import { Route as SearchRouteImport } from './routes/search'
 import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as TraceRouteImport } from './routes/trace'
@@ -44,6 +45,11 @@ const KnowledgeRoute = KnowledgeRouteImport.update({
 const LibraryRoute = LibraryRouteImport.update({
   id: '/library',
   path: '/library',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NotesRoute = NotesRouteImport.update({
+  id: '/notes',
+  path: '/notes',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SearchRoute = SearchRouteImport.update({
@@ -113,6 +119,7 @@ export interface FileRoutesByFullPath {
   '/about': typeof AboutRoute
   '/knowledge': typeof KnowledgeRoute
   '/library': typeof LibraryRouteWithChildren
+  '/notes': typeof NotesRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/trace': typeof TraceRoute
@@ -130,6 +137,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/knowledge': typeof KnowledgeRoute
+  '/notes': typeof NotesRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/trace': typeof TraceRoute
@@ -149,6 +157,7 @@ export interface FileRoutesById {
   '/about': typeof AboutRoute
   '/knowledge': typeof KnowledgeRoute
   '/library': typeof LibraryRouteWithChildren
+  '/notes': typeof NotesRoute
   '/search': typeof SearchRoute
   '/settings': typeof SettingsRoute
   '/trace': typeof TraceRoute
@@ -169,6 +178,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/knowledge'
     | '/library'
+    | '/notes'
     | '/search'
     | '/settings'
     | '/trace'
@@ -186,6 +196,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/knowledge'
+    | '/notes'
     | '/search'
     | '/settings'
     | '/trace'
@@ -204,6 +215,7 @@ export interface FileRouteTypes {
     | '/about'
     | '/knowledge'
     | '/library'
+    | '/notes'
     | '/search'
     | '/settings'
     | '/trace'
@@ -223,6 +235,7 @@ export interface RootRouteChildren {
   AboutRoute: typeof AboutRoute
   KnowledgeRoute: typeof KnowledgeRoute
   LibraryRoute: typeof LibraryRouteWithChildren
+  NotesRoute: typeof NotesRoute
   SearchRoute: typeof SearchRoute
   SettingsRoute: typeof SettingsRoute
   TraceRoute: typeof TraceRoute
@@ -261,6 +274,13 @@ declare module '@tanstack/react-router' {
       path: '/library'
       fullPath: '/library'
       preLoaderRoute: typeof LibraryRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/notes': {
+      id: '/notes'
+      path: '/notes'
+      fullPath: '/notes'
+      preLoaderRoute: typeof NotesRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/search': {
@@ -372,6 +392,7 @@ const rootRouteChildren: RootRouteChildren = {
   AboutRoute: AboutRoute,
   KnowledgeRoute: KnowledgeRoute,
   LibraryRoute: LibraryRouteWithChildren,
+  NotesRoute: NotesRoute,
   SearchRoute: SearchRoute,
   SettingsRoute: SettingsRoute,
   TraceRoute: TraceRoute,

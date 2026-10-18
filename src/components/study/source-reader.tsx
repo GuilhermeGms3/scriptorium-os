@@ -117,6 +117,7 @@ function SourceReading({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string>();
   const [saved, setSaved] = useState(false);
+  const [savedNoteId, setSavedNoteId] = useState<string>();
   const [translation, setTranslation] = useState<string>();
   const [translating, setTranslating] = useState(false);
   const [showPage, setShowPage] = useState(Boolean(reading.caption));
@@ -137,7 +138,7 @@ function SourceReading({
     setError(undefined);
     try {
       const target = groupId || (await StudyNotebookRepository.createGroup(newGroup, color));
-      await StudyNotebookRepository.saveNote({
+      const savedId = await StudyNotebookRepository.saveNote({
         title: title.trim() || reading.caption || source.title,
         body,
         studyId: target,
@@ -148,6 +149,7 @@ function SourceReading({
       await refreshUserData();
       notifyKnowledgeMutation();
       setGroupId(target);
+      setSavedNoteId(savedId);
       setSaved(true);
       onDirty(false);
       setBody("");
@@ -409,8 +411,12 @@ function SourceReading({
           {saved && (
             <p role="status" className="text-sm">
               Nota salva.{" "}
-              <Link to="/study" search={{ view: "notebook" }} className="underline">
-                Ver caderno nos Estudos
+              <Link
+                to="/notes"
+                search={{ group: groupId, ...(savedNoteId ? { note: savedNoteId } : {}) }}
+                className="underline"
+              >
+                Abrir nota
               </Link>
             </p>
           )}

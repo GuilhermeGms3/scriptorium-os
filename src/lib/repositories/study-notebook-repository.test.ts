@@ -173,6 +173,9 @@ describe("caderno de estudos persistente", () => {
       research: Record<string, unknown>;
     };
     delete data.research["noteConnections"];
+    delete data.research["noteFolders"];
+    delete data.research["notePlacements"];
+    delete data.research["noteReferences"];
     delete data.manifest["checksum"];
     data.manifest["checksum"] = createHash("sha256").update(JSON.stringify(data)).digest("hex");
     const restored = setup();

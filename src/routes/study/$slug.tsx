@@ -11,7 +11,6 @@ import { errorMessage } from "@/lib/utils";
 import { studyGuideById } from "../../lib/content/study-guides";
 import { PageContainer } from "../../components/layout/page-container";
 import { PageHeader } from "../../components/layout/page-header";
-import { StudyNotebook } from "../../components/study/study-notebook";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -220,9 +219,13 @@ function StudyWorkspace() {
 
         <aside id="notes">
           <h2 className="meta-label">3. {t("study.notesDeductions")}</h2>
-          <a href="#notebook" className="mt-3 inline-block text-sm text-primary underline">
-            Criar, editar e conectar notas no caderno
-          </a>
+          <Link
+            to="/notes"
+            search={{ group: study.id }}
+            className="mt-3 inline-block text-sm text-primary underline"
+          >
+            Abrir notas desta investigação
+          </Link>
           <ul className="mt-3 space-y-2">
             {linkedNotes.slice(0, 3).map((note) => (
               <li key={note.id} className="border-l-2 border-border pl-3">
@@ -237,9 +240,6 @@ function StudyWorkspace() {
             )}
           </ul>
         </aside>
-      </div>
-      <div id="notebook" className="mt-8 scroll-mt-6 border-t border-border pt-6">
-        <StudyNotebook studyId={study.id} />
       </div>
     </PageContainer>
   );
