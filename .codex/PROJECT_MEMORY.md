@@ -1,5 +1,21 @@
 # Project Memory
 
+## Busca acadêmica e caminhos externos — 2026-10-18
+
+- `/search` preserva texto/referências, busca por sentido, edição/preparo do índice e Ctrl+K.
+  Três ramos: Meu acervo, Pesquisa acadêmica e Na web; gravura celeste existente e bronze.
+- OpenAlex direto por ação explícita, filtros idioma/ano/acesso aberto,10 registros/10 páginas,
+  Zod, timeout15s, abort/stale guard, cache5min/20 consultas. Sem chave/conta criada ou proxy.
+  Google/Scholar/SciELO/BDTD/USP/UnB/Harvard/Frankfurt/Archive são atalhos identificados, não SERP.
+- CSL via SourceImportService, DOI/URL idempotentes, FTS/invalidação e anotar via leitor/caderno.
+  StudySourceService consulta também LibraryRepository para metadados privados guardados.
+  Não baixa PDF, não muda direitos de conteúdo, não publica claims nem envia textos privados.
+- CSS próprio importado pela rota; palavra hebraica com movimento reduzido, sem atrasar resultados.
+  AppShell mantém Search montada ao cruzar o breakpoint. Estudos/Rastro concorrentes preservados.
+- 17 testes focados passaram; suíte atual477/73 passou. QA real OpenAlex e ausência de requests
+  antes do submit; cotas simuladas somente no QA, referências/rotações e fontes reais conferidas.
+  Guia: docs/architecture/external-academic-search.md. Acervo real e Docker não alterados.
+
 ## Notas independentes e explorador — 2026-10-18
 
 - Escopo: separar Notas na navegação, editor de página/abas inspirado no Obsidian, pastas
@@ -770,4 +786,44 @@
   e banco canônicos, com unidades, spans, propostas e notas existentes, sem fonte de verdade paralela.
 - Proposta de primeiro percurso completo: Gênesis 1 (orientação, texto, Bereshit/linguagem,
   contexto histórico-cultural, comparação de interpretações, síntese final), validando as seis áreas
-  e progressão antes de expandir. Ainda é proposta; não declarar curso ou Rastro novo implementados.
+  e progressão antes de expandir. Na aprovação ainda era proposta; a implementação do piloto está registrada abaixo.
+
+## Formação acadêmica e dossiê do Rastro — 2026-10-18
+
+- Primeiro currículo desenvolvido em `/study/course/genesis-1`: seis módulos, doze aulas,
+  introdução/conceito/exemplo/discussão/conclusão, objetivos, leituras e síntese final. Referências
+  e perspectivas explícitas; material editorial original, sem atribuir revisão acadêmica humana.
+- Trilha horizontal sequencial; seis áreas acompanham o módulo. Manrope/Biblioteca celeste e
+  árvore preservadas. Outros temas permanecem introdutórios, não declarar 95 cursos completos.
+- Migration028 aditiva `study_course_progress`, revisão do currículo, confirmação de aulas e
+  passagens, atividade e critérios. Versão otimista com guarda transacional; backup v2/v3 opcional
+  compatível. Conclusão registra percurso, não domínio acadêmico ou concordância religiosa.
+- Leituras bíblicas integrais/edição; acervo por vínculo principal/análise contextual, estado de
+  revisão, domínio, esquema e páginas. Sem associação por palavras soltas. Agrupamento por obra,
+  quatro trechos visíveis, um original aberto. Leitor/captura existentes preservados.
+- Inventário read-only canônico:57 documentos,51 com texto/unidades; primeiro módulo encontrou
+  oito obras pertinentes. Consulta não equivale a curadoria humana integral. DB real mantém
+  4.018.020.352 bytes e mtimeUTC2026-10-17T21:49:28, sem migração/reprocessamento nesta entrega.
+- Caderno compartilhado por curso, vínculos por módulo/passagem; retorno `study-course:` pelo
+  index de Estudos ao curso/módulo. Integra editor existente; Notas/pastas/wikilinks preservados.
+  Rascunho protegido entre abas e bloqueia remontagem ao salvar progresso. Vídeos reaproveitam
+  configuração YouTube existente, API opcional em memória, além de materiais selecionados.
+- Rastro tem pesquisa e histórico; palavras/passagens/`palavra @ passagem`, Bereshit reconhece
+  sinais/segmentação OSHB. Texto, morfologia, verbetes/concordância reais; contexto/interpretações
+  desenvolvidos para Gn1. Demais passagens usam dados disponíveis e ausência explícita. URLs
+  antigas filtradas continuam históricas. Não inferir arqueologia por semelhança lexical.
+- QA em origem isolada5174: conclusão/desbloqueio/reload OPFS, seis abas, nota vinculada e retorno
+  ao módulo, Notes explorer, histórico, Bereshit e viewport390 sem overflow da página. Segunda
+  aba pode cair no fallback memory já existente; curso avisa perda ao recarregar nesse estado.
+- Especificações: `docs/architecture/academic-study-course.md`, `study-topic-workspace.md`,
+  `knowledge-trace.md`. Migração/concorrência/backup e seleção de fontes cobertos por testes.
+- Limite operacional: banco canônico v25/lock antigo preservado; migrações testadas em bancos
+  descartáveis. Não abrir instalação real para QA nem recriar backups grandes. Limpeza anterior
+  já moveu26 arquivos/43,051GiB para `C:/Users/comical/Desktop/apagar`, preservando banco atual,
+  PDFs e snapshot válido mais recente. Não repetir limpeza nem apagar automaticamente.
+- Há alterações concorrentes de busca acadêmica em `src/components/search`, serviços acadêmicos,
+  `routes/search.tsx` e `study-source-service`; manter fora do commit deste escopo.
+- Verificação final do snapshot compartilhado: `npm run typecheck`, `npm run lint` e suíte completa
+  `npx vitest run --testTimeout=60000`:477 testes/73 arquivos passaram. Falhas transitórias nos
+  testes novos da busca paralela foram corrigidas pelo trabalho correspondente, sem editar tais
+  arquivos nesta entrega. Build de produção passou; evidências visuais em arquivos temporários.

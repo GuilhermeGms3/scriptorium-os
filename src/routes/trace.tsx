@@ -15,8 +15,13 @@ import { bookLabel } from "../lib/i18n";
 import { ContextualReadingImport } from "../components/library/contextual-reading-import";
 import { PageHeader } from "../components/layout/page-header";
 import { EmptyState } from "../components/layout/empty-state";
+import { ResearchDossier } from "../components/study/research-dossier";
 
-const SearchSchema = TraceFilterSchema.extend({ proposal: z.string().max(500).optional() });
+const SearchSchema = TraceFilterSchema.extend({
+  proposal: z.string().max(500).optional(),
+  q: z.string().trim().max(500).optional(),
+  view: z.enum(["research", "history"]).optional(),
+});
 type TraceSearch = z.infer<typeof SearchSchema>;
 export const Route = createFileRoute("/trace")({
   validateSearch: (input: Record<string, unknown>): TraceSearch => SearchSchema.parse(input),
@@ -82,6 +87,7 @@ function TraceFilters({
     const positive = (key: string) => (form.get(key) ? Number(form.get(key)) : undefined);
     void navigate({
       search: {
+        view: "history",
         state: search.state,
         offset: 0,
         documentId: String(form.get("documentId") ?? "") || undefined,
@@ -342,6 +348,47 @@ function TraceDetail({
 }
 
 function TracePage() {
+  const search = Route.useSearch();
+  const navigate = Route.useNavigate();
+  const research =
+    search.view === "research" ||
+    (!search.view &&
+      !search.proposal &&
+      !search.documentId &&
+      !search.bookId &&
+      !search.chapter &&
+      !search.verse &&
+      !search.scheme &&
+      search.state === "all" &&
+      search.offset === 0);
+  return (
+    <>
+      <nav className="trace-mode-nav" aria-label="Modos do Rastro">
+        <a
+          href={`/trace?view=research${search.q ? `&q=${encodeURIComponent(search.q)}` : ""}`}
+          aria-current={research ? "page" : undefined}
+        >
+          Investigar palavra ou passagem
+        </a>
+        <a href="/trace?view=history" aria-current={!research ? "page" : undefined}>
+          Histórico e proveniência
+        </a>
+      </nav>
+      {research ? (
+        <ResearchDossier
+          query={search.q ?? ""}
+          onQuery={(q) =>
+            void navigate({ search: { q, view: "research", state: "all", offset: 0 } })
+          }
+        />
+      ) : (
+        <TraceHistory />
+      )}
+    </>
+  );
+}
+
+function TraceHistory() {
   const search = Route.useSearch();
   const key = JSON.stringify(search);
   const [state, setState] = useState<{ data?: TraceData; error?: string }>({});

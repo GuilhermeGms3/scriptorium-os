@@ -5,6 +5,7 @@
 @import "./components/shell/today-inscriptions.css";
 @import "./study-reading.css";
 @import "./components/study/study-topic.css";
+@import "./components/study/academic-course.css";
 
 @custom-variant dark (&:is(.dark *));
 

@@ -100,7 +100,7 @@ describe("single-user installation workspace", () => {
       workspace.database.prepare("SELECT max(version) version FROM workspace_migrations").get()?.[
         "version"
       ],
-    ).toBe(27);
+    ).toBe(WORKSPACE_SCHEMA_VERSION);
   });
   it("proxies only authenticated pipeline operations and preserves recoverable status", async () => {
     const workspace = create();

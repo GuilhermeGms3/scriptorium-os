@@ -8,6 +8,7 @@ import {
   type WorkspaceSqlValue,
 } from "../workspace-runtime/workspace-database";
 import { sha256Hex } from "../workspace-runtime/secure-context";
+import { CourseWorkSchema } from "../domain/study-course";
 import { StudySourceSchema } from "../domain/study-notebook";
 
 const scalar = z.union([z.string(), z.number(), z.null()]);
@@ -56,6 +57,30 @@ const BackupV2Schema = z.object({
     noteFolders: rows.optional(),
     notePlacements: rows.optional(),
     noteReferences: rows.optional(),
+    courseProgress: rows
+      .superRefine((entries, context) => {
+        for (const [index, entry] of entries.entries()) {
+          try {
+            z.object({
+              course_id: z.string().min(1).max(150),
+              course_revision: z.number().int().positive(),
+              module_id: z.string().min(1).max(150),
+              version: z.number().int().positive(),
+              updated_at: z.string().datetime(),
+              completed_at: z.string().datetime().nullable(),
+              work_json: z.string().max(100000),
+            }).parse(entry);
+            CourseWorkSchema.parse(JSON.parse(String(entry["work_json"])));
+          } catch {
+            context.addIssue({
+              code: "custom",
+              path: [index],
+              message: "Progresso de curso inválido no backup.",
+            });
+          }
+        }
+      })
+      .optional(),
   }),
 });
 
@@ -151,6 +176,7 @@ const researchTables = {
   noteFolders: "note_folders",
   notePlacements: "note_placements",
   noteReferences: "note_references",
+  courseProgress: "study_course_progress",
 } as const;
 
 async function sha256(value: string): Promise<string> {

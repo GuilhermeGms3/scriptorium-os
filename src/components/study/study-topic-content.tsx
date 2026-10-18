@@ -1,4 +1,5 @@
 import { useRef, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import type { StudyTopic } from "../../lib/application/study-topic-service";
@@ -52,6 +53,25 @@ export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
     .filter((item) => item !== undefined);
   return (
     <section className="topic-lesson" aria-label={`Conteúdo sobre ${topic.title}`}>
+      {[
+        "study-guide:biblia-interpretacao",
+        "study-guide:teologia",
+        "topic:bibliology",
+        "study-guide:exegese-recepcao",
+        "study-guide:hermeneutica-metodos",
+      ].includes(topic.id) && (
+        <aside className="course-entry">
+          <p className="meta-label">Percurso acadêmico disponível</p>
+          <h2>Gênesis 1: texto, contexto e interpretações</h2>
+          <p>
+            Seis módulos com aulas desenvolvidas, leitura bíblica, fontes do acervo, atividades e
+            avanço salvo.
+          </p>
+          <Link to="/study/course/$courseId" params={{ courseId: "genesis-1" }}>
+            Entrar no percurso de formação →
+          </Link>
+        </aside>
+      )}
       <div className="topic-lesson-heading">
         <p className="meta-label">Biblioteca de estudo · conteúdo do tema</p>
         <p>Uma leitura para compreender. Seu acervo amplia a conversa logo abaixo.</p>

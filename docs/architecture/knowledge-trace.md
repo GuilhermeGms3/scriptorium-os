@@ -4,6 +4,24 @@
 pipeline. Não é um catálogo estático nem outro motor de conhecimento. O módulo não analisa livros
 por conta própria e não transforma citações detectadas em comentários exegéticos.
 
+## Dossiê de investigação
+
+A entrada sem filtros abre pesquisa; `view=research&q=` recebe palavra, passagem ou
+`palavra @ passagem`. Bereshit e variantes remetem a Gênesis1:1, reconhecendo diacríticos e
+segmentação do hebraico OSHB. Outras palavras oferecem ocorrências bíblicas disponíveis para
+escolher contexto; não são preenchidas por uma explicação genérica inventada.
+
+`research-dossier-service` reutiliza o motor de Escrituras e a camada privada por passagem.
+O dossiê separa Texto, Linguagem, História e cultura, Interpretações, Fontes e proveniência.
+Morfologia, verbetes e concordância pertencem à identidade/edição consultadas. Aprofundamento
+editorial desenvolvido está disponível para Gênesis1, compartilhado com o curso e com referências.
+Outras passagens mostram os dados disponíveis e ausências explícitas. Arqueologia não é deduzida
+de uma palavra: a explicação de Gênesis identifica evidência material e limites da comparação.
+
+`view=history` preserva o fluxo técnico abaixo. URLs anteriores com proposta/documento/livro
+continuam abrindo histórico. Cada explicação privada pode abrir fonte, capturar nota e consultar
+histórico da ligação. Nada disso reprocessa o acervo ou altera decisões existentes.
+
 ## Fluxo
 
 Sidebar ou cartão de conhecimento do versículo → filtros de fonte, livro, capítulo, versículo,

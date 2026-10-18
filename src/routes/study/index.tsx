@@ -25,6 +25,16 @@ export const Route = createFileRoute("/study/")({
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
   beforeLoad: ({ search }) => {
     if (search.view === "notebook") throw redirect({ to: "/notes", replace: true });
+    if (search.entity?.startsWith("study-course:")) {
+      const [, courseId, , module] = search.entity.split(":");
+      if (courseId)
+        throw redirect({
+          to: "/study/course/$courseId",
+          params: { courseId },
+          search: module ? { module } : {},
+          replace: true,
+        });
+    }
   },
   component: StudyIndex,
 });
@@ -93,6 +103,13 @@ function StudyIndex() {
               </div>
             }
           />
+          <Link
+            to="/study/course/$courseId"
+            params={{ courseId: "genesis-1" }}
+            className="mt-3 inline-flex text-sm text-primary hover:underline"
+          >
+            Percurso acadêmico: Gênesis 1 — texto, contexto e interpretações →
+          </Link>
         </header>
       )}
 

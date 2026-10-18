@@ -21,6 +21,13 @@ Títulos, orientação e perguntas usam Manrope, sem serifa nem itálico; refer�
 Apenas a Escritura conserva seu corpo próprio de leitura. Manrope é carregada pelo provedor de fontes
 já usado no projeto, com fallback para a sans-serif do sistema; não altera a fonte das demais telas.
 
+## Percurso acadêmico desenvolvido
+
+O piloto **Gênesis 1: texto, contexto e interpretações** está em `/study/course/genesis-1`.
+São seis módulos e doze aulas, com avanço salvo, leituras bíblicas completas e unidades reais do
+acervo. As seis áreas acompanham a etapa. A árvore e os conteúdos introdutórios existentes são
+preservados. Ver [contrato do percurso](academic-study-course.md) para fontes, limites e migration028.
+
 ## De onde vêm os dados
 
 ### Conteúdo para aprender
