@@ -4,6 +4,8 @@ import { DocumentKnowledgeRepository } from "../repositories/document-knowledge-
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { PrimarySourceRepository } from "../repositories/primary-source-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
+import { LibraryRepository } from "../repositories/library-repository";
+import { publicAcademicUrl } from "../domain/academic-search";
 
 export const StudySourceService = {
   async read(
@@ -12,6 +14,26 @@ export const StudySourceService = {
     const source = StudySourceSchema.parse(input);
     if (source.kind === "bibliographic") {
       const record = await KnowledgeRepository.sourceReference(source.sourceId);
+      if (!record) {
+        const local = await LibraryRepository.getSource(source.sourceId);
+        if (local) {
+          const url = publicAcademicUrl(local.identifiers["url"]);
+          return {
+            text: [
+              local.title,
+              local.publicationYear,
+              local.publisher,
+              source.locator,
+              "Referência bibliográfica guardada na Biblioteca. O texto integral não foi baixado nem instalado automaticamente.",
+            ]
+              .filter((value) => value !== undefined && value !== "")
+              .join("\n"),
+            language: "pt-BR",
+            metadataOnly: true,
+            ...(url ? { externalUrl: url } : {}),
+          };
+        }
+      }
       if (!record)
         return {
           text: [

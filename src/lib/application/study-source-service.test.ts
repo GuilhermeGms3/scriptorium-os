@@ -1,5 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { StudySourceService } from "./study-source-service";
+import { LibraryRepository } from "../repositories/library-repository";
+import { BibliographicSourceSchema } from "../domain/bibliography";
 import { PrimarySourceRepository } from "../repositories/primary-source-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
@@ -79,6 +81,36 @@ describe("leitura contextual de fontes", () => {
     expect((await StudySourceService.read(source)).externalUrl).toBeUndefined();
     expect(studySourceHref(source)).toBe("/library?source=source%3A1");
     vi.mocked(KnowledgeRepository.sourceReference).mockResolvedValue(null);
+    vi.spyOn(LibraryRepository, "getSource").mockResolvedValue(null);
     expect(await StudySourceService.read(source)).toMatchObject({ metadataOnly: true });
+  });
+  it("reads saved external bibliography from the canonical library without pretending to install full text", async () => {
+    vi.spyOn(KnowledgeRepository, "sourceReference").mockResolvedValue(null);
+    const local = BibliographicSourceSchema.parse({
+      id: "source:external",
+      title: "DEMO — referência acadêmica",
+      sourceType: "journal-article",
+      publicationYear: 2020,
+      identifiers: { url: "https://openalex.org/W123456789" },
+      rights: { metadataRedistributable: true, contentRedistributable: false, localOnly: true },
+      provenance: {
+        origin: "user-import",
+        importMethod: "csl-json",
+        importedAt: "2026-10-18T00:00:00.000Z",
+      },
+    });
+    vi.spyOn(LibraryRepository, "getSource").mockResolvedValue(local);
+    const result = await StudySourceService.read({
+      kind: "bibliographic",
+      sourceId: local.id,
+      title: local.title,
+    });
+    expect(result).toMatchObject({
+      metadataOnly: true,
+      language: "pt-BR",
+      externalUrl: local.identifiers["url"],
+    });
+    expect(result.text).toContain("2020");
+    expect(result.text).toContain("não foi baixado");
   });
 });

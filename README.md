@@ -26,6 +26,10 @@ da passagem. **Notas** possui acesso próprio, pastas/subpastas, editor de pági
 internos, referências recebidas e mapa pessoal colorido, usando esse mesmo banco. Salve pelo
 botão ou Ctrl+S; as capturas de fontes continuam ligadas às passagens e aos estudos existentes.
 
+A [Busca ampliada](docs/architecture/external-academic-search.md) conserva texto/referências e
+busca por sentido, acrescentando consultas explícitas ao OpenAlex e caminhos para Google,
+Google Acadêmico e bibliotecas. Resultados externos são separados do conhecimento instalado.
+
 Os [espaços de estudo por tema](docs/architecture/study-topic-workspace.md) conectam a árvore a
 leituras reais do acervo, percursos, notas e relações pessoais, com uma área opcional para a API
 do YouTube. As fontes são consultadas sob demanda, sem conteúdo fictício para preencher lacunas.

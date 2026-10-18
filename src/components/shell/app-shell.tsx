@@ -43,9 +43,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <PrimarySidebar />
         </div>
 
-        {/* Notes have no passage inspector. Keep their subtree mounted across viewport changes
-            so resizing/rotating cannot silently discard document tabs and unsaved drafts. */}
-        {isMobile || pathname === "/notes" ? (
+        {/* Notes and Search have no passage inspector. Keep these workspaces mounted across
+            viewport changes so rotation cannot discard drafts, queries or external results. */}
+        {isMobile || pathname === "/notes" || pathname === "/search" ? (
           <main className="min-w-0 flex-1 overflow-y-auto" id="workspace">
             {children}
           </main>
