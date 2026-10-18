@@ -119,7 +119,7 @@ export function describeStudyEntity(item: ExplorerEntity): StudyTopic {
     title,
     description:
       item.entity.description ??
-      "Explore os textos e vínculos existentes para formular sua própria investigação.",
+      "Conheça o assunto, aprofunde a leitura nas fontes e reúna suas próprias notas.",
     terms: [...new Set([title, canonical])],
     ...(guide ? { guide } : {}),
   };

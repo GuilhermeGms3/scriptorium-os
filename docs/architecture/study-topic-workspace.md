@@ -1,6 +1,7 @@
 # Estudos a partir do acervo
 
-A árvore abre espaços de investigação com **Percurso, Leituras, Conexões, Caderno e Vídeos**.
+A árvore abre espaços de investigação com **Conteúdo, Percurso, Leituras, Conexões, Caderno e Vídeos**.
+**Conteúdo** é a entrada inicial: explica o assunto antes de propor uma investigação.
 O ambiente usa os mesmos temas, fontes e componentes da leitura. Os núcleos apresentam até oito
 temas por página num diagrama, com filtro e navegação; não exibem todo o catálogo em uma lista.
 
@@ -22,6 +23,27 @@ já usado no projeto, com fallback para a sans-serif do sistema; não altera a f
 
 ## De onde vêm os dados
 
+### Conteúdo para aprender
+
+`src/lib/content/study-lessons` contém textos explicativos originais em português: introduções
+específicas para as 95 entidades atuais e capítulos de aprofundamento correspondentes aos 16 guias.
+O catálogo usa correspondências explícitas por ID, com contexto, conceitos, diferenças de posição e
+exemplos de leitura. Não utiliza perguntas do roteiro como substituto de explicação.
+
+O material é carregado sob demanda, funciona sem chave de API e não depende de livros importados.
+Não é um curso exaustivo nem uma transcrição das referências: é conteúdo editorial, com bibliografia
+por capítulo e identificação das perspectivas confessionais e acadêmicas. A bibliografia abre os
+sites originais; não há scraping, cópia remota nem geração por LLM durante a navegação. Novas
+entidades pessoais sem lição cadastrada mostram essa ausência e suas fontes reais, sem receber
+silenciosamente o texto de outro assunto.
+
+Uma leitura fica aberta por vez, com seletor de capítulo e anterior/próximo. A seção recolhida
+**Continuar nos meus livros e nas fontes do acervo** oferece as mesmas fontes de **Leituras**, dentro
+do conteúdo. Para cada resultado com âncora, `loadTopicReadingText` consulta a unidade original ou
+a página física completa (`page - 1` no repositório). Não promove snippets da busca a texto integral.
+Erros, páginas sem extração e indicações sem unidade são identificados; o leitor contextual e a
+captura de notas continuam disponíveis. A árvore e a ambientação Biblioteca celeste permanecem.
+
 | Informação         | Origem                                                                 | O que ela permite afirmar                                                                            |
 | ------------------ | ---------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | Temas e afirmações | `KnowledgeQueryService`, SQLite de conhecimento                        | O registro já existe no catálogo; seu estado de revisão continua explícito.                          |
@@ -33,16 +55,16 @@ já usado no projeto, com fallback para a sans-serif do sistema; não altera a f
 | Notas e grupos     | `StudyRepository` e `StudyNotebookRepository`                          | São observações e associações pessoais, mantidas no workspace existente.                             |
 | Vídeos             | YouTube Data API v3, após ação explícita                               | São resultados externos, sem revisão acadêmica atribuída pelo Scriptorium.                           |
 
-Não há conteúdo demonstrativo de fallback nem sínteses acadêmicas produzidas para preencher lacunas.
+Não há conteúdo demonstrativo de fallback nem trechos inventados atribuídos às fontes do acervo.
 Uma busca vazia ou uma fonte indisponível aparece como tal, preservando os demais materiais.
 
 ## Percorrer, ler e registrar
 
 1. Abra um ramo e um núcleo da árvore. Cada círculo menor abre um tema real do catálogo.
-2. No tema, acompanhe uma etapa do percurso por vez. As perguntas podem ser guardadas na
+2. No tema, leia **Conteúdo** por capítulo. Em **Percurso**, acompanhe uma etapa por vez. As perguntas podem ser guardadas na
    investigação ou usadas para abrir um rascunho de nota, sem salvar uma conclusão automaticamente.
 3. Em **Leituras**, escolha a origem e uma leitura. O corpo mostra um texto por vez, com anterior,
-   próxima e seletor. A prévia limita o trecho a 2.800 caracteres; o original pode ser aberto inteiro.
+   próxima e seletor. O corpo carrega a página/unidade inteira, com a origem preservada.
 4. **Ler o contexto e anotar** reutiliza a janela de fontes. A nota guarda a unidade/página original,
    o tema atual e o grupo escolhido. Reabrir a fonte pela nota conserva esse contexto.
 5. Em **Caderno**, crie um grupo para o tema ou associe um grupo existente. A associação usa um

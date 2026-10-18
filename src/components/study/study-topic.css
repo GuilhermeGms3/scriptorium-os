@@ -780,3 +780,108 @@
     }
   }
 }
+
+/* Educational prose shares the celestial library's existing palette and typography. */
+.topic-lesson-heading {
+  margin-bottom: 1.6rem;
+}
+.topic-lesson-heading > p:last-child {
+  margin-top: 0.6rem;
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+.topic-lesson-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+.topic-lesson-navigation label {
+  min-width: 0;
+  flex: 1;
+  max-width: 42rem;
+}
+.topic-lesson-navigation select {
+  width: 100%;
+}
+.topic-lesson-navigation > span {
+  white-space: nowrap;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+.topic-lesson-text {
+  max-width: 72ch;
+  margin: 2.5rem auto;
+}
+.topic-lesson-text h2 {
+  font-family: inherit;
+  font-size: clamp(1.6rem, 3vw, 2.15rem);
+  font-weight: 500;
+  line-height: 1.35;
+  margin: 0.85rem 0 1.9rem;
+  color: var(--foreground);
+  text-wrap: balance;
+}
+.topic-lesson-text > p:not(.topic-role-label) {
+  font-size: 1.04rem;
+  line-height: 1.95;
+  margin: 0 0 1.45rem;
+  color: var(--foreground);
+}
+.topic-lesson-text > p:nth-of-type(2) {
+  font-size: 1.13rem;
+  color: var(--primary);
+}
+.topic-lesson-bibliography {
+  margin-top: 2.3rem;
+  border-top: 1px solid var(--border);
+  padding-top: 1rem;
+  font-size: 0.8rem;
+  line-height: 1.8;
+  color: var(--muted-foreground);
+}
+.topic-lesson-bibliography summary,
+.topic-lesson-acervo > summary {
+  cursor: pointer;
+  color: var(--primary);
+}
+.topic-lesson-bibliography p {
+  margin: 1rem 0;
+}
+.topic-lesson-bibliography li {
+  margin: 0.9rem 0;
+}
+.topic-lesson-bibliography a {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.topic-lesson-bibliography small {
+  display: block;
+}
+.topic-lesson-acervo {
+  margin-top: 2rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid var(--border);
+}
+.topic-lesson-acervo > summary {
+  font-size: 1rem;
+  margin-bottom: 2rem;
+}
+.topic-original-text {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 600px) {
+  .topic-lesson-navigation {
+    gap: 0.6rem;
+  }
+  .topic-lesson-text {
+    margin: 1.8rem 0;
+  }
+  .topic-lesson-text > p:not(.topic-role-label) {
+    font-size: 1rem;
+    line-height: 1.85;
+  }
+}

@@ -10,6 +10,7 @@ import { topicNoteLinks } from "../../lib/application/study-topic-service";
 import { useSourceReader } from "./source-reader-context";
 import { Button } from "../ui/button";
 import { languageLabel } from "../../lib/i18n";
+import { TopicSourceText } from "./topic-source-text";
 
 const ORIGINS = [
   {
@@ -25,7 +26,7 @@ const ORIGINS = [
   {
     id: "private-search",
     label: "Nos meus livros",
-    detail: "Ocorrências com página no acervo privado. Abra o original para conferir o contexto.",
+    detail: "Páginas do seu acervo privado. A extração permanece ligada ao documento original.",
   },
 ] as const;
 
@@ -64,6 +65,9 @@ export function StudyTopicReadings({
     );
   const activeOrigin =
     origin ??
+    (readings?.items.some((item) => item.origin === "private-search")
+      ? "private-search"
+      : undefined) ??
     (readings?.items.some((item) => item.origin === "primary-search")
       ? "primary-search"
       : undefined) ??
@@ -137,19 +141,7 @@ export function StudyTopicReadings({
             </p>
             <h3 className="mt-3 font-serif text-2xl">{current.title}</h3>
             <p className="mt-2 text-xs text-muted-foreground">{current.locator}</p>
-            {current.excerpt ? (
-              <blockquote className="topic-reading-excerpt">
-                {current.excerpt.length > 2800
-                  ? `${current.excerpt.slice(0, 2800)}…`
-                  : current.excerpt}
-              </blockquote>
-            ) : (
-              <p className="my-8 max-w-2xl text-base leading-8 text-muted-foreground">
-                Esta obra faz parte das fontes indicadas para investigar {topic.title}. Abra o texto
-                para escolher a seção que deseja estudar; o catálogo não define um trecho
-                específico.
-              </p>
-            )}
+            <TopicSourceText key={current.id} reading={current} />
             <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
               {current.source.kind === "primary-text" && !current.source.unitId ? (
                 <Button asChild variant="outline">

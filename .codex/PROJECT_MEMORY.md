@@ -713,3 +713,15 @@
   lock nem migrar o banco por suposição. Preview Vite 5173 permanece isolado em OPFS.
 - Verificado: 437 testes/65 arquivos, typecheck, lint e build; QA desktop/mobile sem pageerrors,
   origem da nota preservada após reload e descarte protegido inclusive para rascunho de vídeo.
+
+## Conteúdo educacional dos temas — 2026-10-18
+
+- Correção explícita do usuário: preservar árvore e Biblioteca celeste; entrar num tema deve oferecer
+  explicação para ler/aprender, além dos livros, em vez de somente instruções de investigação.
+- Conteúdo é a primeira aba. study-lessons tem introduções específicas para 95 entidades e capítulos
+  por correspondência explícita para 16 guias; bibliografia por capítulo, perspectivas identificadas.
+  Texto editorial original, sem simular citação dos livros nem alegar revisão acadêmica.
+- Leitura do acervo também dentro de Conteúdo; topic-reading-text carrega unidade/página original
+  completa, nunca snippet como substituto. Reusa os repositórios e o leitor/caderno existentes.
+- Novos temas pessoais sem lição mostram ausência explícita, com as fontes reais disponíveis.
+- Nenhuma alteração na árvore, backend, schema, processamento dos PDFs ou identidade visual.

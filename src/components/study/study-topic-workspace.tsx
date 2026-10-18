@@ -26,6 +26,7 @@ import type { KnowledgeClaim } from "../../lib/domain/knowledge";
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import { StudyNotebook } from "./study-notebook";
 import { StudyTopicReadings } from "./study-topic-readings";
+import { StudyTopicContent } from "./study-topic-content";
 import { StudyTopicConnections } from "./study-topic-connections";
 import { StudyTopicVideos } from "./study-topic-videos";
 import { ExplorerContent } from "./knowledge-explorer-content";
@@ -34,6 +35,7 @@ import type { StudyVideo } from "../../lib/application/youtube-study-service";
 import { reviewStatusLabel } from "../../lib/i18n";
 
 const TABS = [
+  { id: "content", label: "Conteúdo", icon: BookOpen },
   { id: "path", label: "Percurso", icon: Compass },
   { id: "readings", label: "Leituras", icon: BookOpen },
   { id: "connections", label: "Conexões", icon: Network },
@@ -53,7 +55,7 @@ export function StudyTopicWorkspace({
   const { studies, notes, refreshUserData, workspacePersistence, setPassageContext } =
     useWorkbench();
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  const [tab, setTab] = useState("path");
+  const [tab, setTab] = useState("content");
   const [step, setStep] = useState(0);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [attachGroup, setAttachGroup] = useState("");
@@ -73,7 +75,7 @@ export function StudyTopicWorkspace({
   const readings = useWorkspaceQuery(
     ["topic-readings", topic.id],
     () => loadTopicReadings(topic, bundle),
-    { enabled: tab === "readings" || !topic.guide, refreshOnKnowledgeChange: true },
+    { enabled: tab === "readings" || tab === "content", refreshOnKnowledgeChange: true },
   );
   const links = useMemo(() => topicNoteLinks(topic), [topic]);
   const modules = topic.guide?.modules ?? [
@@ -237,6 +239,20 @@ export function StudyTopicWorkspace({
             ))}
           </TabsList>
         </div>
+        <TabsContent value="content" className="topic-tab-content">
+          <StudyTopicContent key={topic.id} topic={topic} />
+          <details className="topic-lesson-acervo">
+            <summary>Continuar nos meus livros e nas fontes do acervo</summary>
+            <StudyTopicReadings
+              topic={topic}
+              {...(readings.data ? { readings: readings.data } : {})}
+              pending={readings.isPending}
+              error={Boolean(readings.error)}
+              onRetry={() => void readings.refetch()}
+              {...(groupId ? { studyId: groupId } : {})}
+            />
+          </details>
+        </TabsContent>
         <TabsContent value="path" className="topic-tab-content topic-path">
           <nav className="topic-path-rail" ref={stepRail} aria-label="Etapas do roteiro">
             {modules.map((module, index) => (
