@@ -238,20 +238,6 @@ export function StudyTopicWorkspace({
           </TabsList>
         </div>
         <TabsContent value="path" className="topic-tab-content topic-path">
-          <div className="topic-path-intro">
-            <div className="topic-section-heading">
-              <p className="meta-label">Aprender com um percurso</p>
-              <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
-              <p>
-                {topic.kind === "entity" && topic.guide
-                  ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
-                  : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
-              </p>
-            </div>
-            <div className="topic-path-seal" aria-hidden="true">
-              <Compass />
-            </div>
-          </div>
           <nav className="topic-path-rail" ref={stepRail} aria-label="Etapas do roteiro">
             {modules.map((module, index) => (
               <button
@@ -266,13 +252,26 @@ export function StudyTopicWorkspace({
               </button>
             ))}
           </nav>
+          <div className="topic-path-intro">
+            <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
+            <details className="topic-path-context">
+              <summary>Sobre este percurso</summary>
+              <p>
+                {topic.kind === "entity" && topic.guide
+                  ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
+                  : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
+              </p>
+            </details>
+          </div>
           <section id="topic-step" className="topic-study-desk" aria-labelledby="topic-step-title">
             <div className="topic-orientation">
               <p className="topic-role-label">
                 <Compass aria-hidden="true" /> Orientação de leitura{" "}
-                <span>{String(currentStep + 1).padStart(2, "0")}</span>
               </p>
-              <h3 id="topic-step-title">{current.title}</h3>
+              <div className="topic-chapter-heading">
+                <span aria-hidden="true">{String(currentStep + 1).padStart(2, "0")}</span>
+                <h3 id="topic-step-title">{current.title}</h3>
+              </div>
               <p className="guide-explanation">{current.explanation}</p>
               {current.passages.length > 0 && (
                 <div className="topic-starting-texts">

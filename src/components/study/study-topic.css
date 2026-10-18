@@ -19,17 +19,91 @@
     color: var(--primary);
   }
   .topic-workspace {
+    --topic-font: "Manrope", ui-sans-serif, system-ui, sans-serif;
+    --background: #f2eee4;
+    --foreground: #343127;
+    --muted-foreground: #6e6556;
+    --primary: #805e30;
+    --primary-foreground: #faf6ed;
+    --card: #f7f3ea;
+    --muted: #e9e2d5;
+    --secondary: #e6ddcd;
+    --accent: #e7dece;
+    --border: #d4c7ae;
+    --input: #c1ad8c;
+    --ring: #967140;
+    --sky-opacity: 0.26;
+    --sky-filter: grayscale(1) invert(1);
+    --sky-blend: multiply;
+    position: relative;
+    isolation: isolate;
     width: 100%;
-    max-width: 1200px;
+    min-height: calc(100dvh - 5rem);
     min-width: 0;
     margin: 0 auto;
-    padding: 1.75rem clamp(1.25rem, 4vw, 3.5rem) 4rem;
+    padding: 1.75rem clamp(1.25rem, 4vw, 3.5rem) 8rem;
+    font-family: var(--topic-font);
+    color: var(--foreground);
+    background: var(--background);
+  }
+  .dark .topic-workspace {
+    --background: #171814;
+    --foreground: #e8e1d4;
+    --muted-foreground: #b4ac9b;
+    --primary: #c2a16c;
+    --primary-foreground: #201c16;
+    --card: #20211b;
+    --muted: #26271f;
+    --secondary: #2c2b22;
+    --accent: #302c23;
+    --border: #494130;
+    --input: #736044;
+    --ring: #c2a16c;
+    --sky-opacity: 0.95;
+    --sky-filter: none;
+    --sky-blend: normal;
+  }
+  :root[data-theme="gray"] .topic-workspace {
+    --background: #2c2e2b;
+    --card: #333630;
+    --accent: #41433a;
+    --border: #5a584b;
+    --sky-opacity: 0.5;
+  }
+  :root[data-theme="brown"] .topic-workspace {
+    --background: #261f18;
+    --card: #2f271f;
+    --accent: #403427;
+    --border: #5a4831;
+    --sky-opacity: 0.7;
+  }
+  .topic-workspace::before,
+  .topic-workspace::after {
+    content: "";
+    position: absolute;
+    z-index: -1;
+    inset: 0;
+    pointer-events: none;
+    background: url("/images/study-celestial-library.png") right top / max(100%, 1200px) auto
+      no-repeat;
+    filter: var(--sky-filter);
+    mix-blend-mode: var(--sky-blend);
+    opacity: var(--sky-opacity);
+  }
+  .topic-workspace::before {
+    mask-image: linear-gradient(to bottom, #000, #000 150px, transparent 700px);
+  }
+  .topic-workspace::after {
+    top: auto;
+    height: 155px;
+    background-position: right bottom;
+    mask-image: linear-gradient(to bottom, transparent, #000 80%);
   }
   .topic-back {
     display: inline-flex;
     align-items: center;
     gap: 0.65rem;
-    color: var(--muted-foreground);
+    color: var(--primary);
     font-size: 0.8rem;
   }
   .topic-back:hover {
@@ -48,10 +122,11 @@
   }
   .topic-header h1 {
     margin-top: 0.65rem;
-    font-family: var(--font-serif);
-    font-size: clamp(2rem, 3vw, 2.75rem);
+    font-family: var(--topic-font);
+    font-size: clamp(2rem, 3vw, 2.8rem);
+    font-weight: 600;
     line-height: 1.18;
-    letter-spacing: -0.025em;
+    letter-spacing: -0.045em;
   }
   .topic-header > div > p:last-child {
     max-width: 64ch;
@@ -108,7 +183,7 @@
   }
   .topic-section-heading h2 {
     margin-top: 0.5rem;
-    font-family: var(--font-serif);
+    font-family: var(--topic-font);
     font-size: 1.875rem;
     line-height: 1.3;
   }
@@ -119,65 +194,55 @@
     color: var(--muted-foreground);
   }
   .topic-path {
-    --path-ink: oklch(0.44 0.085 68);
-    --source-ink: oklch(0.4 0.065 186);
-    --inquiry-ink: oklch(0.43 0.1 305);
-  }
-  .dark .topic-path {
-    --path-ink: oklch(0.8 0.09 78);
-    --source-ink: oklch(0.79 0.07 179);
-    --inquiry-ink: oklch(0.8 0.075 305);
+    --path-ink: var(--primary);
+    --source-ink: var(--primary);
+    --inquiry-ink: var(--primary);
+    padding-top: 0.5rem;
   }
   .topic-path-intro {
     display: flex;
     justify-content: space-between;
-    align-items: center;
-    gap: 2rem;
+    align-items: baseline;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin: 1.75rem 0 0.75rem;
   }
-  .topic-path-intro .meta-label {
+  .topic-path-intro h2 {
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
     color: var(--path-ink);
   }
-  .topic-path-seal {
-    flex: 0 0 100px;
-    display: grid;
-    place-items: center;
-    width: 100px;
-    height: 100px;
-    border: 1px solid color-mix(in oklab, var(--path-ink) 30%, transparent);
-    outline: 1px solid color-mix(in oklab, var(--path-ink) 12%, transparent);
-    outline-offset: 7px;
-    border-radius: 50%;
-    color: var(--path-ink);
-    background: radial-gradient(
-      circle,
-      color-mix(in oklab, var(--path-ink) 7%, transparent),
-      transparent 70%
-    );
+  .topic-path-context {
+    max-width: 56ch;
+    font-size: 0.75rem;
+    line-height: 1.8;
+    color: var(--muted-foreground);
   }
-  .topic-path-seal svg {
-    width: 62px;
-    height: 62px;
-    stroke-width: 0.65;
+  .topic-path-context summary {
+    cursor: pointer;
+  }
+  .topic-path-context p {
+    padding-top: 0.75rem;
   }
   .topic-path-rail {
     position: relative;
     display: flex;
     overflow-x: auto;
     gap: 0;
-    margin: 2rem 0 1.5rem;
-    padding: 0.25rem 0.25rem 1.25rem;
+    margin: 1.5rem 0 1rem;
+    padding: 0.25rem 0.25rem 1.5rem;
     scroll-snap-type: x proximity;
     scroll-padding-inline: 0.25rem;
   }
   .topic-path-rail button {
     position: relative;
-    flex: 1 0 190px;
-    max-width: 290px;
+    flex: 1 0 260px;
     display: flex;
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.85rem;
-    padding: 0.25rem 1.5rem 0.65rem 0.25rem;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.5rem 2rem 0.5rem 0.25rem;
     text-align: left;
     scroll-snap-align: start;
     color: var(--muted-foreground);
@@ -185,39 +250,56 @@
   .topic-path-rail button::before {
     content: "";
     position: absolute;
-    top: 22px;
-    left: 42px;
+    top: 33px;
     right: 0;
-    border-top: 1px solid var(--border);
+    width: max(20px, calc(100% - 280px));
+    border-top: 1px dashed color-mix(in oklab, var(--primary) 45%, transparent);
   }
-  .topic-path-rail button:last-child::before {
+  .topic-path-rail button::after {
+    content: "";
+    position: absolute;
     right: 1rem;
+    top: 30px;
+    width: 7px;
+    height: 7px;
+    transform: rotate(45deg);
+    background: var(--path-ink);
+  }
+  .topic-path-rail button:last-child::before,
+  .topic-path-rail button:last-child::after {
+    display: none;
   }
   .topic-path-marker {
     display: grid;
     place-items: center;
-    width: 38px;
-    height: 38px;
+    z-index: 1;
+    flex: 0 0 50px;
+    width: 50px;
+    height: 50px;
     border: 1px solid var(--border);
     border-radius: 50%;
-    font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-family: var(--topic-font);
+    font-size: 1rem;
+    background: var(--background);
     transition:
       background 180ms,
       border-color 180ms;
   }
   .topic-path-label {
+    z-index: 1;
     max-width: 24ch;
-    font-size: 0.9rem;
+    padding: 0.25rem 0.75rem 0.25rem 0;
+    font-size: 0.85rem;
     line-height: 1.6;
   }
   .topic-path-rail [aria-current="step"] {
-    color: var(--path-ink);
+    color: var(--foreground);
   }
   .topic-path-rail [aria-current="step"] .topic-path-marker {
     border-color: var(--path-ink);
-    background: color-mix(in oklab, var(--path-ink) 14%, var(--background));
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--path-ink) 5%, transparent);
+    color: var(--path-ink);
+    border-width: 1.5px;
+    box-shadow: 0 0 0 5px color-mix(in oklab, var(--path-ink) 5%, transparent);
   }
   .topic-path-rail [aria-current="step"] .topic-path-label {
     font-weight: 600;
@@ -225,18 +307,12 @@
   .topic-study-desk {
     position: relative;
     display: grid;
-    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
-    border-block: 1px solid var(--border);
+    grid-template-columns: minmax(0, 1.65fr) minmax(260px, 1fr);
     margin-bottom: 1.5rem;
-    background: linear-gradient(
-      115deg,
-      color-mix(in oklab, var(--path-ink) 3%, var(--background)),
-      var(--background) 55%
-    );
   }
   .topic-orientation {
     min-width: 0;
-    padding: 2rem 2.25rem 2rem 0;
+    padding: 1rem 2.5rem 1.5rem 0;
   }
   .topic-role-label {
     display: flex;
@@ -255,38 +331,54 @@
   .topic-role-label > span {
     margin-left: auto;
   }
+  .topic-chapter-heading {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    margin: 1.35rem 0 1rem;
+  }
+  .topic-chapter-heading > span {
+    flex-shrink: 0;
+    padding-right: 1.25rem;
+    border-right: 1px solid var(--border);
+    font-size: 2.75rem;
+    font-weight: 400;
+    line-height: 1.15;
+    color: var(--primary);
+  }
   .topic-orientation h3 {
-    margin-top: 1.25rem;
-    font-family: var(--font-serif);
-    font-size: clamp(1.65rem, 2.2vw, 2rem);
+    font-family: var(--topic-font);
+    font-size: clamp(1.4rem, 2.1vw, 1.85rem);
     line-height: 1.3;
-    font-weight: 500;
+    font-weight: 600;
+    letter-spacing: -0.035em;
     text-wrap: balance;
   }
   .topic-orientation .guide-explanation {
-    color: color-mix(in oklab, var(--foreground) 86%, var(--muted-foreground));
-    font-size: 0.9375rem;
-    line-height: 1.95;
+    color: var(--muted-foreground);
+    font-family: var(--topic-font);
+    font-size: 0.95rem;
+    line-height: 1.9;
   }
   .topic-starting-texts {
     margin-top: 1.75rem;
   }
   .topic-starting-texts .topic-passage {
-    border-color: color-mix(in oklab, var(--source-ink) 25%, var(--border));
-    border-left: 2px solid var(--source-ink);
+    border: 1px solid var(--border);
+    border-radius: 3px;
     padding: 1rem 1.1rem;
-    background: color-mix(in oklab, var(--source-ink) 5%, transparent);
+    background: color-mix(in oklab, var(--background) 90%, transparent);
   }
   .topic-starting-texts .topic-passage + .topic-passage {
     margin-top: 0.75rem;
   }
   .topic-starting-texts .topic-passage summary,
   .topic-starting-texts .topic-passage a {
-    color: var(--source-ink);
+    color: var(--foreground);
   }
   .topic-starting-texts .topic-passage summary > span {
-    flex-basis: 100%;
-    margin: 0 0 0 1.75rem;
+    margin-left: auto;
+    font-size: 0.7rem;
     color: var(--muted-foreground);
   }
   .topic-starting-texts .reading-text {
@@ -305,11 +397,34 @@
     font-size: 0.8rem;
   }
   .topic-inquiry {
+    position: relative;
     min-width: 0;
     align-self: stretch;
-    padding: 2rem clamp(1.25rem, 2.5vw, 2rem);
-    border-left: 1px solid color-mix(in oklab, var(--inquiry-ink) 23%, var(--border));
-    background: color-mix(in oklab, var(--inquiry-ink) 5%, var(--background));
+    padding: 1rem 0 1.5rem clamp(1.5rem, 3vw, 2.5rem);
+    border-left: 1px solid color-mix(in oklab, var(--primary) 65%, transparent);
+  }
+  .topic-inquiry::before {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: -14px;
+    top: 48%;
+    width: 27px;
+    height: 27px;
+    border: 1px solid var(--primary);
+    border-radius: 50%;
+    background: var(--background);
+  }
+  .topic-inquiry::after {
+    content: "";
+    pointer-events: none;
+    position: absolute;
+    left: -8px;
+    top: calc(48% + 6px);
+    width: 15px;
+    height: 15px;
+    background: var(--primary);
+    clip-path: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
   }
   .topic-inquiry .topic-role-label {
     color: var(--inquiry-ink);
@@ -321,17 +436,17 @@
   }
   .topic-inquiry-question > p {
     margin-top: 1.5rem;
-    color: var(--inquiry-ink);
-    font-family: var(--font-serif);
-    font-size: clamp(1.3rem, 1.7vw, 1.55rem);
-    font-style: italic;
-    line-height: 1.65;
+    color: var(--foreground);
+    font-family: var(--topic-font);
+    font-size: clamp(1.05rem, 1.4vw, 1.25rem);
+    font-weight: 500;
+    line-height: 1.75;
     text-wrap: pretty;
   }
   .topic-inquiry-actions {
     display: flex;
-    flex-wrap: wrap;
-    align-items: center;
+    flex-direction: column;
+    align-items: stretch;
     gap: 0.75rem;
     margin-top: 2rem;
   }
@@ -636,10 +751,27 @@
     }
     .topic-inquiry {
       border-left: 0;
-      border-top: 1px solid color-mix(in oklab, var(--inquiry-ink) 23%, var(--border));
+      border-top: 1px solid var(--border);
+      padding: 1.75rem 0 1rem;
     }
-    .topic-path-seal {
-      display: none;
+    .topic-inquiry::before {
+      left: calc(50% - 14px);
+      top: -14px;
+    }
+    .topic-inquiry::after {
+      left: calc(50% - 8px);
+      top: -8px;
+    }
+    .topic-workspace::before {
+      opacity: calc(var(--sky-opacity) * 0.45);
+    }
+    .topic-chapter-heading {
+      align-items: flex-start;
+      gap: 0.85rem;
+    }
+    .topic-chapter-heading > span {
+      font-size: 2rem;
+      padding-right: 0.85rem;
     }
   }
   @media (prefers-reduced-motion: reduce) {

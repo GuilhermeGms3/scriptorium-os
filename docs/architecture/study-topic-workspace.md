@@ -4,13 +4,21 @@ A árvore abre espaços de investigação com **Percurso, Leituras, Conexões, C
 O ambiente usa os mesmos temas, fontes e componentes da leitura. Os núcleos apresentam até oito
 temas por página num diagrama, com filtro e navegação; não exibem todo o catálogo em uma lista.
 
-O percurso tem uma linha horizontal de etapas conectadas. Em desktop, a mesa de estudo dispõe
-orientação e fontes à esquerda, pergunta e escrita à direita. Em telas estreitas, essas áreas
-ficam empilhadas e a linha de etapas mantém a rolagem horizontal contida. Dourado identifica
-orientação, verde identifica fontes e lilás identifica investigação, com contraste adaptado aos
-ambientes Branco, Preto, Cinza e Marrom. Rótulos e ícones acompanham as cores. A interface usa
-IBM Plex Sans para instruções, Source Serif 4 para leitura/perguntas e IBM Plex Mono para referências;
-a pergunta recebe itálico e a Escritura conserva seu próprio corpo de leitura.
+O percurso usa a direção visual **Biblioteca celeste**, escolhida pelo usuário: bronze envelhecido,
+pergaminho e gravuras astronômicas. A imagem em `public/images/study-celestial-library.png` é arte
+decorativa gerada com Image Gen, sem textos ou controles, e não representa dados nem um mapa científico.
+Ela ocupa o cabeçalho e o rodapé com máscaras independentes, mantendo o corpo da leitura livre.
+No ambiente branco, recebe tratamento de gravura; Preto, Cinza e Marrom preservam seus contrastes.
+
+As etapas conectadas formam uma linha horizontal. A mesa aberta de estudo dispõe orientação e
+fontes à esquerda, pergunta e escrita à direita, separadas por um eixo com estrela. Em telas estreitas,
+as áreas ficam empilhadas e a linha de etapas mantém rolagem horizontal contida. Rótulos, numeração,
+peso e espaço diferenciam as funções, sem os acentos verdes/lilás da versão anterior. O esclarecimento
+editorial fica no detalhe **Sobre este percurso**, preservando seu texto.
+
+Títulos, orientação e perguntas usam Manrope, sem serifa nem itálico; referências usam IBM Plex Mono.
+Apenas a Escritura conserva seu corpo próprio de leitura. Manrope é carregada pelo provedor de fontes
+já usado no projeto, com fallback para a sans-serif do sistema; não altera a fonte das demais telas.
 
 ## De onde vêm os dados
 
