@@ -14,6 +14,8 @@ import { groupStudyKnowledge, studyEntityTitle } from "../../lib/content/study-k
 import { KnowledgeQueryService } from "../../lib/application/knowledge-query-service";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import type { Study } from "../../lib/domain/study";
+import { StudyBranchConstellation } from "./study-branch-constellation";
+import { useWorkbench } from "../../lib/workbench/workbench-context";
 
 const BRANCH_CENTERS = {
   biblia: { x: 390, y: 205 },
@@ -30,6 +32,7 @@ export function StudyLearningMap({
   studies: readonly Study[];
   onSelectEntity: (id: string) => void;
 }) {
+  const { notes } = useWorkbench();
   const [focused, setFocused] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [query, setQuery] = useState("");
@@ -133,7 +136,24 @@ export function StudyLearningMap({
                 />
               );
             })}
+            <line
+              x1="640"
+              y1="445"
+              x2="640"
+              y2="590"
+              stroke="currentColor"
+              strokeWidth="1"
+              strokeDasharray="3 7"
+              className="text-primary opacity-40"
+            />
           </svg>
+          <Link to="/study" search={{ view: "notebook" }} className="atlas-personal">
+            <span className="topic-orb" />
+            <span>Minhas notas</span>
+            <small>
+              {notes.length} {notes.length === 1 ? "nota" : "notas"} · conexões pessoais
+            </small>
+          </Link>
           <Link
             to="/study/guide/$topic"
             params={{ topic: "teologia" }}
@@ -263,29 +283,12 @@ export function StudyLearningMap({
               Abra um registro para consultar suas fontes e relações. A organização por ramo não
               implica concordância doutrinária.
             </p>
-            <ul className="atlas-entity-list">
-              {entries.map((item) => (
-                <li key={item.entity.id}>
-                  <button onClick={() => onSelectEntity(item.entity.id)} className="atlas-entity">
-                    <span className="atlas-entity-orb" aria-hidden="true" />
-                    <span>
-                      <span className="block font-serif text-lg">{studyEntityTitle(item)}</span>
-                      {item.entity.description && (
-                        <span className="mt-1 block max-w-3xl text-sm leading-relaxed text-muted-foreground">
-                          {item.entity.description}
-                        </span>
-                      )}
-                    </span>
-                    <ArrowRight className="ml-auto size-4 shrink-0" />
-                  </button>
-                </li>
-              ))}
-            </ul>
-            {!entries.length && (
-              <p className="py-5 text-sm text-muted-foreground">
-                Nenhum registro com esse nome neste núcleo.
-              </p>
-            )}
+            <StudyBranchConstellation
+              key={selected.id}
+              title={selected.title}
+              entities={entries}
+              onSelect={onSelectEntity}
+            />
           </>
         ) : (
           <div className="flex items-start gap-4">

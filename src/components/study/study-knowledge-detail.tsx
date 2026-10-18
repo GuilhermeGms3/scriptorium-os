@@ -1,7 +1,8 @@
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { KnowledgeQueryService } from "../../lib/application/knowledge-query-service";
 import { ArgumentRepository } from "../../lib/repositories/argument-repository";
-import { ExplorerContent } from "./knowledge-explorer-content";
+import { StudyTopicWorkspace } from "./study-topic-workspace";
+import { describeStudyEntity } from "../../lib/application/study-topic-service";
 
 export function StudyKnowledgeDetail({
   entityId,
@@ -49,5 +50,12 @@ export function StudyKnowledgeDetail({
         Este registro não foi encontrado no índice instalado.
       </p>
     );
-  return <ExplorerContent bundle={query.data.bundle} focusedClaim={query.data.claim} />;
+  return (
+    <StudyTopicWorkspace
+      key={query.data.bundle.selected.entity.id}
+      topic={describeStudyEntity(query.data.bundle.selected)}
+      bundle={query.data.bundle}
+      focusedClaim={query.data.claim}
+    />
+  );
 }

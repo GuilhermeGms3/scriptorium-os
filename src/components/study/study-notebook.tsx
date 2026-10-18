@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { Link } from "@tanstack/react-router";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
 import { Textarea } from "../ui/textarea";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
-import type { Note } from "../../lib/domain/study";
+import type { Note, NoteLink } from "../../lib/domain/study";
 import type { NoteConnection } from "../../lib/domain/study-notebook";
 import { StudyNotebookRepository } from "../../lib/repositories/study-notebook-repository";
 import { StudyRepository } from "../../lib/repositories/study-repository";
@@ -14,22 +15,53 @@ import { useStudyDraftGuard } from "../../hooks/use-study-draft-guard";
 import { notifyKnowledgeMutation } from "../../lib/workspace-runtime/workspace-events";
 
 const DEFAULT_COLOR = "#b9a574";
-export function StudyNotebook({ studyId }: { studyId?: string }) {
+export function StudyNotebook({
+  studyId,
+  contextLinks = [],
+  initialNoteId,
+  initialDraft,
+  focused = false,
+  onDirtyChange,
+}: {
+  studyId?: string;
+  contextLinks?: NoteLink[];
+  initialNoteId?: string;
+  initialDraft?: { title: string; body: string };
+  focused?: boolean;
+  onDirtyChange?: (dirty: boolean) => void;
+}) {
   const { studies, notes, refreshUserData, workspacePersistence } = useWorkbench();
   const [selectedGroup, setSelectedGroup] = useState("");
   const [groupTitle, setGroupTitle] = useState("");
   const [groupColor, setGroupColor] = useState(DEFAULT_COLOR);
-  const [selectedNote, setSelectedNote] = useState<string>();
+  const [selectedNote, setSelectedNote] = useState<string | undefined>(initialNoteId);
   const [editorSession, setEditorSession] = useState(0);
   const [filter, setFilter] = useState("");
-  const [dirty, setDirty] = useState(false);
+  const [dirty, setDirty] = useState(Boolean(initialDraft));
+  useEffect(() => {
+    onDirtyChange?.(dirty);
+  }, [dirty, onDirtyChange]);
   useStudyDraftGuard(dirty);
   const [error, setError] = useState<string>();
   const [busy, setBusy] = useState(false);
   const groupId = studyId ?? (selectedGroup || studies[0]?.id);
   const group = studies.find((item) => item.id === groupId);
-  const groupNotes = notes.filter((note) =>
-    note.links.some((link) => link.kind === "study" && link.target === groupId),
+  const groupNotes = notes.filter(
+    (note) =>
+      note.links.some((link) => link.kind === "study" && link.target === groupId) &&
+      (!focused ||
+        !contextLinks.length ||
+        group?.items.some((item) =>
+          contextLinks.some(
+            (link) =>
+              link.kind === "concept" && item.kind === "concept" && item.refId === link.target,
+          ),
+        ) ||
+        note.links.some((link) =>
+          contextLinks.some(
+            (context) => context.kind === link.kind && context.target === link.target,
+          ),
+        )),
   );
   const visibleNotes = groupNotes.filter((note) =>
     `${note.title} ${note.body}`
@@ -193,13 +225,32 @@ export function StudyNotebook({ studyId }: { studyId?: string }) {
             </p>
           )}
           <NoteMap
-            notes={groupNotes}
+            notes={
+              focused
+                ? groupNotes.filter((item, index) =>
+                    selectedNote
+                      ? item.id === selectedNote ||
+                        (connections.data ?? []).some(
+                          (edge) =>
+                            (edge.sourceId === selectedNote && edge.targetId === item.id) ||
+                            (edge.targetId === selectedNote && edge.sourceId === item.id),
+                        )
+                      : index < 12,
+                  )
+                : groupNotes
+            }
             connections={connections.data ?? []}
             color={group.color ?? DEFAULT_COLOR}
             selectedId={selectedNote}
             onSelect={select}
           />
-          <div className="grid min-w-0 gap-5 xl:grid-cols-[minmax(200px,1fr)_minmax(0,2fr)]">
+          <div
+            className={
+              focused
+                ? "flex min-w-0 flex-col gap-5"
+                : "grid min-w-0 gap-5 xl:grid-cols-[minmax(200px,1fr)_minmax(0,2fr)]"
+            }
+          >
             <nav aria-label="Notas do grupo" className="flex min-w-0 flex-col gap-3">
               <Input
                 aria-label="Filtrar notas"
@@ -207,25 +258,44 @@ export function StudyNotebook({ studyId }: { studyId?: string }) {
                 onChange={(event) => setFilter(event.target.value)}
                 placeholder="Encontrar uma nota…"
               />
-              <ul className="flex max-h-96 flex-col gap-1 overflow-y-auto">
-                {visibleNotes.map((item) => (
-                  <li key={item.id}>
-                    <button
-                      type="button"
-                      aria-pressed={item.id === selectedNote}
-                      className="flex w-full items-center gap-2 rounded border border-border px-3 py-2 text-left text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
-                      onClick={() => select(item.id)}
-                    >
-                      <span
-                        aria-hidden="true"
-                        className="size-3 shrink-0 rounded-full border border-foreground/30"
-                        style={{ backgroundColor: item.color ?? group.color ?? DEFAULT_COLOR }}
-                      />
-                      <span className="min-w-0 truncate">{item.title}</span>
-                    </button>
-                  </li>
-                ))}
-              </ul>
+              {focused ? (
+                <label className="text-sm">
+                  <span className="sr-only">Abrir nota do tema</span>
+                  <select
+                    aria-label="Abrir nota do tema"
+                    className="h-10 w-full max-w-full border border-input bg-background px-3"
+                    value={selectedNote ?? ""}
+                    onChange={(event) => select(event.target.value || undefined)}
+                  >
+                    <option value="">Nova nota</option>
+                    {visibleNotes.map((item) => (
+                      <option key={item.id} value={item.id}>
+                        {item.title}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+              ) : (
+                <ul className="flex max-h-96 flex-col gap-1 overflow-y-auto">
+                  {visibleNotes.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        aria-pressed={item.id === selectedNote}
+                        className="flex w-full items-center gap-2 rounded border border-border px-3 py-2 text-left text-sm hover:bg-accent focus-visible:ring-2 focus-visible:ring-ring"
+                        onClick={() => select(item.id)}
+                      >
+                        <span
+                          aria-hidden="true"
+                          className="size-3 shrink-0 rounded-full border border-foreground/30"
+                          style={{ backgroundColor: item.color ?? group.color ?? DEFAULT_COLOR }}
+                        />
+                        <span className="min-w-0 truncate">{item.title}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
               {!visibleNotes.length && (
                 <p className="text-sm text-muted-foreground">
                   {groupNotes.length
@@ -240,6 +310,8 @@ export function StudyNotebook({ studyId }: { studyId?: string }) {
               groupId={group.id}
               notes={groupNotes}
               connections={connections.data ?? []}
+              contextLinks={contextLinks}
+              {...(initialDraft && editorSession === 0 ? { initialDraft } : {})}
               onConnectionsChanged={async () => {
                 await connections.refetch();
               }}
@@ -387,6 +459,8 @@ function NotebookEditor({
   onConnectionsChanged,
   onDirty,
   onSelect,
+  contextLinks,
+  initialDraft,
 }: {
   note: Note | undefined;
   groupId: string;
@@ -396,10 +470,12 @@ function NotebookEditor({
   onConnectionsChanged: () => Promise<void>;
   onDirty: (value: boolean) => void;
   onSelect: (id: string) => void;
+  contextLinks: NoteLink[];
+  initialDraft?: { title: string; body: string };
 }) {
   const openSource = useSourceReader();
-  const [title, setTitle] = useState(note?.title ?? "");
-  const [body, setBody] = useState(note?.body ?? "");
+  const [title, setTitle] = useState(note?.title ?? initialDraft?.title ?? "");
+  const [body, setBody] = useState(note?.body ?? initialDraft?.body ?? "");
   const [color, setColor] = useState(note?.color ?? DEFAULT_COLOR);
   const [ownColor, setOwnColor] = useState(Boolean(note?.color));
   const [target, setTarget] = useState("");
@@ -436,7 +512,7 @@ function NotebookEditor({
               studyId: groupId,
               ...(ownColor ? { color } : {}),
               ...(note?.source ? { source: note.source } : {}),
-              ...(note ? { links: note.links } : {}),
+              links: [...(note?.links ?? []), ...contextLinks],
             });
             await onSaved(id);
             setVersion(StudyRepository.listNotes().find((item) => item.id === id)?.updatedAt);
@@ -502,11 +578,43 @@ function NotebookEditor({
             type="button"
             variant="outline"
             className="justify-start whitespace-normal text-left"
-            onClick={() => openSource({ source: note.source! })}
+            onClick={() =>
+              openSource({ source: note.source!, studyId: groupId, links: note.links })
+            }
           >
             Consultar fonte: {note.source.title}
             {note.source.kind === "private-document" ? ` · p. ${note.source.page}` : ""}
           </Button>
+        )}
+        {note?.links.some((link) => link.kind === "concept") && (
+          <div className="flex flex-col gap-2">
+            <p className="meta-label">Temas ligados a esta nota</p>
+            <div className="flex flex-wrap gap-2">
+              {note.links
+                .filter((link) => link.kind === "concept")
+                .map((link) =>
+                  link.target.startsWith("study-guide:") ? (
+                    <Link
+                      key={link.target}
+                      to="/study/guide/$topic"
+                      params={{ topic: link.target.slice("study-guide:".length) }}
+                      className="rounded border border-input px-3 py-2 text-sm text-primary hover:bg-accent"
+                    >
+                      {link.label}
+                    </Link>
+                  ) : (
+                    <Link
+                      key={link.target}
+                      to="/study"
+                      search={{ entity: link.target }}
+                      className="rounded border border-input px-3 py-2 text-sm text-primary hover:bg-accent"
+                    >
+                      {link.label}
+                    </Link>
+                  ),
+                )}
+            </div>
+          </div>
         )}
         <Button className="self-start" disabled={busy || !title.trim()}>
           {busy ? "Salvando…" : "Salvar nota"}

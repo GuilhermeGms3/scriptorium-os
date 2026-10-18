@@ -241,3 +241,14 @@ Conhecimento voltou a ter entrada própria no menu).
 - Texto bíblico conserva a serifa e as preferências de tamanho/entrelinha. Comentários usam sans,
   entrelinha confortável, fonte destacada e procedência separada; somente o hover sublinha o corpo.
   Tradução auxiliar e comentário original mantêm os rótulos de revisão e proveniência.
+
+## Espaços por tema — 2026-10-17
+
+- Aprofundamento em `study-topic-workspace.md`: Percurso, Leituras, Conexões, Caderno e Vídeos.
+- Núcleos da árvore abrem constelações paginadas de oito temas; o mapa geral mostra as notas reais.
+- Texto bíblico, FTS público/privado, fontes do catálogo e notas existentes são consultados nos
+  repositórios canônicos. A interface mostra uma etapa e uma leitura por vez, com origem explícita.
+- O caderno mantém o vínculo de ida e volta com o tema, preserva o rascunho entre abas e exibe
+  grupos/notas no grafo sem inferir relações por coincidência de palavras.
+- YouTube é opcional e explícito: chave restrita de navegador somente na memória da aba,
+  sem envio de notas/livros, cache temporário e player carregado apenas sob ação do usuário.

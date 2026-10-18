@@ -53,67 +53,60 @@ function StudyIndex() {
 
   return (
     <div className="min-h-full">
-      <header className="border-b border-border bg-background px-5 py-4 md:px-7">
-        <PageHeader
-          className="border-b-0 pb-0"
-          eyebrow="Formação e investigação"
-          title="Árvore de estudos"
-          description="Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso inventado."
-          actions={
-            <div
-              className="flex flex-wrap border border-input bg-card p-0.5"
-              role="group"
-              aria-label="Modo de estudo"
-            >
-              <button
-                type="button"
-                aria-pressed={view === "journey"}
-                onClick={() => setView("journey")}
-                className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
-                  view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
-                }`}
+      {!search.entity && !search.claim && (
+        <header className="border-b border-border bg-background px-5 py-4 md:px-7">
+          <PageHeader
+            className="border-b-0 pb-0"
+            eyebrow="Formação e investigação"
+            title="Árvore de estudos"
+            description="Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso inventado."
+            actions={
+              <div
+                className="flex flex-wrap border border-input bg-card p-0.5"
+                role="group"
+                aria-label="Modo de estudo"
               >
-                <RouteIcon className="size-3.5" /> Jornada
-              </button>
-              <button
-                type="button"
-                aria-pressed={view === "notebook"}
-                onClick={() => setView("notebook")}
-                className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${view === "notebook" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
-              >
-                Caderno de notas
-              </button>
-              <button
-                type="button"
-                aria-pressed={view === "investigations"}
-                onClick={() => setView("investigations")}
-                className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
-                  view === "investigations"
-                    ? "bg-primary text-primary-foreground"
-                    : "hover:bg-accent"
-                }`}
-              >
-                <Network className="size-3.5" /> Investigações
-              </button>
-            </div>
-          }
-        />
-      </header>
+                <button
+                  type="button"
+                  aria-pressed={view === "journey"}
+                  onClick={() => setView("journey")}
+                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                    view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                  }`}
+                >
+                  <RouteIcon className="size-3.5" /> Jornada
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "notebook"}
+                  onClick={() => setView("notebook")}
+                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${view === "notebook" ? "bg-primary text-primary-foreground" : "hover:bg-accent"}`}
+                >
+                  Caderno de notas
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "investigations"}
+                  onClick={() => setView("investigations")}
+                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                    view === "investigations"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                >
+                  <Network className="size-3.5" /> Investigações
+                </button>
+              </div>
+            }
+          />
+        </header>
+      )}
 
       {search.entity || search.claim ? (
-        <section className="mx-auto max-w-6xl px-5 py-6 md:px-8" aria-label="Tema do acervo">
-          <button
-            type="button"
-            className="text-sm text-primary hover:underline"
-            onClick={() => void navigate({ to: "/study", search: {} })}
-          >
-            ← Voltar à árvore de estudos
-          </button>
-          <StudyKnowledgeDetail
-            {...(search.entity ? { entityId: search.entity } : {})}
-            {...(search.claim ? { claimId: search.claim } : {})}
-          />
-        </section>
+        <StudyKnowledgeDetail
+          {...(search.entity ? { entityId: search.entity } : {})}
+          {...(search.claim ? { claimId: search.claim } : {})}
+        />
       ) : view === "notebook" ? (
         <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">
           <StudyNotebook />

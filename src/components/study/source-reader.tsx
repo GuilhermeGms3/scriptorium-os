@@ -108,7 +108,7 @@ function SourceReading({
   onDirty: (dirty: boolean) => void;
 }) {
   const { studies, refreshUserData } = useWorkbench();
-  const [groupId, setGroupId] = useState(studies[0]?.id ?? "");
+  const [groupId, setGroupId] = useState(reading.studyId ?? studies[0]?.id ?? "");
   const [newGroup, setNewGroup] = useState("");
   const [color, setColor] = useState("#b9a574");
   const [customColor, setCustomColor] = useState(false);

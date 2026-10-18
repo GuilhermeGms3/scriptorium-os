@@ -24,6 +24,10 @@ Os bancos gerados ficam em `public/corpus-packages/` e `public/knowledge/`. Eles
 O [leitor contextual e caderno](docs/architecture/study-notebook.md) permite abrir fontes sem sair
 da passagem, salvar notas por grupo e conectá-las num mapa pessoal colorido, usando esse mesmo banco.
 
+Os [espaços de estudo por tema](docs/architecture/study-topic-workspace.md) conectam a árvore a
+leituras reais do acervo, percursos, notas e relações pessoais, com uma área opcional para a API
+do YouTube. As fontes são consultadas sob demanda, sem conteúdo fictício para preencher lacunas.
+
 ## Desenvolvimento
 
 Requer Node.js 22 ou superior.

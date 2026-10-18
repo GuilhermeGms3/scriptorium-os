@@ -682,7 +682,6 @@
   do container não é migrado automaticamente para esse volume: reindexar, sem afetar a biblioteca.
 - Guia operacional: `docs/architecture/semantic-search-vectors-lexical-statistics.md`.
 
-
 ## Estudos e leitura — 2026-10-17
 
 - Árvore incorpora os 95 registros existentes em sete núcleos pedagógicos, sem inferir relações.
@@ -694,3 +693,23 @@
   comentários mudam de posição, seleção acompanha versículo, teclado redimensiona e sem overflow.
   Preview OPFS isolado; comentários privados não conferidos no acervo de produção.
 - Verificado: 425 testes/62 arquivos, typecheck, lint e build Node passaram. Sem nova ingestão.
+
+## Espaços de estudo com dados do acervo — 2026-10-17
+
+- Documento canônico: `docs/architecture/study-topic-workspace.md`. Árvore expande núcleos em
+  constelações paginadas; cada guia/entidade usa Percurso, Leituras, Conexões, Caderno e Vídeos.
+- `StudyTopicService` reutiliza catálogos, FTS público/privado, unidades e páginas canônicas.
+  Roteiros usam correspondências editoriais explícitas; busca textual não vira relação aprovada.
+- Notas mantêm tema + grupo + origem, com backlinks. Aba Caderno preserva rascunhos montados;
+  associação direta de uma nota não torna todas as notas do grupo pertinentes ao tema.
+- Grafo usa somente relações/parentesco registrados, roteiros existentes e conexões pessoais;
+  não infere arestas por palavras iguais. Mantém limites e paginação para reduzir a carga visual.
+- YouTube Data API opcional: chave restrita somente em memória, header X-Goog-Api-Key,
+  consulta explícita, timeout/cache limitados e player sob ação. Sem chave real nesta validação.
+- QA isolado confirmou nota simples, nota com unidade original, conexão, rascunho entre abas,
+  reload, backlinks e responsividade. Dados de teste não foram criados no acervo original.
+- Acervo original consultado read-only: documentos e ocorrências privadas reais presentes.
+  Lock Linux e journal de backup anterior preservados; API Docker indisponível. Não recuperar
+  lock nem migrar o banco por suposição. Preview Vite 5173 permanece isolado em OPFS.
+- Verificado: 437 testes/65 arquivos, typecheck, lint e build; QA desktop/mobile sem pageerrors,
+  origem da nota preservada após reload e descarte protegido inclusive para rascunho de vídeo.

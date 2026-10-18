@@ -4,6 +4,7 @@
 @import "./components/shell/intro-splash.css";
 @import "./components/shell/today-inscriptions.css";
 @import "./study-reading.css";
+@import "./components/study/study-topic.css";
 
 @custom-variant dark (&:is(.dark *));
 

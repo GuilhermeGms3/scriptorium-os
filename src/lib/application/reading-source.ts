@@ -6,6 +6,8 @@ import type { WorkspacePassageKnowledgeItem } from "../domain/workspace-passage-
 
 export interface ReadingSource {
   source: StudySource;
+  /** Selected local study when a source is opened from a topic. */
+  studyId?: string;
   caption?: string;
   context?: string | undefined;
   links?: NoteLink[];
