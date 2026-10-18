@@ -725,3 +725,30 @@
   completa, nunca snippet como substituto. Reusa os repositórios e o leitor/caderno existentes.
 - Novos temas pessoais sem lição mostram ausência explícita, com as fontes reais disponíveis.
 - Nenhuma alteração na árvore, backend, schema, processamento dos PDFs ou identidade visual.
+
+## Próximo escopo aprovado: formação acadêmica e Rastro — 2026-10-18
+
+- Usuário aprovou expressamente a proposta da conversa e pediu que fosse preservada integralmente.
+  Antes de implementar, diagnosticar o espaço do disco F. Não alterar outras funcionalidades.
+- Preservar árvore e Biblioteca celeste. Trocar a experiência de textos introdutórios/seletor 01/02
+  por currículo com recorte, pré-requisitos, objetivos, módulos, aulas, leituras e atividade final.
+- Trilha horizontal com progresso persistido: disponível, em andamento, concluído; concluir módulo
+  libera o próximo. Progresso de atividades não é comprovação automática de domínio acadêmico.
+- Conteúdo, Percurso, Leituras, Conexões, Caderno e Vídeos devem acompanhar o mesmo módulo.
+- Cada aula: introdução, conceitos explicados, exemplos analisados, fontes, discussão, conclusão,
+  atividade. Curso profundo distribuído em aulas, sem paredões de texto nem excesso de cartões.
+- Distinguir visualmente explicação, Escritura, citação, método e atividade por hierarquia tipográfica,
+  espaçamento e poucos acentos de cor; conservar a ambientação aprovada.
+- Aproveitar os 51 livros mencionados pelo usuário: inventariar autor/obra/edição/perspectiva,
+  conferir extração e estrutura, selecionar unidades citáveis por função pedagógica e página exata.
+  Busca textual é descoberta, não curadoria. Importado/extraído/estruturado/analisado são distintos.
+- Explicação editorial sustentada por referências; combinar acervo privado com fontes externas
+  verificáveis. Comparar tradições sem avaliar concordância religiosa como acerto acadêmico.
+- Ampliar Rastro para dossiê por palavra/passagem/conceito, mantendo proveniência/histórico atuais:
+  léxico, morfologia, ocorrências, contexto textual, história/cultura, interpretações, fontes e revisão.
+  Arqueologia/antropologia somente quando pertinentes e apoiadas em evidências identificadas.
+- Referências funcionais: Logos Workflows, Guides, Bible Word Study e Factbook; aproveitar o pipeline
+  e banco canônicos, com unidades, spans, propostas e notas existentes, sem fonte de verdade paralela.
+- Proposta de primeiro percurso completo: Gênesis 1 (orientação, texto, Bereshit/linguagem,
+  contexto histórico-cultural, comparação de interpretações, síntese final), validando as seis áreas
+  e progressão antes de expandir. Ainda é proposta; não declarar curso ou Rastro novo implementados.
