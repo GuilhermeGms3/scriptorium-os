@@ -1,6 +1,15 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, ArrowRight, BookOpen, Compass, Network, NotebookPen, Play } from "lucide-react";
+import {
+  ArrowLeft,
+  ArrowRight,
+  BookOpen,
+  Compass,
+  Network,
+  NotebookPen,
+  Play,
+  Feather,
+} from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
@@ -228,37 +237,45 @@ export function StudyTopicWorkspace({
             ))}
           </TabsList>
         </div>
-        <TabsContent value="path" className="topic-tab-content">
-          <div className="topic-section-heading">
-            <p className="meta-label">Aprender com um percurso</p>
-            <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
-            <p>
-              {topic.kind === "entity" && topic.guide
-                ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
-                : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
-            </p>
+        <TabsContent value="path" className="topic-tab-content topic-path">
+          <div className="topic-path-intro">
+            <div className="topic-section-heading">
+              <p className="meta-label">Aprender com um percurso</p>
+              <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
+              <p>
+                {topic.kind === "entity" && topic.guide
+                  ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
+                  : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
+              </p>
+            </div>
+            <div className="topic-path-seal" aria-hidden="true">
+              <Compass />
+            </div>
           </div>
-          <nav className="guide-steps" ref={stepRail} aria-label="Etapas do roteiro">
+          <nav className="topic-path-rail" ref={stepRail} aria-label="Etapas do roteiro">
             {modules.map((module, index) => (
               <button
                 key={`${index}:${module.title}`}
+                type="button"
                 aria-current={currentStep === index ? "step" : undefined}
+                aria-controls="topic-step"
                 onClick={() => changeStep(index)}
               >
-                <span className="guide-step-number">{String(index + 1).padStart(2, "0")}</span>
-                <span>{module.title}</span>
+                <span className="topic-path-marker">{String(index + 1).padStart(2, "0")}</span>
+                <span className="topic-path-label">{module.title}</span>
               </button>
             ))}
           </nav>
-          <section className="topic-step" aria-labelledby="topic-step-title">
-            <span className="topic-step-index" aria-hidden="true">
-              {String(currentStep + 1).padStart(2, "0")}
-            </span>
-            <div>
+          <section id="topic-step" className="topic-study-desk" aria-labelledby="topic-step-title">
+            <div className="topic-orientation">
+              <p className="topic-role-label">
+                <Compass aria-hidden="true" /> Orientação de leitura{" "}
+                <span>{String(currentStep + 1).padStart(2, "0")}</span>
+              </p>
               <h3 id="topic-step-title">{current.title}</h3>
               <p className="guide-explanation">{current.explanation}</p>
               {current.passages.length > 0 && (
-                <div className="mt-6 flex flex-col gap-3">
+                <div className="topic-starting-texts">
                   {current.passages.map((passage) => (
                     <TopicPassageReading
                       key={`${passage.book}:${passage.chapter}`}
@@ -267,13 +284,28 @@ export function StudyTopicWorkspace({
                   ))}
                 </div>
               )}
+              <div className="topic-source-actions">
+                <Button variant="outline" onClick={() => setTab("readings")}>
+                  <BookOpen className="mr-2 size-4" />
+                  Consultar leituras do tema
+                </Button>
+                <Button variant="ghost" onClick={() => setTab("connections")}>
+                  Explorar conexões
+                  <ArrowRight className="ml-2 size-4" />
+                </Button>
+              </div>
+            </div>
+            <aside className="topic-inquiry" aria-label="Investigar e escrever">
+              <p className="topic-role-label">
+                <Feather aria-hidden="true" /> Investigar e escrever
+              </p>
               {current.questions.map((question) => (
-                <div key={question} className="guide-question">
-                  <p className="font-serif text-lg leading-8">{question}</p>
-                  <div className="mt-3 flex flex-wrap gap-3">
+                <div key={question} className="topic-inquiry-question">
+                  <p>{question}</p>
+                  <div className="topic-inquiry-actions">
                     <Button
                       size="sm"
-                      variant="ghost"
+                      variant="outline"
                       disabled={busy || !canSave}
                       onClick={() =>
                         void action(async () => {
@@ -293,7 +325,7 @@ export function StudyTopicWorkspace({
                     </Button>
                     <Button
                       size="sm"
-                      variant="ghost"
+                      className="bg-[var(--inquiry-ink)] text-background hover:bg-[var(--inquiry-ink)] hover:brightness-110"
                       disabled={busy || !canSave}
                       onClick={() => {
                         if (!replaceDraft()) return;
@@ -311,17 +343,7 @@ export function StudyTopicWorkspace({
                   </div>
                 </div>
               ))}
-              <div className="mt-7 flex flex-wrap gap-3">
-                <Button variant="outline" onClick={() => setTab("readings")}>
-                  <BookOpen className="mr-2 size-4" />
-                  Consultar leituras do tema
-                </Button>
-                <Button variant="ghost" onClick={() => setTab("connections")}>
-                  Explorar conexões
-                  <ArrowRight className="ml-2 size-4" />
-                </Button>
-              </div>
-            </div>
+            </aside>
           </section>
           {claim && (
             <aside className="topic-recorded-claim">

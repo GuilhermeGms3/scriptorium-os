@@ -4,6 +4,14 @@ A árvore abre espaços de investigação com **Percurso, Leituras, Conexões, C
 O ambiente usa os mesmos temas, fontes e componentes da leitura. Os núcleos apresentam até oito
 temas por página num diagrama, com filtro e navegação; não exibem todo o catálogo em uma lista.
 
+O percurso tem uma linha horizontal de etapas conectadas. Em desktop, a mesa de estudo dispõe
+orientação e fontes à esquerda, pergunta e escrita à direita. Em telas estreitas, essas áreas
+ficam empilhadas e a linha de etapas mantém a rolagem horizontal contida. Dourado identifica
+orientação, verde identifica fontes e lilás identifica investigação, com contraste adaptado aos
+ambientes Branco, Preto, Cinza e Marrom. Rótulos e ícones acompanham as cores. A interface usa
+IBM Plex Sans para instruções, Source Serif 4 para leitura/perguntas e IBM Plex Mono para referências;
+a pergunta recebe itálico e a Escritura conserva seu próprio corpo de leitura.
+
 ## De onde vêm os dados
 
 | Informação         | Origem                                                                 | O que ela permite afirmar                                                                            |

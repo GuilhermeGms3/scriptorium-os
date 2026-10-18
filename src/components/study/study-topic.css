@@ -118,22 +118,228 @@
     line-height: 1.9;
     color: var(--muted-foreground);
   }
-  .topic-step {
+  .topic-path {
+    --path-ink: oklch(0.44 0.085 68);
+    --source-ink: oklch(0.4 0.065 186);
+    --inquiry-ink: oklch(0.43 0.1 305);
+  }
+  .dark .topic-path {
+    --path-ink: oklch(0.8 0.09 78);
+    --source-ink: oklch(0.79 0.07 179);
+    --inquiry-ink: oklch(0.8 0.075 305);
+  }
+  .topic-path-intro {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 2rem;
+  }
+  .topic-path-intro .meta-label {
+    color: var(--path-ink);
+  }
+  .topic-path-seal {
+    flex: 0 0 100px;
     display: grid;
-    grid-template-columns: 48px minmax(0, 1fr);
-    gap: 1.75rem;
-    padding: 2.5rem 0;
+    place-items: center;
+    width: 100px;
+    height: 100px;
+    border: 1px solid color-mix(in oklab, var(--path-ink) 30%, transparent);
+    outline: 1px solid color-mix(in oklab, var(--path-ink) 12%, transparent);
+    outline-offset: 7px;
+    border-radius: 50%;
+    color: var(--path-ink);
+    background: radial-gradient(
+      circle,
+      color-mix(in oklab, var(--path-ink) 7%, transparent),
+      transparent 70%
+    );
   }
-  .topic-step-index {
+  .topic-path-seal svg {
+    width: 62px;
+    height: 62px;
+    stroke-width: 0.65;
+  }
+  .topic-path-rail {
+    position: relative;
+    display: flex;
+    overflow-x: auto;
+    gap: 0;
+    margin: 2rem 0 1.5rem;
+    padding: 0.25rem 0.25rem 1.25rem;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 0.25rem;
+  }
+  .topic-path-rail button {
+    position: relative;
+    flex: 1 0 190px;
+    max-width: 290px;
+    display: flex;
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.85rem;
+    padding: 0.25rem 1.5rem 0.65rem 0.25rem;
+    text-align: left;
+    scroll-snap-align: start;
+    color: var(--muted-foreground);
+  }
+  .topic-path-rail button::before {
+    content: "";
+    position: absolute;
+    top: 22px;
+    left: 42px;
+    right: 0;
+    border-top: 1px solid var(--border);
+  }
+  .topic-path-rail button:last-child::before {
+    right: 1rem;
+  }
+  .topic-path-marker {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    border: 1px solid var(--border);
+    border-radius: 50%;
     font-family: var(--font-mono);
-    font-size: 1.35rem;
-    color: var(--primary);
-    opacity: 0.8;
+    font-size: 0.75rem;
+    transition:
+      background 180ms,
+      border-color 180ms;
   }
-  .topic-step h3 {
+  .topic-path-label {
+    max-width: 24ch;
+    font-size: 0.9rem;
+    line-height: 1.6;
+  }
+  .topic-path-rail [aria-current="step"] {
+    color: var(--path-ink);
+  }
+  .topic-path-rail [aria-current="step"] .topic-path-marker {
+    border-color: var(--path-ink);
+    background: color-mix(in oklab, var(--path-ink) 14%, var(--background));
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--path-ink) 5%, transparent);
+  }
+  .topic-path-rail [aria-current="step"] .topic-path-label {
+    font-weight: 600;
+  }
+  .topic-study-desk {
+    position: relative;
+    display: grid;
+    grid-template-columns: minmax(0, 1.4fr) minmax(280px, 1fr);
+    border-block: 1px solid var(--border);
+    margin-bottom: 1.5rem;
+    background: linear-gradient(
+      115deg,
+      color-mix(in oklab, var(--path-ink) 3%, var(--background)),
+      var(--background) 55%
+    );
+  }
+  .topic-orientation {
+    min-width: 0;
+    padding: 2rem 2.25rem 2rem 0;
+  }
+  .topic-role-label {
+    display: flex;
+    align-items: center;
+    gap: 0.65rem;
+    font-family: var(--font-mono);
+    font-size: 0.65rem;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: var(--path-ink);
+  }
+  .topic-role-label svg {
+    width: 16px;
+    height: 16px;
+  }
+  .topic-role-label > span {
+    margin-left: auto;
+  }
+  .topic-orientation h3 {
+    margin-top: 1.25rem;
     font-family: var(--font-serif);
-    font-size: 1.65rem;
-    line-height: 1.4;
+    font-size: clamp(1.65rem, 2.2vw, 2rem);
+    line-height: 1.3;
+    font-weight: 500;
+    text-wrap: balance;
+  }
+  .topic-orientation .guide-explanation {
+    color: color-mix(in oklab, var(--foreground) 86%, var(--muted-foreground));
+    font-size: 0.9375rem;
+    line-height: 1.95;
+  }
+  .topic-starting-texts {
+    margin-top: 1.75rem;
+  }
+  .topic-starting-texts .topic-passage {
+    border-color: color-mix(in oklab, var(--source-ink) 25%, var(--border));
+    border-left: 2px solid var(--source-ink);
+    padding: 1rem 1.1rem;
+    background: color-mix(in oklab, var(--source-ink) 5%, transparent);
+  }
+  .topic-starting-texts .topic-passage + .topic-passage {
+    margin-top: 0.75rem;
+  }
+  .topic-starting-texts .topic-passage summary,
+  .topic-starting-texts .topic-passage a {
+    color: var(--source-ink);
+  }
+  .topic-starting-texts .topic-passage summary > span {
+    flex-basis: 100%;
+    margin: 0 0 0 1.75rem;
+    color: var(--muted-foreground);
+  }
+  .topic-starting-texts .reading-text {
+    font-size: 1.125rem;
+    line-height: 1.9;
+  }
+  .topic-source-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.75rem;
+    margin-top: 1.75rem;
+    color: var(--source-ink);
+  }
+  .topic-source-actions button {
+    color: inherit;
+    font-size: 0.8rem;
+  }
+  .topic-inquiry {
+    min-width: 0;
+    align-self: stretch;
+    padding: 2rem clamp(1.25rem, 2.5vw, 2rem);
+    border-left: 1px solid color-mix(in oklab, var(--inquiry-ink) 23%, var(--border));
+    background: color-mix(in oklab, var(--inquiry-ink) 5%, var(--background));
+  }
+  .topic-inquiry .topic-role-label {
+    color: var(--inquiry-ink);
+  }
+  .topic-inquiry-question + .topic-inquiry-question {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--border);
+  }
+  .topic-inquiry-question > p {
+    margin-top: 1.5rem;
+    color: var(--inquiry-ink);
+    font-family: var(--font-serif);
+    font-size: clamp(1.3rem, 1.7vw, 1.55rem);
+    font-style: italic;
+    line-height: 1.65;
+    text-wrap: pretty;
+  }
+  .topic-inquiry-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem;
+    margin-top: 2rem;
+  }
+  .topic-inquiry-actions > button {
+    white-space: normal;
+    min-height: 2.5rem;
+    height: auto;
+    padding-block: 0.6rem;
   }
   .topic-pager {
     display: flex;
@@ -408,10 +614,6 @@
     background: #0004;
   }
   @media (max-width: 700px) {
-    .topic-step {
-      grid-template-columns: minmax(0, 1fr);
-      gap: 0.75rem;
-    }
     .topic-video-grid {
       grid-template-columns: minmax(0, 1fr);
     }
@@ -423,6 +625,26 @@
     }
     .topic-header {
       padding-top: 1.5rem;
+    }
+  }
+  @media (max-width: 1000px) {
+    .topic-study-desk {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .topic-orientation {
+      padding: 1.75rem 0;
+    }
+    .topic-inquiry {
+      border-left: 0;
+      border-top: 1px solid color-mix(in oklab, var(--inquiry-ink) 23%, var(--border));
+    }
+    .topic-path-seal {
+      display: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .topic-path-marker {
+      transition: none;
     }
   }
 }
