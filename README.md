@@ -36,6 +36,11 @@ do YouTube. As fontes são consultadas sob demanda, sem conteúdo fictício para
 
 ## Desenvolvimento
 
+O aplicativo nativo Android está em [android/](android/README.md), com Kotlin/Compose e
+pacotes offline exportados pelo PC. A primeira vertical já conecta leitura, comentários,
+fontes e Rastro; a [matriz de paridade](android/README.md#implementado-e-restante) distingue
+o que está funcional do que ainda precisa ser portado. Não inclui o pipeline de produção no celular.
+
 Requer Node.js 22 ou superior.
 
 ```bash

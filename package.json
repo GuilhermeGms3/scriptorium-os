@@ -4,6 +4,7 @@
   "sideEffects": false,
   "type": "module",
   "scripts": {
+    "mobile:export": "tsx scripts/mobile/export-content.ts",
     "dev": "vite dev --host 127.0.0.1 --port 5173 --strictPort",
     "dev:flexible": "vite dev",
     "prebuild": "npm run corpus:index",

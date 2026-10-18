@@ -9,6 +9,8 @@ lerna-debug.log*
 
 node_modules
 data/workspace/
+# Private Android delivery packages and export reports are not software source.
+data/mobile*/
 __pycache__/
 *.py[cod]
 dist

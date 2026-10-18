@@ -1,5 +1,34 @@
 # Project Memory
 
+## Android nativo para consumo — 2026-10-18
+
+- Autorizado: levar funcionalidades de consumo do desktop ao Android Kotlin/Compose, sem OCR,
+  desmontagem ou produção de conhecimento no aparelho. PC prepara conteúdo; celular recebe patches.
+- Projeto independente em `android/`, AGP9.2.1/Kotlin embutido2.2.10, Gradle9.4.1 verificado por SHA,
+  SDK36/min28, SQLite AndroidX bundled2.6.2 para FTS5/STRICT. Sem WebView e sem permissão INTERNET.
+- Primeira vertical real: edição/livro/capítulo, comentários/ranges, fonte/página com realce,
+  Rastro, FTS, ontologia/relacionamentos, notas pessoais locais e importação de pacotes/patches.
+  Não é paridade total: comparação/interlinear/léxico completo, cursos/mapas, pastas/grafo de notas,
+  migração pessoal do desktop, busca semântica/externa e tradução ainda precisam ser portados.
+- `scripts/mobile/export-content.ts`/`mobile:export`: transação read-only sobre workspace canônico,
+  projeção de consumo com IDs/páginas/evidência, política accepted/machine-visible sem rejeitados,
+  bancos públicos originais e PDFs opcionais. Derivado não é segunda autoridade nem restore pessoal.
+- ZIP `.scriptorium` DEFLATE, manifesto v1, SHA/tamanhos, base exata e delta por arquivo.
+  Geração imutável em staging; valida SQLite/FKs antes de AtomicFile. Nunca toca personal.sqlite3.
+  Gerações antigas retidas: ainda exige gestão de espaço. Sem assinatura/autodownload/delta SQL.
+- QA real: 57 livros,47.707 páginas,45.949 comentários elegíveis; pacote com uma Bíblia/ontologia
+  212.452.898 bytes, sem PDFs. Patch real de labels PT:1.336 bytes; notas preservadas no Android.
+  Esses números não equivalem a cobertura integral ou revisão humana das ligações.
+- 479 testes/74 arquivos Node passaram;10 JVM e2 instrumentation no Pixel8/API37 passaram,
+  incluindo pacote real/patch/FTS/STRICT. Typecheck/lint desktop e build/lint Android passaram;
+  lint Android tem12 avisos (versões/SDK/otimização), zero erros. Aparelho físico/API28 não testados.
+- Build desktop também passou. APK debug ~34,3 MB; QA visual de leitura/fonte e reinício conferidos.
+  Workflow Android criado (execução remota ainda não conferida). Pacote/patch reais ficam privados.
+- Regressões corrigidas: ZIP STORED/data-descriptor incompatível com Java; seleção do esquema
+  original em vez do endereço explícito de navegação. Não ignorar esquema para "achar" comentários.
+- `android/README.md` e `docs/architecture/mobile-foundation.md`: matriz, contratos e operação.
+  `data/mobile*/` e builds privados ignorados. Acervo original não alterado; Docker não reconstruído.
+
 ## Busca acadêmica e caminhos externos — 2026-10-18
 
 - `/search` preserva texto/referências, busca por sentido, edição/preparo do índice e Ctrl+K.
