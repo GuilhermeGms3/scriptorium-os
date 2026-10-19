@@ -1,5 +1,59 @@
 # Project Memory
 
+## Android — expansão de consumo em andamento — 2026-10-18
+
+- Pedido atual reforçado: PDFs originais e funções de consumo junto ao APK Kotlin, não um
+  shell vazio nem importação manual de cada livro. Produção/OCR/editorial continuam no PC.
+- Alterações ainda em validação nesta continuação: leitura/comparação/interlinear, léxico,
+  estatísticas, fontes/PDF/capas/índice, árvore/guias/aulas/curso, notas/pastas/links/grafo,
+  backup pessoal, pesquisa externa, tradução local ML Kit e busca ONNX experimental.
+- Projeção privada atual: `data/mobile-personal-dense-20261018/`,57 PDFs,47.707 páginas,
+  45.949 comentários elegíveis,10 edições,16 guias/111 aulas/curso e catálogo NHC52.
+  Pacote ~1,787 GB; não comitar livros/modelos/APK. Docs: `mobile-consumption.md`.
+- Decisão de entrega revisada após QA: APK ~2GB causou timeout `ApkAssets.finalize()` no
+  `system_server` do emulador API37. Não insistir nesse formato. `mobile:bundle -- --package
+data/mobile-personal-dense-20261018 --output data/mobile-delivery-complete-20261018` gera
+  ZIP único com APK pequeno, pacote completo e instalador USB automático. Todos os PDFs vão
+  juntos, sem importação por livro. O APK sozinho não tem o acervo. Não habilita ADB remoto.
+  AppModel processa entradas privadas `incoming/<id>.scriptorium` e apaga a cópia após sucesso.
+  Modo de assets embutidos retirado; propriedade antiga falha com orientação. O gerador do kit
+  limpa somente build Android para evitar resíduos privados em ZIP incremental. CI não gera
+  kit privado. Script nunca desinstala/wipa notas. Emulador QA reiniciado com6GB/4cores após
+  watchdog no próprio system_server/API37; não alterar Pixel_8 nem dados do usuário.
+- SQLite pessoal v2 aditivo, seed uma vez por IDs, backup/restore transacional. Conteúdo
+  imutável tem lock de arquivo, staging recuperável e reúso por SHA/hardlink/fallback cópia.
+  SHA é sempre conferido; SQL validado previamente só é reutilizado para bytes idênticos.
+- QA achou inicialização SQLite pessoal na thread principal; movida para IO. Primeiro
+  carregamento do pacote grande foi lento no emulador. Abertura posterior medida ~1,8s.
+- ONNX inicial sem Dense foi substituído pela projeção oficial 768→512/Tanh/L2. Receita
+  `distiluse-onnx-dense-tanh-l2-96-v2`;69.130 vetores,geração4threads ~759s. Não mistura
+  índice antigo. A relevância de “perdoar os inimigos” continua inadequada: busca marcada
+  experimental e teste privado de qualidade mantido como gate pendente, sem mascarar falha.
+- Verificado nesta expansão:482 testes Node/75 arquivos;typecheck/lint/build web;19 JVM.
+  Lint Android:0 erros/18 avisos. Instrumentation API37:6 testes,5 passaram/1 falhou
+  (gate de relevância semântica). Acervo/consultas/FTS/léxico/probes512 e preservação da
+  nota criada pela UI passaram; migração/seed/backup transacional também passaram.
+  Consulta semântica aquecida medida960ms; consistência vetorial não implica relevância.
+- Kit final: `data/mobile-delivery-ready-20261018/Scriptorium-completo.zip`,1.968.288.826
+  bytes,APK181.193.301 bytes;livros fora dos assets. Instalador PS real concluiu transferência
+  binária e ativação do acervo b289f600...;atualização para APK final preservou conteúdo.
+  Relatório: `docs/qa/mobile-consumption-2026-10-18.md`. Kit anterior foi preservado porque
+  a tentativa de remover apenas o artefato obsoleto foi bloqueada pelo ambiente.
+- Emulador isolado `Scriptorium_QA`,porta5560 em `data/mobile-qa-avd`,não usa/wipa Pixel_8.
+  Canonical workspace do PC só foi aberto read-only; não recriou Docker nem expôs serviço.
+- Patch real aprovado em268s:manifesto6.278 bytes,ID e6c451cb...,base b289f600...;
+  comparação integral do backup pessoal e reinstalação idempotente passaram. Total privado:
+  7 casos,6 passaram/1 falhou (relevância). No AVD houve fallback para cópia (inodes distintos),
+  não prometer economia/patch instantâneo. Restart manteve e6c451cb...,abertura COLD1757ms.
+  UI final confirmou notas com links/grupos/capas e Didaquê+tradução já preparada no PC.
+  ML Kit:consentimento/download/tradução local confirmados;qualidade ruim no inglês arcaico
+  (fast→rápido no contexto de jejum),não aprovada para estudo. Preservar original,sem remendo
+  global de palavra ambígua. Relatório distingue funcionamento técnico de qualidade.
+- Próximo seguro:calibrar recuperação com coleção de avaliação, melhorar tradução/testar OpenAlex
+  e aparelho físico;continuar lacunas da matriz de paridade, sem declarar tudo concluído.
+  Não declarar paridade integral: faltam editor de investigações, sync/abas/Markdown completo,
+  painéis especializados, Marian idêntico e calibração semântica/aparelho físico.
+
 ## Android nativo para consumo — 2026-10-18
 
 - Autorizado: levar funcionalidades de consumo do desktop ao Android Kotlin/Compose, sem OCR,

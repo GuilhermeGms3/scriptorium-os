@@ -1,8 +1,14 @@
-# Scriptorium Android — fundação nativa
+# Scriptorium Android — leitura nativa e kit completo
 
 Aplicativo **Kotlin + Jetpack Compose**, sem WebView, para consumir offline o acervo preparado
-no PC. Esta é a primeira vertical funcional; **não é ainda paridade integral com o desktop**.
+no PC. Há entrega privada com aplicativo e todos os PDFs no mesmo kit; **não é ainda paridade integral com o desktop**.
 O desktop, o pipeline Python e o workspace original não são substituídos.
+
+**Entrega completa com os livros:** siga [kit completo e consumo nativo](../docs/architecture/mobile-consumption.md).
+O pacote privado atual reúne 57 PDFs, 47.707 páginas e 10 edições. `npm run mobile:bundle`
+gera um ZIP com APK, acervo e instalador USB automático, sem importação livro por livro.
+Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
+de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
 ## Compilar
 
@@ -20,7 +26,7 @@ $env:ANDROID_HOME = "$env:LOCALAPPDATA/Android/Sdk"
 ```
 
 Linux/macOS: `./gradlew` com as mesmas tarefas. APK de desenvolvimento:
-`app/build/outputs/apk/debug/app-debug.apk`. O APK não contém livros privados nem corpus embutido.
+`app/build/outputs/apk/debug/app-debug.apk`. O APK sozinho não contém livros; o kit os coentrega.
 A assinatura de produção e publicação na Play Store ainda não estão configuradas.
 
 ## Levar o acervo do PC
@@ -63,20 +69,21 @@ As gerações antigas são mantidas; limpeza/gestão de espaço ainda precisa de
 
 ## Implementado e restante
 
-| Área           | Nesta entrega                                                                                        | Ainda falta para paridade                                                               |
-| -------------- | ---------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
-| Leitura        | Edições instaladas, livros/capítulos, anterior/próximo, comentários/ranges, toggle                   | Comparação paralela completa, interlinear e seleção contextual refinada                 |
-| Texto original | Leitura por edição e tokens/lema/morfologia importados                                               | Verbete completo, estatísticas e concordância do inspetor desktop                       |
-| Biblioteca     | 100% das páginas extraídas exportadas, navegação de página, PDF quando incluído, realce de evidência | Capas, índice editorial, fontes públicas não bíblicas na estante, navegação de tratados |
-| Rastro         | Método, rationale, páginas e até 200 eventos por comentário; 100 eventos recentes                    | Exploração/auditoria visual completa, histórico de payload anterior                     |
-| Busca          | FTS5 bíblico e páginas, edição e abertura do resultado                                               | Parser de referências, busca por sentido, acadêmica/web e ranking combinado desktop     |
-| Estudos        | Ontologia e relações reais por entidade                                                              | Percursos/aulas/progresso, mapa espacial completo e grafo de argumentos                 |
-| Notas          | Criar/editar, origem de comentário, SQLite pessoal e proteção de descarte                            | Migrar notas existentes do desktop, pastas, grupos, links, grafo, backup/sync           |
-| Tradução       | Não portada; não há botão sem serviço funcional                                                      | Definir execução local ou consumo de tradução já preparada no PC                        |
-| Pacotes        | Exportação privada, integridade, instalação completa e patch por arquivo                             | Assinaturas/autenticidade, download, garbage collection e delta por registros           |
+| Área           | Nesta entrega                                                                                         | Ainda falta para paridade                                                     |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
+| Leitura        | Edições, livros/capítulos, comentários/ranges, toggle, comparação, original e interlinear por unidade | Refinar seleção/filtros e alinhamentos não fornecidos pelas fontes            |
+| Texto original | Léxico, tradução, morfologia, ocorrências e estatísticas por livro/vizinhos                           | Todos os painéis especializados do inspetor desktop                           |
+| Biblioteca     | PDFs originais, capas reais, páginas, índice extraído e fontes antigas paginadas                      | Leitor com todas as ferramentas editoriais do desktop                         |
+| Rastro         | Histórico paginado/filtrável, fonte, rationale e evidência                                            | Auditoria visual de todos os payloads históricos                              |
+| Busca          | FTS, referência completa, sentido offline, OpenAlex e atalhos externos                                | Ranking híbrido idêntico ao PC, abreviaturas completas e filtro por ano       |
+| Estudos        | Árvore, guias/aulas, curso com atividades/progresso; mapa ontológico/argumentos separado              | Editor completo de investigações e recursos vinculados                        |
+| Notas          | Pastas, grupos, cores, links, grafo, seed pessoal e backup/restore                                    | Abas múltiplas, Markdown completo e sync bidirecional                         |
+| Tradução       | ML Kit local inglês/espanhol→português, glossário e cache, preservando original                       | Mesma implementação Marian do PC e pesos de tradução incluídos                |
+| Pacotes        | Exportação privada, integridade, instalação completa e patch por arquivo                              | Assinaturas/autenticidade, download, garbage collection e delta por registros |
 
-Não há OCR, desmontagem, inferência nem geração de conhecimento no Android. O aplicativo desta
-etapa não pede permissão INTERNET. As futuras funções online terão contrato e consentimento próprios.
+Não há OCR, desmontagem, análise editorial por LLM nem geração de conhecimento no Android.
+O modelo ONNX é usado somente para recuperação por sentido. O aplicativo desta
+etapa pede permissão INTERNET para pesquisa acadêmica e download explícito do modelo de tradução.
 Não execute inferência remota ou exponha a API local do PC para "completar" botões.
 
 ## Arquitetura e segurança
@@ -93,10 +100,10 @@ Não execute inferência remota ou exponha a API local do PC para "completar" bo
   progressiva de contexto de livro/capítulo e múltiplos comentários.
 - `personal.sqlite3`: notas do aparelho, sem ser anexado pelo instalador de conteúdo.
   Banco e esquema pessoais versionados. O conteúdo do PC é derivado read-only, não uma segunda
-  autoridade editorial nem um restore do workspace pessoal. Sincronização de notas não existe ainda.
+  autoridade editorial. O seed pessoal é incorporado uma vez sem sobrescrever edições locais; não é sync.
 - Diretórios de exportação `data/mobile*/`, builds e `local.properties` são ignorados.
   Livros privados não vão para Git, imagem Docker nem artefato de CI. Backups automáticos do
-  Android estão desativados; backup manual das notas precisa ser implementado antes de uso crítico.
+  Android estão desativados; backup manual das notas está em Mais → Ajustes e backup.
 
 Hashes detectam corrupção, **não autenticam o autor do pacote**. Nesta fase importe somente
 arquivos preparados por você. Há limite de 12 GiB descomprimidos, 4 GiB por arquivo e 2.000 arquivos;
@@ -121,4 +128,5 @@ runner. Sem `packagePath`, **esse caso privado é marcado como skipped**, não c
 O teste de capacidades SQLite/FTS roda sem acervo privado. CI executa build/lint/testes JVM e
 publica somente o APK debug vazio; nunca os pacotes de livros.
 
-Verificação e evidências desta entrega: [fundação mobile](../docs/architecture/mobile-foundation.md).
+Verificação inicial: [fundação mobile](../docs/architecture/mobile-foundation.md).
+Resultados da expansão: [QA de consumo nativo](../docs/qa/mobile-consumption-2026-10-18.md).

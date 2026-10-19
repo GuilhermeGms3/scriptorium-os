@@ -19,7 +19,7 @@ object Sqlite {
             require(db.rows("PRAGMA quick_check").single().values.single() == "ok") { "Índice SQLite corrompido." }
             require(db.rows("PRAGMA foreign_key_check").isEmpty()) { "Índice com referências órfãs." }
             if (file.name == "content.sqlite3") {
-                require(db.rows("PRAGMA user_version").single().values.single() == "1") { "Versão do acervo incompatível." }
+                require(db.rows("PRAGMA user_version").single().values.single() in listOf("1", "2")) { "Versão do acervo incompatível." }
                 db.rows("SELECT id FROM documents LIMIT 0")
                 db.rows("SELECT id FROM comments LIMIT 0")
                 db.rows("SELECT page_id FROM pages_fts LIMIT 0")

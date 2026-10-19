@@ -1,6 +1,7 @@
 package org.scriptorium.app.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -10,26 +11,76 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.scriptorium.app.data.*
+import kotlinx.coroutines.launch
 
 @Composable
-fun SearchScreen(repository: MobileRepository, open: (Passage) -> Unit) {
+fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     var submitted by rememberSaveable { mutableStateOf("") }
-    val editions = remember { repository.editions() }
+    val editions = remember { repository.scriptureEditions() }
     var edition by remember { mutableStateOf(editions.first()) }
     var editionMenu by remember { mutableStateOf(false) }
     var selected by remember { mutableStateOf<Row?>(null) }
+    var branch by rememberSaveable { mutableStateOf("Meu acervo") }
+    var sense by rememberSaveable { mutableStateOf(false) }
+    var language by rememberSaveable { mutableStateOf("all") }
+    var openOnly by rememberSaveable { mutableStateOf(false) }
+    var page by rememberSaveable { mutableIntStateOf(1) }
+    val context = androidx.compose.ui.platform.LocalContext.current
+    val scope = rememberCoroutineScope()
+    var feedback by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Heading("Busca no acervo", "Texto bíblico e páginas dos livros instalados. Consulta local por índice, sem percorrer os livros em memória.")
         OutlinedTextField(query, { query = it.take(240) }, label = { Text("O que deseja encontrar?") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        Box {
+        androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            items(listOf("Meu acervo", "Pesquisa acadêmica", "Na web")) { name -> FilterChip(branch == name, { branch = name; submitted = "" }, label = { Text(name) }) }
+        }
+        if (branch == "Meu acervo") Box {
             TextButton(onClick = { editionMenu = true }) { Text(edition.title) }
             DropdownMenu(expanded = editionMenu, onDismissRequest = { editionMenu = false }) {
                 editions.forEach { item -> DropdownMenuItem(text = { Text(item.title) }, onClick = { edition = item; editionMenu = false }) }
             }
         }
-        Button(onClick = { submitted = query.trim() }, enabled = query.trim().length >= 2) { Text("Pesquisar") }
-        if (submitted.isNotBlank()) Load(submitted to edition, { repository.search(submitted, edition) }) { results ->
+        if (branch == "Meu acervo") Row { Checkbox(sense, { sense = it }); Text("Por sentido · experimental", Modifier.padding(top = 12.dp)) }
+        if (branch == "Meu acervo" && sense) Text("A aproximação semântica pode recuperar contextos contrários ao desejado. Confira o texto e as fontes; a busca textual permanece disponível.", style = MaterialTheme.typography.labelSmall)
+        if (branch == "Pesquisa acadêmica") {
+            Row {
+                listOf("all" to "Todos", "pt" to "PT", "en" to "EN", "es" to "ES").forEach { (id, label) -> FilterChip(language == id, { language = id }, label = { Text(label) }) }
+            }
+            Row { Checkbox(openOnly, { openOnly = it }); Text("Apenas acesso aberto", Modifier.padding(top = 12.dp)) }
+            Text("Somente a consulta digitada é enviada ao OpenAlex após Pesquisar. Seus livros e notas não são enviados.", style = MaterialTheme.typography.labelSmall)
+        }
+        Button(onClick = { submitted = query.trim(); page = 1 }, enabled = query.trim().length >= 2) { Text("Pesquisar") }
+        feedback?.let { Text(it) }
+        if (submitted.isNotBlank() && branch == "Na web") LazyColumn {
+            item { Text("Atalhos externos, não resultados importados nem fontes verificadas pelo Scriptorium.") }
+            items(ExternalResearch.links(submitted)) { (name, url) -> TextButton(onClick = {
+                safeExternalUrl(url)?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) }
+            }) { Text("├─ $name") } }
+        }
+        if (submitted.isNotBlank() && branch == "Pesquisa acadêmica") Load(listOf(submitted, language, openOnly, page), { ExternalResearch.academic(submitted, language, openOnly, page) }) { works -> LazyColumn {
+            items(works, key = { it.text("id") }) { work -> Column(Modifier.padding(vertical = 10.dp)) {
+                Text(work.text("title"), style = MaterialTheme.typography.titleMedium)
+                Text("${work.text("year")} · ${work.text("authors")}", style = MaterialTheme.typography.bodySmall)
+                Row {
+                    TextButton(onClick = { safeExternalUrl(work.text("url"))?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) } }) { Text("Abrir fonte") }
+                    TextButton(onClick = { scope.launch {
+                        try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { personal.saveReference(work.text("id"), work.text("title"), work.text("payload_json")) }; feedback = "Referência guardada na Biblioteca." }
+                        catch (failure: Exception) { feedback = failure.message }
+                    } }) { Text("Guardar referência") }
+                }
+            } }
+            item { Row {
+                TextButton(enabled = page > 1, onClick = { page-- }) { Text("Anterior") }
+                Text("$page", Modifier.padding(12.dp))
+                TextButton(enabled = works.size == 10 && page < 10, onClick = { page++ }) { Text("Próxima") }
+            } }
+        } }
+        if (submitted.isNotBlank() && branch == "Meu acervo") Load(Triple(submitted, edition, sense), {
+            val reference = repository.resolveReference(submitted, edition)
+            val exact = reference?.let { listOf(SearchHit("${it.title} ${it.chapter}", "Referência exata", passage = it)) }.orEmpty()
+            exact + if (sense) repository.semanticSearch(submitted, edition) else repository.search(submitted, edition)
+        }) { results ->
             LazyColumn {
                 item { Text("${results.size} resultados · até 40 passagens e 40 páginas por consulta", style = MaterialTheme.typography.labelSmall) }
                 if (results.isEmpty()) item { Text("Nenhum resultado neste pacote.", Modifier.padding(16.dp)) }
@@ -42,16 +93,27 @@ fun SearchScreen(repository: MobileRepository, open: (Passage) -> Unit) {
             }
         }
     }
-    selected?.let { PageDialog(repository, it) { selected = null } }
+    selected?.let { PageDialog(repository, it, personal) { selected = null } }
 }
 
 @Composable
-fun KnowledgeScreen(repository: MobileRepository) {
+fun KnowledgeScreen(repository: MobileRepository, personal: PersonalRepository) {
     var selected by remember { mutableStateOf<Row?>(null) }
+    var claim by remember { mutableStateOf<Row?>(null) }
+    var graph by rememberSaveable { mutableStateOf(true) }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Heading("Teologia", "Árvore do acervo instalado. Doutrina, tradição, método e posição permanecem categorias distintas.")
-        Load("ontology", repository::ontology) { entities ->
+        TextButton(onClick = { graph = !graph }) { Text(if (graph) "Mostrar lista de entidades" else "Mostrar mapa conectado") }
+        Load("ontology", { repository.ontology() to repository.publicClaims() }) { (entities, claims) ->
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                if (graph && entities.isNotEmpty()) item {
+                    Load("ontology-edges", { entities.flatMap { repository.ontologyRelations(it.text("id")) }.distinctBy { it.text("id") } }) { relations ->
+                        KnowledgeGraph(entities.mapIndexed { index, row ->
+                            val angle = index * 2 * Math.PI / entities.size
+                            GraphNode(row.text("id"), row.text("canonical_name"), (540 + kotlin.math.cos(angle) * 400).toFloat(), (380 + kotlin.math.sin(angle) * 280).toFloat())
+                        }, relations.map { GraphEdge(it.text("from_entity_id"), it.text("to_entity_id")) }) { id -> selected = entities.find { it.text("id") == id } }
+                    }
+                }
                 if (entities.isEmpty()) item { Text("Este pacote não inclui a ontologia. Exporte também knowledge.sqlite3 no PC.") }
                 entities.groupBy { it.text("ontology_kind") }.forEach { (kind, group) ->
                     item { Text("│  ${ontologyLabel(kind)}", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 16.dp)) }
@@ -62,15 +124,34 @@ fun KnowledgeScreen(repository: MobileRepository) {
                         }
                     }
                 }
+                item { Heading("Proposições e argumentos", "Não são pontuações de verdade. Cada proposição preserva seu tipo e revisão.") }
+                items(claims, key = { it.text("id") }) { row -> TextButton(onClick = { claim = row }) { Text(row.text("proposition")) } }
             }
         }
     }
     selected?.let { entity -> AlertDialog(onDismissRequest = { selected = null }, title = { Text(entity.text("canonical_name")) }, confirmButton = { TextButton(onClick = { selected = null }) { Text("Fechar") } }, text = {
         Column {
             Text(entity.text("description"))
+            TranslationBlock(entity.text("description"), "und", personal)
             Load(entity.text("id"), { repository.ontologyRelations(entity.text("id")) }) { relations ->
                 if (relations.isEmpty()) Text("Sem relações explícitas exportadas para esta entidade.", Modifier.padding(top = 16.dp))
                 relations.forEach { Text("${it.text("from_title")} → ${it.text("relation_type")} → ${it.text("to_title")}", Modifier.padding(vertical = 8.dp)) }
+            }
+        }
+    }) }
+    claim?.let { row -> AlertDialog(onDismissRequest = { claim = null }, title = { Text("Proposição") }, confirmButton = { TextButton(onClick = { claim = null }) { Text("Fechar") } }, text = {
+        Column(Modifier.heightIn(max = 550.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+            TranslationBlock(row.text("proposition"), "und", personal)
+            Text(row.text("proposition")); Text("${row.text("claim_type")} · ${row.text("review_status")}", style = MaterialTheme.typography.labelSmall)
+            Load(row.text("id"), { repository.arguments(row.text("id")) }) { arguments ->
+                if (arguments.isEmpty()) Text("Nenhum argumento explícito para esta proposição.")
+                arguments.forEach { argument ->
+                    Heading(argument.text("title")); Text(argument.text("conclusion"))
+                    Load(argument.text("id"), { repository.argumentDetail(argument.text("id")) }) { (premises, relations) ->
+                        premises.forEach { Text("Premissa: ${it.text("proposition")}", Modifier.padding(top = 8.dp)) }
+                        relations.forEach { Text("${it.text("relation_type")}: ${it.text("from_id")} → ${it.text("to_id")}", Modifier.padding(top = 8.dp)) }
+                    }
+                }
             }
         }
     }) }

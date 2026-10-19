@@ -50,7 +50,46 @@ class ContentPackageTest {
     }
     @Test fun repeatedInstallIsIdempotent() {
         val target = store(); target.install(full()); target.install(full())
-        assertEquals(1, File(temporary.root, "content").listFiles()!!.size)
+        assertEquals(1, File(temporary.root, "content").listFiles()!!.count { it.isDirectory })
+    }
+    @Test fun identicalIdentifierCannotReplaceContentMetadata() {
+        val target = store(); target.install(full())
+        assertThrows(IllegalArgumentException::class.java) { target.install(archive(manifest(first, "different bytes"), emptyMap())) }
+        assertEquals("fixture-content", File(target.current()!!.first, "content.sqlite3").readText())
+    }
+    @Test fun sameHashDatabaseIsReusedButIncomingCorruptionStillFails() {
+        var validations = 0
+        val target = store { validations++ }
+        target.install(full())
+        assertEquals(2, validations)
+        val patch = manifest(second, "fixture-content", first)
+        target.install(archive(patch, emptyMap()))
+        assertEquals(2, validations)
+        val bad = manifest("c".repeat(64), "fixture-content", second)
+        assertThrows(IllegalArgumentException::class.java) {
+            target.install(archive(bad, mapOf("content.sqlite3" to "WRONG-content!!")))
+        }
+        assertEquals(second, active)
+        assertEquals("fixture-content", File(target.current()!!.first, "content.sqlite3").readText())
+    }
+    @Test fun separateInstallersCannotWriteConcurrently() {
+        var blocked = false
+        val target = store {
+            assertThrows(IllegalStateException::class.java) { store().install(full()) }
+            blocked = true
+        }
+        target.install(full())
+        assertTrue(blocked)
+        assertEquals(first, active)
+    }
+    @Test fun interruptedStagingIsReclaimedWithoutTouchingPersonalData() {
+        val root = File(temporary.root, "content").apply { mkdirs() }
+        val stale = File(root, ".install-${java.util.UUID.randomUUID()}").apply { mkdir() }
+        File(stale, "partial").writeText("partial copy")
+        val notes = File(temporary.root, "personal.sqlite3").apply { writeText("preserve") }
+        store().install(full())
+        assertFalse(stale.exists())
+        assertEquals("preserve", notes.readText())
     }
     @Test fun corruptChecksumPreservesActiveGeneration() {
         val target = store(); target.install(full())

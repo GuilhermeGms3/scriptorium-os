@@ -8,6 +8,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -18,9 +19,10 @@ import org.scriptorium.app.data.*
 @Composable
 fun ScriptoriumApp(model: AppModel) {
     val state by model.state.collectAsStateWithLifecycle()
-    var destination by rememberSaveable { mutableStateOf("Leitura") }
+    var destination by rememberSaveable { mutableStateOf("Início") }
     var menu by remember { mutableStateOf(false) }
     var requestedPassage by remember { mutableStateOf<Passage?>(null) }
+    val screenState = rememberSaveableStateHolder()
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         if (it != null) model.import(it)
     }
@@ -31,7 +33,7 @@ fun ScriptoriumApp(model: AppModel) {
                 Box {
                     TextButton(onClick = { menu = true }) { Text("Mais") }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        listOf("Rastro", "Pacotes").forEach { route ->
+                        listOf("Início", "Mapa", "Rastro", "Pacotes", "Ajustes e backup").forEach { route ->
                             DropdownMenuItem(text = { Text(route) }, onClick = { destination = route; menu = false })
                         }
                     }
@@ -70,16 +72,19 @@ fun ScriptoriumApp(model: AppModel) {
                     Spacer(Modifier.height(24.dp))
                     Text("Importe somente pacotes preparados por você ou por uma fonte confiável. Checksums verificam integridade, não autoria. Livros privados não devem ser publicados.", style = MaterialTheme.typography.bodySmall)
                 }
-            } else key(state.revision) {
+            } else key(state.revision) { screenState.SaveableStateProvider(destination) {
                 when (destination) {
                     "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage)
-                    "Biblioteca" -> LibraryScreen(model.repository)
-                    "Estudos" -> KnowledgeScreen(model.repository)
+                    "Início" -> TodayScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
+                    "Biblioteca" -> LibraryScreen(model.repository, model.personal)
+                    "Estudos" -> StudyScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
+                    "Mapa" -> KnowledgeScreen(model.repository, model.personal)
                     "Notas" -> NotesScreen(model.personal)
-                    "Busca" -> SearchScreen(model.repository) { requestedPassage = it; destination = "Leitura" }
-                    "Rastro" -> TraceScreen(model.repository)
+                    "Busca" -> SearchScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
+                    "Rastro" -> TraceScreen(model.repository, model.personal)
+                    "Ajustes e backup" -> PersonalSettings(model.personal)
                 }
-            }
+            } }
         }
     }
 }

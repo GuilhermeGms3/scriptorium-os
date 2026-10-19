@@ -27,7 +27,7 @@ class InstalledAcervoTest {
         val installed = store.install(File(packagePath).inputStream())
         val repo = MobileRepository(store)
         assertTrue(repo.editions().isNotEmpty())
-        val edition = repo.editions().first()
+        val edition = repo.scriptureEditions().first { it.id == "biblia-livre-n4-2025.1.0" }
         val genesis = repo.books(edition).first { it.text("book_id") == "genesis" }
         assertEquals("Use o endereço de navegação explícito já auditado pelo importador", "scriptorium-bcv-1", genesis.text("scheme"))
         val passage = Passage(edition, genesis.text("id"), "genesis", genesis.text("title"), 1, genesis.text("scheme"))

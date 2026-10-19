@@ -1,9 +1,5 @@
 package org.scriptorium.app.ui
 
-import android.graphics.Bitmap
-import android.graphics.pdf.PdfRenderer
-import android.os.ParcelFileDescriptor
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,7 +11,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.asImageBitmap
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -28,6 +23,7 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
     var libraryPage by remember { mutableStateOf<Row?>(null) }
     AlertDialog(onDismissRequest = close, confirmButton = { TextButton(onClick = close) { Text("Fechar") } }, title = { Text(comment.text("source_title")) }, text = {
         Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState())) {
+            if (comment.text("mode") == "source-excerpt") TranslationBlock(comment.text("body"), comment.text("source_language"), personal)
             Text(comment.text("body"))
             Text(comment.commentLabel(), style = MaterialTheme.typography.labelSmall)
             Heading("Por que foi ligado")
@@ -50,72 +46,112 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
         }
     })
     if (note) NoteEditor(personal, null, comment.text("id"), onClose = { note = false })
-    libraryPage?.let { PageDialog(repository, it) { libraryPage = null } }
+    libraryPage?.let { PageDialog(repository, it, personal) { libraryPage = null } }
 }
 
 @Composable
-fun LibraryScreen(repository: MobileRepository) {
+fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository) {
     var document by remember { mutableStateOf<Row?>(null) }
     var pageIndex by rememberSaveable { mutableIntStateOf(0) }
     var selected by remember { mutableStateOf<Row?>(null) }
+    var collection by rememberSaveable { mutableStateOf("Meus livros") }
+    var filter by rememberSaveable { mutableStateOf("") }
+    var primary by remember { mutableStateOf<Row?>(null) }
     val current = document
+    primary?.let { PrimaryReader(repository, personal, it) { primary = null }; return }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Heading("Biblioteca", "Livros do pacote instalado. Texto extraído e PDF original são identificados separadamente.")
+        if (current == null) {
+            androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                items(listOf("Meus livros", "Fontes primárias", "Nag Hammadi", "Referências")) { name -> FilterChip(collection == name, { collection = name }, label = { Text(name) }) }
+            }
+            OutlinedTextField(filter, { filter = it.take(200) }, label = { Text("Filtrar títulos") }, modifier = Modifier.fillMaxWidth())
+            if (collection == "Fontes primárias") {
+                Load("primary-works", repository::primaryWorks) { works -> LazyColumn {
+                    items(works.filter { it["chapters"].isNullOrEmpty() && it.text("title").contains(filter, true) }) { work -> ListItem(headlineContent = { Text(work.text("title")) }, supportingContent = { Text("${work.text("edition_title")} · ${work.text("unit_count")} unidades") }, modifier = Modifier.clickable { primary = work }) }
+                } }; return@Column
+            }
+            if (collection == "Nag Hammadi") {
+                Load("nag-hammadi", { repository.catalogItem("nag-hammadi") to repository.documents().filter { it.text("title").contains("hammadi", true) || it.text("title").contains("gnósti", true) } }) { (catalog, volumes) -> LazyColumn {
+                    item { Text("Volumes integrais privados", Modifier.padding(vertical = 16.dp)) }
+                    items(volumes) { volume -> TextButton(onClick = { document = volume; pageIndex = 0 }) { Text(volume.text("title")) } }
+                    item { Text(catalog?.optString("rightsNote").orEmpty(), style = MaterialTheme.typography.bodySmall) }
+                    items(catalog?.objects("texts").orEmpty().filter { it.toString().contains(filter, true) }) { entry ->
+                        Text(entry.optString("portugueseTitle", entry.optString("title", entry.optString("id"))), Modifier.padding(vertical = 10.dp))
+                    }
+                    item { Text("O catálogo não equivale a uma tradução instalada. Abra os volumes privados acima para ler os textos disponíveis.") }
+                } }; return@Column
+            }
+            if (collection == "Referências") {
+                Load("bibliography", { repository.bibliography() + personal.references() }) { references -> LazyColumn {
+                    items(references.filter { it.text("title").contains(filter, true) }) { reference -> ListItem(headlineContent = { Text(reference.text("title")) }, supportingContent = { Text("Registro bibliográfico · não significa texto integral instalado") }) }
+                } }; return@Column
+            }
+        }
         if (current == null) Load("documents", repository::documents) { documents ->
             LazyColumn {
                 if (documents.isEmpty()) item { Text("Nenhum livro privado neste pacote. Exporte com --workspace no PC para incluir o acervo.") }
-                items(documents, key = { it.text("id") }) { item ->
-                    ListItem(headlineContent = { Text(item.text("title")) }, supportingContent = { Text("${item.number("pages")} páginas · ${item.text("language")}") }, modifier = Modifier.clickable { document = item; pageIndex = 0 })
+                items(documents.filter { it.text("title").contains(filter, true) }, key = { it.text("id") }) { item ->
+                    Row(Modifier.fillMaxWidth().clickable { document = item; pageIndex = 0 }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(Modifier.width(82.dp)) { PdfPagePreview(repository, item + mapOf("page_index" to "0", "source_title" to item.text("title")), 120.dp) }
+                        Column(Modifier.weight(1f)) { Text(item.text("title")); Text("${item.number("pages")} páginas · ${item.text("language")}", style = MaterialTheme.typography.labelSmall) }
+                    }
                 }
             }
         } else {
             TextButton(onClick = { document = null }) { Text("Voltar à estante") }
+            var showOutline by remember(current.text("id")) { mutableStateOf(false) }
+            TextButton(onClick = { showOutline = !showOutline }) { Text("Índice extraído") }
+            if (showOutline) Load(current.text("id"), { repository.outline(current.text("id")) }) { outline ->
+                LazyColumn(Modifier.heightIn(max = 220.dp)) {
+                    if (outline.isEmpty()) item { Text("Nenhum índice estruturado exportado para este livro.") }
+                    items(outline) { node -> TextButton(onClick = { pageIndex = node.number("page_start"); showOutline = false }) { Text("${node.text("title")} · p. ${node.number("page_start") + 1}") } }
+                }
+            }
             Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
                 TextButton(enabled = pageIndex > 0, onClick = { pageIndex-- }) { Text("Anterior") }
                 Text("${pageIndex + 1}/${current.number("pages")}", modifier = Modifier.padding(top = 14.dp))
                 TextButton(enabled = pageIndex + 1 < current.number("pages"), onClick = { pageIndex++ }) { Text("Próxima") }
             }
+            var jump by remember(current.text("id")) { mutableStateOf("") }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                OutlinedTextField(jump, { jump = it.filter(Char::isDigit).take(5) }, label = { Text("Página física") }, modifier = Modifier.weight(1f), singleLine = true)
+                TextButton(enabled = (jump.toIntOrNull() ?: 0) in 1..current.number("pages"), onClick = { pageIndex = jump.toInt() - 1; jump = "" }) { Text("Ir") }
+            }
             Load(current.text("id") to pageIndex, { repository.page(current.text("id"), pageIndex) }) { page ->
                 if (page == null) Text("Esta página não tem texto exportado.")
                 else Column(Modifier.verticalScroll(rememberScrollState())) {
                     TextButton(onClick = { selected = page }) { Text("Abrir página e original") }
+                    TranslationBlock(page.text("text"), page.text("language"), personal)
                     SelectionContainer { Text(page.text("text").ifBlank { "Página sem texto extraído. Consulte o PDF original, se incluído." }) }
                 }
             }
         }
     }
-    selected?.let { PageDialog(repository, it) { selected = null } }
+    selected?.let { PageDialog(repository, it, personal) { selected = null } }
 }
 
 @Composable
-fun PageDialog(repository: MobileRepository, page: Row, close: () -> Unit) {
+fun PageDialog(repository: MobileRepository, page: Row, personal: PersonalRepository? = null, startWithPdf: Boolean = false, close: () -> Unit) {
     var index by remember { mutableIntStateOf(page.number("page_index")) }
-    var pdfMode by remember { mutableStateOf(false) }
+    var pdfMode by remember { mutableStateOf(startWithPdf) }
+    var note by remember { mutableStateOf(false) }
     val pdf = remember(page.text("checksum")) { repository.pdf(page.text("checksum")) }
     AlertDialog(onDismissRequest = close, title = { Text("${page.text("source_title")} · p. ${index + 1}") }, confirmButton = { TextButton(onClick = close) { Text("Fechar") } }, text = {
         Column(Modifier.heightIn(max = 600.dp).verticalScroll(rememberScrollState())) {
             if (pdf != null) TextButton(onClick = { pdfMode = !pdfMode }) { Text(if (pdfMode) "Ler texto extraído" else "Ver PDF original") }
             else Text("PDF não incluído neste pacote; o texto e a proveniência permanecem disponíveis.", style = MaterialTheme.typography.labelSmall)
-            if (pdfMode && pdf != null) Load(pdf.absolutePath to index, {
-                ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
-                    PdfRenderer(descriptor).use { renderer ->
-                        require(index in 0 until renderer.pageCount)
-                        renderer.openPage(index).use { original ->
-                            val width = 1000
-                            val height = (width.toLong() * original.height / original.width).toInt().coerceIn(1, 2400)
-                            Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888).also { bitmap ->
-                                bitmap.eraseColor(android.graphics.Color.WHITE)
-                                original.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                            }
-                        }
-                    }
-                }
-            }) { bitmap -> Image(bitmap.asImageBitmap(), "Página ${index + 1} do PDF", Modifier.fillMaxWidth()) }
+            Row {
+                TextButton(enabled = index > 0, onClick = { index-- }) { Text("Anterior") }
+                TextButton(enabled = index + 1 < page.number("document_pages"), onClick = { index++ }) { Text("Próxima") }
+            }
+            if (pdfMode && pdf != null) PdfPagePreview(repository, page + ("page_index" to index.toString()), 440.dp, true)
             else Load(page.text("document_id") to index, { repository.page(page.text("document_id"), index) }) { loaded ->
                 val full = loaded?.text("text").orEmpty()
                 val start = if (index == page.number("page_index")) page.number("start_offset").coerceIn(0, full.length) else 0
                 val end = if (index == page.number("page_index")) page.number("end_offset").coerceIn(start, full.length) else 0
                 val highlight = MaterialTheme.colorScheme.primaryContainer
+                if (personal != null && loaded != null) TranslationBlock(full, loaded.text("language"), personal)
                 SelectionContainer { Text(buildAnnotatedString {
                     append(full.substring(0, start))
                     withStyle(SpanStyle(background = highlight)) { append(full.substring(start, end)) }
@@ -123,8 +159,10 @@ fun PageDialog(repository: MobileRepository, page: Row, close: () -> Unit) {
                 }) }
             }
             Text("Página física do arquivo. O número editorial pode ser diferente.", style = MaterialTheme.typography.labelSmall)
+            if (personal != null) TextButton(onClick = { note = true }) { Text("Criar nota sobre esta página") }
         }
     })
+    if (note && personal != null) NoteEditor(personal, null, page.text("id")) { note = false }
 }
 
 fun traceLabel(kind: String): String = when (kind) {
@@ -133,16 +171,22 @@ fun traceLabel(kind: String): String = when (kind) {
 }
 
 @Composable
-fun TraceScreen(repository: MobileRepository) {
+fun TraceScreen(repository: MobileRepository, personal: PersonalRepository) {
+    var query by rememberSaveable { mutableStateOf("") }
+    var offset by rememberSaveable { mutableIntStateOf(0) }
+    var selected by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Heading("Rastro", "Histórico das ligações incluídas no pacote. Até 100 eventos recentes; cada comentário abre seu histórico específico.")
-        Load("trace", repository::recentTrace) { events -> LazyColumn {
+        Heading("Rastro", "Histórico real das ligações publicadas no pacote, com fonte, evidência e método. Sem novas decisões editoriais no celular.")
+        OutlinedTextField(query, { query = it.take(200); offset = 0 }, label = { Text("Filtrar fonte ou título") }, modifier = Modifier.fillMaxWidth())
+        Load(query to offset, { repository.traceEvents(query, offset) }) { events -> LazyColumn {
             if (events.isEmpty()) item { Text("Nenhum evento exportado neste pacote.") }
             items(events, key = { it.text("id") }) { event ->
                 ListItem(headlineContent = { Text(event.text("title")) }, supportingContent = {
                     Text("${event.text("source_title")}\n${traceLabel(event.text("event_kind"))} · ${event.text("occurred_at")}\n${event.text("rationale")}")
-                })
+                }, modifier = Modifier.clickable { selected = event.text("comment_id") })
             }
+            item { Row { TextButton(enabled = offset > 0, onClick = { offset = (offset - 50).coerceAtLeast(0) }) { Text("Anterior") }; TextButton(enabled = events.size == 50, onClick = { offset += 50 }) { Text("Próximos eventos") } } }
         } }
     }
+    selected?.let { id -> Load(id, { repository.comment(id) }) { comment -> if (comment != null) SourceDialog(repository, personal, comment) { selected = null } } }
 }

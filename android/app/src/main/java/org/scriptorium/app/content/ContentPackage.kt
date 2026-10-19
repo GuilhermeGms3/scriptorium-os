@@ -7,6 +7,9 @@ import java.io.ByteArrayOutputStream
 import java.security.MessageDigest
 import java.util.UUID
 import java.util.zip.ZipInputStream
+import java.io.RandomAccessFile
+import java.nio.channels.OverlappingFileLockException
+import java.nio.file.Files
 
 data class PackageFile(val path: String, val sha256: String, val size: Long)
 data class Edition(val id: String, val title: String, val path: String)
@@ -57,6 +60,7 @@ data class ContentManifest(
         }
 
         fun safePath(path: String): Boolean = path == "content.sqlite3" || path == "knowledge.sqlite3" ||
+            path in setOf("semantic/model.onnx", "semantic/dense.f32", "semantic/vocab.txt", "semantic/config.json", "semantic/index.sqlite3", "semantic/tokenizer.json") ||
             Regex("corpus/[a-z0-9][a-z0-9.-]{0,160}\\.sqlite3").matches(path) ||
             Regex("documents/[a-f0-9]{64}\\.pdf").matches(path)
     }
@@ -90,6 +94,18 @@ class ContentPackageStore(
     @Synchronized
     fun install(input: InputStream, progress: (String) -> Unit = {}): ContentManifest {
         root.mkdirs()
+        return input.use { source -> RandomAccessFile(File(root, "install.lock"), "rw").channel.use { channel ->
+            val lock = try { channel.tryLock() } catch (_: OverlappingFileLockException) { null }
+            check(lock != null) { "Outro processo está instalando o acervo. Aguarde e tente novamente." }
+            lock.use { installLocked(source, progress) }
+        } }
+    }
+
+    private fun installLocked(input: InputStream, progress: (String) -> Unit): ContentManifest {
+        // Only incomplete derived copies are reclaimed, under an interprocess installation lock.
+        root.listFiles()?.filter { it.isDirectory && it.name.matches(Regex("\\.install-[a-f0-9-]{36}")) }?.forEach {
+            check(it.deleteRecursively()) { "Não foi possível remover uma instalação incompleta anterior." }
+        }
         val staging = File(root, ".install-${UUID.randomUUID()}")
         check(staging.mkdir()) { "Não foi possível preparar a instalação." }
         try {
@@ -110,11 +126,16 @@ class ContentPackageStore(
                 val parsed = ContentManifest.parse(bytes.toString(Charsets.UTF_8))
                 manifest = parsed
                 val previous = current()
-                if (previous?.second?.id == parsed.id) return parsed
+                val oldFiles = previous?.second?.files?.associateBy { it.path }.orEmpty()
+                val reused = mutableSetOf<String>()
+                if (previous?.second?.id == parsed.id) {
+                    require(previous.second.files == parsed.files && previous.second.editions == parsed.editions && previous.second.bookLabels == parsed.bookLabels && previous.second.baseId == parsed.baseId) { "O mesmo identificador foi usado para manifestos diferentes." }
+                    return parsed
+                }
                 require(parsed.baseId == null || parsed.baseId == previous?.second?.id) {
                     "Este patch exige outra versão. Importe o pacote completo ou o patch anterior."
                 }
-                require(root.usableSpace > parsed.files.sumOf { it.size } + 64 * 1024 * 1024L) {
+                require(root.usableSpace > parsed.files.filter { oldFiles[it.path] != it }.sumOf { it.size } + 64 * 1024 * 1024L) {
                     "Espaço insuficiente para instalar sem apagar o acervo atual."
                 }
                 val expected = parsed.files.associateBy { it.path }
@@ -122,9 +143,27 @@ class ContentPackageStore(
                     val entry = zip.nextEntry ?: break
                     val info = expected[entry.name] ?: error("Arquivo inesperado no pacote.")
                     require(!entry.isDirectory && received.add(entry.name)) { "Entrada duplicada ou inválida." }
-                    progress("Conferindo ${entry.name}")
+                    val label = when {
+                        entry.name.startsWith("documents/") -> "PDF original"
+                        entry.name.startsWith("semantic/") -> "busca por sentido"
+                        entry.name.startsWith("corpus/") -> "edição de leitura"
+                        entry.name == "content.sqlite3" -> "textos, comentários e estudos"
+                        else -> "conhecimento e fontes"
+                    }
+                    progress("Instalando ${received.size}/${parsed.files.size} · $label")
                     val file = File(staging, info.path)
                     file.parentFile?.mkdirs()
+                    if (previous != null && oldFiles[info.path] == info) {
+                        // Consume and authenticate the incoming entry even when reusing installed bytes.
+                        val digest = MessageDigest.getInstance("SHA-256")
+                        val buffer = ByteArray(1024 * 1024)
+                        var total = 0L
+                        while (true) { val n = zip.read(buffer); if (n < 0) break; total += n; require(total <= info.size); digest.update(buffer, 0, n) }
+                        require(total == info.size && digest.digest().joinToString("") { "%02x".format(it) } == info.sha256) { "Arquivo recebido diverge do manifesto." }
+                        reuseImmutable(File(previous.first, info.path), file)
+                        reused.add(info.path)
+                        continue
+                    }
                     file.outputStream().use { output ->
                         val buffer = ByteArray(1024 * 1024)
                         var total = 0L
@@ -138,17 +177,20 @@ class ContentPackageStore(
                         output.fd.sync()
                     }
                 }
-                parsed.files.forEach { info ->
+                parsed.files.forEachIndexed { index, info ->
+                    progress("Verificando integridade ${index + 1}/${parsed.files.size}")
                     val file = File(staging, info.path)
                     if (!file.exists()) {
                         require(parsed.baseId != null && previous != null) { "Arquivo ausente no pacote completo." }
                         val old = previous.second.files.find { it.path == info.path }
                         require(old?.sha256 == info.sha256 && old.size == info.size) { "Arquivo ausente no patch." }
                         file.parentFile?.mkdirs()
-                        File(previous.first, info.path).copyTo(file)
+                        reuseImmutable(File(previous.first, info.path), file)
+                        reused.add(info.path)
                     }
                     require(file.length() == info.size && sha256(file) == info.sha256) { "Checksum divergente: ${info.path}" }
-                    if (info.path.endsWith(".sqlite3")) validateDatabase(file)
+                    // Matching SHA proves byte identity with a previously validated immutable database.
+                    if (info.path.endsWith(".sqlite3") && info.path !in reused) validateDatabase(file)
                 }
                 File(staging, "manifest.json").outputStream().use {
                     it.write(parsed.raw.toByteArray(Charsets.UTF_8)); it.fd.sync()
@@ -166,5 +208,13 @@ class ContentPackageStore(
         } finally {
             staging.deleteRecursively()
         }
+    }
+
+    private fun reuseImmutable(source: File, destination: File) {
+        try { Files.createLink(destination.toPath(), source.toPath()) }
+        catch (_: java.io.IOException) {
+            require(root.usableSpace > source.length() + 64 * 1024 * 1024L) { "Espaço insuficiente para copiar um arquivo inalterado neste sistema de arquivos." }
+            source.copyTo(destination)
+        } catch (_: UnsupportedOperationException) { source.copyTo(destination) }
     }
 }

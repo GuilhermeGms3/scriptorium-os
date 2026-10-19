@@ -4,6 +4,7 @@ import org.scriptorium.app.content.ContentPackageStore
 import org.scriptorium.app.content.Edition
 import java.io.File
 import org.json.JSONObject
+import org.json.JSONArray
 
 data class Passage(val edition: Edition, val workId: String, val bookId: String, val title: String, val chapter: Int, val scheme: String)
 data class SearchHit(val title: String, val text: String, val passage: Passage? = null, val page: Row? = null)
@@ -41,6 +42,9 @@ class MobileRepository(private val store: ContentPackageStore) {
         return Sqlite.open(File(current.first, edition.path)).use(block)
     }
     fun editions(): List<Edition> = store.current()?.second?.editions.orEmpty()
+    fun scriptureEditions(): List<Edition> = editions().filter { edition -> corpus(edition) {
+        it.rows("SELECT 1 FROM text_addresses a JOIN text_units t ON t.id=a.text_unit_id WHERE t.edition_id=? AND a.chapter IS NOT NULL LIMIT 1", listOf(edition.id)).isNotEmpty()
+    } }
     fun books(edition: Edition): List<Row> {
         val labels = store.current()?.second?.bookLabels.orEmpty()
         return corpus(edition) {
@@ -48,11 +52,11 @@ class MobileRepository(private val store: ContentPackageStore) {
         }.map { row -> row + ("title" to (labels[row.text("book_id")] ?: row.text("title"))) }
     }
     fun verses(passage: Passage): List<Row> = corpus(passage.edition) {
-        it.rows("SELECT t.id,t.surface_text,a.verse_start,a.display_address FROM text_units t JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND t.work_id=? AND a.book_id=? AND a.chapter=? AND a.versification_scheme_id=? ORDER BY t.sequence",
+        it.rows("SELECT t.id,t.surface_text,a.verse_start,a.verse_end,a.display_address FROM text_units t JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND t.work_id=? AND a.book_id=? AND a.chapter=? AND a.versification_scheme_id=? ORDER BY t.sequence",
             listOf(passage.edition.id, passage.workId, passage.bookId, passage.chapter.toString(), passage.scheme))
     }
     fun comments(passage: Passage): List<Row> = content {
-        it.rows("""SELECT DISTINCT c.*,d.title source_title FROM comments c JOIN targets t ON t.comment_id=c.id
+        it.rows("""SELECT DISTINCT c.*,d.title source_title,d.language source_language FROM comments c JOIN targets t ON t.comment_id=c.id
             JOIN documents d ON d.id=c.document_id WHERE t.work_id=? AND t.scheme_id=? AND t.book_id=?
             AND (t.chapter IS NULL OR t.chapter=?) ORDER BY c.id""".trimIndent(),
             listOf(passage.workId, passage.scheme, passage.bookId, passage.chapter.toString()))
@@ -63,7 +67,7 @@ class MobileRepository(private val store: ContentPackageStore) {
             listOf(passage.workId, passage.scheme, passage.bookId, passage.chapter.toString())).groupBy { row -> row.text("comment_id") }
     }
     fun evidence(commentId: String): List<Row> = content {
-        it.rows("SELECT p.*,s.start_offset,s.end_offset,s.ordinal,d.title source_title,d.checksum FROM spans s JOIN pages p ON p.id=s.page_id JOIN documents d ON d.id=p.document_id WHERE s.comment_id=? ORDER BY s.ordinal", listOf(commentId))
+        it.rows("SELECT p.*,s.start_offset,s.end_offset,s.ordinal,d.title source_title,d.checksum,d.language,d.pages document_pages FROM spans s JOIN pages p ON p.id=s.page_id JOIN documents d ON d.id=p.document_id WHERE s.comment_id=? ORDER BY s.ordinal", listOf(commentId))
     }
     fun trace(commentId: String): List<Row> = content {
         it.rows("SELECT * FROM trace WHERE comment_id=? ORDER BY occurred_at,id LIMIT 200", listOf(commentId))
@@ -73,7 +77,7 @@ class MobileRepository(private val store: ContentPackageStore) {
     }
     fun documents(): List<Row> = content { it.rows("SELECT * FROM documents ORDER BY title COLLATE NOCASE") }
     fun page(documentId: String, index: Int): Row? = content {
-        it.rows("SELECT p.*,d.title source_title,d.checksum FROM pages p JOIN documents d ON d.id=p.document_id WHERE p.document_id=? AND p.page_index=?", listOf(documentId, index.toString())).firstOrNull()
+        it.rows("SELECT p.*,d.title source_title,d.checksum,d.language,d.pages document_pages FROM pages p JOIN documents d ON d.id=p.document_id WHERE p.document_id=? AND p.page_index=?", listOf(documentId, index.toString())).firstOrNull()
     }
     fun tokens(edition: Edition, unitId: String): List<Row> = corpus(edition) {
         it.rows("SELECT id,surface_form,lemma_id,lemma_text,morphology,strongs,transliteration,language FROM tokens WHERE text_unit_id=? ORDER BY position", listOf(unitId))
@@ -110,4 +114,111 @@ class MobileRepository(private val store: ContentPackageStore) {
         require(Regex("[a-f0-9]{64}").matches(checksum))
         return store.current()?.first?.let { File(it, "documents/$checksum.pdf").takeIf(File::exists) }
     }
+
+    fun personalSeed(): String? = content { db ->
+        if (db.rows("SELECT 1 FROM sqlite_master WHERE name='personal_seed'").isEmpty()) null
+        else db.rows("SELECT payload_json FROM personal_seed WHERE id='desktop-personal-v1'").firstOrNull()?.get("payload_json")
+    }
+    fun catalog(kind: String): List<Row> = content { it.rows("SELECT id,kind,title FROM reading_catalog WHERE kind=? ORDER BY title", listOf(kind)) }
+    fun catalogItem(id: String): JSONObject? = content { it.rows("SELECT payload_json FROM reading_catalog WHERE id=?", listOf(id)).firstOrNull()?.get("payload_json")?.let(::JSONObject) }
+    fun outline(documentId: String): List<Row> = content { it.rows("SELECT * FROM document_outline WHERE document_id=? ORDER BY ordinal", listOf(documentId)) }
+    fun bibliography(): List<Row> = content { it.rows("SELECT * FROM bibliography ORDER BY title") }
+    fun preparedTranslation(sourceId: String, text: String): Row? = content { db ->
+        if (db.rows("SELECT 1 FROM sqlite_master WHERE name='prepared_translations'").isEmpty()) null
+        else {
+            val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(text.toByteArray()).joinToString("") { "%02x".format(it) }
+            db.rows("SELECT * FROM prepared_translations WHERE source_id=? AND source_checksum=? AND language IN ('pt','pt-BR') LIMIT 1", listOf(sourceId, checksum)).singleOrNull()
+        }
+    }
+    fun editionMetadata(edition: Edition): Row = corpus(edition) { it.rows("SELECT * FROM corpus_editions WHERE id=?", listOf(edition.id)).single() }
+    fun primaryWorks(): List<Row> = editions().flatMap { edition -> corpus(edition) { db ->
+        db.rows("SELECT w.id,w.title,count(t.id) unit_count,max(a.chapter) chapters FROM works w JOIN text_units t ON t.work_id=w.id LEFT JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? GROUP BY w.id ORDER BY w.sequence", listOf(edition.id))
+            .map { row -> row + mapOf("edition_id" to edition.id, "edition_title" to edition.title, "edition_path" to edition.path) }
+    } }
+    fun primaryUnits(edition: Edition, workId: String, offset: Int = 0): List<Row> = corpus(edition) {
+        it.rows("SELECT t.*,coalesce((SELECT display_address FROM text_addresses a WHERE a.text_unit_id=t.id ORDER BY a.id LIMIT 1),'') display_address FROM text_units t WHERE t.work_id=? AND t.edition_id=? ORDER BY t.sequence LIMIT 80 OFFSET ?", listOf(workId, edition.id, offset.coerceAtLeast(0).toString()))
+    }
+    fun originalEditions(passage: Passage): List<Edition> = editions().filter { edition -> corpus(edition) {
+        it.rows("SELECT e.id FROM corpus_editions e WHERE e.id=? AND e.language IN ('grc','he','hbo','arc') AND EXISTS(SELECT 1 FROM text_units t WHERE t.edition_id=e.id AND t.work_id=?)", listOf(edition.id, passage.workId)).isNotEmpty()
+    } }
+    fun parallel(passage: Passage): List<Pair<Edition, List<Row>>> = editions().mapNotNull { edition ->
+        val rows = verses(passage.copy(edition = edition))
+        if (rows.isEmpty()) null else edition to rows
+    }
+    fun lexicalEntries(edition: Edition, token: Row): List<Row> = corpus(edition) { db ->
+        val references = buildSet {
+            add(token.text("lemma_id")); add(token.text("strongs"))
+            Regex("[GH]?\\d+[a-z]?").findAll(token.text("lemma_id") + " " + token.text("strongs")).forEach { match ->
+                add(match.value)
+                add((if (token.text("language") in listOf("hbo", "he", "arc")) "H" else "G") + match.value.trimStart('H', 'G'))
+            }
+        }.filter(String::isNotBlank).take(20)
+        val keys = references.joinToString(",") { "?" }
+        if (references.isEmpty()) emptyList() else db.rows("SELECT DISTINCT l.*,s.title source_title FROM lexemes l JOIN sources s ON s.id=l.source_id LEFT JOIN lexical_references r ON r.lexeme_id=l.id WHERE l.lemma=? OR l.id=? OR l.strongs IN ($keys) OR r.reference_value IN ($keys) LIMIT 30", listOf(token.text("lemma_text"), token.text("lemma_id")) + references + references)
+    }
+    fun lexicalSenses(edition: Edition, lexeme: String): List<Row> = corpus(edition) { it.rows("SELECT * FROM lexical_senses WHERE lexeme_id=? ORDER BY ordinal", listOf(lexeme)) }
+    fun occurrences(edition: Edition, token: Row): List<Row> = corpus(edition) {
+        val (condition, args) = lexicalPredicate(token)
+        it.rows("SELECT t.surface_form,t.text_unit_id,u.work_id,a.book_id,a.chapter,a.verse_start,a.versification_scheme_id,a.display_address FROM tokens t JOIN text_units u ON u.id=t.text_unit_id JOIN text_addresses a ON a.text_unit_id=u.id WHERE $condition AND a.versification_scheme_id=? ORDER BY u.work_id,u.sequence,t.position LIMIT 200", args + "scriptorium-bcv-1")
+    }
+    fun lexicalStatistics(edition: Edition, token: Row): Pair<List<Row>, List<Row>> = corpus(edition) {
+        val (condition, args) = lexicalPredicate(token)
+        val distribution = it.rows("SELECT w.title,count(*) count FROM tokens t JOIN text_units u ON u.id=t.text_unit_id JOIN works w ON w.id=u.work_id WHERE $condition GROUP BY w.id ORDER BY count DESC", args)
+        val neighbors = it.rows("SELECT n.surface_form,n.lemma_text,count(*) count FROM tokens t JOIN tokens n ON n.text_unit_id=t.text_unit_id AND n.position IN (t.position-1,t.position+1) WHERE $condition GROUP BY n.surface_form,n.lemma_text ORDER BY count DESC LIMIT 30", args)
+        distribution to neighbors
+    }
+    private fun lexicalPredicate(token: Row): Pair<String, List<String>> = when {
+        token.text("lemma_id").isNotBlank() -> "t.lemma_id=?" to listOf(token.text("lemma_id"))
+        token.text("strongs").isNotBlank() -> "t.strongs=?" to listOf(token.text("strongs"))
+        else -> "0=1" to emptyList()
+    }
+    fun publicClaims(): List<Row> = knowledge { it.rows("SELECT * FROM claims ORDER BY claim_type,id") }
+    fun arguments(claimId: String): List<Row> = knowledge { it.rows("SELECT a.*,c.proposition conclusion FROM arguments a JOIN claims c ON c.id=a.conclusion_claim_id WHERE a.conclusion_claim_id=? OR a.id IN (SELECT argument_id FROM argument_premises WHERE claim_id=?)", listOf(claimId, claimId)) }
+    fun argumentDetail(id: String): Pair<List<Row>, List<Row>> = knowledge { db ->
+        db.rows("SELECT c.* FROM argument_premises p JOIN claims c ON c.id=p.claim_id WHERE p.argument_id=? ORDER BY p.ordinal", listOf(id)) to
+            db.rows("SELECT * FROM argument_relations WHERE from_id=? OR to_id=?", listOf(id, id))
+    }
+    fun privateRecords(kind: String): List<Row> = content { it.rows("SELECT r.*,d.title source_title FROM private_records r JOIN documents d ON d.id=r.document_id WHERE kind=? ORDER BY id LIMIT 200", listOf(kind)) }
+    private fun <T> knowledge(block: (androidx.sqlite.SQLiteConnection) -> T): T {
+        val root = store.current()?.first ?: error("Acervo não instalado.")
+        return Sqlite.open(File(root, "knowledge.sqlite3")).use(block)
+    }
+    fun marksForSource(commentId: String): List<Row> = trace(commentId)
+    fun visuals(passage: Passage): List<Row> = comments(passage).filter { row -> JSONObject(row.text("payload_json")).optJSONObject("contextualAnalysis")?.optJSONObject("sourceVisual") != null }
+
+    fun semanticSearch(query: String, edition: Edition): List<SearchHit> {
+        val root = store.current()?.first ?: error("Acervo não instalado.")
+        val directory = File(root, "semantic")
+        require(File(directory, "config.json").exists()) { "Este pacote não contém o modelo e o índice por sentido. Gere-os no PC e instale o patch." }
+        val hits = OnDeviceSemantic.search(directory, query, edition.id)
+        return corpus(edition) { db -> hits.mapNotNull { hit ->
+            val row = db.rows("SELECT t.surface_text,w.title FROM text_units t JOIN works w ON w.id=t.work_id WHERE t.id=? AND t.edition_id=?", listOf(hit.unitId, edition.id)).singleOrNull() ?: return@mapNotNull null
+            val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(row.text("surface_text").toByteArray()).joinToString("") { "%02x".format(it) }
+            require(checksum == hit.textChecksum) { "Índice semântico desatualizado para esta edição. Instale um pacote coerente." }
+            SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme))
+        } }
+    }
+
+    fun resolveReference(value: String, edition: Edition): Passage? {
+        val match = Regex("^(.+?)\\s+(\\d{1,3})(?::(\\d{1,3})(?:-\\d{1,3})?)?$").matchEntire(value.trim()) ?: return null
+        fun normalized(text: String) = java.text.Normalizer.normalize(text.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").replace(" ", "")
+        val requested = normalized(match.groupValues[1])
+        val book = books(edition).find { row -> requested in listOf(normalized(row.text("book_id")), normalized(row.text("title"))) } ?: return null
+        val chapter = match.groupValues[2].toInt()
+        if (chapter !in 1..book.number("chapters")) return null
+        return Passage(edition, book.text("id"), book.text("book_id"), book.text("title"), chapter, book.text("scheme"))
+    }
+
+    fun tracePayload(id: String): String? = content { db ->
+        if (db.rows("SELECT 1 FROM sqlite_master WHERE name='trace_payloads'").isEmpty()) null
+        else db.rows("SELECT payload_json FROM trace_payloads WHERE id=?", listOf(id)).firstOrNull()?.get("payload_json")
+    }
+    fun traceEvents(query: String, offset: Int): List<Row> = content { db ->
+        require(offset >= 0 && query.length <= 200)
+        db.rows("SELECT t.*,c.title,c.rationale,d.title source_title FROM trace t JOIN comments c ON c.id=t.comment_id JOIN documents d ON d.id=c.document_id WHERE (?='' OR instr(lower(d.title||' '||c.title),lower(?))>0) ORDER BY t.occurred_at DESC,t.id LIMIT 50 OFFSET ?", listOf(query, query, offset.toString()))
+    }
+    fun comment(id: String): Row? = content { it.rows("SELECT c.*,d.title source_title,d.language source_language FROM comments c JOIN documents d ON d.id=c.document_id WHERE c.id=?", listOf(id)).singleOrNull() }
 }
+
+fun JSONObject.objects(key: String): List<JSONObject> = optJSONArray(key)?.let { array -> (0 until array.length()).map(array::getJSONObject) }.orEmpty()
+fun JSONObject.strings(key: String): List<String> = optJSONArray(key)?.let { array -> (0 until array.length()).map(array::getString) }.orEmpty()

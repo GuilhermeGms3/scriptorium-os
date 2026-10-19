@@ -97,6 +97,16 @@ it("exports only publishable contextual comments, preserving source IDs, scheme,
       ],
     ).toBe("DEMO:page");
     expect(output.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+    expect(output.prepare("PRAGMA user_version").get()?.["user_version"]).toBe(2);
+    expect(
+      output.prepare("SELECT count(*) n FROM reading_catalog WHERE kind='guide'").get()?.["n"],
+    ).toBe(16);
+    expect(
+      output.prepare("SELECT count(*) n FROM reading_catalog WHERE kind='lesson'").get()?.["n"],
+    ).toBe(111);
+    expect(
+      output.prepare("SELECT count(*) n FROM reading_catalog WHERE kind='course'").get()?.["n"],
+    ).toBe(1);
     expect(source.prepare("SELECT count(*) n FROM knowledge_proposals").get()?.["n"]).toBe(6);
   } finally {
     source.close();

@@ -17,6 +17,7 @@ import { Zip, ZipDeflate } from "fflate";
 import { z } from "zod";
 import { KnowledgeProposalPayloadSchema } from "../../src/lib/domain/document-knowledge";
 import { bookLabel } from "../../src/lib/i18n";
+import { projectReadingExtras, writeReadingCatalog } from "./reading-catalog";
 
 export const MobileManifestSchema = z.object({
   format: z.literal("scriptorium-mobile-v1"),
@@ -171,6 +172,7 @@ export function projectWorkspace(
     }
     if (output.prepare("PRAGMA foreign_key_check").get())
       throw new Error("Projeção contém referências órfãs.");
+    projectReadingExtras(source, output);
     output.exec("COMMIT");
     source.exec("COMMIT");
     return counts;
@@ -229,6 +231,7 @@ export function exportMobile(options: {
   workspace?: string;
   editions: string[];
   includePdfs?: boolean;
+  semanticDirectory?: string;
   base?: string;
 }): Manifest {
   const root = resolve(options.root);
@@ -245,7 +248,10 @@ export function exportMobile(options: {
         readFileSync(join(root, "public/corpus-packages/registry.json"), "utf8"),
       ) as unknown,
     );
-  const editions = options.editions.map((id) => {
+  const selected = options.editions.includes("all")
+    ? registry.packages.map((edition) => edition.editionId)
+    : options.editions;
+  const editions = selected.map((id) => {
     const edition = registry.packages.find((item) => item.editionId === id);
     if (!edition || !/^[a-z0-9][a-z0-9.-]{0,160}$/.test(id))
       throw new Error(`Edição indisponível: ${id}`);
@@ -275,11 +281,45 @@ export function exportMobile(options: {
       } finally {
         source.close();
       }
-    } else content.exec(mobileSchema);
+    } else {
+      content.exec(mobileSchema);
+      writeReadingCatalog(content);
+    }
   } finally {
     content.close();
   }
   files.set("content.sqlite3", contentPath);
+  if (options.semanticDirectory) {
+    const semantic = resolve(options.semanticDirectory);
+    const config = z
+      .object({
+        recipe: z.literal("distiluse-onnx-dense-tanh-l2-96-v2"),
+        sha256: z.string().regex(/^[a-f0-9]{64}$/),
+        vocabSha256: z.string().regex(/^[a-f0-9]{64}$/),
+        tokenizerSha256: z.string().regex(/^[a-f0-9]{64}$/),
+        denseSha256: z.string().regex(/^[a-f0-9]{64}$/),
+      })
+      .passthrough()
+      .parse(JSON.parse(readFileSync(join(semantic, "config.json"), "utf8")) as unknown);
+    for (const [name, checksum] of [
+      ["model.onnx", config.sha256],
+      ["vocab.txt", config.vocabSha256],
+      ["tokenizer.json", config.tokenizerSha256],
+      ["dense.f32", config.denseSha256],
+    ] as const) {
+      if (fileHash(join(semantic, name)) !== checksum)
+        throw new Error(`Artefato semântico divergente: ${name}`);
+    }
+    for (const name of [
+      "model.onnx",
+      "dense.f32",
+      "vocab.txt",
+      "config.json",
+      "tokenizer.json",
+      "index.sqlite3",
+    ])
+      files.set(`semantic/${name}`, join(semantic, name));
+  }
   const knowledge = join(root, "public/knowledge/knowledge.sqlite3");
   if (existsSync(knowledge)) files.set("knowledge.sqlite3", knowledge);
   const entries = [...files]
@@ -289,9 +329,7 @@ export function exportMobile(options: {
     ? MobileManifestSchema.parse(JSON.parse(readFileSync(options.base, "utf8")) as unknown)
     : undefined;
   const bookLabels: Record<string, string> = {};
-  for (const edition of registry.packages.filter((item) =>
-    options.editions.includes(item.editionId),
-  )) {
+  for (const edition of registry.packages.filter((item) => selected.includes(item.editionId))) {
     const works = z.array(z.string()).parse(edition["works"]);
     for (const work of works) {
       const id = work.replace(/^work:/, "");
@@ -345,10 +383,14 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
   exportMobile({
     root: resolve(import.meta.dirname, "../.."),
     output,
-    editions: (value("--editions") ?? "biblia-livre-n4-2025.1.0").split(","),
+    editions: (args.includes("--complete")
+      ? "all"
+      : (value("--editions") ?? "biblia-livre-n4-2025.1.0")
+    ).split(","),
     ...(value("--workspace") ? { workspace: value("--workspace")! } : {}),
     ...(value("--base") ? { base: value("--base")! } : {}),
-    includePdfs: args.includes("--include-pdfs"),
+    includePdfs: args.includes("--complete") || args.includes("--include-pdfs"),
+    ...(value("--semantic") ? { semanticDirectory: value("--semantic")! } : {}),
   });
   console.log(
     "Pacote privado gerado. Transfira acervo.scriptorium para o Android; não publique este arquivo.",

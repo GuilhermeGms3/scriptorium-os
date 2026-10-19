@@ -25,14 +25,33 @@ class AppModel(application: Application) : AndroidViewModel(application) {
             catch (failure: Exception) { pointer.failWrite(output); throw failure }
         }, validateDatabase = Sqlite::validate)
     val repository = MobileRepository(store)
-    val personal = PersonalRepository(File(application.filesDir, "personal.sqlite3"))
-    private val mutable = MutableStateFlow(AppState())
+    val personal by lazy { PersonalRepository(File(application.filesDir, "personal.sqlite3")) }
+    private val mutable = MutableStateFlow(AppState(busy = true))
     val state = mutable.asStateFlow()
-    init { viewModelScope.launch { refresh() } }
+    init {
+        viewModelScope.launch {
+            try {
+                withContext(Dispatchers.IO) { personal }
+                val incoming = withContext(Dispatchers.IO) {
+                    File(application.filesDir, "incoming").listFiles()?.filter { it.isFile && it.name.matches(Regex("[a-f0-9]{64}\\.scriptorium")) }?.sortedBy(File::lastModified)?.take(10).orEmpty()
+                }
+                for (delivery in incoming) {
+                    mutable.value = mutable.value.copy(busy = true, message = "Preparando o acervo entregue com o aplicativo…")
+                    withContext(Dispatchers.IO) {
+                        store.install(delivery.inputStream()) { step -> mutable.value = mutable.value.copy(message = step) }
+                        delivery.delete() // Transfer cache only; original package remains on the PC.
+                    }
+                }
+                withContext(Dispatchers.IO) { if (store.current() != null) repository.personalSeed()?.let(personal::importDesktopSeed) }
+            } catch (failure: Exception) {
+                mutable.value = mutable.value.copy(message = failure.message ?: "Não foi possível preparar o acervo incluído.")
+            } finally { refresh() }
+        }
+    }
     private suspend fun refresh() {
-        try { val installed = withContext(Dispatchers.IO) { store.current() != null }
+        try { val installed = withContext(Dispatchers.IO) { personal; store.current() != null }
             mutable.value = mutable.value.copy(ready = installed, busy = false, revision = mutable.value.revision + 1)
-        } catch (_: Exception) { mutable.value = mutable.value.copy(ready = false, busy = false, message = "Acervo indisponível. Reimporte um pacote íntegro.") }
+        } catch (failure: Exception) { mutable.value = mutable.value.copy(ready = false, busy = false, message = "Armazenamento indisponível. ${failure.message.orEmpty()} Seus dados não foram apagados.") }
     }
     fun import(uri: Uri) {
         if (mutable.value.busy) return
@@ -42,6 +61,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
                 withContext(Dispatchers.IO) {
                     val input = getApplication<Application>().contentResolver.openInputStream(uri) ?: error("Não foi possível abrir o arquivo.")
                     store.install(input) { step -> mutable.value = mutable.value.copy(message = step) }
+                    repository.personalSeed()?.let(personal::importDesktopSeed)
                 }
                 mutable.value = mutable.value.copy(message = "Acervo instalado. Suas notas foram preservadas.")
             } catch (failure: Exception) {
