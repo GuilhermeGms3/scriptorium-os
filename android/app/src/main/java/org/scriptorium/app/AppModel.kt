@@ -31,7 +31,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
     init {
         viewModelScope.launch {
             try {
-                withContext(Dispatchers.IO) { personal }
+                withContext(Dispatchers.IO) { personal; store.maintain() }
                 val incoming = withContext(Dispatchers.IO) {
                     File(application.filesDir, "incoming").listFiles()?.filter { it.isFile && it.name.matches(Regex("[a-f0-9]{64}\\.scriptorium")) }?.sortedBy(File::lastModified)?.take(10).orEmpty()
                 }
@@ -43,6 +43,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
                     }
                 }
                 withContext(Dispatchers.IO) { if (store.current() != null) repository.personalSeed()?.let(personal::importDesktopSeed) }
+                mutable.value = mutable.value.copy(message = store.storageNotice ?: if (incoming.isNotEmpty()) "Acervo instalado. Suas notas foram preservadas." else null)
             } catch (failure: Exception) {
                 mutable.value = mutable.value.copy(message = failure.message ?: "Não foi possível preparar o acervo incluído.")
             } finally { refresh() }
@@ -63,7 +64,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
                     store.install(input) { step -> mutable.value = mutable.value.copy(message = step) }
                     repository.personalSeed()?.let(personal::importDesktopSeed)
                 }
-                mutable.value = mutable.value.copy(message = "Acervo instalado. Suas notas foram preservadas.")
+                mutable.value = mutable.value.copy(message = store.storageNotice ?: "Acervo instalado. Suas notas foram preservadas.")
             } catch (failure: Exception) {
                 mutable.value = mutable.value.copy(message = failure.message ?: "Falha ao instalar. O acervo anterior permanece ativo.")
             } finally { refresh() }

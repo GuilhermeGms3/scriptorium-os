@@ -33,20 +33,24 @@ class MobileRepository(private val store: ContentPackageStore) {
         SELECT 1 FROM text_addresses x WHERE x.text_unit_id=t.id AND x.versification_scheme_id='scriptorium-bcv-1'
         ) THEN 'scriptorium-bcv-1' ELSE t.versification_scheme_id END""".trimIndent()
     private fun <T> content(block: (androidx.sqlite.SQLiteConnection) -> T): T {
-        val root = store.current()?.first ?: error("Importe um pacote de acervo para começar.")
-        return Sqlite.open(File(root, "content.sqlite3")).use(block)
+        return store.readCurrent { current ->
+            val installed = current ?: error("Importe um pacote de acervo para começar.")
+            Sqlite.open(installed.file("content.sqlite3")).use(block)
+        }
     }
     private fun <T> corpus(edition: Edition, block: (androidx.sqlite.SQLiteConnection) -> T): T {
-        val current = store.current() ?: error("Acervo não instalado.")
-        require(current.second.editions.any { it == edition }) { "Edição não instalada." }
-        return Sqlite.open(File(current.first, edition.path)).use(block)
+        return store.readCurrent { snapshot ->
+            val current = snapshot ?: error("Acervo não instalado.")
+            require(current.manifest.editions.any { it == edition }) { "Edição não instalada." }
+            Sqlite.open(current.file(edition.path)).use(block)
+        }
     }
-    fun editions(): List<Edition> = store.current()?.second?.editions.orEmpty()
+    fun editions(): List<Edition> = store.current()?.manifest?.editions.orEmpty()
     fun scriptureEditions(): List<Edition> = editions().filter { edition -> corpus(edition) {
         it.rows("SELECT 1 FROM text_addresses a JOIN text_units t ON t.id=a.text_unit_id WHERE t.edition_id=? AND a.chapter IS NOT NULL LIMIT 1", listOf(edition.id)).isNotEmpty()
     } }
     fun books(edition: Edition): List<Row> {
-        val labels = store.current()?.second?.bookLabels.orEmpty()
+        val labels = store.current()?.manifest?.bookLabels.orEmpty()
         return corpus(edition) {
         it.rows("SELECT w.id,w.title,min(a.book_id) book_id,max(a.chapter) chapters,a.versification_scheme_id scheme FROM works w JOIN text_units t ON t.work_id=w.id JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND $preferredAddress GROUP BY w.id,a.versification_scheme_id ORDER BY w.sequence", listOf(edition.id))
         }.map { row -> row + ("title" to (labels[row.text("book_id")] ?: row.text("title"))) }
@@ -99,20 +103,22 @@ class MobileRepository(private val store: ContentPackageStore) {
         return scripture + pages
     }
     fun ontology(): List<Row> {
-        val root = store.current()?.first ?: return emptyList()
-        val file = File(root, "knowledge.sqlite3")
-        if (!file.exists()) return emptyList()
-        return Sqlite.open(file).use { it.rows("SELECT * FROM ontology_entities ORDER BY ontology_kind,canonical_name") }
+        return store.readCurrent { current ->
+            val file = current?.files?.get("knowledge.sqlite3")
+            if (file == null) emptyList() else Sqlite.open(file).use { it.rows("SELECT * FROM ontology_entities ORDER BY ontology_kind,canonical_name") }
+        }
     }
     fun ontologyRelations(id: String): List<Row> {
-        val root = store.current()?.first ?: return emptyList()
-        return Sqlite.open(File(root, "knowledge.sqlite3")).use {
-            it.rows("SELECT r.*,a.canonical_name from_title,b.canonical_name to_title FROM ontology_relations r JOIN ontology_entities a ON a.id=r.from_entity_id JOIN ontology_entities b ON b.id=r.to_entity_id WHERE r.from_entity_id=? OR r.to_entity_id=?", listOf(id, id))
+        return store.readCurrent { current ->
+            val file = current?.files?.get("knowledge.sqlite3")
+            if (file == null) emptyList() else Sqlite.open(file).use {
+                it.rows("SELECT r.*,a.canonical_name from_title,b.canonical_name to_title FROM ontology_relations r JOIN ontology_entities a ON a.id=r.from_entity_id JOIN ontology_entities b ON b.id=r.to_entity_id WHERE r.from_entity_id=? OR r.to_entity_id=?", listOf(id, id))
+            }
         }
     }
     fun pdf(checksum: String): File? {
         require(Regex("[a-f0-9]{64}").matches(checksum))
-        return store.current()?.first?.let { File(it, "documents/$checksum.pdf").takeIf(File::exists) }
+        return store.current()?.files?.get("documents/$checksum.pdf")?.takeIf(File::exists)
     }
 
     fun personalSeed(): String? = content { db ->
@@ -180,23 +186,23 @@ class MobileRepository(private val store: ContentPackageStore) {
     }
     fun privateRecords(kind: String): List<Row> = content { it.rows("SELECT r.*,d.title source_title FROM private_records r JOIN documents d ON d.id=r.document_id WHERE kind=? ORDER BY id LIMIT 200", listOf(kind)) }
     private fun <T> knowledge(block: (androidx.sqlite.SQLiteConnection) -> T): T {
-        val root = store.current()?.first ?: error("Acervo não instalado.")
-        return Sqlite.open(File(root, "knowledge.sqlite3")).use(block)
+        return store.readCurrent { current -> Sqlite.open(requireNotNull(current) { "Acervo não instalado." }.file("knowledge.sqlite3")).use(block) }
     }
     fun marksForSource(commentId: String): List<Row> = trace(commentId)
     fun visuals(passage: Passage): List<Row> = comments(passage).filter { row -> JSONObject(row.text("payload_json")).optJSONObject("contextualAnalysis")?.optJSONObject("sourceVisual") != null }
 
     fun semanticSearch(query: String, edition: Edition): List<SearchHit> {
-        val root = store.current()?.first ?: error("Acervo não instalado.")
-        val directory = File(root, "semantic")
-        require(File(directory, "config.json").exists()) { "Este pacote não contém o modelo e o índice por sentido. Gere-os no PC e instale o patch." }
-        val hits = OnDeviceSemantic.search(directory, query, edition.id)
-        return corpus(edition) { db -> hits.mapNotNull { hit ->
-            val row = db.rows("SELECT t.surface_text,w.title FROM text_units t JOIN works w ON w.id=t.work_id WHERE t.id=? AND t.edition_id=?", listOf(hit.unitId, edition.id)).singleOrNull() ?: return@mapNotNull null
-            val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(row.text("surface_text").toByteArray()).joinToString("") { "%02x".format(it) }
-            require(checksum == hit.textChecksum) { "Índice semântico desatualizado para esta edição. Instale um pacote coerente." }
-            SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme))
-        } }
+        return store.readCurrent { snapshot ->
+            val current = snapshot ?: error("Acervo não instalado.")
+            require("semantic/config.json" in current.files) { "Este pacote não contém o modelo e o índice por sentido. Gere-os no PC e instale o patch." }
+            val hits = OnDeviceSemantic.search({ name -> current.file("semantic/$name") }, query, edition.id)
+            corpus(edition) { db -> hits.mapNotNull { hit ->
+                val row = db.rows("SELECT t.surface_text,w.title FROM text_units t JOIN works w ON w.id=t.work_id WHERE t.id=? AND t.edition_id=?", listOf(hit.unitId, edition.id)).singleOrNull() ?: return@mapNotNull null
+                val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(row.text("surface_text").toByteArray()).joinToString("") { "%02x".format(it) }
+                require(checksum == hit.textChecksum) { "Índice semântico desatualizado para esta edição. Instale um pacote coerente." }
+                SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme))
+            } }
+        }
     }
 
     fun resolveReference(value: String, edition: Edition): Passage? {

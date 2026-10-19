@@ -25,10 +25,11 @@ class BundledLibraryTest {
     @Test fun fullBundledContentAndNativeQueries() {
         val context = InstrumentationRegistry.getInstrumentation().targetContext
         val store = installedStore()
-        val (root, manifest) = requireNotNull(store.current())
+        val current = requireNotNull(store.current())
+        val manifest = current.manifest
         assertEquals(10, manifest.editions.size)
         assertEquals(57, manifest.files.count { it.path.endsWith(".pdf") })
-        assertTrue(manifest.files.all { File(root, it.path).length() == it.size })
+        assertTrue(manifest.files.all { current.file(it.path).length() == it.size })
         val repository = MobileRepository(store)
         assertEquals(57, repository.documents().size)
         assertEquals(47707, repository.documents().sumOf { it.number("pages") })
@@ -54,9 +55,9 @@ class BundledLibraryTest {
         assertTrue(repository.lexicalStatistics(original, lexical).first.isNotEmpty())
         repository.publicClaims().forEach { claim -> repository.arguments(claim.text("id")).forEach { repository.argumentDetail(it.text("id")) } }
         assertTrue(repository.traceEvents("", 0).isNotEmpty())
-        val semantic = File(root, "semantic")
-        val config = JSONObject(File(semantic, "config.json").readText())
-        val tokenizer = WordPieceTokenizer(File(semantic, "vocab.txt").readLines())
+        val semantic: (String) -> File = { name -> current.file("semantic/$name") }
+        val config = JSONObject(semantic("config.json").readText())
+        val tokenizer = WordPieceTokenizer(semantic("vocab.txt").readLines())
         for (probe in config.objects("probes")) {
             val expectedIds = probe.getJSONArray("ids")
             assertArrayEquals("Tokenização: ${probe.getString("text")}", LongArray(expectedIds.length()) { expectedIds.getLong(it) }, tokenizer.encode(probe.getString("text")))

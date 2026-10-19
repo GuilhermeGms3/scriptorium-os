@@ -65,7 +65,7 @@ fun ScriptoriumApp(model: AppModel) {
                     Text("Importe o arquivo .scriptorium preparado no computador. Ele traz as edições e os comentários existentes, com fonte, página e Rastro. Nenhuma ligação nova é produzida aqui.")
                     Spacer(Modifier.height(20.dp))
                     Button(onClick = ::importPackage) { Text(if (state.ready) "Instalar pacote ou patch" else "Importar acervo") }
-                    if (state.ready) Load(state.revision, { model.store.current()?.second }) { manifest ->
+                    if (state.ready) Load(state.revision, { model.store.current()?.manifest }) { manifest ->
                         Text("Versão instalada: ${manifest?.id?.take(12)}", Modifier.padding(top = 24.dp))
                         Text("${manifest?.editions?.size ?: 0} edições • ${manifest?.files?.size ?: 0} arquivos")
                     }

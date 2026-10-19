@@ -44,7 +44,7 @@ class InstalledAcervoTest {
         val notes = PersonalRepository(personalFile)
         val id = notes.save(null, "QA Android — preservação", "Anotação local de teste; não vem do pacote.", comments.first().text("id"))
         store.install(File(packagePath).inputStream())
-        assertEquals(installed.id, store.current()!!.second.id)
+        assertEquals(installed.id, store.current()!!.manifest.id)
         assertTrue(PersonalRepository(personalFile).list().any { it.text("id") == id })
         InstrumentationRegistry.getArguments().getString("patchPath")?.let { patch ->
             val updated = store.install(File(patch).inputStream())

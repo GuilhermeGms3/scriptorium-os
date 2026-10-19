@@ -35,36 +35,41 @@ function Invoke-AdbChecked([string[]]$CommandArguments) {
     & $Adb -s $Serial @CommandArguments
     if ($LASTEXITCODE -ne 0) { throw 'ADB interrompeu a operação. Não desinstale o aplicativo: isso apagaria seus dados. Confira autorização USB, assinatura e espaço disponível.' }
 }
-Write-Warning 'Salve suas notas antes da atualização. Não feche o aplicativo durante a preparação inicial do acervo. Reserve pelo menos 8 GB livres.'
+Write-Warning 'Salve suas notas antes da atualização. Não feche o aplicativo durante a preparação inicial do acervo. Na primeira instalação completa, reserve 8 GB livres. Atualizações reutilizam os arquivos já instalados.'
 Invoke-AdbChecked @('install', '-r', (Join-Path $kit 'Scriptorium.apk'))
 Invoke-AdbChecked @('shell', 'am', 'force-stop', 'org.scriptorium.app')
-Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mkdir', '-p', 'files/incoming')
-$target = "files/incoming/$($description.id)"
-Write-Host "Transferindo o acervo completo ($($description.pdfCount) PDFs). Não é necessário importar livro por livro."
-$start = New-Object System.Diagnostics.ProcessStartInfo
-$start.FileName = $Adb
-# Only a validated serial and a hex identifier enter this constant command. No shell on the PC.
-$start.Arguments = "-s $Serial exec-in run-as org.scriptorium.app dd of=$target.part bs=1048576"
-$start.UseShellExecute = $false
-$start.CreateNoWindow = $true
-$start.RedirectStandardInput = $true
-$start.RedirectStandardError = $true
-$start.RedirectStandardOutput = $true
-$start.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
-$transfer = New-Object System.Diagnostics.Process
-$transfer.StartInfo = $start
-try {
-    if (-not $transfer.Start()) { throw 'Não foi possível iniciar a transferência.' }
-    $errors = $transfer.StandardError.ReadToEndAsync()
-    $output = $transfer.StandardOutput.ReadToEndAsync()
-    $source = [System.IO.File]::OpenRead((Join-Path $kit 'acervo.scriptorium'))
-    try { $source.CopyTo($transfer.StandardInput.BaseStream, 1048576) } finally { $source.Dispose(); $transfer.StandardInput.Close() }
-    $transfer.WaitForExit()
-    $null = $output.Result
-    $transferError = $errors.Result
-    if ($transfer.ExitCode -ne 0) { throw "A transferência falhou: $transferError. A cópia incompleta não será instalada." }
-} finally { $transfer.Dispose() }
-Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mv', "$target.part", "$target.scriptorium")
+try { $alreadyInstalled = (& $Adb -s $Serial shell run-as org.scriptorium.app cat files/active-content 2>$null | Out-String).Trim() } catch { $alreadyInstalled = '' }
+if ($alreadyInstalled -eq $description.id) {
+    Write-Host 'Este acervo já está instalado. Atualizando somente o aplicativo, sem reenviar os livros.'
+} else {
+    Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mkdir', '-p', 'files/incoming')
+    $target = "files/incoming/$($description.id)"
+    Write-Host "Transferindo o acervo completo ($($description.pdfCount) PDFs). Não é necessário importar livro por livro."
+    $start = New-Object System.Diagnostics.ProcessStartInfo
+    $start.FileName = $Adb
+    # Only a validated serial and a hex identifier enter this constant command. No shell on the PC.
+    $start.Arguments = "-s $Serial exec-in run-as org.scriptorium.app dd of=$target.part bs=1048576"
+    $start.UseShellExecute = $false
+    $start.CreateNoWindow = $true
+    $start.RedirectStandardInput = $true
+    $start.RedirectStandardError = $true
+    $start.RedirectStandardOutput = $true
+    $start.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
+    $transfer = New-Object System.Diagnostics.Process
+    $transfer.StartInfo = $start
+    try {
+        if (-not $transfer.Start()) { throw 'Não foi possível iniciar a transferência.' }
+        $errors = $transfer.StandardError.ReadToEndAsync()
+        $output = $transfer.StandardOutput.ReadToEndAsync()
+        $source = [System.IO.File]::OpenRead((Join-Path $kit 'acervo.scriptorium'))
+        try { $source.CopyTo($transfer.StandardInput.BaseStream, 1048576) } finally { $source.Dispose(); $transfer.StandardInput.Close() }
+        $transfer.WaitForExit()
+        $null = $output.Result
+        $transferError = $errors.Result
+        if ($transfer.ExitCode -ne 0) { throw "A transferência falhou: $transferError. A cópia incompleta não será instalada." }
+    } finally { $transfer.Dispose() }
+    Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mv', "$target.part", "$target.scriptorium")
+}
 Invoke-AdbChecked @('shell', 'am', 'start', '-n', 'org.scriptorium.app/.MainActivity')
 if ($NoWait) { Write-Host 'Arquivos entregues. Aguarde a conferência no aplicativo; a instalação do acervo ainda não foi confirmada.'; return }
 $deadline = [DateTime]::UtcNow.AddMinutes(30)

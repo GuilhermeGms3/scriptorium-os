@@ -20,21 +20,24 @@ object OnDeviceSemantic {
     private var projection: FloatArray? = null
     private val environment by lazy { OrtEnvironment.getEnvironment() }
 
+    fun embedding(directory: File, query: String): FloatArray = embedding({ File(directory, it) }, query)
+
     @Synchronized
-    fun embedding(directory: File, query: String): FloatArray {
-        val model = File(directory, "model.onnx")
-        val config = JSONObject(File(directory, "config.json").readText())
+    fun embedding(file: (String) -> File, query: String): FloatArray {
+        val model = file("model.onnx")
+        val config = JSONObject(file("config.json").readText())
+        val recipePath = listOf("model.onnx", "config.json", "vocab.txt", "dense.f32").joinToString("|") { file(it).absolutePath }
         require(config.getString("recipe") == "distiluse-onnx-dense-tanh-l2-96-v2") { "Este índice utiliza uma receita antiga. Instale o pacote semântico atualizado." }
-        if (openedPath != model.absolutePath) {
+        if (openedPath != recipePath) {
             session?.close()
             val options = OrtSession.SessionOptions().apply { setIntraOpNumThreads(2); setInterOpNumThreads(1) }
             try { session = environment.createSession(model.absolutePath, options) } finally { options.close() }
-            tokenizer = WordPieceTokenizer(File(directory, "vocab.txt").readLines())
-            val dense = File(directory, "dense.f32").readBytes()
+            tokenizer = WordPieceTokenizer(file("vocab.txt").readLines())
+            val dense = file("dense.f32").readBytes()
             require(dense.size == (768 * 512 + 512) * 4) { "Projeção semântica inválida." }
             val floats = ByteBuffer.wrap(dense).order(ByteOrder.LITTLE_ENDIAN).asFloatBuffer()
             projection = FloatArray(floats.remaining()).also(floats::get)
-            openedPath = model.absolutePath
+            openedPath = recipePath
         }
         val ids = requireNotNull(tokenizer).encode(query, config.getInt("maxTokens"))
         val shape = longArrayOf(1, ids.size.toLong())
@@ -73,11 +76,13 @@ object OnDeviceSemantic {
         }
     }
 
-    fun search(directory: File, query: String, editionId: String, limit: Int = 30): List<SemanticHit> {
+    fun search(directory: File, query: String, editionId: String, limit: Int = 30): List<SemanticHit> = search({ File(directory, it) }, query, editionId, limit)
+
+    fun search(file: (String) -> File, query: String, editionId: String, limit: Int = 30): List<SemanticHit> {
         require(query.trim().length in 2..240 && limit in 1..100)
-        val vector = embedding(directory, query)
+        val vector = embedding(file, query)
         val best = PriorityQueue<SemanticHit>(compareBy { it.score })
-        Sqlite.open(File(directory, "index.sqlite3")).use { db ->
+        Sqlite.open(file("index.sqlite3")).use { db ->
             db.prepare("SELECT unit_id,work_id,book_id,chapter,verse_start,scheme,text_checksum,vector FROM vectors WHERE edition_id=?").use { statement ->
                 statement.bindText(1, editionId)
                 while (statement.step()) {

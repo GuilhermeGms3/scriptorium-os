@@ -1,3 +1,4 @@
+import { spawnSync } from "node:child_process";
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   mkdtempSync,
@@ -10,7 +11,7 @@ import {
   ftruncateSync,
 } from "node:fs";
 import { tmpdir } from "node:os";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 import { unzipSync } from "fflate";
 import { buildPersonalKit } from "./build-personal-kit";
 import { fileHash, MobileManifestSchema, writeMobileArchive } from "./export-content";
@@ -98,3 +99,62 @@ it("refuses a giant embedded APK and public CI delivery", () => {
   vi.stubEnv("CI", "true");
   expect(() => buildPersonalKit(root, source, output, false)).toThrow("CI público");
 });
+
+it.skipIf(process.platform !== "win32")(
+  "updates only the APK when the exact content id is already installed",
+  () => {
+    const { root, source, output } = fixture();
+    buildPersonalKit(root, source, output, false);
+    writeFileSync(
+      join(output, "instalar.ps1"),
+      "\uFEFF" + readFileSync(resolve(import.meta.dirname, "install-personal-kit.ps1"), "utf8"),
+    );
+    const calls = join(root, "adb-calls.txt");
+    const adb = join(root, "fake-adb.ps1");
+    const escaped = calls.replaceAll("'", "''");
+    writeFileSync(
+      adb,
+      `Add-Content -LiteralPath '${escaped}' -Value ($args -join '|')
+if (($args -join '|') -match 'cat\\|files/active-content') { Write-Output '${"a".repeat(64)}' }
+exit 0
+`,
+    );
+    const result = spawnSync(
+      "powershell.exe",
+      [
+        "-NoProfile",
+        "-ExecutionPolicy",
+        "Bypass",
+        "-File",
+        join(output, "instalar.ps1"),
+        "-Adb",
+        adb,
+        "-Serial",
+        "emulator-TEST",
+      ],
+      {
+        encoding: "utf8",
+        timeout: 30000,
+        // The host may use PowerShell 7; this child must load Windows PowerShell 5.1 modules.
+        env: {
+          ...Object.fromEntries(
+            Object.entries(process.env).filter(([key]) => key.toLowerCase() !== "psmodulepath"),
+          ),
+          PSModulePath: join(
+            process.env["SystemRoot"] ?? "C:/Windows",
+            "System32/WindowsPowerShell/v1.0/Modules",
+          ),
+        },
+      },
+    );
+    expect(result.status, result.stderr + result.stdout).toBe(0);
+    expect(result.stdout).toContain("sem reenviar os livros");
+    const commands = readFileSync(calls, "utf8");
+    expect(commands).toContain("install|-r");
+    expect(commands).toContain("am|start");
+    expect(commands).not.toContain("exec-in");
+    expect(commands).not.toContain("mkdir");
+    expect(commands).not.toContain("uninstall");
+  },
+  40000,
+);

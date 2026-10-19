@@ -62,24 +62,35 @@ Sem `--include-pdfs` numa atualização, os PDFs anteriores deixam de fazer part
 O patch exige o ID exato da base. Para pular versões, gere e importe um pacote completo.
 
 O diferencial é **por arquivo**, não por linha SQL/página de banco. Se `content.sqlite3` mudar,
-esse banco será reenviado inteiro, comprimido. O instalador cria uma geração completa separada,
-confere tamanhos, SHA-256, SQLite/FTS e FKs e só então ativa um ponteiro atômico.
-Uma geração anterior não é sobrescrita. Instalar novamente o mesmo ID é idempotente.
-As gerações antigas são mantidas; limpeza/gestão de espaço ainda precisa de interface própria.
+esse banco será reenviado inteiro, comprimido. A partir do APK0.2.1, o instalador guarda somente
+arquivos alterados e um manifesto local que referencia os arquivos imutáveis já instalados.
+Não depende de hardlink e não copia PDFs/corpora inalterados para cada atualização. Confere
+tamanhos, SHA-256, SQLite/FTS e FKs antes de ativar o ponteiro atomicamente; só após confirmar
+sua gravação coleta arquivos obsoletos. Notas e progresso ficam fora dessa coleta.
+Instalar novamente o mesmo ID é idempotente. Na abertura, remove também cópias obsoletas
+criadas pelo instalador antigo, sem copiar o acervo atual. O instalador USB não reenvia o
+pacote quando seu ID já está ativo: atualiza apenas o APK.
+
+Reserve espaço para arquivos novos descompactados +64 MiB, além do pacote de entrada e da
+instalação do APK. Um patch apenas de manifesto não reserva outra cópia dos3,72GB do acervo.
+O espaço básico continua necessário; a atualização por arquivo não é um delta de linhas SQL.
+O layout local com `locations.json` exige APK0.2.1 ou posterior; não faça downgrade para0.2.0.
+A recuperação de um conteúdo antigo usa um pacote completo; versões obsoletas não são backup.
+Resultados: [QA de armazenamento](../docs/qa/android-storage-2026-10-19.md).
 
 ## Implementado e restante
 
-| Área           | Nesta entrega                                                                                         | Ainda falta para paridade                                                     |
-| -------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------- |
-| Leitura        | Edições, livros/capítulos, comentários/ranges, toggle, comparação, original e interlinear por unidade | Refinar seleção/filtros e alinhamentos não fornecidos pelas fontes            |
-| Texto original | Léxico, tradução, morfologia, ocorrências e estatísticas por livro/vizinhos                           | Todos os painéis especializados do inspetor desktop                           |
-| Biblioteca     | PDFs originais, capas reais, páginas, índice extraído e fontes antigas paginadas                      | Leitor com todas as ferramentas editoriais do desktop                         |
-| Rastro         | Histórico paginado/filtrável, fonte, rationale e evidência                                            | Auditoria visual de todos os payloads históricos                              |
-| Busca          | FTS, referência completa, sentido offline, OpenAlex e atalhos externos                                | Ranking híbrido idêntico ao PC, abreviaturas completas e filtro por ano       |
-| Estudos        | Árvore, guias/aulas, curso com atividades/progresso; mapa ontológico/argumentos separado              | Editor completo de investigações e recursos vinculados                        |
-| Notas          | Pastas, grupos, cores, links, grafo, seed pessoal e backup/restore                                    | Abas múltiplas, Markdown completo e sync bidirecional                         |
-| Tradução       | ML Kit local inglês/espanhol→português, glossário e cache, preservando original                       | Mesma implementação Marian do PC e pesos de tradução incluídos                |
-| Pacotes        | Exportação privada, integridade, instalação completa e patch por arquivo                              | Assinaturas/autenticidade, download, garbage collection e delta por registros |
+| Área           | Nesta entrega                                                                                         | Ainda falta para paridade                                               |
+| -------------- | ----------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Leitura        | Edições, livros/capítulos, comentários/ranges, toggle, comparação, original e interlinear por unidade | Refinar seleção/filtros e alinhamentos não fornecidos pelas fontes      |
+| Texto original | Léxico, tradução, morfologia, ocorrências e estatísticas por livro/vizinhos                           | Todos os painéis especializados do inspetor desktop                     |
+| Biblioteca     | PDFs originais, capas reais, páginas, índice extraído e fontes antigas paginadas                      | Leitor com todas as ferramentas editoriais do desktop                   |
+| Rastro         | Histórico paginado/filtrável, fonte, rationale e evidência                                            | Auditoria visual de todos os payloads históricos                        |
+| Busca          | FTS, referência completa, sentido offline, OpenAlex e atalhos externos                                | Ranking híbrido idêntico ao PC, abreviaturas completas e filtro por ano |
+| Estudos        | Árvore, guias/aulas, curso com atividades/progresso; mapa ontológico/argumentos separado              | Editor completo de investigações e recursos vinculados                  |
+| Notas          | Pastas, grupos, cores, links, grafo, seed pessoal e backup/restore                                    | Abas múltiplas, Markdown completo e sync bidirecional                   |
+| Tradução       | ML Kit local inglês/espanhol→português, glossário e cache, preservando original                       | Mesma implementação Marian do PC e pesos de tradução incluídos          |
+| Pacotes        | Exportação privada, integridade, instalação completa e patch por arquivo                              | Assinaturas/autenticidade, download e delta por registros               |
 
 Não há OCR, desmontagem, análise editorial por LLM nem geração de conhecimento no Android.
 O modelo ONNX é usado somente para recuperação por sentido. O aplicativo desta
@@ -107,7 +118,8 @@ Não execute inferência remota ou exponha a API local do PC para "completar" bo
 
 Hashes detectam corrupção, **não autenticam o autor do pacote**. Nesta fase importe somente
 arquivos preparados por você. Há limite de 12 GiB descomprimidos, 4 GiB por arquivo e 2.000 arquivos;
-é necessário espaço para a geração nova sem apagar a atual. Cópias anteriores continuam ocupando disco.
+é necessário espaço para os arquivos alterados sem apagar os ativos antes da confirmação.
+Arquivos inalterados são compartilhados por referência e obsoletos são coletados após ativação.
 
 ## Testes e QA
 

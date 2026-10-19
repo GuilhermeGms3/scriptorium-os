@@ -68,12 +68,30 @@ instaladores concorrentes; cópias de staging interrompidas são recuperadas sob
 
 O acervo recebido fica em SQLite privado, não em OPFS ou em um perfil de navegador.
 Reiniciar o aplicativo **não reinstala a base por cima de um patch mais recente**.
-Uma nova entrega instala o novo retrato. Arquivos imutáveis com
-mesmo caminho, tamanho e SHA são reutilizados por hardlink quando o sistema permite; há
-fallback para cópia. O SHA é conferido de novo; a validação SQL anterior é reaproveitada
-somente para bytes idênticos. Entradas recebidas também são autenticadas, mesmo quando
-reutilizadas. Gerações anteriores continuam preservadas; ainda não existe coleta automática
-nem sincronização bidirecional.
+Uma nova entrega instala o novo retrato. No APK0.2.1, arquivos imutáveis com mesmo caminho,
+tamanho e SHA são compartilhados por referência, sem hardlink nem cópia de arquivos inalterados.
+Cada geração tem um `locations.json` privado e achatado: caminhos lógicos do manifesto apontam
+para arquivos físicos dentro de `files/content/<id>/`. O ZIP nunca fornece esse índice local.
+Gerações antigas podem continuar como pastas físicas de arquivos ainda usados; seus manifestos
+obsoletos e arquivos não referenciados são coletados. Uma pasta antiga presente não significa
+outra cópia completa nem cadeia de resolução de manifestos.
+
+O SHA é conferido de novo durante instalação; a validação SQL anterior só é reaproveitada para
+bytes imutáveis já ativos. Entradas recebidas também têm checksum verificado quando redundantes.
+Até confirmar o novo ponteiro, todos os arquivos da versão ativa são preservados. Depois,
+a coleta marca os caminhos físicos ainda referenciados e remove apenas arquivos derivados
+allowlisted, sem atravessar links simbólicos ou tocar no banco pessoal. A coleta roda sob o
+lock de instalação, também antes de expor leitores na abertura. Leituras SQL/semânticas em
+andamento no processo usam a mesma exclusão do instalador; a UI fecha leitores ao instalar.
+Arquivo ativo faltante/interrompido bloqueia coleta. Falha de remoção é informada e tentada de
+novo. Rollback automático de conteúdo antigo não é oferecido; o PC conserva os pacotes originais.
+
+Instalações anteriores são lidas em seu lugar original, sem conversão/cópia. Atualizações de
+metadados reservam só64MiB de margem; mudanças de dados reservam arquivos novos +margem.
+A cópia de entrada ainda ocupa espaço até o sucesso, e um banco alterado é recebido inteiro.
+O kit USB confere o ID existente e pula transferência quando só o APK precisa ser atualizado.
+Não há sincronização bidirecional. Esse layout exige APK0.2.1+, sem downgrade para0.2.0.
+Veja [QA de armazenamento](../qa/android-storage-2026-10-19.md).
 
 O snapshot pessoal do PC é importado uma vez, por IDs, com `INSERT OR IGNORE`. Edições
 posteriores no telefone prevalecem. Isso não é sincronização do workspace do PC: investigações

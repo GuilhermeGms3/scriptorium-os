@@ -1,5 +1,29 @@
 # Project Memory
 
+## Android — atualização com espaço limitado — 2026-10-19
+
+- Usuário tem20GB livres no celular e pediu resolver cópias/acúmulo de atualizações.
+  APK0.2.1/versionCode3 mantém pacote/manifesto v1 e acervo completo; não retira PDFs.
+- ContentPackageStore usa InstalledContent +locations.json privado achatado. Arquivos imutáveis
+  inalterados são referenciados pelo mesmo caminho físico, sem hardlink nem cópia. Repositórios
+  de leitura/semântica resolvem paths pela snapshot; cache ONNX considera toda a receita.
+- Confere SHA/SQLite, ativa AtomicFile, confirma ponteiro e só então coleta arquivos derivados
+  não usados. Não alcança personal.sqlite3, paths externos ou symlinks. Startup limpa cópias
+  legadas e staging sob lock; não copia/converte o acervo ativo. Leitura SQL/semântica no processo
+  é excluída durante instalação. Layout exige0.2.1+, não fazer downgrade para0.2.0.
+- Instalador USB:mesmo ID ativo→só APK, sem reenviar1,79GB. Mudança de banco continua delta por
+  arquivo; content.sqlite3 (~1,02GB) pode exigir essa folga. Reserva mudou para novos bytes+64MiB;
+  arquivo de entrada e instalação do APK ainda exigem espaço. Primeira preparação não é instantânea.
+- QA real AVD5560:content de10.912.160KiB para3.637.920KiB,liberou~7,45GB de cópias obsoletas.
+  Patch6.050bytes aplicou em17.601ms (anterior268.079ms),reutilizou75 paths físicos; crescimento
+  lógico15.645bytes. SHA e backup pessoal integral preservados. Restart manteve c256f804...,
+  Activity COLD2.162ms (não é tempo até todos os dados prontos). Sem teste em aparelho físico.
+- Passaram31 JVM,5 instrumentation selecionados (patch+consumo/migração/seed/backup),483 Node,
+  typecheck/lint,assembleDebug/AndroidTest/lintDebug. Gate semântico/tradução continuam pendentes.
+- Relatório:docs/qa/android-storage-2026-10-19.md. Kit privado0.2.1 em
+  C:/Users/comical/Desktop/Scriptorium-Android-0.2.1,fora do F para evitar novo pacote grande no
+  projeto. Não publicar acervo/modelos/APKs. Pacotes originais/desktop/Pixel_8 preservados.
+
 ## Android — expansão de consumo em andamento — 2026-10-18
 
 - Pedido atual reforçado: PDFs originais e funções de consumo junto ao APK Kotlin, não um
