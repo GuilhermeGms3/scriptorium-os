@@ -9,11 +9,13 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.scriptorium.app.data.*
 
 @Composable
 fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, work: Row, close: () -> Unit) {
     BackHandler(onBack = close)
+    val appearance = LocalReadingAppearance.current
     val edition = repository.editions().first { it.id == work.text("edition_id") }
     var offset by remember { mutableIntStateOf(0) }
     var note by remember { mutableStateOf<String?>(null) }
@@ -31,10 +33,10 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
                     items(units, key = { it.text("id") }) { unit -> Column {
                         Text(unit.text("display_address"), style = MaterialTheme.typography.labelSmall)
                         Load(unit.text("id"), { repository.preparedTranslation(unit.text("id"), unit.text("surface_text")) }) { prepared ->
-                            if (prepared != null) { Text("Tradução preparada no PC · ${org.json.JSONObject(prepared.text("metadata_json")).optString("review_status")}", style = MaterialTheme.typography.labelSmall); Text(prepared.text("body")) }
+                            if (prepared != null) { Text("Tradução preparada no PC · ${org.json.JSONObject(prepared.text("metadata_json")).optString("review_status")}", style = MaterialTheme.typography.labelSmall); Text(prepared.text("body"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                             TranslationBlock(unit.text("surface_text"), metadata.text("language"), personal)
                         }
-                        SelectionContainer { Text(unit.text("surface_text")) }
+                        SelectionContainer { Text(unit.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                         TextButton(onClick = { note = unit.text("id") }) { Text("Anotar") }
                     } }
                     item { Text("Unidades ${offset + 1}–${offset + units.size} de ${work.number("unit_count")}") }

@@ -10,6 +10,11 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
+import org.scriptorium.app.data.*
+import org.json.JSONObject
+import org.scriptorium.app.content.ContentPackageStore
+import android.util.AtomicFile
+import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
@@ -60,72 +65,125 @@ class ReadingUiTest {
         SystemClock.sleep(400)
     }
     private fun reveal(value: String) {
-        repeat(10) {
-            if (nodes().any { it.text?.toString() == value }) return
-            val root = Rect(); automation.rootInActiveWindow.getBoundsInScreen(root)
-            automation.executeShellCommand("input swipe ${root.centerX()} ${root.top + root.height() * 8 / 10} ${root.centerX()} ${root.top + root.height() * 4 / 10} 180").use { descriptor ->
-                android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { it.readBytes() }
+        for (direction in listOf(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD, AccessibilityNodeInfo.ACTION_SCROLL_BACKWARD)) {
+            repeat(12) {
+                if (nodes().any { it.text?.toString() == value }) return
+                val scroller = nodes().filter { it.isScrollable && it.actionList.any { action -> action.id == direction } }
+                    .maxByOrNull { val bounds = Rect(); it.getBoundsInScreen(bounds); bounds.height() }
+                scroller?.performAction(direction)
+                SystemClock.sleep(550)
             }
-            SystemClock.sleep(250)
         }
         waitNode(value)
     }
-    @Test fun directJumpIndependentCommentDisclosureBackHomeAndColorPalette() {
-        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+    private fun repository(): MobileRepository {
         val context = instrumentation.targetContext
+        val pointer = AtomicFile(File(context.filesDir, "active-content"))
+        return MobileRepository(ContentPackageStore(File(context.filesDir, "content"), { pointer.openRead().use { it.readBytes().decodeToString() } }, { error("QA somente leitura") }, Sqlite::validate),
+            ReadingNavigation(JSONObject(context.assets.open("reading-labels.json").bufferedReader().use { it.readText() })))
+    }
+    private fun startAt(reference: String) {
+        val context = instrumentation.targetContext
+        val repository = repository()
+        ReadingPreferences(context).savePassage(requireNotNull(repository.resolveReference(reference, repository.scriptureEditions().first())))
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
+    }
+    @Test fun compactReaderCollapsedSourcesFiltersAndLibraryAction() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        startAt("Gn1:1")
+        assertFalse(nodes().any { it.text?.toString() == "Painel" })
         click("Leitura")
-        click("Ir para…")
-        enter("Sl 119:105")
-        click("Abrir referência")
-        waitNode("Salmos 119", false)
-        waitNode("105")
-        assertTrue("Deve abrir no versículo, sem rolar os 104 anteriores", nodes().any { label(it).contains("lâmpada", true) })
+        waitNode("Gênesis 1", false)
+        assertFalse(nodes().any { label(it).contains("Ir para") })
+        val badge = Rect(); waitNode("1").getBoundsInScreen(badge)
+        assertTrue("Selo deve ser compacto", badge.width() / instrumentation.targetContext.resources.displayMetrics.density <= 44)
+        val repository = repository()
+        val passage = requireNotNull(repository.resolveReference("Gn1:1", repository.scriptureEditions().first()))
+        val first = commentGroups(passage, repository.verses(passage), repository.comments(passage), repository.chapterTargets(passage)).first { it.verse == 1 }.comments.first()
+        val title = first.text("source_title")
+        waitNode(title)
+        assertFalse(nodes().any { it.text?.toString() == first.text("body") })
+        click("Expandir comentário de $title")
+        waitNode("Recolher ▴")
+        waitNode(first.text("body"))
+        click("Recolher comentário de $title")
+        assertFalse(nodes().any { it.text?.toString() == first.text("body") })
+        click(title)
+        waitNode("Biblioteca ↗")
+        assertFalse(nodes().any { label(it).contains("Detalhes técnicos") || label(it).contains("Fonte completa, página") })
+        click("Biblioteca ↗")
+        waitNode("Ver PDF original")
+        back(); back()
+        waitNode("Gênesis 1", false)
+        click("Filtrar", false)
+        waitNode("Assunto e fonte")
+        click("Fonte: todas ▾")
+        waitNode("Todas as fontes")
+        click(title)
+        waitNode("Limpar filtros")
+        click("Limpar filtros")
+        click("Filtrar", false)
         click("Painel")
-        waitNode("Salmos 119:105")
         waitNode("Visão geral")
-        click("Texto e língua")
-        waitNode("Comparação")
         click("Fontes")
         waitNode("Comentários na leitura")
         click("Minhas notas")
         waitNode("Anotar esta passagem")
         back()
-        waitNode("105")
-        assertTrue("Painel deve preservar a posição da leitura", nodes().any { label(it).contains("lâmpada", true) })
-        click("Painel")
-        click("Texto e língua")
-        click("Texto original")
-        waitNode("← Voltar à leitura · Texto original")
-        back()
-        waitNode("105")
-        click("Ir para…")
-        enter("Gn1:1")
-        click("Abrir referência")
-        waitNode("Gênesis 1", false)
-        click("Expandir ▾")
-        waitNode("Recolher ▴")
-        click("Recolher ▴")
-        click("Fonte completa, página e contexto ↗")
-        waitNode("Fechar")
-        back()
-        waitNode("Gênesis 1", false)
-        back()
-        waitNode("Salmos 119", false)
         click("Home")
         waitNode("Retomar leitura")
-        click("Notas")
-        click("Nova nota")
-        click("Cor Vinho")
-        waitNode("Cor da nota · Vinho")
-        back()
-        waitNode("Descartar alterações?")
-        click("Descartar")
-        waitNode("Nova nota")
+        click("Notas"); click("Nova nota"); click("Cor Vinho"); waitNode("Cor da nota · Vinho")
+        back(); waitNode("Descartar alterações?"); click("Descartar"); click("Home")
+        println("READING_UI_QA compactBadge/noFloat/collapsedSources/filter/libraryHeader/panel/home passed")
+    }
+    @Test fun appearancePersistsAndCommentsMoveToDockWithoutLoss() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val original = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance()
+            startAt("Sl119:105"); click("Leitura"); waitNode("105")
+            click("Mais"); click("Aparência e leitura")
+            waitNode("Fonte de leitura"); click("Sem serifa"); click("Aumentar letra")
+            reveal("Cinza"); click("Cinza")
+            reveal("Comentários no painel inferior"); click("Comentários no painel inferior")
+            assertEquals(ReadingFont.SANS, preferences.appearance.font)
+            assertEquals(23, preferences.appearance.size)
+            assertEquals(ReadingTheme.GRAY, preferences.appearance.theme)
+            assertTrue(preferences.appearance.dockedComments)
+            back(); waitNode("Recolher painel ▾"); waitNode("105")
+            waitNode("Versículo 105")
+            assertEquals(1, nodes().count { it.text?.toString()?.startsWith("Filtrar") == true })
+            val context = instrumentation.targetContext
+            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            waitNode("Seu scriptorium"); click("Leitura"); waitNode("Recolher painel ▾")
+            assertEquals(ReadingTheme.GRAY, ReadingPreferences(context).appearance.theme)
+            click("Home")
+            println("APPEARANCE_UI_QA font/size/theme/dock/reopen105 passed")
+        } finally { preferences.appearance = original }
+    }
+    @Test fun thematicLessonLinksRealBookAndRecordsReadStage() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        startAt("Gn1:1"); click("Estudos")
+        reveal("Aulas temáticas · 111 ▾"); click("Aulas temáticas · 111 ▾")
+        reveal("Encontrar aula"); enter("Trindade")
+        reveal("Abrir aula →"); click("Abrir aula →")
+        waitNode("Etapas da aula", false)
+        reveal("Ler na Biblioteca ↗"); click("Ler na Biblioteca ↗")
+        waitNode("Voltar à", false)
+        val titles = repository().lessonReadings("doctrine:trinity", "Trindade").map { it.title }.toSet()
+        assertTrue("A Biblioteca deve identificar o livro aberto", nodes().any { it.text?.toString() in titles })
+        back(); back()
+        waitNode("Etapas da aula", false)
+        reveal("Próxima etapa")
+        val mark = if (nodes().any { it.text?.toString() == "Etapa lida ✓" }) "Etapa lida ✓" else "Marcar etapa como lida"
+        click(mark)
+        waitNode("Etapas da aula · 2", false)
+        val personal = PersonalRepository(File(instrumentation.targetContext.filesDir, "personal.sqlite3"))
+        assertTrue(personal.progress("lesson:doctrine:trinity", 1).any { !it["completed_at"].isNullOrBlank() })
         click("Home")
-        waitNode("Seu scriptorium")
-        println("READING_UI_QA direct105/comment-expand-collapse/source/back/home/palette passed")
+        println("LESSON_UI_QA horizontal/bookLibrary/back/readStage passed")
     }
 
     @Test fun horizontalCourseRetainsDraftAcrossStepsAndExit() {

@@ -1,5 +1,27 @@
 # Project Memory
 
+## Android — revisão do leitor e aulas 0.4.0 — 2026-10-20
+
+- Feedback atual substitui a decisão anterior do botão flutuante: retirar Ir para…, selo26dp,
+  Home junto ao título e Painel junto a Home só com passagem aberta. Sem perfis culto/estudo.
+- Comentários recolhidos só com fonte/expansão; cartão abre fonte, Biblioteca no topo da janela,
+  sem detalhes técnicos. Mesma coleção/filtros por assunto+documento em linha ou dock opcional,
+  agrupado por versículo e acompanhando posição. Mais comentários preservado; Gn1:467 intactos.
+- Mais/Aparência e leitura: famílias nativas, tamanho18–32, Preto/Cinza/Marrom/Claro, dock e
+  animações. SharedPreferences separado de notas/backup. Leitura em fontes/Biblioteca também
+  responde às preferências; PDF original mantém tipografia do arquivo. Contextos em cartões.
+- Guias/aulas em trilhas horizontais; conteúdo, leitura e síntese. Etapa lida autorrelatada em
+  course_progress/lesson, sem migration nem mudança em CoursePolicy. Livros abrem na Biblioteca.
+- Metadados públicos gerados por mobile:labels: famílias e workIds editoriais; FTS local por aula.
+- 103/111 têm leitura direta/pesquisada;8 usam apoio explícito da trilha por capítulos compartilhados.
+  Não apresentar apoio de área ou FTS como curadoria exata. Na página de conteúdo só uma leitura
+  de partida, demais na etapa Leituras. Nenhum conteúdo privado novo incluído no APK.
+- Passaram 45 JVM, 8 Node/mobile,typecheck/ESLint,Android build/lint sem erros (22 avisos),7 verificações
+  instrumentadas de dados/cobertura e 4 cenários UI em 80,679s. Quatro temas conferidos no AVD
+  isolado, acervo b289f600.../3.637.896KiB mantido. Sem teste físico/API28 desta versão.
+- Entrega somente APK0.4.0/versionCode6 em C:/Users/comical/Desktop/Scriptorium-Android-0.4.0.
+  QA: docs/qa/android-reading-ui-2026-10-20.md. Desktop/pipeline/banco canônico preservados.
+
 ## Android — painel e percurso horizontal 0.3.1 — 2026-10-20
 
 - Decisão explícita: experiência única de leitura, sem separar culto/estudo. Não reconstruir

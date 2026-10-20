@@ -493,5 +493,1371 @@
     "theory:two-source": "Hipótese das duas fontes",
     "theory:farrer": "Hipótese de Farrer",
     "theory:griesbach": "Hipótese de Griesbach"
+  },
+  "lessons": {
+    "topic:bibliology": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "topic:theology-proper": {
+      "family": "theology",
+      "supportGuide": "teologia",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "topic:christology": {
+      "family": "christology",
+      "supportGuide": "trindade-cristologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia",
+          "role": "documento conciliar"
+        }
+      ]
+    },
+    "topic:pneumatology": {
+      "family": "spirit",
+      "supportGuide": "pneumatologia",
+      "chapters": 3,
+      "works": []
+    },
+    "topic:anthropology": {
+      "family": "humanity",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho",
+          "role": "fonte patrística"
+        }
+      ]
+    },
+    "topic:hamartiology": {
+      "family": "humanity",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho",
+          "role": "fonte patrística"
+        }
+      ]
+    },
+    "topic:soteriology": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "topic:ecclesiology": {
+      "family": "church",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente",
+          "role": "fonte cristã antiga"
+        }
+      ]
+    },
+    "topic:sacramentology": {
+      "family": "church",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "topic:eschatology": {
+      "family": "hope",
+      "supportGuide": "escatologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "topic:atonement": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:atonement": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "topic:justification": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:justification": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "topic:sanctification": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:sanctification": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "doctrine:trinity": {
+      "family": "christology",
+      "supportGuide": "trindade-cristologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia",
+          "role": "documento conciliar"
+        }
+      ]
+    },
+    "doctrine:incarnation": {
+      "family": "christology",
+      "supportGuide": "trindade-cristologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia",
+          "role": "documento conciliar"
+        }
+      ]
+    },
+    "doctrine:two-natures": {
+      "family": "christology",
+      "supportGuide": "trindade-cristologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia",
+          "role": "documento conciliar"
+        }
+      ]
+    },
+    "doctrine:resurrection": {
+      "family": "hope",
+      "supportGuide": "escatologia",
+      "chapters": 3,
+      "works": []
+    },
+    "doctrine:original-sin": {
+      "family": "humanity",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho",
+          "role": "fonte patrística"
+        }
+      ]
+    },
+    "doctrine:election": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:baptism": {
+      "family": "church",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:eucharist": {
+      "family": "church",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "doctrine:scriptural-inspiration": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "doctrine:canon": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "doctrine:church-authority": {
+      "family": "church",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente",
+          "role": "fonte cristã antiga"
+        }
+      ]
+    },
+    "doctrine:resurrection-dead": {
+      "family": "hope",
+      "supportGuide": "escatologia",
+      "chapters": 3,
+      "works": []
+    },
+    "doctrine:final-judgment": {
+      "family": "hope",
+      "supportGuide": "escatologia",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:apostles-creed": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:apostles-creed",
+          "label": "Credo dos Apóstolos",
+          "role": "texto histórico instalado"
+        }
+      ]
+    },
+    "entity:historical:nicene-constantinopolitan-creed": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:nicene-constantinopolitan-western",
+          "label": "Credo Niceno-Constantinopolitano",
+          "role": "texto histórico instalado"
+        }
+      ]
+    },
+    "entity:historical:chalcedon": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia",
+          "role": "texto histórico instalado"
+        }
+      ]
+    },
+    "entity:council:chalcedon-451": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:athanasian-creed": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:athanasian-creed",
+          "label": "Credo Atanasiano",
+          "role": "texto histórico instalado"
+        }
+      ]
+    },
+    "entity:historical:augsburg-confession": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:thirty-nine-articles": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:westminster-confession": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:canons-of-dort": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:didache": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê",
+          "role": "fonte cristã antiga"
+        }
+      ]
+    },
+    "entity:historical:first-clement": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente",
+          "role": "fonte cristã antiga"
+        }
+      ]
+    },
+    "entity:historical:second-clement": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:polycarp-philippians": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:martyrdom-polycarp": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:ignatius-letters": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:epistle-barnabas": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:shepherd-hermas": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:historical:epistle-diognetus": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:council:nicaea-325": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:council:constantinople-381": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:council:ephesus-431": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:work:gospel-of-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:work:epistle-diognetus": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:work:origen-commentary-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:person:michael-w-holmes": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "method:textual-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:historical-critical": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:historical-grammatical": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:source-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:form-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:redaction-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:narrative-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:canonical-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:social-scientific": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "method:reception-history": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João",
+          "role": "história da recepção"
+        }
+      ]
+    },
+    "method:theological-interpretation": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João",
+          "role": "história da recepção"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "method:literary-criticism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "stance:confessional": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "stance:non-confessional": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "stance:methodological-naturalism": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "theory:two-source": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "theory:farrer": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "theory:griesbach": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "framework:covenant-theology": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "school:thomism": {
+      "family": "theology",
+      "supportGuide": "teologia",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "position:christus-victor": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "position:penal-substitution": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "position:moral-influence": {
+      "family": "salvation",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 3,
+      "works": []
+    },
+    "entity:concept:logos": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:concept:incarnation-language": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:concept:life-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:concept:light-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:concept:witness-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "entity:concept:grace-truth-john": {
+      "family": "reading",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 5,
+      "works": []
+    },
+    "tradition:roman-catholic": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho",
+          "role": "fonte patrística"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I",
+          "role": "tratamento escolástico"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III",
+          "role": "tratamento escolástico"
+        }
+      ]
+    },
+    "tradition:eastern-orthodox": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:oriental-orthodox": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:church-of-east": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:lutheran": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:reformed": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:anglican": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:anabaptist": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:baptist": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:wesleyan-methodist": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:pentecostal": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "tradition:restorationist": {
+      "family": "history",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": []
+    },
+    "study-guide:teologia": {
+      "family": "guides",
+      "supportGuide": "teologia",
+      "chapters": 9,
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        },
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        },
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        },
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "study-guide:biblia-interpretacao": {
+      "family": "guides",
+      "supportGuide": "biblia-interpretacao",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        }
+      ]
+    },
+    "study-guide:teologia-sistematica": {
+      "family": "guides",
+      "supportGuide": "teologia-sistematica",
+      "chapters": 15,
+      "works": [
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        }
+      ]
+    },
+    "study-guide:historia-tradicoes": {
+      "family": "guides",
+      "supportGuide": "historia-tradicoes",
+      "chapters": 6,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "study-guide:literatura-fontes": {
+      "family": "guides",
+      "supportGuide": "literatura-fontes",
+      "chapters": 7,
+      "works": [
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        }
+      ]
+    },
+    "study-guide:exegese-recepcao": {
+      "family": "guides",
+      "supportGuide": "exegese-recepcao",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        }
+      ]
+    },
+    "study-guide:patristica": {
+      "family": "guides",
+      "supportGuide": "patristica",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        }
+      ]
+    },
+    "study-guide:trindade-cristologia": {
+      "family": "guides",
+      "supportGuide": "trindade-cristologia",
+      "chapters": 2,
+      "works": [
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        }
+      ]
+    },
+    "study-guide:etica-soteriologia": {
+      "family": "guides",
+      "supportGuide": "etica-soteriologia",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        }
+      ]
+    },
+    "study-guide:gnosticismo": {
+      "family": "guides",
+      "supportGuide": "gnosticismo",
+      "chapters": 3,
+      "works": [
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        }
+      ]
+    },
+    "study-guide:eclesiologia-liturgia": {
+      "family": "guides",
+      "supportGuide": "eclesiologia-liturgia",
+      "chapters": 4,
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "study-guide:escatologia": {
+      "family": "guides",
+      "supportGuide": "escatologia",
+      "chapters": 2,
+      "works": []
+    },
+    "study-guide:pneumatologia": {
+      "family": "guides",
+      "supportGuide": "pneumatologia",
+      "chapters": 4,
+      "works": []
+    },
+    "study-guide:hamartiologia-justificacao": {
+      "family": "guides",
+      "supportGuide": "hamartiologia-justificacao",
+      "chapters": 4,
+      "works": []
+    },
+    "study-guide:sacramentos-santificacao": {
+      "family": "guides",
+      "supportGuide": "sacramentos-santificacao",
+      "chapters": 4,
+      "works": []
+    },
+    "study-guide:hermeneutica-metodos": {
+      "family": "guides",
+      "supportGuide": "hermeneutica-metodos",
+      "chapters": 4,
+      "works": []
+    }
+  },
+  "studyAreas": {
+    "teologia": {
+      "title": "Teologia",
+      "keywords": ["teologia", "doutrina", "theology"],
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        },
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        },
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        },
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "biblia-interpretacao": {
+      "title": "Bíblia e interpretação",
+      "keywords": ["exegese", "hermenêutica"],
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        }
+      ]
+    },
+    "teologia-sistematica": {
+      "title": "Teologia sistemática",
+      "keywords": ["trindade", "salvação", "escatologia"],
+      "works": [
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        }
+      ]
+    },
+    "historia-tradicoes": {
+      "title": "História e tradições",
+      "keywords": ["patrística", "eclesiologia"],
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "literatura-fontes": {
+      "title": "Literatura e fontes",
+      "keywords": ["Nag Hammadi"],
+      "works": [
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        }
+      ]
+    },
+    "exegese-recepcao": {
+      "title": "Exegese e história da recepção",
+      "keywords": ["exegese", "contexto", "exegesis"],
+      "works": [
+        {
+          "workId": "work:origen-commentary-john-books-1-2",
+          "label": "Orígenes sobre João I–II"
+        }
+      ]
+    },
+    "patristica": {
+      "title": "Patrística e cristianismo antigo",
+      "keywords": ["patrística", "Agostinho", "Clemente"],
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:first-clement",
+          "label": "1 Clemente"
+        },
+        {
+          "workId": "work:augustine-confessions",
+          "label": "Confissões de Agostinho"
+        }
+      ]
+    },
+    "trindade-cristologia": {
+      "title": "Trindade e cristologia",
+      "keywords": ["trindade", "cristologia", "encarnação"],
+      "works": [
+        {
+          "workId": "work:nicene-creed-325",
+          "label": "Credo de Niceia"
+        },
+        {
+          "workId": "work:chalcedonian-definition",
+          "label": "Definição de Calcedônia"
+        },
+        {
+          "workId": "work:aquinas-summa-prima-pars",
+          "label": "Suma Teológica I"
+        },
+        {
+          "workId": "work:aquinas-summa-tertia-pars",
+          "label": "Suma Teológica III"
+        }
+      ]
+    },
+    "etica-soteriologia": {
+      "title": "Ética, virtudes e soteriologia",
+      "keywords": ["salvação", "expiação", "soteriologia"],
+      "works": [
+        {
+          "workId": "work:aquinas-summa-prima-secundae",
+          "label": "Suma Teológica I–II"
+        },
+        {
+          "workId": "work:aquinas-summa-secunda-secundae",
+          "label": "Suma Teológica II–II"
+        }
+      ]
+    },
+    "gnosticismo": {
+      "title": "Nag Hammadi e cristianismos antigos",
+      "keywords": ["Nag Hammadi", "gnosticismo", "Tomé"],
+      "works": [
+        {
+          "workId": "work:gospel-thomas-coptic",
+          "label": "Evangelho de Tomé em copta"
+        }
+      ]
+    },
+    "eclesiologia-liturgia": {
+      "title": "Eclesiologia e práticas comunitárias",
+      "keywords": ["eclesiologia", "liturgia", "igreja"],
+      "works": [
+        {
+          "workId": "work:didache",
+          "label": "Didaquê"
+        },
+        {
+          "workId": "work:epistle-diognetus",
+          "label": "Epístola a Diogneto"
+        },
+        {
+          "workId": "work:polycarp-philippians",
+          "label": "Policarpo aos Filipenses"
+        }
+      ]
+    },
+    "escatologia": {
+      "title": "Escatologia",
+      "keywords": ["escatologia", "ressurreição", "apocalíptica"],
+      "works": []
+    },
+    "pneumatologia": {
+      "title": "Pneumatologia",
+      "keywords": ["Espírito Santo", "pneumatologia", "dons"],
+      "works": []
+    },
+    "hamartiologia-justificacao": {
+      "title": "Hamartiologia e justificação",
+      "keywords": ["pecado", "justificação", "graça"],
+      "works": []
+    },
+    "sacramentos-santificacao": {
+      "title": "Sacramentos e santificação",
+      "keywords": ["sacramento", "batismo", "santificação"],
+      "works": []
+    },
+    "hermeneutica-metodos": {
+      "title": "Hermenêutica e métodos",
+      "keywords": ["hermenêutica", "interpretação", "hermeneutics"],
+      "works": []
+    }
   }
 }

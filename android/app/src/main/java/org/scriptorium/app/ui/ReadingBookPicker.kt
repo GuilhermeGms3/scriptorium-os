@@ -47,8 +47,8 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
         if (chosen != null) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 TextButton(onClick = { chooseBook(null) }) { Text("← Livros") }
-                Heading(chosen.text("title"), "Escolha o capítulo. Para ir direto a um versículo, use Ir para…")
-                LazyVerticalGrid(GridCells.Adaptive(64.dp), contentPadding = PaddingValues(bottom = 96.dp)) {
+                Heading(chosen.text("title"), "Escolha o capítulo para abrir a leitura.")
+                LazyVerticalGrid(GridCells.Adaptive(64.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
                     items((1..chosen.number("chapters")).toList()) { chapter ->
                         OutlinedButton(onClick = { open(Passage(edition, chosen.text("id"), chosen.text("book_id"), chosen.text("title"), chapter, chosen.text("scheme"))) }, modifier = Modifier.padding(4.dp), contentPadding = PaddingValues(4.dp)) { Text(chapter.toString()) }
                     }
@@ -66,7 +66,7 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             }
             val visible = books.filter { filter in listOf("Todos", "Bíblia") && (group == null || repository.navigation.group(it.text("book_id")) == group) && normalizedReading(it.text("title")).contains(normalizedReading(query)) }
             val additional = extras.filter { (filter == "Todos" || filter in it.tags) && normalizedReading(it.row.text("title")).contains(normalizedReading(query)) }
-            LazyVerticalGrid(GridCells.Fixed(2), contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 96.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyVerticalGrid(GridCells.Fixed(2), contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                 visible.groupBy { repository.navigation.group(it.text("book_id")) }.forEach { (name, rows) ->
                     item(span = { GridItemSpan(2) }) { Text(name, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
                     items(rows, key = { "bible:${it.text("id")}" }) { row -> BookTile(row.text("title"), "${row.number("chapters")} capítulos", repository.navigation.symbol(row.text("book_id"))) { chooseBook(row.text("id")) } }

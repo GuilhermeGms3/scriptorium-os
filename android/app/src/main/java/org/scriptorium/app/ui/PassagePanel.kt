@@ -59,7 +59,7 @@ fun PassagePanel(repository: MobileRepository, personal: PersonalRepository, pas
                             when (tab) {
                                 0 -> LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                                     item { Text(passage.edition.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary) }
-                                    if (passage.verse != null) item { Text(units.joinToString("\n") { it.text("surface_text") }, fontFamily = FontFamily.Serif, fontSize = 21.sp, lineHeight = 33.sp) }
+                                    if (passage.verse != null) item { Text(units.joinToString("\n") { it.text("surface_text") }, fontFamily = LocalReadingAppearance.current.fontFamily, fontSize = LocalReadingAppearance.current.size.sp, lineHeight = (LocalReadingAppearance.current.size * 1.5f).sp) }
                                     item { Heading("Contexto e testemunhos"); ChapterContext(repository, personal, passage, initiallyExpanded = true) }
                                     item { TextButton(onClick = { tab = 2 }) { Text("Consultar as fontes desta passagem") } }
                                 }
@@ -73,7 +73,7 @@ fun PassagePanel(repository: MobileRepository, personal: PersonalRepository, pas
                                         Switch(explanations, toggle)
                                     }
                                     CommentFilters(comments, category, document, chooseCategory, chooseDocument)
-                                    val filtered = comments.filter { (category == null || category in it.commentCategories()) && (document == null || it.text("document_id") == document) }
+                                    val filtered = filterComments(comments, category, document)
                                     LazyColumn(contentPadding = PaddingValues(start = 8.dp, end = 20.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (filtered.isEmpty()) item { Text(if (comments.isEmpty()) "Nenhuma fonte ligada a este trecho no pacote instalado." else "Nenhuma fonte corresponde aos filtros selecionados.", Modifier.padding(16.dp)) }
                                         items(filtered, key = { it.text("id") }) { CommentPreview(it, personal, source) }

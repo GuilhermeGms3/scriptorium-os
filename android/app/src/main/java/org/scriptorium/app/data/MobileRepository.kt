@@ -7,6 +7,8 @@ import org.json.JSONObject
 import org.json.JSONArray
 
 data class Passage(val edition: Edition, val workId: String, val bookId: String, val title: String, val chapter: Int, val scheme: String, val verse: Int? = null, val verseEnd: Int? = null)
+data class StudyReading(val id: String, val title: String, val reason: String, val work: Row? = null, val page: Row? = null)
+
 data class SearchHit(val title: String, val text: String, val passage: Passage? = null, val page: Row? = null)
 
 fun Row.commentLabel(): String {
@@ -145,6 +147,35 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             json.objects("chapters").filter { it.optString("id").startsWith("overview:") }.forEach { it.put("title", title) }
         }
     }
+    fun lessonReadings(id: String, title: String): List<StudyReading> {
+        val assigned = navigation.lesson(id)?.objects("works").orEmpty()
+        val works = if (assigned.isEmpty()) emptyList() else primaryWorks()
+        val linked = assigned.mapNotNull { resource -> works.find { it.text("id") == resource.optString("workId") }?.let { work ->
+            StudyReading("work:${work.text("id")}", work.text("title"), "Leitura vinculada · ${resource.optString("role", "fonte do percurso")}", work = work)
+        } }
+        val terms = title.split(Regex("[^\\p{L}\\p{N}]+" )).filter { it.length > 3 && normalizedReading(it) !in setOf("sobre", "entre", "para", "como", "estudo", "historia") }.take(3)
+        val query = ftsQuery(terms.joinToString(" "))
+        val found = readingPages(query, "Encontrado no acervo")
+        if (linked.isNotEmpty() || found.isNotEmpty()) return (linked + found).distinctBy { it.id }
+        val area = navigation.lessonSupport(id) ?: return emptyList()
+        val supportWorks = if (works.isNotEmpty()) works else primaryWorks()
+        val support = area.objects("works").mapNotNull { resource -> supportWorks.find { it.text("id") == resource.optString("workId") }?.let { work ->
+            StudyReading("work:${work.text("id")}", work.text("title"), "Apoio à área · ${area.getString("title")}", work = work)
+        } }
+        val nearby = area.strings("keywords").take(3).firstNotNullOfOrNull { keyword ->
+            readingPages(ftsQuery(keyword), "Apoio à área · ${area.getString("title")}").takeIf { it.isNotEmpty() }
+        }.orEmpty()
+        return (support + nearby).distinctBy { it.id }
+    }
+    private fun readingPages(query: String, label: String): List<StudyReading> {
+        if (query.isBlank()) return emptyList()
+        return content { db ->
+            db.rows("""SELECT p.id,p.document_id,p.page_index,d.title source_title,d.checksum,d.pages document_pages,
+                snippet(pages_fts,1,'','', ' … ',28) excerpt FROM pages_fts f JOIN pages p ON p.id=f.page_id
+                JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? ORDER BY bm25(pages_fts) LIMIT 12""".trimIndent(), listOf(query))
+        }.map { page -> StudyReading("page:${page.text("id")}", page.text("source_title"), "$label · p. ${page.number("page_index") + 1}", page = page) }
+    }
+
     fun outline(documentId: String): List<Row> = content { it.rows("SELECT * FROM document_outline WHERE document_id=? ORDER BY ordinal", listOf(documentId)) }
     fun bibliography(): List<Row> = content { it.rows("SELECT * FROM bibliography ORDER BY title") }
     fun preparedTranslation(sourceId: String, text: String): Row? = content { db ->

@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -71,8 +72,8 @@ fun NotesScreen(personal: PersonalRepository) {
             }, edges.map { GraphEdge(it.text("source_id"), it.text("target_id")) }) { id -> editing = notes.find { it.text("id") == id } }
             else LazyColumn {
             if (notes.isEmpty()) item { Text("Suas notas aparecerão aqui.", Modifier.padding(vertical = 24.dp)) }
-            items(notes, key = { it.text("id") }) { note ->
-                ListItem(headlineContent = { Text(note.text("title")) }, supportingContent = { Text(note.text("body").take(160)) }, modifier = Modifier.clickable { editing = note })
+            itemsIndexed(notes, key = { _, it -> it.text("id") }) { index, note ->
+                ListItem(headlineContent = { Text(note.text("title")) }, supportingContent = { Text(note.text("body").take(160)) }, modifier = Modifier.revealSection(index).clickable { editing = note })
             }
         } }
     }

@@ -15,12 +15,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requestedGuide: String? = null, openPassage: (Passage) -> Unit) {
+fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requestedGuide: String? = null, openPassage: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit = {}) {
     var guide by rememberSaveable(requestedGuide) { mutableStateOf(requestedGuide) }
     var course by rememberSaveable { mutableStateOf<String?>(null) }
     var lessonId by rememberSaveable { mutableStateOf<String?>(null) }
     var lessonsOpen by rememberSaveable { mutableStateOf(false) }
-    var lessonQuery by rememberSaveable { mutableStateOf("") }
     val currentGuide = guide
     val currentCourse = course
     BackHandler(lessonId != null || course != null || guide != null || lessonsOpen) {
@@ -30,14 +29,14 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
         if (lessonId != null) {
             TextButton(onClick = { lessonId = null }) { Text("Voltar às aulas") }
             Load(lessonId, { repository.catalogItem(requireNotNull(lessonId)) }) { lesson ->
-                if (lesson != null) LessonSequence(lesson)
+                if (lesson != null) LessonSequence(requireNotNull(lessonId).removePrefix("lesson:"), lesson, repository, personal, openLibrary)
             }
         } else if (currentCourse != null) {
             Load(currentCourse, { repository.catalogItem(currentCourse) }) { json -> if (json != null) CourseScreen(json, repository, personal, openPassage) { course = null } }
         } else if (currentGuide != null) {
             TextButton(onClick = { guide = null }) { Text("Voltar à árvore") }
             Load(currentGuide, { repository.catalogItem("guide:$currentGuide") to repository.catalogItem("lesson:study-guide:$currentGuide") }) { (json, lesson) ->
-                if (json != null) GuideScreen(json, lesson, repository, personal, openPassage)
+                if (json != null) GuideScreen(json, lesson, repository, personal, openPassage, openLibrary)
             }
         } else Load("study-map", { repository.catalogItem("study-map") to listOf(repository.catalog("guide"), repository.catalog("course"), repository.catalog("lesson")) }) { (map, catalogs) ->
             val guides = catalogs[0]; val courses = catalogs[1]; val lessons = catalogs[2]
@@ -51,12 +50,12 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
                 item { Heading("Percursos acadêmicos") }
                 items(courses, key = { it.text("id") }) { row -> TextButton(onClick = { course = row.text("id") }, modifier = Modifier.fillMaxWidth()) { Text(row.text("title")) } }
                 item { Heading("Guias de estudo") }
-                items(guides, key = { it.text("id") }) { row -> TextButton(onClick = { guide = row.text("id").removePrefix("guide:") }, modifier = Modifier.fillMaxWidth()) { Text(row.text("title")) } }
+                item { androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                    items(guides, key = { it.text("id") }) { row -> OutlinedButton(onClick = { guide = row.text("id").removePrefix("guide:") }, modifier = Modifier.width(220.dp).heightIn(min = 72.dp)) { Text(row.text("title"), color = MaterialTheme.colorScheme.secondary) } }
+                } }
                 item { TextButton(onClick = { lessonsOpen = !lessonsOpen }) { Text("Aulas temáticas · ${lessons.size} ${if (lessonsOpen) "▴" else "▾"}") } }
-                if (lessonsOpen) {
-                    item { OutlinedTextField(lessonQuery, { lessonQuery = it.take(200) }, label = { Text("Encontrar aula") }, modifier = Modifier.fillMaxWidth()) }
-                    items(lessons.filter { it.text("title").contains(lessonQuery, true) }, key = { it.text("id") }) { row -> TextButton(onClick = { lessonId = row.text("id") }) { Text(row.text("title")) } }
-                }
+                if (lessonsOpen) item { ThematicLessons(lessons, repository) { lessonId = it } }
+
             }
         }
     }

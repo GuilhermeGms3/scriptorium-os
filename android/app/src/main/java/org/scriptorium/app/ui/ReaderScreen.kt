@@ -8,7 +8,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
@@ -19,15 +18,15 @@ import org.scriptorium.app.content.Edition
 import org.scriptorium.app.data.*
 
 @Composable
-fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?) {
+fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, requestPanel: Boolean = false, consumePanel: () -> Unit = {}, panelAvailable: (Boolean) -> Unit = {}) {
     Load("scripture-editions", repository::scriptureEditions) { editions ->
         if (editions.isEmpty()) Text("Nenhuma edição bíblica instalada. Instale um pacote em Mais → Pacotes.", Modifier.padding(24.dp))
-        else ReaderContent(repository, personal, requested, editions)
+        else ReaderContent(repository, personal, requested, editions, requestPanel, consumePanel, panelAvailable)
     }
 }
 
 @Composable
-private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>) {
+private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit) {
     val context = LocalContext.current
     val preferences = remember { ReadingPreferences(context) }
     val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = { decodePassage(it, editions) })
@@ -40,7 +39,6 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     var primary by remember { mutableStateOf<Row?>(null) }
     var page by remember { mutableStateOf<Row?>(null) }
     var editionMenu by remember { mutableStateOf(false) }
-    var jump by rememberSaveable { mutableStateOf(false) }
     var mode by rememberSaveable { mutableStateOf("Leitura") }
     var noteUnit by remember { mutableStateOf<String?>(null) }
     var panelOpen by rememberSaveable { mutableStateOf(false) }
@@ -49,6 +47,8 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     var document by rememberSaveable { mutableStateOf<String?>(null) }
     var feedback by remember { mutableStateOf<String?>(null) }
     var readerHistory by rememberSaveable(requested) { mutableStateOf(listOf<String>()) }
+    SideEffect { panelAvailable(passage != null && primary == null) }
+    LaunchedEffect(requestPanel, passage) { if (requestPanel && passage != null) { panelOpen = true; consumePanel() } }
     val scope = rememberCoroutineScope()
     fun rememberPage() {
         readerHistory = (readerHistory + org.json.JSONObject().put("edition", editionId).put("book", bookId).put("passage", passage?.encoded()).toString()).takeLast(30)
@@ -78,7 +78,6 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
                         Text(edition.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
-                if (passage != null) TextButton(onClick = { panelOpen = true }) { Text("Painel") }
                 Box {
                     IconButton(onClick = { editionMenu = true }, modifier = Modifier.semantics { contentDescription = "Escolher edição" }) { Text("⋮") }
                     DropdownMenu(expanded = editionMenu, onDismissRequest = { editionMenu = false }) {
@@ -94,26 +93,20 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             else {
                 if (mode != "Leitura") TextButton(onClick = { mode = "Leitura" }) { Text("← Voltar à leitura · $mode") }
                 if (mode != "Leitura") PassageMode(repository, personal, current, mode)
-                else ReaderChapter(repository, personal, current, explanations, category, document, preferences, ::open, { selected = it }, { noteUnit = it }, { verse ->
+                else ReaderChapter(repository, personal, current, explanations, { explanations = it }, category, document, { category = it }, { document = it }, preferences, ::open, { selected = it }, { noteUnit = it }, { verse ->
                     scope.launch {
                         try {
                             withContext(Dispatchers.IO) { personal.bookmark(org.json.JSONObject().put("editionId", current.edition.id).put("workId", current.workId).put("bookId", current.bookId).put("chapter", current.chapter).put("scheme", current.scheme).put("unitId", verse.text("id")), "${current.title} ${current.chapter}:${verse.text("verse_start")}") }
                             feedback = "Favorito salvo em Ajustes e backup."
                         } catch (failure: Exception) { feedback = failure.message }
                     }
-                }, { openTool("Texto original") }, { verse ->
-                    visibleVerse = verse?.number("verse_start") ?: visibleVerse
-                    panelOpen = true
-                }, { verse -> visibleVerse = verse.number("verse_start") })
+                }, { openTool("Texto original") }, { verse -> visibleVerse = verse.number("verse_start") })
             }
         }
-        ExtendedFloatingActionButton(onClick = { jump = true }, modifier = Modifier.align(Alignment.BottomEnd).padding(16.dp).semantics { contentDescription = "Ir para…" },
-            icon = { Text("⌕") }, text = { Text("Ir para…") })
     }
     if (panelOpen && passage != null) PassagePanel(repository, personal, requireNotNull(passage).copy(verse = visibleVerse, verseEnd = null),
         explanations, { explanations = it }, category, document, { category = it }, { document = it }, { selected = it },
         ::openTool, { panelOpen = false })
-    if (jump) PassageJumpDialog(repository, edition, onClose = { jump = false }) { open(it); jump = false }
     selected?.let { SourceDialog(repository, personal, it) { selected = null } }
     page?.let { PageDialog(repository, it, personal) { page = null } }
     noteUnit?.let { NoteEditor(personal, null, it) { noteUnit = null } }

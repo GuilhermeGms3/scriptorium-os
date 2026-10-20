@@ -54,4 +54,31 @@ class ReadingExperienceTest {
             assertFalse(output.contains("The book"))
         } finally { file.delete() }
     }
+
+    @Test fun thematicReadingsResolveToRealInstalledBooksAndPages() {
+        val repository = repository()
+        val readings = repository.lessonReadings("doctrine:trinity", "Trindade")
+        assertTrue("Aula deve recuperar fontes reais", readings.isNotEmpty())
+        val installedWorks = repository.primaryWorks().map { it.text("id") }.toSet()
+        val installedDocuments = repository.documents().map { it.text("id") }.toSet()
+        readings.forEach { reading ->
+            reading.work?.let { assertTrue(it.text("id") in installedWorks) }
+            reading.page?.let { assertTrue(it.text("document_id") in installedDocuments); assertNotNull(repository.page(it.text("document_id"), it.number("page_index"))) }
+        }
+        val genesis = requireNotNull(repository.resolveReference("Gn1:1", repository.scriptureEditions().first()))
+        val all = repository.comments(genesis)
+        val groups = commentGroups(genesis, repository.verses(genesis), all, repository.chapterTargets(genesis))
+        assertEquals("O painel inferior conserva os comentários do capítulo", all.map { it.text("id") }.toSet(), groups.flatMap { it.comments }.map { it.text("id") }.toSet())
+        println("READING_INVENTORY_QA genesisSources=${all.size} lessonReadings=${readings.size}")
+    }
+
+    @Test fun installedThematicCatalogHasRealReadingCoverage() {
+        val repository = repository()
+        val lessons = repository.catalog("lesson")
+        assertTrue(lessons.isNotEmpty())
+        assertTrue(lessons.all { repository.navigation.lesson(it.text("id")) != null })
+        val missing = lessons.filter { repository.lessonReadings(it.text("id"), it.text("title")).isEmpty() }.map { it.text("title") }
+        println("LESSON_COVERAGE_QA total=${lessons.size} missing=${missing.joinToString(" | ")}")
+        assertTrue("Aulas sem leitura instalada: ${missing.joinToString()}", missing.isEmpty())
+    }
 }

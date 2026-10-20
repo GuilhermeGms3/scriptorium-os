@@ -10,4 +10,19 @@ class ReadingPreferences(context: Context) {
     var sound: Boolean
         get() = preferences.getBoolean("ambient-sound", false)
         set(value) { preferences.edit().putBoolean("ambient-sound", value).apply() }
+    var appearance: ReadingAppearance
+        get() = ReadingAppearance(
+            font = ReadingFont.entries.firstOrNull { it.name == preferences.getString("appearance-font", null) } ?: ReadingFont.SERIF,
+            size = preferences.getInt("appearance-size", 22),
+            theme = ReadingTheme.entries.firstOrNull { it.name == preferences.getString("appearance-theme", null) } ?: ReadingTheme.DARK,
+            dockedComments = preferences.getBoolean("appearance-dock", false),
+            motion = preferences.getBoolean("appearance-motion", true),
+        ).normalized()
+        set(value) { val safe = value.normalized(); preferences.edit().putString("appearance-font", safe.font.name).putInt("appearance-size", safe.size)
+            .putString("appearance-theme", safe.theme.name).putBoolean("appearance-dock", safe.dockedComments).putBoolean("appearance-motion", safe.motion).apply() }
+    fun observeAppearance(change: () -> Unit): () -> Unit {
+        val listener = android.content.SharedPreferences.OnSharedPreferenceChangeListener { _, key -> if (key?.startsWith("appearance-") == true) change() }
+        preferences.registerOnSharedPreferenceChangeListener(listener)
+        return { preferences.unregisterOnSharedPreferenceChangeListener(listener) }
+    }
 }

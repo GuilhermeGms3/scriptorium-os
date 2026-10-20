@@ -17,7 +17,7 @@ import androidx.compose.ui.text.style.TextOverflow
 fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int) -> Boolean = { true }, completed: (Int) -> Boolean = { false }, choose: (Int) -> Unit) {
     val list = rememberLazyListState()
     LaunchedEffect(selected) { if (titles.isNotEmpty()) list.animateScrollToItem((selected - 1).coerceAtLeast(0)) }
-    Column {
+    Column(Modifier.revealSection(1)) {
         Text("$label · ${selected + 1} de ${titles.size}", Modifier.padding(horizontal = 4.dp, vertical = 8.dp), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
         LazyRow(state = list, horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 4.dp)) {
             itemsIndexed(titles) { index, title ->

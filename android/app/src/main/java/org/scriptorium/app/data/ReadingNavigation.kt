@@ -15,6 +15,8 @@ data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, 
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
     fun topic(id: String, fallback: String): String = labels.optJSONObject("topics")?.optString(id)?.takeIf(String::isNotBlank)
         ?: fallback.takeUnless { it == id || it.matches(Regex("^[a-z][a-z-]*:[^\\s]+$")) } ?: "Estudo temático"
+    fun lesson(id: String): JSONObject? = labels.optJSONObject("lessons")?.optJSONObject(id.removePrefix("lesson:"))
+    fun lessonSupport(id: String): JSONObject? = lesson(id)?.optString("supportGuide")?.let { labels.optJSONObject("studyAreas")?.optJSONObject(it) }
     fun book(id: String): JSONObject? = labels.optJSONObject("books")?.optJSONObject(id)
     fun group(id: String): String = book(id)?.optString("group")?.takeIf(String::isNotBlank) ?: "Deuterocanônicos e outros textos"
     fun symbol(id: String): String = book(id)?.optString("symbol")?.takeIf(String::isNotBlank) ?: "▤"
