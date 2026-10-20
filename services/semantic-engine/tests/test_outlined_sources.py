@@ -58,6 +58,69 @@ def test_corrupted_intertextual_heading_is_not_repaired_by_guessing() -> None:
     assert targets("Mateus 1.1—2.3", "matthew", snapshot, False) == []
 
 
+def test_homily_ordinal_is_not_the_chapter_and_wrong_book_is_rejected() -> None:
+    snapshot, _ = fixture()
+    snapshot.books.extend(
+        Book(id=book, aliases=[book], verseLimits=[ChapterLimit(chapter=1, lastVerse=25)])
+        for book in ["acts", "romans"]
+    )
+    assert targets("Homily II on Acts i. 6.", "acts", snapshot, True)[0]["chapter"] == 1
+    assert targets("Homily I on Rom. i. 1, 2.", "romans", snapshot, True)[1]["verseStart"] == 2
+    assert targets("Homily I on Acts i. 1.", "romans", snapshot, True) == []
+    assert targets("Homily I.", "acts", snapshot, True) == []
+    assert targets("Homily I on Acts i. 1. ii. 2.", "acts", snapshot, True) == []
+
+
+def test_opt_in_quarantine_never_publishes_unaligned_text() -> None:
+    snapshot, layout = fixture()
+    profile = Profile(
+        checksum=snapshot.checksum,
+        strategy="homilies",
+        author="Synthetic author",
+        segments=[Segment(first=1, last=1, books=["matthew"])],
+        quarantine_unaligned_pages=True,
+    )
+    layout.pages[0].unmatched = 1
+    result = extract(snapshot, layout, [Heading(page=1, title="Matthew I. 1.")], profile)
+    assert not result.notes
+    assert result.exceptions[0]["reason"] == "unaligned-page-quarantined"
+    layout.pages[0].textChecksum = "wrong"
+    with pytest.raises(ValueError, match="Unaligned"):
+        extract(snapshot, layout, [], profile)
+
+
+def test_opening_only_does_not_publish_later_homily_application_as_the_lemma() -> None:
+    snapshot, layout = fixture()
+    snapshot.pages = []
+    layout.pages = []
+    for number in range(1, 4):
+        text = f"Synthetic page {number} of the homily. " + "Contextual argument. " * 230
+        snapshot.pages.append(Page(physicalPage=number, text=text))
+        layout.pages.append(
+            LayoutPage(
+                physicalPage=number,
+                unmatched=0,
+                textChecksum=hashlib.sha256(text.encode()).hexdigest(),
+                spans=[
+                    LayoutSpan(
+                        startOffset=0, endOffset=len(text), family="serif", height=11, x=100, y=500
+                    )
+                ],
+            )
+        )
+    profile = Profile(
+        checksum=snapshot.checksum,
+        strategy="homilies",
+        author="Synthetic",
+        segments=[Segment(first=1, last=3, books=["matthew"])],
+        opening_excerpt_only=True,
+    )
+    result = extract(snapshot, layout, [Heading(page=1, title="Matthew I. 1.")], profile)
+    assert len(result.notes) == 1
+    assert "Synthetic page 1" in str(result.notes[0]["analysis"])
+    assert "Synthetic page 2" not in str(result.notes[0]["analysis"])
+
+
 def test_explicit_cross_chapter_range_respects_both_endpoints() -> None:
     snapshot, _ = fixture()
     snapshot.books[0].verseLimits.append(ChapterLimit(chapter=2, lastVerse=23))

@@ -15,6 +15,7 @@ import {
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
 import { StudyRepository } from "../repositories/study-repository";
+import { loadCuratedTopicReadings } from "./curated-topic-readings";
 
 export interface StudyTopic {
   id: string;
@@ -30,7 +31,8 @@ export interface TopicReading {
   locator: string;
   excerpt: string;
   language?: string;
-  origin: "catalog" | "primary-search" | "private-search";
+  origin: "catalog" | "primary-search" | "private-search" | "private-curated";
+  guidance?: string;
   source: StudySource;
 }
 export interface TopicReadings {
@@ -185,12 +187,14 @@ export async function connectTopicStudy(topic: StudyTopic, studyId?: string): Pr
 }
 
 interface ReadingDependencies {
+  curated?: (id: string) => Promise<{ items: TopicReading[]; warnings: string[] }>;
   works: () => Promise<PrimarySourceWorkSummary[]>;
   primary: (query: string, limit: number) => Promise<CorpusSearchHit[]>;
   private: (query: string, options: { limit: number }) => Promise<PrivateDocumentSearchHit[]>;
   evidence: (ids: string[]) => Promise<TopicReadings["evidence"]>;
 }
 const dependencies: ReadingDependencies = {
+  curated: loadCuratedTopicReadings,
   works: () => PrimarySourceRepository.listWorks(),
   primary: (query, limit) => PrimarySourceRepository.search(query, limit),
   private: (query, options) => PrivateDocumentRepository.search(query, options),
@@ -204,17 +208,22 @@ export async function loadTopicReadings(
   sources: ReadingDependencies = dependencies,
 ): Promise<TopicReadings> {
   const terms = [...new Set(topic.terms.map((term) => term.trim()).filter(Boolean))].slice(0, 3);
-  const [catalog, primary, privateHits, evidence] = await Promise.all([
+  const [catalog, primary, privateHits, evidence, curated] = await Promise.all([
     Promise.allSettled([sources.works()]),
     Promise.allSettled(terms.map((term) => sources.primary(term, 5))),
     Promise.allSettled(terms.map((term) => sources.private(term, { limit: 4 }))),
     Promise.allSettled([sources.evidence(bundle?.claims.map((claim) => claim.id) ?? [])]),
+    Promise.allSettled([
+      sources.curated?.(topic.id) ?? Promise.resolve({ items: [], warnings: [] }),
+    ]),
   ]);
   const works = catalog[0]?.status === "fulfilled" ? catalog[0].value : [];
   const byId = new Map(works.map((work) => [work.id, work]));
   const assigned =
     topic.kind === "guide" ? (topic.guide?.resources ?? []) : knowledgeSourceLinks(topic.id);
   const items = new Map<string, TopicReading>();
+  if (curated[0]?.status === "fulfilled")
+    for (const reading of curated[0].value.items) items.set(reading.id, reading);
   for (const resource of assigned) {
     const work = byId.get(resource.workId);
     if (work)
@@ -269,12 +278,15 @@ export async function loadTopicReadings(
   const failed = (results: readonly PromiseSettledResult<unknown>[]) =>
     results.some((result) => result.status === "rejected");
   return {
-    items: (["catalog", "primary-search", "private-search"] as const).flatMap((origin) =>
-      [...items.values()].filter((item) => item.origin === origin).slice(0, 8),
+    items: (["private-curated", "catalog", "primary-search", "private-search"] as const).flatMap(
+      (origin) => [...items.values()].filter((item) => item.origin === origin).slice(0, 8),
     ),
     evidence:
       evidence[0]?.status === "fulfilled" ? evidence[0].value : { references: [], fragments: [] },
     warnings: [
+      ...(curated[0]?.status === "fulfilled"
+        ? curated[0].value.warnings
+        : ["Não foi possível conferir as leituras selecionadas do acervo."]),
       ...(failed(catalog) || failed(primary)
         ? ["A consulta às obras instaladas está incompleta."]
         : []),
