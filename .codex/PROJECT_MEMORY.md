@@ -14,6 +14,8 @@
 - Docker parado/religado com autorização. Lock antigo preservado após backup e confirmação do
   container parado. Importador aceita 25–28 sem migration alheia e manteve 25. Docker possui
   schema 26 e cria seu próprio backup/migração aditiva ao reabrir a instalação.
+- Reabertura concluída: HTTP 200, schema 26, 57 documentos. Backup do caderno terminou;
+  os timeouts iniciais ocorreram durante VACUUM síncrono, não foram perda do acervo.
 - QA em cópia temporária isolada; não impor 28 ao original: imagem Docker existente até 26.
   Código novo de estudos exige rebuild posterior da imagem; nesta entrega não reconstruir Docker.
 - Próximos: A Trindade/Institutas/métodos/léxicos/arqueologia; Salmos exigem crosswalk e 6 PDFs sem

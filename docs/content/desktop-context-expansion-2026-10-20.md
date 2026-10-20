@@ -89,6 +89,9 @@ o importador não deve impor essa atualização ao runtime antigo.
 ## Preservação e evidência da execução
 
 - Container do aplicativo parado com autorização e religado depois; serviço de tradução intacto.
+- A primeira abertura do Docker criou o backup pendente do caderno: requisições iniciais
+  expiraram enquanto a operação síncrona executava. Após concluída, sessão HTTP 200,
+  schema 26 e 57 documentos confirmados no container. Não interromper o backup por esse atraso.
 - Lock Linux antigo preservado como `workspace.lock.crash-20261020-preserved` somente após
   confirmar o container parado e concluir backup consistente. Não houve remoção por idade.
 - Backup anterior à recuperação e backup automático anterior ao lote preservados localmente.
