@@ -10,6 +10,38 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
+## Uso no celular — 0.3.0
+
+- **Leitura → Ir para…** abre referências como `Jo3:16`, `Gn 1:1-3`, `1Co 13:4-7`
+  e `Sl 119:105`. Valida os endereços na edição instalada e posiciona a lista no versículo,
+  independentemente da quantidade de comentários anteriores. Também há seleção livro → capítulo → versículo.
+- Livros em duas colunas, separados por Pentateuco, históricos, poesia, profetas, evangelhos,
+  cartas e deuterocanônicos/outros, com os mesmos grupos editoriais do desktop.
+- Filtros **Não canônico**, **Apócrifo**, **Esotérico** e **Fontes antigas** dão acesso aos textos
+  realmente instalados e aos volumes privados identificados pelo título. Nag Hammadi não vira
+  52 traduções fictícias: texto crítico copta, catálogo e volumes privados são distintos.
+- Escritura em serifa, maior e clara; comentários menores em sans-serif, em superfícies
+  separadas. Número branco em selo bronze. Cada comentário começa como prévia e pode ser
+  expandido/recolhido separadamente; a fonte completa abre à parte com página/seção disponível.
+- Filtros de comentários combinam assunto declarado e livro de origem. Texto-prova
+  confessional não é rotulado automaticamente como exegese. Ausência de classe não é inventada.
+- **Home** e o título Scriptorium levam ao início. Há retomada do último versículo visível,
+  passagem diária calculada sobre capítulos/textos reais e trilha diária entre guias instalados.
+  A seleção por data não é calendário litúrgico nem revelação personalizada.
+- Botão Voltar do Android retorna nos módulos e subpáginas; apenas no início sem histórico
+  fica com o comportamento normal de saída. A confirmação de descarte das notas é preservada.
+- Cores de notas/grupos por paleta nomeada, sem digitar hexadecimal. Cores anteriores preservadas.
+- Transições suaves de módulo e expansão de comentários. Som breve opcional em **Ajustes e
+  backup → Ambiente de estudo**, inicialmente desligado e respeitando silencioso/volume de mídia.
+- Tradução segue local por decisão do usuário, sem Google Cloud/chaves/serviço remoto. Os
+  modelos podem ser preparados em **Ajustes e backup → Tradução local**. Modelos instalados
+  são usados sem consultar atualizações; download, tradução, timeout e erro têm estados próprios.
+  Inglês/espanhol → português; não traduz copta/hebraico/grego por esse provedor.
+
+Os rótulos leves do APK são gerados por `npm run mobile:labels` a partir do catálogo editorial
+versionado do desktop. Não trazem livros nem dados pessoais. Esta atualização não exige
+reexportar o acervo: instale o APK novo **por cima**, sem desinstalar o anterior.
+
 ## Compilar
 
 Abra esta pasta no Android Studio. Requer JDK 21, SDK Android 36 e Build Tools 36.0.0.

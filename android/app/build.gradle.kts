@@ -9,8 +9,8 @@ android {
         applicationId = "org.scriptorium.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 3
-        versionName = "0.2.1"
+        versionCode = 4
+        versionName = "0.3.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }
@@ -30,11 +30,13 @@ val prepareReadingAssets by tasks.registering {
     val source = rootProject.file("../services/semantic-engine/app/theological-glossary.json")
     val destination = layout.buildDirectory.dir("generated/reading-assets")
     inputs.file(source)
+    inputs.file(rootProject.file("reading-labels.json"))
     outputs.dir(destination)
     doLast {
         val folder = destination.get().asFile
         folder.mkdirs()
         source.copyTo(folder.resolve("theological-glossary.json"), overwrite = true)
+        rootProject.file("reading-labels.json").copyTo(folder.resolve("reading-labels.json"), overwrite = true)
     }
 }
 tasks.named("preBuild") { dependsOn(prepareReadingAssets) }

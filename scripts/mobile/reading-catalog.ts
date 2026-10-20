@@ -7,6 +7,7 @@ import {
   LESSON_REFERENCES,
 } from "../../src/lib/content/study-lessons/catalog";
 import { GENESIS_COURSE } from "../../src/lib/content/study-courses/genesis";
+import { knowledgeLabel } from "../../src/lib/content/knowledge-presentation";
 import {
   NAG_HAMMADI_CATALOG,
   NAG_HAMMADI_RIGHTS_NOTE,
@@ -42,7 +43,7 @@ export function writeReadingCatalog(output: DatabaseSync): void {
     if (lesson) add(`lesson:study-guide:${guide.id}`, "lesson", guide.title, lesson);
   }
   for (const id of Object.keys(TOPIC_PRIMERS)) {
-    const lesson = lessonForTopic({ id, title: id });
+    const lesson = lessonForTopic({ id, title: knowledgeLabel(id, "Estudo temático") });
     if (lesson) add(`lesson:${id}`, "lesson", lesson.title, lesson);
   }
   add(`course:${GENESIS_COURSE.id}`, "course", GENESIS_COURSE.title, GENESIS_COURSE);

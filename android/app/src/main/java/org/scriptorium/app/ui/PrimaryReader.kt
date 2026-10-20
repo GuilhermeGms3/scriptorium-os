@@ -1,5 +1,6 @@
 package org.scriptorium.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -12,6 +13,7 @@ import org.scriptorium.app.data.*
 
 @Composable
 fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, work: Row, close: () -> Unit) {
+    BackHandler(onBack = close)
     val edition = repository.editions().first { it.id == work.text("edition_id") }
     var offset by remember { mutableIntStateOf(0) }
     var note by remember { mutableStateOf<String?>(null) }

@@ -1,5 +1,6 @@
 package org.scriptorium.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -15,22 +16,29 @@ import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import org.scriptorium.app.data.*
 
 @Composable
 fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, comment: Row, close: () -> Unit) {
     var note by remember { mutableStateOf(false) }
+    var technical by remember { mutableStateOf(false) }
     var libraryPage by remember { mutableStateOf<Row?>(null) }
     AlertDialog(onDismissRequest = close, confirmButton = { TextButton(onClick = close) { Text("Fechar") } }, title = { Text(comment.text("source_title")) }, text = {
         Column(Modifier.heightIn(max = 560.dp).verticalScroll(rememberScrollState())) {
             if (comment.text("mode") == "source-excerpt") TranslationBlock(comment.text("body"), comment.text("source_language"), personal)
-            Text(comment.text("body"))
+            Text(comment.text("body"), style = MaterialTheme.typography.bodyLarge, lineHeight = 28.sp)
             Text(comment.commentLabel(), style = MaterialTheme.typography.labelSmall)
             Heading("Por que foi ligado")
             Text(comment.text("rationale"))
-            Text("Método: ${comment.text("method")}\nRevisão: ${reviewLabel(comment.text("review_status"))}", style = MaterialTheme.typography.bodySmall)
+            Text("Revisão: ${reviewLabel(comment.text("review_status"))}", style = MaterialTheme.typography.bodySmall)
+            TextButton(onClick = { technical = !technical }) { Text(if (technical) "Ocultar detalhes técnicos" else "Detalhes técnicos da associação") }
+            if (technical) Text(comment.text("method"), style = MaterialTheme.typography.labelSmall)
             Load(comment.text("id"), { repository.evidence(comment.text("id")) to repository.trace(comment.text("id")) }) { (evidence, trace) ->
                 evidence.forEach { page ->
+                    Load(page.text("id"), { repository.outline(page.text("document_id")).filter { page.number("page_index") in it.number("page_start")..it.number("page_end") }.lastOrNull() }) { section ->
+                        section?.let { Text("Seção: ${it.text("title")}", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
+                    }
                     val text = page.text("text")
                     val start = page.number("start_offset").coerceIn(0, text.length)
                     val end = page.number("end_offset").coerceIn(start, text.length)
@@ -58,6 +66,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository) {
     var filter by rememberSaveable { mutableStateOf("") }
     var primary by remember { mutableStateOf<Row?>(null) }
     val current = document
+    BackHandler(document != null) { document = null }
     primary?.let { PrimaryReader(repository, personal, it) { primary = null }; return }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         Heading("Biblioteca", "Livros do pacote instalado. Texto extraído e PDF original são identificados separadamente.")

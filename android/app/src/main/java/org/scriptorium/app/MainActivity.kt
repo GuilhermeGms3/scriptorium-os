@@ -25,6 +25,7 @@ class MainActivity : ComponentActivity() {
                 primaryContainer = Color(0xFF40372A), onPrimaryContainer = Color(0xFFE9E2D6),
                 secondaryContainer = Color(0xFF40372A), onSecondaryContainer = Color(0xFFD4BD8D),
                 surfaceContainer = Color(0xFF191E24),
+                surfaceContainerHigh = Color(0xFF222A30), onSurfaceVariant = Color(0xFFBEC8CB),
             )) { ScriptoriumApp(viewModel()) }
         }
     }

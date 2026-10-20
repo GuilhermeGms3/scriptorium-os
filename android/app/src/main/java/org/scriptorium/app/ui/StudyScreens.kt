@@ -2,6 +2,7 @@ package org.scriptorium.app.ui
 
 import android.content.Intent
 import android.net.Uri
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,14 +21,17 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
 @Composable
-fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, openPassage: (Passage) -> Unit) {
-    var guide by rememberSaveable { mutableStateOf<String?>(null) }
+fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requestedGuide: String? = null, openPassage: (Passage) -> Unit) {
+    var guide by rememberSaveable(requestedGuide) { mutableStateOf(requestedGuide) }
     var course by rememberSaveable { mutableStateOf<String?>(null) }
     var lessonId by rememberSaveable { mutableStateOf<String?>(null) }
     var lessonsOpen by rememberSaveable { mutableStateOf(false) }
     var lessonQuery by rememberSaveable { mutableStateOf("") }
     val currentGuide = guide
     val currentCourse = course
+    BackHandler(lessonId != null || course != null || guide != null || lessonsOpen) {
+        when { lessonId != null -> lessonId = null; course != null -> course = null; guide != null -> guide = null; else -> lessonsOpen = false }
+    }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
         if (lessonId != null) {
             TextButton(onClick = { lessonId = null }) { Text("Voltar às aulas") }

@@ -1,5 +1,26 @@
 # Project Memory
 
+## Android — uso diário 0.3.0 — 2026-10-20
+
+- Feedback mobile implementado preservando tema/bronze e acervo: salto `Jo3:16`/ranges e grid
+  livro→capítulo→versículo, FTS com destino exato, cache por geração, leitor sem aguardar comentários,
+  previews independentes/filtros classe+fonte, selo branco/bronze e hierarquia serif/sans.
+- Home visível por título/botão, retomada do versículo e passagem/trilha derivadas de dados reais;
+  histórico Android entre módulos e na leitura, subpáginas e confirmação de descarte preservados.
+- Duas colunas/grupos do desktop, textos antigos/volumes privados em Leitura e filtros explícitos;
+  não inventar 52 traduções a partir do catálogo NHC. Aulas com rótulos reais também em pacote antigo;
+  exportador futuro corrigido. Paleta de cores nomeadas. Transições e som opcional inicialmente off.
+- Usuário recusou Google Cloud por não ter chave. Tradução mantida ML Kit; modelos preparáveis
+  nos ajustes, progresso/timeout/tentativa e offline sem checar atualizações de modelos presentes.
+- Passaram38 JVM,8 Node/mobile,typecheck/lint,Android build/testAPK/lint; cenário UI nativo completo,
+  referências/dados antigos e3 regressões pessoais. Tradução real passou após download e em modo avião.
+  Banco pessoal SHA idêntico após atualização e UI; acervo b289f600.../3.637.896KiB preservado.
+- Entrega apenas APK0.3.0/versionCode4 em C:/Users/comical/Desktop/Scriptorium-Android-0.3.0,
+  sem outro ZIP de livros. Baseline usado: kit0.2.1 Desktop; antigos data/mobile* não foram encontrados.
+  QA em CTemp/scriptorium-feedback-avd-20261020, sem tocar Pixel_8. Sem teste físico/áudio audível.
+- Relatório completo: docs/qa/android-reading-experience-2026-10-20.md. Desktop, pipeline e banco
+  canônico não alterados; semântica experimental/traduções acadêmicas/sync permanecem limites prévios.
+
 ## Android — instalação física / PowerShell 5.1 — 2026-10-19
 
 - Erro real do usuário: StandardInputEncoding não existe no ProcessStartInfo do .NET

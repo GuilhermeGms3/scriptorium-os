@@ -14,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.scriptorium.app.data.PersonalRepository
+import org.scriptorium.app.data.ReadingPreferences
 import org.scriptorium.app.data.text
 
 @Composable
@@ -23,6 +24,8 @@ fun PersonalSettings(personal: PersonalRepository) {
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<String?>(null) }
     var revision by remember { mutableIntStateOf(0) }
+    val preferences = remember { ReadingPreferences(context) }
+    var sound by remember { mutableStateOf(preferences.sound) }
     val exporter = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) { uri ->
         if (uri != null) { busy = true; scope.launch {
             try { withContext(Dispatchers.IO) { val raw = personal.backup(); requireNotNull(context.contentResolver.openOutputStream(uri)).bufferedWriter().use { it.write(raw) } }; message = "Backup pessoal exportado. Guarde-o em local privado." }
@@ -42,7 +45,16 @@ fun PersonalSettings(personal: PersonalRepository) {
         } }
     }
     LazyColumn(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        item {
+            Heading("Ambiente de estudo")
+            Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                Text("Som suave ao entrar nos módulos", Modifier.weight(1f))
+                Switch(sound, { sound = it; preferences.sound = it })
+            }
+            Text("Desligado inicialmente para leitura em cultos e bibliotecas. Respeita o modo silencioso e o volume de mídia do celular.", style = MaterialTheme.typography.bodySmall)
+        }
         item { Heading("Seus dados pessoais", "Notas, grupos, pastas, links, progresso e favoritos ficam separados dos pacotes de conteúdo.") }
+        item { TranslationSettings() }
         item { Text("O backup contém dados pessoais em texto claro. Não publique nem envie a terceiros. Ele não contém os PDFs: estes acompanham seu APK/pacote privado.") }
         item { Button(enabled = !busy, onClick = { exporter.launch("scriptorium-notas-${java.time.LocalDate.now()}.json") }) { Text("Exportar backup pessoal") } }
         item { OutlinedButton(enabled = !busy, onClick = { importer.launch(arrayOf("application/json", "application/octet-stream")) }) { Text("Restaurar backup Android") } }

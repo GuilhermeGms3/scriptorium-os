@@ -135,11 +135,18 @@ download explícito do modelo, execução local e cache por texto/provedor/gloss
 O glossário versionado é o mesmo JSON do serviço Python. Termos protegidos não atravessam
 o tradutor. O original nunca é substituído; a tradução continua automática e falível.
 Modelo de tradução ainda não é incluído no APK e requer conexão na primeira utilização.
+A partir de0.3.0, pode ser preparado em Ajustes e backup; modelos já instalados são usados
+sem pedir atualização durante a leitura offline. Há progresso e falhas de etapa, timeout
+e nova tentativa. Tradução remota/Google Cloud não foi habilitada por decisão do usuário.
+Controle de modelos segue a [API oficial ML Kit](https://developers.google.com/ml-kit/language/translation/android).
 
 ## Interfaces nativas
 
-- Hoje: capítulo do dia calculado sobre as edições reais; não fixo em João 1.
-- Escrituras: seleção, comentários, fontes em modal, imagens, comparação pelo esquema,
+- Home acessível pelo título e botão: último versículo visível, passagem do dia calculada sobre
+  edições reais e trilha entre guias instalados; sem lista fictícia de versos nem calendário litúrgico.
+- Escrituras: salto direto por referência/abreviação, grade de livros/capítulos/versículos,
+  seções editoriais, fontes antigas/volumes não canônicos e filtros explícitos. Comentários
+  em prévias individualmente expansíveis, filtro por classe e documento, fontes em modal, imagens, comparação pelo esquema,
   texto original, interlinear por unidade, léxico, morfologia, ocorrências e estatísticas.
 - Biblioteca: capas derivadas dos PDFs reais, páginas, original ampliável, índice extraído,
   fontes antigas paginadas, tradução e referências guardadas.

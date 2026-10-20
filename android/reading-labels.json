@@ -1,0 +1,497 @@
+{
+  "books": {
+    "genesis": {
+      "title": "Gênesis",
+      "aliases": ["Gênesis", "Genesis", "Gn"],
+      "group": "Pentateuco",
+      "symbol": "✧"
+    },
+    "exodus": {
+      "title": "Êxodo",
+      "aliases": ["Êxodo", "Exodus", "Êx"],
+      "group": "Pentateuco",
+      "symbol": "✧"
+    },
+    "leviticus": {
+      "title": "Levítico",
+      "aliases": ["Levítico", "Leviticus", "Lv"],
+      "group": "Pentateuco",
+      "symbol": "✧"
+    },
+    "numbers": {
+      "title": "Números",
+      "aliases": ["Números", "Numbers", "Nm"],
+      "group": "Pentateuco",
+      "symbol": "✧"
+    },
+    "deuteronomy": {
+      "title": "Deuteronômio",
+      "aliases": ["Deuteronômio", "Deuteronomy", "Dt"],
+      "group": "Pentateuco",
+      "symbol": "✧"
+    },
+    "joshua": {
+      "title": "Josué",
+      "aliases": ["Josué", "Joshua", "Js"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "judges": {
+      "title": "Juízes",
+      "aliases": ["Juízes", "Judges", "Jz"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "ruth": {
+      "title": "Rute",
+      "aliases": ["Rute", "Ruth", "Rt"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "1-samuel": {
+      "title": "1 Samuel",
+      "aliases": ["1 Samuel", "1 Samuel", "1Sm"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "2-samuel": {
+      "title": "2 Samuel",
+      "aliases": ["2 Samuel", "2 Samuel", "2Sm"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "1-kings": {
+      "title": "1 Reis",
+      "aliases": ["1 Reis", "1 Kings", "1Rs"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "2-kings": {
+      "title": "2 Reis",
+      "aliases": ["2 Reis", "2 Kings", "2Rs"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "1-chronicles": {
+      "title": "1 Crônicas",
+      "aliases": ["1 Crônicas", "1 Chronicles", "1Cr"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "2-chronicles": {
+      "title": "2 Crônicas",
+      "aliases": ["2 Crônicas", "2 Chronicles", "2Cr"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "ezra": {
+      "title": "Esdras",
+      "aliases": ["Esdras", "Ezra", "Ed"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "nehemiah": {
+      "title": "Neemias",
+      "aliases": ["Neemias", "Nehemiah", "Ne"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "esther": {
+      "title": "Ester",
+      "aliases": ["Ester", "Esther", "Et"],
+      "group": "Históricos",
+      "symbol": "▤"
+    },
+    "job": {
+      "title": "Jó",
+      "aliases": ["Jó", "Job", "Jó"],
+      "group": "Poéticos e sapienciais",
+      "symbol": "♫"
+    },
+    "psalms": {
+      "title": "Salmos",
+      "aliases": ["Salmos", "Psalms", "Sl"],
+      "group": "Poéticos e sapienciais",
+      "symbol": "♫"
+    },
+    "proverbs": {
+      "title": "Provérbios",
+      "aliases": ["Provérbios", "Proverbs", "Pv"],
+      "group": "Poéticos e sapienciais",
+      "symbol": "♫"
+    },
+    "ecclesiastes": {
+      "title": "Eclesiastes",
+      "aliases": ["Eclesiastes", "Ecclesiastes", "Ec"],
+      "group": "Poéticos e sapienciais",
+      "symbol": "♫"
+    },
+    "song-of-songs": {
+      "title": "Cântico dos Cânticos",
+      "aliases": ["Cântico dos Cânticos", "Song of Songs", "Ct"],
+      "group": "Poéticos e sapienciais",
+      "symbol": "♫"
+    },
+    "isaiah": {
+      "title": "Isaías",
+      "aliases": ["Isaías", "Isaiah", "Is"],
+      "group": "Profetas maiores",
+      "symbol": "✦"
+    },
+    "jeremiah": {
+      "title": "Jeremias",
+      "aliases": ["Jeremias", "Jeremiah", "Jr"],
+      "group": "Profetas maiores",
+      "symbol": "✦"
+    },
+    "lamentations": {
+      "title": "Lamentações",
+      "aliases": ["Lamentações", "Lamentations", "Lm"],
+      "group": "Profetas maiores",
+      "symbol": "✦"
+    },
+    "ezekiel": {
+      "title": "Ezequiel",
+      "aliases": ["Ezequiel", "Ezekiel", "Ez"],
+      "group": "Profetas maiores",
+      "symbol": "✦"
+    },
+    "daniel": {
+      "title": "Daniel",
+      "aliases": ["Daniel", "Daniel", "Dn"],
+      "group": "Profetas maiores",
+      "symbol": "✦"
+    },
+    "hosea": {
+      "title": "Oseias",
+      "aliases": ["Oseias", "Hosea", "Os"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "joel": {
+      "title": "Joel",
+      "aliases": ["Joel", "Joel", "Jl"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "amos": {
+      "title": "Amós",
+      "aliases": ["Amós", "Amos", "Am"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "obadiah": {
+      "title": "Obadias",
+      "aliases": ["Obadias", "Obadiah", "Ob"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "jonah": {
+      "title": "Jonas",
+      "aliases": ["Jonas", "Jonah", "Jn"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "micah": {
+      "title": "Miqueias",
+      "aliases": ["Miqueias", "Micah", "Mq"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "nahum": {
+      "title": "Naum",
+      "aliases": ["Naum", "Nahum", "Na"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "habakkuk": {
+      "title": "Habacuque",
+      "aliases": ["Habacuque", "Habakkuk", "Hc"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "zephaniah": {
+      "title": "Sofonias",
+      "aliases": ["Sofonias", "Zephaniah", "Sf"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "haggai": {
+      "title": "Ageu",
+      "aliases": ["Ageu", "Haggai", "Ag"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "zechariah": {
+      "title": "Zacarias",
+      "aliases": ["Zacarias", "Zechariah", "Zc"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "malachi": {
+      "title": "Malaquias",
+      "aliases": ["Malaquias", "Malachi", "Ml"],
+      "group": "Profetas menores",
+      "symbol": "✦"
+    },
+    "matthew": {
+      "title": "Mateus",
+      "aliases": ["Mateus", "Matthew", "Mt"],
+      "group": "Evangelhos e Atos",
+      "symbol": "✝"
+    },
+    "mark": {
+      "title": "Marcos",
+      "aliases": ["Marcos", "Mark", "Mc"],
+      "group": "Evangelhos e Atos",
+      "symbol": "✝"
+    },
+    "luke": {
+      "title": "Lucas",
+      "aliases": ["Lucas", "Luke", "Lc"],
+      "group": "Evangelhos e Atos",
+      "symbol": "✝"
+    },
+    "john": {
+      "title": "João",
+      "aliases": ["João", "John", "Jo"],
+      "group": "Evangelhos e Atos",
+      "symbol": "✝"
+    },
+    "acts": {
+      "title": "Atos",
+      "aliases": ["Atos", "Acts", "At"],
+      "group": "Evangelhos e Atos",
+      "symbol": "✝"
+    },
+    "romans": {
+      "title": "Romanos",
+      "aliases": ["Romanos", "Romans", "Rm"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "1-corinthians": {
+      "title": "1 Coríntios",
+      "aliases": ["1 Coríntios", "1 Corinthians", "1Co"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "2-corinthians": {
+      "title": "2 Coríntios",
+      "aliases": ["2 Coríntios", "2 Corinthians", "2Co"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "galatians": {
+      "title": "Gálatas",
+      "aliases": ["Gálatas", "Galatians", "Gl"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "ephesians": {
+      "title": "Efésios",
+      "aliases": ["Efésios", "Ephesians", "Ef"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "philippians": {
+      "title": "Filipenses",
+      "aliases": ["Filipenses", "Philippians", "Fp"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "colossians": {
+      "title": "Colossenses",
+      "aliases": ["Colossenses", "Colossians", "Cl"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "1-thessalonians": {
+      "title": "1 Tessalonicenses",
+      "aliases": ["1 Tessalonicenses", "1 Thessalonians", "1Ts"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "2-thessalonians": {
+      "title": "2 Tessalonicenses",
+      "aliases": ["2 Tessalonicenses", "2 Thessalonians", "2Ts"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "1-timothy": {
+      "title": "1 Timóteo",
+      "aliases": ["1 Timóteo", "1 Timothy", "1Tm"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "2-timothy": {
+      "title": "2 Timóteo",
+      "aliases": ["2 Timóteo", "2 Timothy", "2Tm"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "titus": {
+      "title": "Tito",
+      "aliases": ["Tito", "Titus", "Tt"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "philemon": {
+      "title": "Filemom",
+      "aliases": ["Filemom", "Philemon", "Fm"],
+      "group": "Cartas paulinas",
+      "symbol": "✉"
+    },
+    "hebrews": {
+      "title": "Hebreus",
+      "aliases": ["Hebreus", "Hebrews", "Hb"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "james": {
+      "title": "Tiago",
+      "aliases": ["Tiago", "James", "Tg"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "1-peter": {
+      "title": "1 Pedro",
+      "aliases": ["1 Pedro", "1 Peter", "1Pe"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "2-peter": {
+      "title": "2 Pedro",
+      "aliases": ["2 Pedro", "2 Peter", "2Pe"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "1-john": {
+      "title": "1 João",
+      "aliases": ["1 João", "1 John", "1Jo"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "2-john": {
+      "title": "2 João",
+      "aliases": ["2 João", "2 John", "2Jo"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "3-john": {
+      "title": "3 João",
+      "aliases": ["3 João", "3 John", "3Jo"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "jude": {
+      "title": "Judas",
+      "aliases": ["Judas", "Jude", "Jd"],
+      "group": "Cartas gerais",
+      "symbol": "✉"
+    },
+    "revelation": {
+      "title": "Apocalipse",
+      "aliases": ["Apocalipse", "Revelation", "Ap"],
+      "group": "Apocalíptico",
+      "symbol": "☼"
+    }
+  },
+  "topics": {
+    "entity:work:gospel-of-john": "Evangelho segundo João",
+    "entity:work:epistle-diognetus": "Epístola a Diogneto",
+    "entity:work:origen-commentary-john": "Comentário de Orígenes sobre o Evangelho de João",
+    "entity:concept:logos": "Logos",
+    "entity:concept:incarnation-language": "Linguagem da encarnação",
+    "entity:concept:life-john": "Vida no prólogo de João",
+    "entity:concept:light-john": "Luz no prólogo de João",
+    "entity:concept:witness-john": "Testemunho no prólogo de João",
+    "entity:concept:grace-truth-john": "Graça e verdade em João 1",
+    "entity:person:michael-w-holmes": "Michael W. Holmes",
+    "entity:historical:apostles-creed": "Credo dos Apóstolos",
+    "entity:historical:nicene-constantinopolitan-creed": "Credo Niceno-Constantinopolitano",
+    "entity:historical:chalcedon": "Definição de Calcedônia",
+    "entity:historical:athanasian-creed": "Credo Atanasiano",
+    "entity:historical:augsburg-confession": "Confissão de Augsburgo",
+    "entity:historical:thirty-nine-articles": "Trinta e Nove Artigos",
+    "entity:historical:westminster-confession": "Confissão de Fé de Westminster",
+    "entity:historical:canons-of-dort": "Cânones de Dort",
+    "entity:historical:didache": "Didaquê",
+    "entity:historical:first-clement": "1 Clemente",
+    "entity:historical:second-clement": "2 Clemente",
+    "entity:historical:polycarp-philippians": "Policarpo aos Filipenses",
+    "entity:historical:martyrdom-polycarp": "Martírio de Policarpo",
+    "entity:historical:ignatius-letters": "Cartas de Inácio",
+    "entity:historical:epistle-barnabas": "Epístola de Barnabé",
+    "entity:historical:shepherd-hermas": "Pastor de Hermas",
+    "entity:historical:epistle-diognetus": "Epístola a Diogneto",
+    "entity:council:nicaea-325": "Concílio de Niceia (325)",
+    "entity:council:constantinople-381": "Concílio de Constantinopla (381)",
+    "entity:council:ephesus-431": "Concílio de Éfeso (431)",
+    "entity:council:chalcedon-451": "Concílio de Calcedônia (451)",
+    "topic:bibliology": "Bibliologia",
+    "topic:theology-proper": "Teologia própria",
+    "topic:christology": "Cristologia",
+    "topic:pneumatology": "Pneumatologia",
+    "topic:anthropology": "Antropologia teológica",
+    "topic:hamartiology": "Hamartiologia",
+    "topic:soteriology": "Soteriologia",
+    "topic:ecclesiology": "Eclesiologia",
+    "topic:sacramentology": "Sacramentologia",
+    "topic:eschatology": "Escatologia",
+    "topic:atonement": "Expiação",
+    "topic:justification": "Justificação",
+    "topic:sanctification": "Santificação",
+    "doctrine:trinity": "Trindade",
+    "doctrine:incarnation": "Encarnação",
+    "doctrine:two-natures": "Duas naturezas de Cristo",
+    "doctrine:resurrection": "Ressurreição",
+    "doctrine:atonement": "Expiação",
+    "doctrine:original-sin": "Pecado original",
+    "doctrine:justification": "Justificação",
+    "doctrine:sanctification": "Santificação",
+    "doctrine:election": "Eleição / predestinação",
+    "doctrine:baptism": "Batismo",
+    "doctrine:eucharist": "Eucaristia / Ceia do Senhor",
+    "doctrine:scriptural-inspiration": "Inspiração das Escrituras",
+    "doctrine:canon": "Cânon",
+    "doctrine:church-authority": "Autoridade da Igreja",
+    "doctrine:resurrection-dead": "Ressurreição dos mortos",
+    "doctrine:final-judgment": "Juízo final",
+    "method:textual-criticism": "Crítica textual",
+    "method:historical-critical": "Método histórico-crítico",
+    "method:historical-grammatical": "Método histórico-gramatical",
+    "method:source-criticism": "Crítica das fontes",
+    "method:form-criticism": "Crítica das formas",
+    "method:redaction-criticism": "Crítica da redação",
+    "method:narrative-criticism": "Crítica narrativa",
+    "method:canonical-criticism": "Crítica canônica",
+    "method:social-scientific": "Crítica sócio-científica",
+    "method:reception-history": "História da recepção",
+    "method:theological-interpretation": "Interpretação teológica das Escrituras",
+    "method:literary-criticism": "Crítica literária",
+    "tradition:roman-catholic": "Católica romana",
+    "tradition:eastern-orthodox": "Ortodoxa oriental bizantina",
+    "tradition:oriental-orthodox": "Ortodoxa oriental",
+    "tradition:church-of-east": "Igreja do Oriente",
+    "tradition:lutheran": "Luterana",
+    "tradition:reformed": "Reformada",
+    "tradition:anglican": "Anglicana",
+    "tradition:anabaptist": "Anabatista",
+    "tradition:baptist": "Batista",
+    "tradition:wesleyan-methodist": "Wesleyana / metodista",
+    "tradition:pentecostal": "Pentecostal",
+    "tradition:restorationist": "Restauracionista",
+    "school:thomism": "Tomismo",
+    "framework:covenant-theology": "Teologia da aliança",
+    "position:christus-victor": "Cristo Vitorioso",
+    "position:penal-substitution": "Substituição penal",
+    "position:moral-influence": "Influência moral",
+    "stance:confessional": "Confessional",
+    "stance:non-confessional": "Não confessional",
+    "stance:methodological-naturalism": "Naturalismo metodológico",
+    "theory:two-source": "Hipótese das duas fontes",
+    "theory:farrer": "Hipótese de Farrer",
+    "theory:griesbach": "Hipótese de Griesbach"
+  }
+}

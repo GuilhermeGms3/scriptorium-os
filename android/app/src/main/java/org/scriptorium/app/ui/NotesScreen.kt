@@ -1,5 +1,6 @@
 package org.scriptorium.app.ui
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -36,6 +37,9 @@ fun NotesScreen(personal: PersonalRepository) {
     var graph by remember { mutableStateOf(false) }
     var feedback by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
+    BackHandler(folder != null || group != null || graph) {
+        when { graph -> graph = false; folder != null -> folder = null; else -> group = null }
+    }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         Heading("Notas", "Pessoais e locais: atualizações do acervo não substituem suas anotações.")
         Row {
@@ -53,6 +57,7 @@ fun NotesScreen(personal: PersonalRepository) {
         }
         val selectedGroup = group
         if (selectedGroup != null) Load(selectedGroup.text("id") to revision, { personal.folders(selectedGroup.text("id")) }) { folders ->
+            BackHandler(folder != null) { folder = folders.find { it.text("id") == folder }?.get("parent_id") }
             Column {
                 TextButton(onClick = { folder = folders.find { it.text("id") == folder }?.get("parent_id") }) { Text(if (folder == null) selectedGroup.text("title") else "↑ ${folders.find { it.text("id") == folder }?.text("name")}") }
                 folders.filter { it["parent_id"] == folder }.forEach { item -> TextButton(onClick = { folder = item.text("id") }) { Text("▸ ${item.text("name")}") } }
@@ -73,7 +78,7 @@ fun NotesScreen(personal: PersonalRepository) {
     }
     if (new || editing != null) NoteEditor(personal, editing, editing?.get("source_id"), group?.get("id"), folder, onClose = { new = false; editing = null; revision++ })
     create?.let { kind -> AlertDialog(onDismissRequest = { create = null }, title = { Text(if (kind == "group") "Novo grupo" else "Nova pasta") }, text = {
-        Column { OutlinedTextField(name, { name = it.take(120) }, label = { Text("Nome") }); if (kind == "group") OutlinedTextField(color, { color = it.take(7) }, label = { Text("Cor hexadecimal") }) }
+        Column { OutlinedTextField(name, { name = it.take(120) }, label = { Text("Nome") }); if (kind == "group") NoteColorPicker(color) { color = it } }
     }, confirmButton = { TextButton(enabled = name.isNotBlank(), onClick = { scope.launch {
         try { withContext(Dispatchers.IO) { if (kind == "group") personal.createGroup(name, color) else personal.createFolder(requireNotNull(group).text("id"), folder, name) }; create = null; revision++ }
         catch (failure: Exception) { feedback = failure.message; create = null }
@@ -101,7 +106,8 @@ fun NoteEditor(personal: PersonalRepository, existing: Row?, sourceId: String?, 
             Column(Modifier.fillMaxSize().systemBarsPadding().imePadding().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Heading(if (existing == null) "Nova nota" else "Editar nota")
                 OutlinedTextField(title, { title = it.take(300) }, label = { Text("Título") }, modifier = Modifier.fillMaxWidth(), enabled = !busy)
-                Row { TextButton(onClick = { linkPicker = true }) { Text("[[ Link") }; TextButton(onClick = { preview = !preview }) { Text(if (preview) "Editar" else "Ler") }; OutlinedTextField(noteColor, { noteColor = it.take(7) }, label = { Text("Cor") }, modifier = Modifier.width(120.dp)) }
+                Row { TextButton(onClick = { linkPicker = true }) { Text("[[ Link") }; TextButton(onClick = { preview = !preview }) { Text(if (preview) "Editar" else "Ler") } }
+                NoteColorPicker(noteColor, enabled = !busy) { noteColor = it }
                 if (!preview) OutlinedTextField(TextFieldValue(body, selection), { value ->
                     body = value.text.take(200_000); selection = TextRange(value.selection.start.coerceAtMost(body.length), value.selection.end.coerceAtMost(body.length))
                     val before = body.take(selection.start)
