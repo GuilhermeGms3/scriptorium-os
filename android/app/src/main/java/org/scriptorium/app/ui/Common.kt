@@ -12,7 +12,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun Heading(title: String, description: String? = null) {
-    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp)) {
+    Column(Modifier.fillMaxWidth().padding(vertical = 12.dp).revealSection()) {
         Text(title, style = MaterialTheme.typography.headlineMedium, fontFamily = FontFamily.Serif)
         if (description != null) Text(description, style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.secondary, modifier = Modifier.padding(top = 8.dp))

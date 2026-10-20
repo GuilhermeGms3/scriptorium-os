@@ -24,7 +24,7 @@ class AppModel(application: Application) : AndroidViewModel(application) {
             try { output.write(id.toByteArray()); pointer.finishWrite(output) }
             catch (failure: Exception) { pointer.failWrite(output); throw failure }
         }, validateDatabase = Sqlite::validate)
-    val repository = MobileRepository(store)
+    val repository = MobileRepository(store, ReadingNavigation(org.json.JSONObject(application.assets.open("reading-labels.json").bufferedReader().use { it.readText() })))
     val personal by lazy { PersonalRepository(File(application.filesDir, "personal.sqlite3")) }
     private val mutable = MutableStateFlow(AppState(busy = true))
     val state = mutable.asStateFlow()

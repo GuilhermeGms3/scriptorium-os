@@ -3,6 +3,21 @@ package org.scriptorium.app.data
 import org.json.JSONObject
 
 object TranslationPolicy {
+    suspend fun translateSuspending(text: String, glossary: JSONObject, engine: suspend (String) -> String): String {
+        val rules = glossary.objects("rules").sortedByDescending { it.getString("source").length }
+        if (rules.isEmpty()) return engine(text)
+        val pattern = Regex("(?<![\\p{L}\\p{N}])(?:${rules.joinToString("|") { Regex.escape(it.getString("source")) }})(?![\\p{L}\\p{N}])")
+        suspend fun span(value: String): String = if (value.isBlank()) value else
+            value.takeWhile(Char::isWhitespace) + engine(value.trim()).trim() + value.takeLastWhile(Char::isWhitespace)
+        val output = StringBuilder(); var cursor = 0
+        for (match in pattern.findAll(text)) {
+            output.append(span(text.substring(cursor, match.range.first)))
+            output.append(rules.first { it.getString("source") == match.value }.getString("target"))
+            cursor = match.range.last + 1
+        }
+        output.append(span(text.substring(cursor)))
+        return output.toString()
+    }
     fun chunks(text: String, maximum: Int = 2500): List<String> {
         require(maximum >= 100)
         val chunks = mutableListOf<String>()

@@ -104,6 +104,11 @@ it("exports only publishable contextual comments, preserving source IDs, scheme,
     expect(
       output.prepare("SELECT count(*) n FROM reading_catalog WHERE kind='lesson'").get()?.["n"],
     ).toBe(111);
+    const lesson = output
+      .prepare("SELECT title,payload_json FROM reading_catalog WHERE id=?")
+      .get("lesson:doctrine:trinity");
+    expect(lesson?.["title"]).toBe("Trindade");
+    expect(JSON.parse(String(lesson?.["payload_json"])).chapters[0].title).toBe("Trindade");
     expect(
       output.prepare("SELECT count(*) n FROM reading_catalog WHERE kind='course'").get()?.["n"],
     ).toBe(1);

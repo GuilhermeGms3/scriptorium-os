@@ -78,8 +78,8 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
         } }
         if (submitted.isNotBlank() && branch == "Meu acervo") Load(Triple(submitted, edition, sense), {
             val reference = repository.resolveReference(submitted, edition)
-            val exact = reference?.let { listOf(SearchHit("${it.title} ${it.chapter}", "Referência exata", passage = it)) }.orEmpty()
-            exact + if (sense) repository.semanticSearch(submitted, edition) else repository.search(submitted, edition)
+            if (reference != null) listOf(SearchHit("${reference.title} ${reference.chapter}${reference.verse?.let { ":$it" }.orEmpty()}${reference.verseEnd?.let { "–$it" }.orEmpty()}", "Abrir diretamente no texto", passage = reference))
+            else if (sense) repository.semanticSearch(submitted, edition) else repository.search(submitted, edition)
         }) { results ->
             LazyColumn {
                 item { Text("${results.size} resultados · até 40 passagens e 40 páginas por consulta", style = MaterialTheme.typography.labelSmall) }

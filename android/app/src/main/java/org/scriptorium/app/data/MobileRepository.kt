@@ -6,7 +6,9 @@ import java.io.File
 import org.json.JSONObject
 import org.json.JSONArray
 
-data class Passage(val edition: Edition, val workId: String, val bookId: String, val title: String, val chapter: Int, val scheme: String)
+data class Passage(val edition: Edition, val workId: String, val bookId: String, val title: String, val chapter: Int, val scheme: String, val verse: Int? = null, val verseEnd: Int? = null)
+data class StudyReading(val id: String, val title: String, val reason: String, val work: Row? = null, val page: Row? = null)
+
 data class SearchHit(val title: String, val text: String, val passage: Passage? = null, val page: Row? = null)
 
 fun Row.commentLabel(): String {
@@ -27,7 +29,9 @@ fun reviewLabel(value: String): String = when (value) {
 }
 
 /** Read-only canonical corpus IDs; no implicit equivalence between different schemes/editions. */
-class MobileRepository(private val store: ContentPackageStore) {
+class MobileRepository(private val store: ContentPackageStore, val navigation: ReadingNavigation = ReadingNavigation()) {
+    private val editionCache = java.util.concurrent.ConcurrentHashMap<String, List<Edition>>()
+    private val bookCache = java.util.concurrent.ConcurrentHashMap<String, List<Row>>()
     // Prefer the importer's explicitly stored navigation address, never integer coincidence.
     private val preferredAddress = """a.versification_scheme_id=CASE WHEN EXISTS(
         SELECT 1 FROM text_addresses x WHERE x.text_unit_id=t.id AND x.versification_scheme_id='scriptorium-bcv-1'
@@ -46,14 +50,22 @@ class MobileRepository(private val store: ContentPackageStore) {
         }
     }
     fun editions(): List<Edition> = store.current()?.manifest?.editions.orEmpty()
-    fun scriptureEditions(): List<Edition> = editions().filter { edition -> corpus(edition) {
-        it.rows("SELECT 1 FROM text_addresses a JOIN text_units t ON t.id=a.text_unit_id WHERE t.edition_id=? AND a.chapter IS NOT NULL LIMIT 1", listOf(edition.id)).isNotEmpty()
-    } }
+    fun scriptureEditions(): List<Edition> {
+        val generation = store.current()?.manifest?.id ?: "uninstalled"
+        return editionCache.getOrPut(generation) {
+            editions().filter { edition -> corpus(edition) {
+                it.rows("SELECT 1 FROM text_addresses a JOIN text_units t ON t.id=a.text_unit_id WHERE t.edition_id=? AND a.chapter IS NOT NULL LIMIT 1", listOf(edition.id)).isNotEmpty()
+            } }
+        }
+    }
     fun books(edition: Edition): List<Row> {
-        val labels = store.current()?.manifest?.bookLabels.orEmpty()
-        return corpus(edition) {
-        it.rows("SELECT w.id,w.title,min(a.book_id) book_id,max(a.chapter) chapters,a.versification_scheme_id scheme FROM works w JOIN text_units t ON t.work_id=w.id JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND $preferredAddress GROUP BY w.id,a.versification_scheme_id ORDER BY w.sequence", listOf(edition.id))
-        }.map { row -> row + ("title" to (labels[row.text("book_id")] ?: row.text("title"))) }
+        val cacheKey = "${store.current()?.manifest?.id}:${edition.id}"
+        return bookCache.getOrPut(cacheKey) {
+            val labels = store.current()?.manifest?.bookLabels.orEmpty()
+            corpus(edition) {
+                it.rows("SELECT w.id,w.title,min(a.book_id) book_id,max(a.chapter) chapters,a.versification_scheme_id scheme FROM works w JOIN text_units t ON t.work_id=w.id JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND $preferredAddress GROUP BY w.id,a.versification_scheme_id ORDER BY w.sequence", listOf(edition.id))
+            }.map { row -> row + ("title" to (labels[row.text("book_id")] ?: row.text("title"))) }
+        }
     }
     fun verses(passage: Passage): List<Row> = corpus(passage.edition) {
         it.rows("SELECT t.id,t.surface_text,a.verse_start,a.verse_end,a.display_address FROM text_units t JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND t.work_id=? AND a.book_id=? AND a.chapter=? AND a.versification_scheme_id=? ORDER BY t.sequence",
@@ -95,7 +107,7 @@ class MobileRepository(private val store: ContentPackageStore) {
                 JOIN text_addresses a ON a.text_unit_id=t.id WHERE text_units_fts MATCH ?
                 AND t.edition_id=? AND $preferredAddress ORDER BY bm25(text_units_fts) LIMIT 40""".trimIndent(), listOf(query, edition.id))
         }.map { row -> SearchHit(row.text("display_address"), row.text("surface_text"),
-            Passage(edition, row.text("work_id"), row.text("book_id"), row.text("title"), row.number("chapter"), row.text("versification_scheme_id"))) }
+            Passage(edition, row.text("work_id"), row.text("book_id"), row.text("title"), row.number("chapter"), row.text("versification_scheme_id"), row["verse_start"]?.toIntOrNull(), row["verse_end"]?.toIntOrNull())) }
         val pages = content { db -> db.rows("""SELECT p.id,p.document_id,p.page_index,d.title source_title,d.checksum,
             snippet(pages_fts,1,'','', ' … ',45) excerpt FROM pages_fts f JOIN pages p ON p.id=f.page_id
             JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? ORDER BY bm25(pages_fts) LIMIT 40""".trimIndent(), listOf(query))
@@ -126,7 +138,44 @@ class MobileRepository(private val store: ContentPackageStore) {
         else db.rows("SELECT payload_json FROM personal_seed WHERE id='desktop-personal-v1'").firstOrNull()?.get("payload_json")
     }
     fun catalog(kind: String): List<Row> = content { it.rows("SELECT id,kind,title FROM reading_catalog WHERE kind=? ORDER BY title", listOf(kind)) }
-    fun catalogItem(id: String): JSONObject? = content { it.rows("SELECT payload_json FROM reading_catalog WHERE id=?", listOf(id)).firstOrNull()?.get("payload_json")?.let(::JSONObject) }
+        .map { row -> row + ("title" to navigation.topic(row.text("id").removePrefix("lesson:"), row.text("title"))) }
+        .sortedBy { it.text("title") }
+    fun catalogItem(id: String): JSONObject? = content { it.rows("SELECT payload_json FROM reading_catalog WHERE id=?", listOf(id)).firstOrNull()?.get("payload_json")?.let(::JSONObject) }?.also { json ->
+        if (id.startsWith("lesson:")) {
+            val title = navigation.topic(id.removePrefix("lesson:"), json.optString("title"))
+            json.put("title", title)
+            json.objects("chapters").filter { it.optString("id").startsWith("overview:") }.forEach { it.put("title", title) }
+        }
+    }
+    fun lessonReadings(id: String, title: String): List<StudyReading> {
+        val assigned = navigation.lesson(id)?.objects("works").orEmpty()
+        val works = if (assigned.isEmpty()) emptyList() else primaryWorks()
+        val linked = assigned.mapNotNull { resource -> works.find { it.text("id") == resource.optString("workId") }?.let { work ->
+            StudyReading("work:${work.text("id")}", work.text("title"), "Leitura vinculada · ${resource.optString("role", "fonte do percurso")}", work = work)
+        } }
+        val terms = title.split(Regex("[^\\p{L}\\p{N}]+" )).filter { it.length > 3 && normalizedReading(it) !in setOf("sobre", "entre", "para", "como", "estudo", "historia") }.take(3)
+        val query = ftsQuery(terms.joinToString(" "))
+        val found = readingPages(query, "Encontrado no acervo")
+        if (linked.isNotEmpty() || found.isNotEmpty()) return (linked + found).distinctBy { it.id }
+        val area = navigation.lessonSupport(id) ?: return emptyList()
+        val supportWorks = if (works.isNotEmpty()) works else primaryWorks()
+        val support = area.objects("works").mapNotNull { resource -> supportWorks.find { it.text("id") == resource.optString("workId") }?.let { work ->
+            StudyReading("work:${work.text("id")}", work.text("title"), "Apoio à área · ${area.getString("title")}", work = work)
+        } }
+        val nearby = area.strings("keywords").take(3).firstNotNullOfOrNull { keyword ->
+            readingPages(ftsQuery(keyword), "Apoio à área · ${area.getString("title")}").takeIf { it.isNotEmpty() }
+        }.orEmpty()
+        return (support + nearby).distinctBy { it.id }
+    }
+    private fun readingPages(query: String, label: String): List<StudyReading> {
+        if (query.isBlank()) return emptyList()
+        return content { db ->
+            db.rows("""SELECT p.id,p.document_id,p.page_index,d.title source_title,d.checksum,d.pages document_pages,
+                snippet(pages_fts,1,'','', ' … ',28) excerpt FROM pages_fts f JOIN pages p ON p.id=f.page_id
+                JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? ORDER BY bm25(pages_fts) LIMIT 12""".trimIndent(), listOf(query))
+        }.map { page -> StudyReading("page:${page.text("id")}", page.text("source_title"), "$label · p. ${page.number("page_index") + 1}", page = page) }
+    }
+
     fun outline(documentId: String): List<Row> = content { it.rows("SELECT * FROM document_outline WHERE document_id=? ORDER BY ordinal", listOf(documentId)) }
     fun bibliography(): List<Row> = content { it.rows("SELECT * FROM bibliography ORDER BY title") }
     fun preparedTranslation(sourceId: String, text: String): Row? = content { db ->
@@ -200,19 +249,20 @@ class MobileRepository(private val store: ContentPackageStore) {
                 val row = db.rows("SELECT t.surface_text,w.title FROM text_units t JOIN works w ON w.id=t.work_id WHERE t.id=? AND t.edition_id=?", listOf(hit.unitId, edition.id)).singleOrNull() ?: return@mapNotNull null
                 val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(row.text("surface_text").toByteArray()).joinToString("") { "%02x".format(it) }
                 require(checksum == hit.textChecksum) { "Índice semântico desatualizado para esta edição. Instale um pacote coerente." }
-                SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme))
+                SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme, hit.verse))
             } }
         }
     }
 
     fun resolveReference(value: String, edition: Edition): Passage? {
-        val match = Regex("^(.+?)\\s+(\\d{1,3})(?::(\\d{1,3})(?:-\\d{1,3})?)?$").matchEntire(value.trim()) ?: return null
-        fun normalized(text: String) = java.text.Normalizer.normalize(text.lowercase(), java.text.Normalizer.Form.NFD).replace(Regex("\\p{M}+"), "").replace(" ", "")
-        val requested = normalized(match.groupValues[1])
-        val book = books(edition).find { row -> requested in listOf(normalized(row.text("book_id")), normalized(row.text("title"))) } ?: return null
-        val chapter = match.groupValues[2].toInt()
-        if (chapter !in 1..book.number("chapters")) return null
-        return Passage(edition, book.text("id"), book.text("book_id"), book.text("title"), chapter, book.text("scheme"))
+        val ref = navigation.parse(value, books(edition)) ?: return null
+        val passage = Passage(edition, ref.book.text("id"), ref.book.text("book_id"), ref.book.text("title"), ref.chapter, ref.book.text("scheme"), ref.verse, ref.end)
+        if (ref.verse != null) {
+            val rows = verses(passage)
+            fun contains(number: Int) = rows.any { number in it.number("verse_start")..it.number("verse_end").coerceAtLeast(it.number("verse_start")) }
+            if (!contains(ref.verse) || (ref.end != null && !contains(ref.end))) return null
+        }
+        return passage
     }
 
     fun tracePayload(id: String): String? = content { db ->

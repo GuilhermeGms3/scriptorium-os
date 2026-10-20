@@ -42,6 +42,11 @@ class PersonalRepository(private val file: File) {
         }
     }
     fun list(): List<Row> = Sqlite.open(file).use { it.rows("SELECT * FROM notes ORDER BY updated_at DESC") }
+    fun notesForSources(ids: List<String>): List<Row> = Sqlite.open(file).use { db ->
+        ids.distinct().chunked(400).flatMap { chunk ->
+            db.rows("SELECT * FROM notes WHERE source_id IN (${chunk.joinToString(",") { "?" }})", chunk)
+        }.distinctBy { it.text("id") }.sortedByDescending { it.text("updated_at") }
+    }
     fun save(id: String?, title: String, body: String, sourceId: String?, color: String? = null): String {
         require(title.trim().length in 1..300 && body.length <= 200_000) { "Confira o título e o tamanho da nota." }
         require(color == null || color.matches(Regex("#[a-fA-F0-9]{6}"))) { "Use uma cor hexadecimal válida." }

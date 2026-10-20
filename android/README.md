@@ -10,6 +10,59 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
+## Uso no celular — 0.4.0
+
+- **Home** fica junto ao nome Scriptorium. **Painel** aparece ao lado apenas em Leitura,
+  quando uma passagem está aberta. O acesso flutuante Ir para… foi retirado.
+- Referência/edição continuam no cabeçalho; tocar a referência abre a seleção de livro/capítulo.
+  Selo do versículo reduzido para26dp de base, com número branco e mais espaço para o texto.
+- Comentários recolhidos mostram somente o nome da fonte e Expandir. Recolher oculta todo
+  o corpo. Tocar no cartão abre a fonte; não há outro botão de fonte completa repetido.
+- **Filtrar** fica no cabeçalho da leitura em linha. Assunto declarado e livro de origem
+  combinam-se; Limpar filtros restaura a coleção. O acesso a Mais comentários foi preservado.
+- **Mais → Aparência e leitura** oferece fonte predefinida (serifa, sem serifa, monoespaçada),
+  tamanho18–32 com prévia, temas Preto/Cinza/Marrom/Claro e construção animada das páginas.
+  Ajustes ficam nas preferências deste aparelho, separados do banco e do backup de notas.
+- Nessa mesma tela, **Comentários no painel inferior** troca a apresentação em linha por uma
+  área inferior recolhível, agrupada por versículo. Os filtros acompanham essa área. Os mesmos
+  comentários/endereço/esquema são usados; não é outro acervo nem outro perfil de leitura.
+- O painel da direita mantém visão geral, texto/língua, fontes e notas. Contextos são cartões
+  com títulos e cores de fonte; Fontes usa os mesmos cartões recolhíveis. Na janela de uma fonte,
+  **Biblioteca ↗** está junto ao título; detalhes técnicos foram retirados da interface.
+- Aulas temáticas e guias têm seleção horizontal. Cada aula reúne conteúdo em etapas, leituras
+  reais e síntese em nota. Marcar uma etapa como lida registra avanço pessoal no banco existente;
+  não certifica domínio. A regra dos percursos acadêmicos continua separada e inalterada.
+- Leituras editoriais usam os vínculos do catálogo desktop. Resultados do índice dos livros
+  privados são identificados como pesquisa, com página e abertura direta na Biblioteca.
+  Quando falta resultado específico, o apoio da área é identificado. Ausências continuam explícitas; não são inventados trechos ou livros instalados.
+
+- Livros em duas colunas, separados por Pentateuco, históricos, poesia, profetas, evangelhos,
+  cartas e deuterocanônicos/outros, com os mesmos grupos editoriais do desktop.
+- Filtros **Não canônico**, **Apócrifo**, **Esotérico** e **Fontes antigas** dão acesso aos textos
+  realmente instalados e aos volumes privados identificados pelo título. Nag Hammadi não vira
+  52 traduções fictícias: texto crítico copta, catálogo e volumes privados são distintos.
+- Escritura com fonte configurável; comentários menores em sans-serif, em superfícies
+  separadas. Número branco em selo bronze. Cada comentário começa recolhido e pode ser
+  expandido/recolhido separadamente; a fonte completa abre à parte com página/seção disponível.
+- Filtros de comentários combinam assunto declarado e livro de origem. Texto-prova
+  confessional não é rotulado automaticamente como exegese. Ausência de classe não é inventada.
+- **Home** e o título Scriptorium levam ao início. Há retomada do último versículo visível,
+  passagem diária calculada sobre capítulos/textos reais e trilha diária entre guias instalados.
+  A seleção por data não é calendário litúrgico nem revelação personalizada.
+- Botão Voltar do Android retorna nos módulos e subpáginas; apenas no início sem histórico
+  fica com o comportamento normal de saída. A confirmação de descarte das notas é preservada.
+- Cores de notas/grupos por paleta nomeada, sem digitar hexadecimal. Cores anteriores preservadas.
+- Transições suaves de módulo e expansão de comentários. Som breve opcional em **Ajustes e
+  backup → Ambiente de estudo**, inicialmente desligado e respeitando silencioso/volume de mídia.
+- Tradução segue local por decisão do usuário, sem Google Cloud/chaves/serviço remoto. Os
+  modelos podem ser preparados em **Ajustes e backup → Tradução local**. Modelos instalados
+  são usados sem consultar atualizações; download, tradução, timeout e erro têm estados próprios.
+  Inglês/espanhol → português; não traduz copta/hebraico/grego por esse provedor.
+
+Os rótulos e vínculos editoriais leves do APK são gerados por `npm run mobile:labels` a partir do catálogo editorial
+versionado do desktop. Não trazem livros nem dados pessoais. Esta atualização não exige
+reexportar o acervo: instale o APK novo **por cima**, sem desinstalar o anterior.
+
 ## Compilar
 
 Abra esta pasta no Android Studio. Requer JDK 21, SDK Android 36 e Build Tools 36.0.0.

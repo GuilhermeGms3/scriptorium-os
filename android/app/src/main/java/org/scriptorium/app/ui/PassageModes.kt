@@ -12,7 +12,7 @@ import org.scriptorium.app.data.*
 @Composable
 fun PassageMode(repository: MobileRepository, personal: PersonalRepository, passage: Passage, mode: String) {
     if (mode == "Comparação") Load(passage, { repository.parallel(passage) }) { editions ->
-        LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+        LazyColumn(contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             item { Heading("Comparação", "Endereços explícitos do mesmo esquema de navegação. Ausência de correspondência não é preenchida por coincidência de números.") }
             val verses = editions.flatMap { it.second.map { unit -> unit.number("verse_start") } }.distinct().sorted()
             items(verses) { verse -> Column {
@@ -26,7 +26,7 @@ fun PassageMode(repository: MobileRepository, personal: PersonalRepository, pass
         }
     } else Load(passage to mode, { repository.originalEditions(passage).map { it to repository.verses(passage.copy(edition = it)) } to repository.verses(passage).associateBy { it.text("verse_start") } }) { (originals, translated) ->
         if (originals.isEmpty()) Text("Nenhuma edição original com este endereço explícito está instalada.", Modifier.padding(24.dp))
-        else LazyColumn(contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        else LazyColumn(contentPadding = PaddingValues(start = 20.dp, top = 20.dp, end = 20.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             item { Heading(mode, "Selecione uma palavra para abrir o léxico, tradução, morfologia e ocorrências.") }
             originals.forEach { (edition, units) ->
                 item { Text(edition.title, color = MaterialTheme.colorScheme.primary) }

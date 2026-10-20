@@ -37,4 +37,10 @@ class ReadingPoliciesTest {
         assertEquals(original, chunks.joinToString(""))
         assertTrue(chunks.all { it.length <= 2500 })
     }
+    @Test fun suspendingTranslationKeepsWhitespaceAndProtectedTerms() = kotlinx.coroutines.runBlocking {
+        val glossary = JSONObject("""{"rules":[{"source":"Logos","target":"Logos"}]}""")
+        assertEquals("  THE Logos OF JOHN.  ", TranslationPolicy.translateSuspending("  The Logos of John.  ", glossary) { it.uppercase() })
+        assertEquals("EXAMPLE", TranslationPolicy.translateSuspending("example", JSONObject("""{"rules":[]}""")) { it.uppercase() })
+    }
+
 }

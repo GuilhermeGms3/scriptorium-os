@@ -1,6 +1,10 @@
 package org.scriptorium.app.ui
 
 import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.compose.BackHandler
+import androidx.compose.animation.*
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.clickable
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -10,6 +14,7 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import org.scriptorium.app.AppModel
@@ -20,21 +25,52 @@ import org.scriptorium.app.data.*
 fun ScriptoriumApp(model: AppModel) {
     val state by model.state.collectAsStateWithLifecycle()
     var destination by rememberSaveable { mutableStateOf("Início") }
+    var history by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var requestedLibrary by remember { mutableStateOf<StudyReading?>(null) }
+    var requestedGuide by rememberSaveable { mutableStateOf<String?>(null) }
     var menu by remember { mutableStateOf(false) }
+    var readerHasPassage by remember { mutableStateOf(false) }
+    var requestPanel by remember { mutableStateOf(false) }
+    val motion = LocalReadingAppearance.current.motion
     var requestedPassage by remember { mutableStateOf<Passage?>(null) }
     val screenState = rememberSaveableStateHolder()
+    val context = LocalContext.current
+    val preferences = remember { ReadingPreferences(context) }
+    val tones = remember { runCatching { android.media.ToneGenerator(android.media.AudioManager.STREAM_MUSIC, 12) }.getOrNull() }
+    DisposableEffect(tones) { onDispose { tones?.release() } }
+    fun navigate(route: String) {
+        if (route != destination) {
+            history = (history + destination).takeLast(30)
+            destination = route
+            requestPanel = false
+            val audio = context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
+            if (preferences.sound && audio.ringerMode == android.media.AudioManager.RINGER_MODE_NORMAL)
+                tones?.startTone(when (route) { "Leitura" -> android.media.ToneGenerator.TONE_PROP_ACK; "Estudos" -> android.media.ToneGenerator.TONE_PROP_PROMPT; else -> android.media.ToneGenerator.TONE_PROP_BEEP }, 65)
+        }
+    }
+    BackHandler(destination != "Início" || history.isNotEmpty()) {
+        destination = history.lastOrNull() ?: "Início"
+        history = history.dropLast(1)
+    }
     val importer = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) {
         if (it != null) model.import(it)
     }
     fun importPackage() { importer.launch(arrayOf("application/zip", "application/octet-stream", "*/*")) }
     Scaffold(
         topBar = {
-            TopAppBar(title = { Text("SCRIPTORIUM", style = MaterialTheme.typography.titleMedium) }, actions = {
+            TopAppBar(title = {
+                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                    Text("SCRIPTORIUM", Modifier.weight(1f, fill = false).clickable { navigate("Início") }, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                    if (destination != "Início") TextButton(onClick = { navigate("Início") }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Home", style = MaterialTheme.typography.labelLarge) }
+                    if (destination == "Leitura" && readerHasPassage && state.ready && !state.busy)
+                        TextButton(onClick = { requestPanel = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Painel", style = MaterialTheme.typography.labelLarge) }
+                }
+            }, actions = {
                 Box {
                     TextButton(onClick = { menu = true }) { Text("Mais") }
                     DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        listOf("Início", "Mapa", "Rastro", "Pacotes", "Ajustes e backup").forEach { route ->
-                            DropdownMenuItem(text = { Text(route) }, onClick = { destination = route; menu = false })
+                        listOf("Início", "Aparência e leitura", "Mapa", "Rastro", "Pacotes", "Ajustes e backup").forEach { route ->
+                            DropdownMenuItem(text = { Text(route) }, onClick = { navigate(route); menu = false })
                         }
                     }
                 }
@@ -43,7 +79,7 @@ fun ScriptoriumApp(model: AppModel) {
         bottomBar = {
             if (state.ready && !state.busy) NavigationBar {
                 listOf("Leitura" to "א", "Biblioteca" to "▤", "Estudos" to "◇", "Notas" to "✎", "Busca" to "⌕").forEach { (route, symbol) ->
-                    NavigationBarItem(selected = destination == route, onClick = { destination = route },
+                    NavigationBarItem(selected = destination == route, onClick = { navigate(route) },
                         icon = { Text(symbol) }, label = { Text(route, style = MaterialTheme.typography.labelSmall) })
                 }
             }
@@ -72,19 +108,22 @@ fun ScriptoriumApp(model: AppModel) {
                     Spacer(Modifier.height(24.dp))
                     Text("Importe somente pacotes preparados por você ou por uma fonte confiável. Checksums verificam integridade, não autoria. Livros privados não devem ser publicados.", style = MaterialTheme.typography.bodySmall)
                 }
-            } else key(state.revision) { screenState.SaveableStateProvider(destination) {
-                when (destination) {
-                    "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage)
-                    "Início" -> TodayScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
-                    "Biblioteca" -> LibraryScreen(model.repository, model.personal)
-                    "Estudos" -> StudyScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
+            } else key(state.revision) { AnimatedContent(destination, modifier = Modifier.fillMaxSize(), transitionSpec = {
+                (fadeIn(tween(if (motion) 440 else 0)) + slideInVertically(tween(if (motion) 440 else 0)) { if (motion) it / 28 else 0 }).togetherWith(fadeOut(tween(if (motion) 140 else 0)))
+            }, label = "Abrir módulo") { route -> screenState.SaveableStateProvider(route) {
+                when (route) {
+                    "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it })
+                    "Início" -> TodayScreen(model.repository, open = { requestedPassage = it; navigate("Leitura") }, openGuide = { requestedGuide = it; navigate("Estudos") })
+                    "Biblioteca" -> LibraryScreen(model.repository, model.personal, requestedLibrary)
+                    "Estudos" -> StudyScreen(model.repository, model.personal, requestedGuide, { requestedPassage = it; navigate("Leitura") }, { requestedLibrary = it; navigate("Biblioteca") })
                     "Mapa" -> KnowledgeScreen(model.repository, model.personal)
                     "Notas" -> NotesScreen(model.personal)
-                    "Busca" -> SearchScreen(model.repository, model.personal) { requestedPassage = it; destination = "Leitura" }
+                    "Busca" -> SearchScreen(model.repository, model.personal) { requestedPassage = it; navigate("Leitura") }
                     "Rastro" -> TraceScreen(model.repository, model.personal)
                     "Ajustes e backup" -> PersonalSettings(model.personal)
+                    "Aparência e leitura" -> AppearanceSettings()
                 }
-            } }
+            } } }
         }
     }
 }
