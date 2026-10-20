@@ -371,6 +371,58 @@ describe("contextual reading and profile branch integration", () => {
     );
     expect(db.prepare("SELECT count(*) AS n FROM knowledge_proposals").get()?.["n"]).toBe(0);
   });
+  it("summarises a verse as one chip per source, and opens a source only when asked", async () => {
+    const { adapter } = await source();
+    await PrivateDocumentRepository.importDocument(
+      {
+        title: "Segunda fonte sintética (edição de teste)",
+        originalName: "second.pdf",
+        mimeType: "application/pdf",
+        sizeBytes: 100,
+        checksum: "e".repeat(64),
+        language: "pt-BR",
+        pageCount: 1,
+        textPageCount: 1,
+        extractionMethod: "pdf-text-layer",
+        pages: [{ pageIndex: 0, pageLabel: "1", text: quote, itemCount: 1 }],
+      },
+      "opfs:/second.pdf",
+      adapter,
+    );
+    const input = batch();
+    input.notes.push({
+      ...input.notes[0]!,
+      sourceChecksum: "e".repeat(64),
+      analysis: { ...analysis, summary: "Outra leitura sintética, da segunda fonte." },
+    });
+    await ContextualReadingService.importJson(JSON.stringify(input), adapter);
+    const layer = await WorkspacePassageKnowledgeService.load(
+      { bookId: "genesis", chapter: 1 },
+      null,
+      adapter,
+    );
+    const html = renderToStaticMarkup(
+      createElement(PrivateVerseKnowledge, {
+        bookId: "genesis",
+        chapter: 1,
+        verse: 1,
+        items: layer.items,
+        open: false,
+        onOpenChange() {},
+        density: "summary",
+      }),
+    );
+    // Nothing read yet: two closed chips, no note text, no technical links pill.
+    expect(html).not.toContain(analysis.summary);
+    expect(html).not.toContain("Outra leitura sintética");
+    expect(html.match(/aria-pressed="false"/g)).toHaveLength(2);
+    expect(html).toContain("Bíblia de estudo sintética");
+    // The chip drops the trailing parenthesis of the title.
+    expect(html).toContain(">Segunda fonte sintética<");
+    expect(html).toContain("Abrir todos");
+    expect(html).not.toContain("ligações na biblioteca");
+  });
+
   it("renders both contextual sources with exact source links, without showing cross-references as commentary", async () => {
     const { db, adapter } = await source();
     await PrivateDocumentRepository.importDocument(

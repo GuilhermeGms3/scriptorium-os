@@ -1,3 +1,4 @@
+import { scriptureHref } from "./scripture-href";
 import type { SearchResult } from "../domain/search";
 import { ScriptureRepository } from "../repositories/scripture-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
@@ -52,7 +53,7 @@ export const GlobalSearchService = {
         editionId: "all-enabled",
         workId: `work:${reference.bookId}`,
         address: `${reference.bookId}.${reference.chapter}.${reference.verse ?? "*"}`,
-        to: `/scripture/${reference.bookId}/${reference.chapter}`,
+        to: scriptureHref(reference.bookId, reference.chapter, { verse: reference.verse }),
       });
     }
 
@@ -79,7 +80,10 @@ export const GlobalSearchService = {
         editionId: hit.textUnit.editionId,
         workId: hit.textUnit.workId,
         address: hit.textUnit.displayAddress ?? "",
-        to: `/scripture/${address.bookId}/${address.chapter}`,
+        to: scriptureHref(address.bookId, address.chapter, {
+          verse: address.verseStart,
+          edition: hit.textUnit.editionId,
+        }),
       });
     }
 

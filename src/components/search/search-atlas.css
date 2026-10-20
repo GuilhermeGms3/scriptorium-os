@@ -378,12 +378,25 @@
   .search-atlas-container {
     padding-top: 1.5rem;
   }
+  /* On a phone the three paths are one compact row, so the search box is on the first screen. */
+  .search-atlas-header h1 {
+    font-size: 1.6rem;
+  }
+  .search-atlas-description,
+  .search-scope-caption p,
+  .search-tree-branch small {
+    display: none;
+  }
   .search-tree-branches {
-    grid-template-columns: 1fr;
-    gap: 0.65rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.4rem;
     padding-top: 0;
-    padding-left: 1rem;
-    margin-top: 0.6rem;
+    padding-left: 0;
+    margin-top: 0.9rem;
+  }
+  .search-tree-branches::before,
+  .search-tree-branch::before {
+    display: none;
   }
   .search-tree-root {
     display: none;
@@ -397,8 +410,14 @@
     height: auto;
   }
   .search-tree-branch {
-    min-height: 68px;
-    padding: 0.75rem;
+    min-height: 44px;
+    padding: 0.5rem;
+    justify-content: center;
+    text-align: center;
+    font-size: 0.8125rem;
+  }
+  .search-tree-branch svg {
+    display: none;
   }
   .search-tree-branch::before {
     top: 50%;
@@ -412,15 +431,16 @@
   .search-atlas-description {
     font-size: 0.85rem;
   }
+  /* 16px: below it, iOS zooms the page when the field gets focus. */
   .search-atlas-input input {
-    font-size: 0.875rem;
+    font-size: 1rem;
   }
   .hebrew-search-mark {
     gap: 0.65rem;
   }
   .search-local-panel,
   .search-external-panel {
-    margin-top: 1.4rem;
-    padding-top: 1.2rem;
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
   }
 }

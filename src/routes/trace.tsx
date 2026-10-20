@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { AppLink } from "../components/common/app-link";
 import { useEffect, useState, type FormEvent } from "react";
 import { z } from "zod";
 import { ArrowLeft, GitBranch, RefreshCw } from "lucide-react";
@@ -364,15 +365,15 @@ function TracePage() {
   return (
     <>
       <nav className="trace-mode-nav" aria-label="Modos do Rastro">
-        <a
+        <AppLink
           href={`/trace?view=research${search.q ? `&q=${encodeURIComponent(search.q)}` : ""}`}
           aria-current={research ? "page" : undefined}
         >
           Investigar palavra ou passagem
-        </a>
-        <a href="/trace?view=history" aria-current={!research ? "page" : undefined}>
+        </AppLink>
+        <AppLink href="/trace?view=history" aria-current={!research ? "page" : undefined}>
           Histórico e proveniência
-        </a>
+        </AppLink>
       </nav>
       {research ? (
         <ResearchDossier

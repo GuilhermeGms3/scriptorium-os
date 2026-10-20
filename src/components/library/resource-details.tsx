@@ -4,6 +4,7 @@ import { CitationService } from "../../lib/application/citation-service";
 import type { Citation } from "../../lib/domain/bibliography";
 import type { SourceDetails } from "../../lib/repositories/library-repository";
 import { EntityRelationPicker } from "../common/entity-relation-picker";
+import { AppLink } from "../common/app-link";
 
 export function ResourceDetails({
   details,
@@ -78,12 +79,12 @@ export function ResourceDetails({
             {privateDocument.textPageCount} de {privateDocument.pageCount} páginas pesquisáveis ·{" "}
             somente neste dispositivo
           </p>
-          <a
+          <AppLink
             href={`/library/document/${encodeURIComponent(privateDocument.id)}`}
             className="mt-3 inline-flex h-8 items-center rounded bg-primary px-3 text-xs text-primary-foreground"
           >
             Ler e pesquisar
-          </a>
+          </AppLink>
         </section>
       )}
       {Object.keys(source.identifiers).length > 0 && (
@@ -194,13 +195,13 @@ export function ResourceDetails({
           <ul className="mt-2 space-y-1">
             {relatedClaimIds.map((id) => (
               <li key={id}>
-                <a
+                <AppLink
                   href={`/study?claim=${encodeURIComponent(id)}`}
                   className="inline-flex items-center gap-1 text-xs underline underline-offset-2"
                 >
                   Abrir claim relacionada
                   <ExternalLink className="size-3" />
-                </a>
+                </AppLink>
               </li>
             ))}
           </ul>

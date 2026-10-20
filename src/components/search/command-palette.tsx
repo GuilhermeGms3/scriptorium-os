@@ -148,7 +148,7 @@ export function CommandPalette() {
                   key={hit.id}
                   value={hit.id}
                   onSelect={() => {
-                    if (hit.to) navigate({ to: hit.to as never });
+                    if (hit.to) void navigate({ href: hit.to });
                     setPaletteOpen(false);
                   }}
                   className="flex cursor-pointer items-baseline gap-2.5 rounded-md px-2 py-1.5 text-sm text-foreground aria-selected:bg-accent"

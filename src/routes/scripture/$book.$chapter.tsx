@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { CommentaryDock, type CommentaryLayout } from "../../components/scripture/commentary-dock";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
@@ -12,6 +12,13 @@ import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-k
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseCommentary } from "../../components/scripture/verse-commentary";
+import { CommentarySourceBar } from "../../components/scripture/commentary-source-bar";
+import { useHiddenCommentarySources } from "../../hooks/use-hidden-commentary-sources";
+import { CommentaryNote } from "../../components/scripture/private-verse-knowledge";
+import {
+  contextualCommentary,
+  isBroadCommentary,
+} from "../../components/scripture/commentary-presentation";
 import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/utils";
 import { RouteError } from "../../components/layout/route-error";
@@ -22,13 +29,18 @@ import {
   type WorkspacePassageKnowledgeItem,
 } from "../../lib/domain/workspace-passage-knowledge";
 import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
-import { SEMANTIC_DOMAIN_LABELS, type SemanticDomain } from "../../lib/domain/semantic-content";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
-  validateSearch: (search: Record<string, unknown>): { edition?: string } =>
-    typeof search["edition"] === "string" && search["edition"].length <= 250
-      ? { edition: search["edition"] }
-      : {},
+  // `v`: open the chapter at this verse, selected (links from search, the verse list, notes).
+  validateSearch: (search: Record<string, unknown>): { edition?: string; v?: number } => {
+    const verse = Number(search["v"]);
+    return {
+      ...(typeof search["edition"] === "string" && search["edition"].length <= 250
+        ? { edition: search["edition"] }
+        : {}),
+      ...(Number.isInteger(verse) && verse > 0 && verse < 1000 ? { v: verse } : {}),
+    };
+  },
   // Corpus SQLite/WASM is intentionally client-only. This prevents the isomorphic
   // loader from initializing WASM or attempting OPFS access during SSR.
   ssr: false,
@@ -70,7 +82,8 @@ export const Route = createFileRoute("/scripture/$book/$chapter")({
 function ChapterReader() {
   const { book: bookId, chapter: chapterParam } = Route.useParams();
   const loadedBundle = Route.useLoaderData();
-  const requestedEdition = Route.useSearch().edition;
+  const { edition: requestedEdition, v: requestedVerse } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const chapter = Number(chapterParam);
   const { setPassageContext, selectWord, readingPrefs, setInspectorOpen } = useWorkbench();
 
@@ -80,21 +93,30 @@ function ChapterReader() {
   const [view, setView] = useState<ReaderView>("single");
   const [commentaryLayout, setCommentaryLayout] = useState<CommentaryLayout>(() => {
     if (typeof window === "undefined") return "inline";
-    const saved = window.localStorage.getItem("scriptorium.commentary-layout.v1");
-    return saved === "dock" || saved === "hidden" ? saved : "inline";
+    try {
+      const saved = window.localStorage.getItem("scriptorium.commentary-layout.v1");
+      return saved === "full" || saved === "dock" || saved === "hidden" ? saved : "inline";
+    } catch {
+      return "inline";
+    }
   });
-  const showExplanations = commentaryLayout === "inline";
+  const showExplanations = commentaryLayout === "inline" || commentaryLayout === "full";
+  const density = commentaryLayout === "inline" ? "summary" : "full";
   const dockOpen = commentaryLayout === "dock" && view === "single";
   const [dockVerse, setDockVerse] = useState(1);
   const changeCommentaryLayout = (layout: CommentaryLayout) => {
     setCommentaryLayout(layout);
-    window.localStorage.setItem("scriptorium.commentary-layout.v1", layout);
+    try {
+      window.localStorage.setItem("scriptorium.commentary-layout.v1", layout);
+    } catch {
+      // Not remembered in this browser; it still applies now.
+    }
     if (layout === "dock") {
       setDockVerse(selectedVerse ?? 1);
       setInspectorOpen(false);
     }
   };
-  const [sourceFilter, setSourceFilter] = useState("");
+  const [hiddenSources, setHiddenSources] = useHiddenCommentarySources();
   const [domainFilter, setDomainFilter] = useState("");
   const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
@@ -171,7 +193,40 @@ function ChapterReader() {
     setOpenVerses(new Set());
     setSelectedVerse(null);
     setDockVerse(1);
+    // A subject chosen in another chapter may not exist here; it used to hide every comment.
+    setDomainFilter("");
   }, [activeRef]);
+
+  // Open at the verse asked for (search, the verse list, a note): selected, at the top of the
+  // text. Once more after the library has loaded, since its notes push the verse down.
+  const targetVerse =
+    requestedVerse ??
+    (typeof window !== "undefined"
+      ? Number(/^#verse-(\d+)$/.exec(window.location.hash)?.[1]) || undefined
+      : undefined);
+  const scrolledFor = useRef("");
+  useEffect(() => {
+    if (!bundle || !targetVerse) return;
+    const key = `${bookId}:${chapter}:${targetVerse}:${privateKnowledgeQuery.isFetched ? 1 : 0}`;
+    if (scrolledFor.current === key) return;
+    scrolledFor.current = key;
+    setSelectedVerse(targetVerse);
+    setDockVerse(targetVerse);
+    // The effect runs after the verses are on the page; once more shortly after, in case the
+    // selection or late content moved them.
+    scrollToVerse(targetVerse);
+    const settle = window.setTimeout(() => scrollToVerse(targetVerse), 200);
+    return () => window.clearTimeout(settle);
+  }, [bookId, bundle, chapter, privateKnowledgeQuery.isFetched, targetVerse]);
+  const goToVerse = (verse: number) => {
+    // Same verse again (the reader scrolled away): just take them back to it.
+    if (verse === requestedVerse) {
+      setSelectedVerse(verse);
+      scrollToVerse(verse);
+      return;
+    }
+    void navigate({ search: (previous) => ({ ...previous, v: verse }), replace: true });
+  };
 
   const privateSources = useMemo(
     () => [
@@ -180,6 +235,27 @@ function ChapterReader() {
       ).values(),
     ],
     [privateKnowledge],
+  );
+  // Notes about the whole chapter (or a long stretch of it), shown once at the top instead of
+  // under every verse they touch, when comments are summarised.
+  const chapterOverview = useMemo(
+    () =>
+      density !== "summary"
+        ? []
+        : contextualCommentary(
+            (privateKnowledge?.items ?? []).filter(
+              (item) =>
+                isBroadCommentary(item) &&
+                !hiddenSources.has(item.document.id) &&
+                (!domainFilter ||
+                  item.proposals.some(
+                    (proposal) =>
+                      proposal.payload.kind === "topic-assignment" &&
+                      proposal.payload.domain === domainFilter,
+                  )),
+            ),
+          ),
+    [density, domainFilter, hiddenSources, privateKnowledge],
   );
   const privateDomains = useMemo(
     () =>
@@ -235,7 +311,7 @@ function ChapterReader() {
   const confirmNow = () => {
     setView("single");
     changeCommentaryLayout("inline");
-    setSourceFilter("");
+    setHiddenSources(new Set());
     setDomainFilter("");
     setOpenVerses(new Set(unconfirmedVerses));
     const first = unconfirmedVerses[0];
@@ -268,11 +344,24 @@ function ChapterReader() {
           commentaryLayout={commentaryLayout}
           onCommentaryLayoutChange={changeCommentaryLayout}
           explanationsAvailable={explanationsAvailable}
+          verses={bundle?.passage.verses.map((verse) => verse.verse) ?? []}
+          selectedVerse={selectedVerse}
+          onVerseChange={goToVerse}
         />
+        {commentaryLayout !== "hidden" && view === "single" && (
+          <CommentarySourceBar
+            sources={privateSources.map((source) => ({ id: source.id, title: source.title }))}
+            hidden={hiddenSources}
+            onHiddenChange={setHiddenSources}
+            domains={privateDomains}
+            domain={domainFilter}
+            onDomainChange={setDomainFilter}
+          />
+        )}
 
         <Group orientation="vertical" className="min-h-0 flex-1" id="scripture-reading-layout">
           <Panel id="scripture-text" minSize="25%" defaultSize="62%">
-            <div className="h-full overflow-y-auto">
+            <div className="h-full overflow-y-auto" data-reading-scroller="">
               {!bundle ? (
                 <EmptyReader
                   message={t("scripture.notInDemo", {
@@ -316,41 +405,23 @@ function ChapterReader() {
                     </div>
                   )}
 
-                  {commentaryLayout !== "hidden" && privateKnowledge?.items.length ? (
-                    <div className="mb-5 flex flex-wrap items-center gap-2 rounded border border-border bg-muted/20 p-2 text-xs">
-                      <span className="font-medium">Filtrar biblioteca conectada</span>
-                      <label>
-                        Fonte{" "}
-                        <select
-                          value={sourceFilter}
-                          onChange={(event) => setSourceFilter(event.target.value)}
-                          className="ml-1 rounded border border-input bg-background p-1"
-                        >
-                          <option value="">Todas</option>
-                          {privateSources.map((source) => (
-                            <option key={source.id} value={source.id}>
-                              {source.title}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Área{" "}
-                        <select
-                          value={domainFilter}
-                          onChange={(event) => setDomainFilter(event.target.value)}
-                          className="ml-1 rounded border border-input bg-background p-1"
-                        >
-                          <option value="">Todas</option>
-                          {privateDomains.map((domain) => (
-                            <option key={domain} value={domain}>
-                              {SEMANTIC_DOMAIN_LABELS[domain as SemanticDomain] ?? domain}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                    </div>
-                  ) : null}
+                  {showExplanations && chapterOverview.length > 0 && (
+                    <details className="mb-6 rounded-md border border-border bg-muted/10 px-4 py-3">
+                      <summary className="cursor-pointer text-sm font-medium">
+                        Panorama do capítulo · {chapterOverview.length}{" "}
+                        {chapterOverview.length === 1 ? "nota" : "notas"} sobre o capítulo todo
+                      </summary>
+                      <div className="mt-3">
+                        {chapterOverview.map((item) => (
+                          <CommentaryNote
+                            key={item.id}
+                            item={item}
+                            label="Trecho da biblioteca sobre o capítulo"
+                          />
+                        ))}
+                      </div>
+                    </details>
+                  )}
                   {privateKnowledgeError ? (
                     <p role="alert" className="mb-4 text-xs text-destructive">
                       A biblioteca privada não pôde ser carregada: {privateKnowledgeError}
@@ -381,7 +452,8 @@ function ChapterReader() {
                               items={privateItemsByVerse.get(v.verse) ?? NO_ITEMS}
                               open={openVerses.has(v.verse)}
                               onOpenChange={(open) => setVerseOpen(v.verse, open)}
-                              {...(sourceFilter ? { sourceId: sourceFilter } : {})}
+                              hiddenSources={hiddenSources}
+                              density={density}
                               {...(domainFilter ? { domain: domainFilter } : {})}
                             />
                           )}
@@ -519,7 +591,7 @@ function ChapterReader() {
                         items={privateItemsByVerse.get(verse.verse) ?? NO_ITEMS}
                         open={openVerses.has(verse.verse)}
                         onOpenChange={(open) => setVerseOpen(verse.verse, open)}
-                        {...(sourceFilter ? { sourceId: sourceFilter } : {})}
+                        hiddenSources={hiddenSources}
                         {...(domainFilter ? { domain: domainFilter } : {})}
                         showEmpty
                       />
@@ -536,6 +608,23 @@ function ChapterReader() {
 }
 
 const NO_ITEMS: WorkspacePassageKnowledgeItem[] = [];
+
+/**
+ * Brings a verse to the top of the text column. Only that column scrolls: scrollIntoView also
+ * moved the whole app shell on phones, hiding the top bar.
+ */
+function scrollToVerse(verse: number): void {
+  const element = document.getElementById(`verse-${verse}`);
+  const scroller = element?.closest<HTMLElement>("[data-reading-scroller]");
+  if (!element || !scroller) return;
+  scroller.scrollTo({
+    top:
+      element.getBoundingClientRect().top -
+      scroller.getBoundingClientRect().top +
+      scroller.scrollTop -
+      8,
+  });
+}
 
 function EmptyReader({ message, hint }: { message: string; hint?: string }) {
   return (

@@ -5,6 +5,7 @@ import {
   CircleHelp,
   ExternalLink,
   LockKeyhole,
+  MessagesSquare,
   X,
 } from "lucide-react";
 import { useId, useMemo, useState, type FormEvent } from "react";
@@ -30,6 +31,8 @@ import { ReviewStateBadge } from "./review-state-badge";
 import { SEMANTIC_DOMAIN_LABELS } from "../../lib/domain/semantic-content";
 import { passageReadingSource } from "../../lib/application/reading-source";
 import { useSourceReader } from "../study/source-reader-context";
+import { AppLink } from "../common/app-link";
+import { contextualCommentary, isBroadCommentary } from "./commentary-presentation";
 
 const RELATION_LABELS: Record<
   WorkspacePassageKnowledgeItem["passageRelation"]["payload"]["relationType"],
@@ -502,6 +505,81 @@ export function PrivateLinkCard({
 }
 
 /** Compact private-library links under a verse: a chip that opens and closes the cards. */
+/** How much of the commentary shows under each verse. */
+export type CommentaryDensity = "summary" | "full";
+
+function documentHref(item: WorkspacePassageKnowledgeItem): string {
+  return `/library/document/${encodeURIComponent(item.document.id)}?page=${(item.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(item.unit.id)}`;
+}
+
+/** One commentary note: its source and page, the text, and what kind of text it is. */
+export function CommentaryNote({
+  item,
+  collapsible = false,
+  label,
+}: {
+  item: WorkspacePassageKnowledgeItem;
+  /** Wide notes start folded under "Contexto de …" when shown inside a verse. */
+  collapsible?: boolean;
+  /** What the note is about, for screen readers ("…para o versículo 3"). */
+  label: string;
+}) {
+  const href = documentHref(item);
+  const payload = item.passageRelation.payload;
+  const analysis = payload.contextualAnalysis;
+  const longPatristicContext =
+    analysis?.sourceContext?.kind === "patristic-exposition" && analysis.summary.length > 1500;
+  const commentary = (
+    <AppLink
+      href={href}
+      className="commentary-text mt-3 block hover:underline hover:decoration-primary/40 hover:underline-offset-4"
+    >
+      {analysis?.summary ?? item.translation?.translatedText ?? item.unit.text}
+    </AppLink>
+  );
+  return (
+    <aside
+      className="mb-5 border-l-2 border-primary/25 bg-muted/20 py-3 pl-4 pr-3"
+      aria-label={label}
+    >
+      <AppLink href={href} className="commentary-source hover:underline hover:underline-offset-4">
+        {item.document.title} · p. {item.pages.map((page) => page + 1).join(", ")}
+      </AppLink>
+      {collapsible ? (
+        <details className="mt-2">
+          <summary className="cursor-pointer text-xs text-muted-foreground">
+            Contexto de {passageLinkLabel(payload.passage)}
+            {longPatristicContext ? " · exposição patrística" : ""}
+          </summary>
+          {commentary}
+        </details>
+      ) : (
+        commentary
+      )}
+      <p className="commentary-meta mt-3">
+        {analysis?.mode === "source-excerpt"
+          ? payload.referenceRole === "proof-text"
+            ? `Texto confessional original · ${analysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`
+            : "Comentário original da fonte"
+          : analysis
+            ? "Síntese contextual assistida"
+            : "Trecho literal da fonte"}{" "}
+        ·{" "}
+        {item.reviewState === "confirmed"
+          ? "ligação confirmada"
+          : "ligação automática, não é interpretação revisada"}
+        . Abra a fonte para ler o trecho completo.
+      </p>
+    </aside>
+  );
+}
+
+/** A short name for a source chip: the title without a trailing parenthesis, at most ~28 letters. */
+function sourceChipLabel(title: string): string {
+  const clean = title.replace(/\s*\([^)]*\)\s*$/u, "").trim() || title;
+  return clean.length > 28 ? `${clean.slice(0, 27).trimEnd()}…` : clean;
+}
+
 export function PrivateVerseKnowledge({
   chapter,
   verse,
@@ -511,6 +589,7 @@ export function PrivateVerseKnowledge({
   bookId,
   open,
   onOpenChange,
+  density = "full",
 }: {
   bookId: string;
   chapter: number;
@@ -520,8 +599,14 @@ export function PrivateVerseKnowledge({
   domain?: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /**
+   * "summary": one chip per source under the verse, each opening only its own notes; notes that
+   * cover the whole chapter are left to the chapter overview. "full": every note open, as before.
+   */
+  density?: CommentaryDensity;
 }) {
   const panelId = useId();
+  const [openSources, setOpenSources] = useState<ReadonlySet<string>>(() => new Set());
   const matching = items.filter((item) => {
     if (!knowledgeItemCoversVerse(item, bookId, chapter, verse)) return false;
     if (sourceId && item.document.id !== sourceId) return false;
@@ -538,111 +623,107 @@ export function PrivateVerseKnowledge({
   if (!matching.length) return null;
   const unconfirmed = matching.filter((item) => item.reviewState === "pending").length;
   const published = matching.length - unconfirmed;
-  // A detected cross-reference is not automatically commentary on this verse.
-  const contextual = matching
-    .filter((item) => item.passageRelation.payload.contextualAnalysis)
-    .sort((a, b) => {
-      const width = (item: WorkspacePassageKnowledgeItem) => {
-        const address = item.passageRelation.payload.passage;
-        return (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0);
-      };
-      return (
-        width(a) - width(b) ||
-        a.document.title.localeCompare(b.document.title, "pt-BR") ||
-        (a.pages[0] ?? 0) - (b.pages[0] ?? 0) ||
-        (a.unit.spans[0]?.startOffset ?? 0) - (b.unit.spans[0]?.startOffset ?? 0)
-      );
-    });
   // Confirming a reference is not reviewing its contents as exegesis. Literal links stay in
   // the expandable library panel; only contextual reading becomes inline commentary.
-  const previews = contextual;
+  const contextual = contextualCommentary(matching);
+  const summary = density === "summary";
+  const notes = summary ? contextual.filter((item) => !isBroadCommentary(item)) : contextual;
+  const sources = [
+    ...new Map(notes.map((item) => [item.document.id, item.document.title])).entries(),
+  ];
+  const toggleSource = (id: string) =>
+    setOpenSources((current) => {
+      const next = new Set(current);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  const allOpen = sources.length > 0 && sources.every(([id]) => openSources.has(id));
   return (
     <div className="mb-4 ml-4">
-      {!open &&
-        previews.map((preview) => {
-          const previewHref = `/library/document/${encodeURIComponent(preview.document.id)}?page=${(preview.pages[0] ?? 0) + 1}&unit=${encodeURIComponent(preview.unit.id)}`;
-          const address = preview.passageRelation.payload.passage;
-          const analysis = preview.passageRelation.payload.contextualAnalysis;
-          const longPatristicContext =
-            analysis?.sourceContext?.kind === "patristic-exposition" &&
-            analysis.summary.length > 1500;
-          const broad =
-            (address.verseEnd ?? address.verseStart ?? 0) - (address.verseStart ?? 0) > 6 ||
-            longPatristicContext;
-          const commentary = (
-            <a
-              href={previewHref}
-              className="commentary-text mt-3 block hover:underline hover:decoration-primary/40 hover:underline-offset-4"
-            >
-              {preview.passageRelation.payload.contextualAnalysis?.summary ??
-                preview.translation?.translatedText ??
-                preview.unit.text}
-            </a>
-          );
-          return (
-            <aside
-              key={preview.id}
-              className="mb-5 border-l-2 border-primary/25 bg-muted/20 py-3 pl-4 pr-3"
-              aria-label={`Trecho da biblioteca para o versículo ${verse}`}
-            >
-              <a
-                href={previewHref}
-                className="commentary-source hover:underline hover:underline-offset-4"
+      {summary && sources.length > 0 && (
+        <div
+          className="verse-commentary-chips mb-3 flex flex-wrap items-center gap-1.5"
+          role="group"
+          aria-label={`Comentários do versículo ${verse}`}
+        >
+          <MessagesSquare className="size-4 text-muted-foreground" aria-hidden="true" />
+          {sources.map(([id, title]) => {
+            const count = notes.filter((item) => item.document.id === id).length;
+            return (
+              <button
+                key={id}
+                type="button"
+                aria-pressed={openSources.has(id)}
+                title={title}
+                onClick={() => toggleSource(id)}
+                className={cn(
+                  "inline-flex min-h-8 items-center gap-1 rounded-full border px-3 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  openSources.has(id)
+                    ? "border-primary bg-primary text-primary-foreground"
+                    : "border-border bg-background text-foreground hover:bg-accent",
+                )}
               >
-                {preview.document.title} · p. {preview.pages.map((page) => page + 1).join(", ")}
-              </a>
-              {broad ? (
-                <details className="mt-2">
-                  <summary className="cursor-pointer text-xs text-muted-foreground">
-                    Contexto de {passageLinkLabel(address)}
-                    {longPatristicContext ? " · exposição patrística" : ""}
-                  </summary>
-                  {commentary}
-                </details>
-              ) : (
-                commentary
-              )}
-              <p className="commentary-meta mt-3">
-                {preview.passageRelation.payload.contextualAnalysis?.mode === "source-excerpt"
-                  ? preview.passageRelation.payload.referenceRole === "proof-text"
-                    ? `Texto confessional original · ${preview.passageRelation.payload.contextualAnalysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`
-                    : "Comentário original da fonte"
-                  : preview.passageRelation.payload.contextualAnalysis
-                    ? "Síntese contextual assistida"
-                    : "Trecho literal da fonte"}{" "}
-                ·{" "}
-                {preview.reviewState === "confirmed"
-                  ? "ligação confirmada"
-                  : "ligação automática, não é interpretação revisada"}
-                . Abra a fonte para ler o trecho completo.
-              </p>
-            </aside>
-          );
-        })}
-      <button
-        type="button"
-        aria-expanded={open}
-        aria-controls={panelId}
-        onClick={() => onOpenChange(!open)}
-        className={cn(
-          "inline-flex min-h-8 items-center gap-1.5 rounded-full border bg-amber-500/5 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
-          unconfirmed > 0 ? "border-dashed border-amber-500/70" : "border-amber-500/30",
-        )}
-      >
-        {unconfirmed > 0 && (
-          <CircleHelp className="size-3.5 text-amber-700 dark:text-amber-400" aria-hidden="true" />
-        )}
-        <BookMarked className="size-3.5" aria-hidden="true" />
-        <span>
-          {unconfirmed > 0
-            ? `${unconfirmed} por confirmar · ${published} ${published === 1 ? "publicado" : "publicados"}`
-            : `${published} ${published === 1 ? "ligação na biblioteca" : "ligações na biblioteca"}`}
-        </span>
-        <ChevronDown
-          className={cn("size-3 transition-transform", open && "rotate-180")}
-          aria-hidden="true"
-        />
-      </button>
+                {sourceChipLabel(title)}
+                {count > 1 && <span className="text-xs opacity-80">· {count}</span>}
+              </button>
+            );
+          })}
+          {sources.length > 1 && (
+            <button
+              type="button"
+              onClick={() =>
+                setOpenSources(allOpen ? new Set() : new Set(sources.map(([id]) => id)))
+              }
+              className="min-h-8 rounded-full px-2 font-sans text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              {allOpen ? "Fechar todos" : "Abrir todos"}
+            </button>
+          )}
+        </div>
+      )}
+      {!open &&
+        notes
+          .filter((item) => !summary || openSources.has(item.document.id))
+          .map((item) => (
+            <CommentaryNote
+              key={item.id}
+              item={item}
+              collapsible={isBroadCommentary(item)}
+              label={`Trecho da biblioteca para o versículo ${verse}`}
+            />
+          ))}
+      {/* The panel of every library link (and its review) stays one tap away; summarised, the
+          pill only shows when a link waits for confirmation, which asks something of the reader. */}
+      {(!summary || unconfirmed > 0 || open) && (
+        <button
+          type="button"
+          aria-expanded={open}
+          aria-controls={panelId}
+          onClick={() => onOpenChange(!open)}
+          className={cn(
+            "inline-flex min-h-8 items-center gap-1.5 rounded-full border bg-amber-500/5 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            unconfirmed > 0 ? "border-dashed border-amber-500/70" : "border-amber-500/30",
+          )}
+        >
+          {unconfirmed > 0 && (
+            <CircleHelp
+              className="size-3.5 text-amber-700 dark:text-amber-400"
+              aria-hidden="true"
+            />
+          )}
+          <BookMarked className="size-3.5" aria-hidden="true" />
+          <span>
+            {unconfirmed > 0
+              ? `${unconfirmed} por confirmar · ${published} ${published === 1 ? "publicado" : "publicados"}`
+              : `${published} ${published === 1 ? "ligação na biblioteca" : "ligações na biblioteca"}`}
+          </span>
+          <ChevronDown
+            className={cn("size-3 transition-transform", open && "rotate-180")}
+            aria-hidden="true"
+          />
+        </button>
+      )}
       {open && (
         <aside
           id={panelId}
