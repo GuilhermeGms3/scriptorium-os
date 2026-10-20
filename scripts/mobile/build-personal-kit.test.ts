@@ -100,6 +100,97 @@ it("refuses a giant embedded APK and public CI delivery", () => {
   expect(() => buildPersonalKit(root, source, output, false)).toThrow("CI público");
 });
 
+it.skipIf(process.platform !== "win32").each([false, true])(
+  "authenticates binary transfer on Windows PowerShell 5.1 (corrupted: %s)",
+  (corrupted) => {
+    const { root, source, output } = fixture();
+    buildPersonalKit(root, source, output, false);
+    writeFileSync(
+      join(output, "instalar.ps1"),
+      "\uFEFF" + readFileSync(resolve(import.meta.dirname, "install-personal-kit.ps1"), "utf8"),
+    );
+    const received = join(root, "received.bin");
+    const calls = join(root, "calls.txt");
+    const runner = join(root, "run-test.ps1");
+    writeFileSync(
+      runner,
+      `
+$ErrorActionPreference = 'Stop'
+if ($PSVersionTable.PSVersion.Major -ne 5) { throw 'This regression must run on Windows PowerShell 5.1.' }
+Add-Type -OutputAssembly $env:KIT_TEST_ADB -OutputType ConsoleApplication -TypeDefinition @'
+using System;
+using System.IO;
+public static class FakeAdb {
+    public static int Main(string[] args) {
+        string command = string.Join("|", args);
+        File.AppendAllText(Environment.GetEnvironmentVariable("KIT_TEST_CALLS"), command + "\\n");
+        string marker = Environment.GetEnvironmentVariable("KIT_TEST_MARKER");
+        if (Array.IndexOf(args, "mktemp") >= 0) Console.WriteLine("/data/local/tmp/scriptorium-DEMO1234");
+        int push = Array.IndexOf(args, "push");
+        if (push >= 0) {
+            File.Copy(args[push + 1], Environment.GetEnvironmentVariable("KIT_TEST_RECEIVED"), true);
+            using (var output = new FileStream(Environment.GetEnvironmentVariable("KIT_TEST_RECEIVED"), FileMode.Append)) {
+                if (Environment.GetEnvironmentVariable("KIT_TEST_CORRUPT") == "1") output.WriteByte(85);
+            }
+        }
+        if (Array.IndexOf(args, "sha256sum") >= 0) {
+            using (var input = File.OpenRead(Environment.GetEnvironmentVariable("KIT_TEST_RECEIVED")))
+            using (var sha = System.Security.Cryptography.SHA256.Create())
+                Console.WriteLine(BitConverter.ToString(sha.ComputeHash(input)).Replace("-", "").ToLowerInvariant() + "  package.part");
+        }
+        if (Array.IndexOf(args, "mv") >= 0) File.WriteAllText(marker, "ready");
+        if (command.Contains("cat|files/active-content")) {
+            if (!File.Exists(marker)) return 1;
+            Console.WriteLine(new string('a', 64));
+        }
+        return 0;
+    }
+}
+'@
+& $env:KIT_TEST_INSTALLER -Adb $env:KIT_TEST_ADB -Serial DEMO
+`,
+    );
+    const result = spawnSync("powershell.exe", ["-NoProfile", "-File", runner], {
+      encoding: "utf8",
+      timeout: 30000,
+      env: {
+        ...Object.fromEntries(
+          Object.entries(process.env).filter(([key]) => key.toLowerCase() !== "psmodulepath"),
+        ),
+        PSModulePath: join(
+          process.env["SystemRoot"] ?? "C:/Windows",
+          "System32/WindowsPowerShell/v1.0/Modules",
+        ),
+        KIT_TEST_ADB: join(root, "fake-adb.exe"),
+        KIT_TEST_INSTALLER: join(output, "instalar.ps1"),
+        KIT_TEST_RECEIVED: received,
+        KIT_TEST_MARKER: join(root, "activated"),
+        KIT_TEST_CALLS: calls,
+        KIT_TEST_CORRUPT: corrupted ? "1" : "0",
+      },
+    });
+    if (corrupted) {
+      expect(result.status).not.toBe(0);
+      expect(result.stderr).toContain("incompleta ou divergente");
+      expect(readFileSync(calls, "utf8")).not.toContain("|mv|");
+      expect(readFileSync(calls, "utf8")).not.toContain("am|start");
+      return;
+    }
+    expect(result.status, result.stderr + result.stdout).toBe(0);
+    expect(readFileSync(received)).toEqual(readFileSync(join(source, "acervo.scriptorium")));
+    expect(result.stdout).toContain("Acervo confirmado");
+    const commands = readFileSync(calls, "utf8");
+    expect(commands).toContain("|push|");
+    expect(commands).toContain("|chmod|700|");
+    expect(commands).toContain("| run-as org.scriptorium.app dd");
+    expect(commands).toContain("|rmdir|/data/local/tmp/scriptorium-DEMO1234");
+    expect(commands).toContain("sha256sum");
+    expect(commands).not.toContain("exec-in");
+    expect(commands).not.toContain("uninstall");
+  },
+  40000,
+);
+
 it.skipIf(process.platform !== "win32")(
   "updates only the APK when the exact content id is already installed",
   () => {

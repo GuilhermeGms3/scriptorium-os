@@ -45,29 +45,22 @@ if ($alreadyInstalled -eq $description.id) {
     Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mkdir', '-p', 'files/incoming')
     $target = "files/incoming/$($description.id)"
     Write-Host "Transferindo o acervo completo ($($description.pdfCount) PDFs). Não é necessário importar livro por livro."
-    $start = New-Object System.Diagnostics.ProcessStartInfo
-    $start.FileName = $Adb
-    # Only a validated serial and a hex identifier enter this constant command. No shell on the PC.
-    $start.Arguments = "-s $Serial exec-in run-as org.scriptorium.app dd of=$target.part bs=1048576"
-    $start.UseShellExecute = $false
-    $start.CreateNoWindow = $true
-    $start.RedirectStandardInput = $true
-    $start.RedirectStandardError = $true
-    $start.RedirectStandardOutput = $true
-    $start.StandardInputEncoding = New-Object System.Text.UTF8Encoding($false)
-    $transfer = New-Object System.Diagnostics.Process
-    $transfer.StartInfo = $start
+    # ADB sync transports binary files without Windows stdin encoding/EOF behavior.
+    # Only the authorized shell can enter the temporary directory (mode 0700).
+    $staging = (& $Adb -s $Serial shell mktemp -d /data/local/tmp/scriptorium-XXXXXXXX | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $staging -notmatch '^/data/local/tmp/scriptorium-[A-Za-z0-9]{8}$') { throw 'Não foi possível preparar a transferência USB.' }
     try {
-        if (-not $transfer.Start()) { throw 'Não foi possível iniciar a transferência.' }
-        $errors = $transfer.StandardError.ReadToEndAsync()
-        $output = $transfer.StandardOutput.ReadToEndAsync()
-        $source = [System.IO.File]::OpenRead((Join-Path $kit 'acervo.scriptorium'))
-        try { $source.CopyTo($transfer.StandardInput.BaseStream, 1048576) } finally { $source.Dispose(); $transfer.StandardInput.Close() }
-        $transfer.WaitForExit()
-        $null = $output.Result
-        $transferError = $errors.Result
-        if ($transfer.ExitCode -ne 0) { throw "A transferência falhou: $transferError. A cópia incompleta não será instalada." }
-    } finally { $transfer.Dispose() }
+        Invoke-AdbChecked @('shell', 'chmod', '700', $staging)
+        Invoke-AdbChecked @('push', (Join-Path $kit 'acervo.scriptorium'), "$staging/acervo.part")
+        # The Android shell opens the protected file; run-as receives only a binary pipe.
+        # Both paths contain exclusively validated generated identifiers, not user input.
+        Invoke-AdbChecked @('shell', "cat $staging/acervo.part | run-as org.scriptorium.app dd of=$target.part bs=1048576")
+    } finally {
+        & $Adb -s $Serial shell rm -f "$staging/acervo.part" 2>$null | Out-Null
+        & $Adb -s $Serial shell rmdir $staging 2>$null | Out-Null
+    }
+    $receivedHash = (& $Adb -s $Serial shell run-as org.scriptorium.app sha256sum "$target.part" | Out-String).Trim()
+    if ($LASTEXITCODE -ne 0 -or $receivedHash -notmatch '^([a-fA-F0-9]{64})\s' -or $Matches[1].ToLowerInvariant() -ne $description.packageSha256) { throw 'A cópia no aparelho ficou incompleta ou divergente. Ela não foi entregue ao aplicativo. Confira o cabo USB e execute o instalador novamente; seus dados foram preservados.' }
     Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mv', "$target.part", "$target.scriptorium")
 }
 Invoke-AdbChecked @('shell', 'am', 'start', '-n', 'org.scriptorium.app/.MainActivity')

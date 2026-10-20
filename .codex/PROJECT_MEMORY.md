@@ -1,5 +1,20 @@
 # Project Memory
 
+## Android — instalação física / PowerShell 5.1 — 2026-10-19
+
+- Erro real do usuário: StandardInputEncoding não existe no ProcessStartInfo do .NET
+  Framework/Windows PowerShell5.1. Teste anterior cobria somente caminho sem reenvio.
+- Transferência por stdin no Windows também falhou no Samsung:exec-in truncou e shell
+  recebeu EOF prematuro. Instalador passou a adb push para pasta shell0700 +pipe local
+  Android para incoming privado; remove staging e exige SHA256 remoto antes de ativar.
+- Testes do kit/exportador:8 passaram;regressões WindowsPS5.1 usam ADB falso compilado
+  para cobrir primeira instalação/cópia binária, checksum divergente bloqueado e update
+  sem reenvio. Não confundem simulação com validação real no telefone.
+- Instalador extraído em Desktop/Scriptorium-Android-0.2.1 corrigido;sem rebuild do APK,
+  sem mudanças de schema/desktop/OCR. Instalação física concluída:script confirmou acervo
+  b289f600...,UI exibiu “Acervo instalado”/Hoje Salmos55;incoming ficou vazio. APK não foi
+  desinstalado. ZIP e checksums da Área de Trabalho também atualizados com instalador novo.
+
 ## Android — atualização com espaço limitado — 2026-10-19
 
 - Usuário tem20GB livres no celular e pediu resolver cópias/acúmulo de atualizações.

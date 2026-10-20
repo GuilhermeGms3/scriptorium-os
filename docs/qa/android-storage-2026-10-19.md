@@ -86,7 +86,7 @@ dentro do projeto no discoF. Hashes e instruções acompanham o artefato gerado.
 
 APK final:181.264.775bytes, SHA-256
 `8b9317e0f5b79d1d33aa615fcf0ed8b97e360fa3e6d06e73a8dd72fe2116cb31`.
-ZIP final:1.968.361.159bytes, SHA-256
+ZIP antes da correção PowerShell5.1:1.968.361.159bytes, SHA-256
 `0a48a337932945c42597522213d29bb1ff86c5fb8bbf982b513ef3db474a67b7`.
 Conteúdo permanece com SHA-256 `47f5751b8a0123e664bad56fd11b9c178000afd6c7fe29f510f379e57195194f`.
 A atualização do APK final preservou novamente o ID ativo e o banco pessoal.
@@ -96,3 +96,42 @@ específico informado. Foram preservadas, sem contornar a rejeição: o candidat
 movido para `C:/Users/comical/AppData/Local/Temp/scriptorium-android-0.2.1-candidato-20261019`.
 O kit final ocupa a pasta de entrega indicada acima. A limpeza dentro do Android foi executada
 normalmente no emulador e está coberta pelos testes; o bloqueio afetou somente os artefatos do PC.
+
+## Correção do instalador no Windows PowerShell 5.1
+
+O usuário encontrou `StandardInputEncoding` inexistente no `ProcessStartInfo` do .NET
+Framework. O teste anterior de PS5.1 exercitava somente a atualização sem reenviar livros,
+portanto não detectava a falha da primeira transferência. Não era problema de depuração USB.
+
+Na validação física no Samsung, o envio por stdin também apresentou truncamento com
+`exec-in` e encerramento prematuro do pipe com `shell -T`. Essa abordagem foi retirada,
+em vez de exigir que o usuário instalasse outro PowerShell. O instalador agora:
+
+- usa `adb push` para uma pasta Android temporária criada por `mktemp`, validada por regex
+  e protegida com modo 0700;
+- copia por pipe local Android para a entrada privada do aplicativo, sem binário atravessar
+  stdin do Windows;
+- remove somente o arquivo temporário gerado e sua pasta vazia em `finally`;
+- exige SHA-256 remoto igual ao do kit antes de renomear `.part` para `.scriptorium`.
+
+O teste regressivo executa Windows PowerShell5.1 com ADB falso compilado, incluindo cópia
+com bytes idênticos e cópia adulterada que deve falhar sem `mv`/abertura do aplicativo.
+Kit/exportador:8 testes passaram. Typecheck e ESLint dos arquivos alterados passaram.
+Não houve alteração no APK, nos schemas ou na biblioteca editorial; builds nativos não
+precisaram ser refeitos para esta correção de script.
+
+No telefone real, `adb push` entregou1.786.907.212 bytes em47,137s; a cópia local por pipe
+entregou o mesmo tamanho em12,013s e o SHA-256 remoto conferiu antes de abrir o aplicativo.
+Isso confirma transporte/integridade; a ativação do acervo é uma etapa posterior distinta.
+
+A etapa posterior também foi confirmada no Samsung: o instalador terminou com sucesso,
+o ponteiro ativo correspondeu ao ID b289f600... e a UI informou “Acervo instalado. Suas
+notas foram preservadas”, com Hoje em Salmos55. A entrada de transferência ficou vazia
+após a ativação. Não houve desinstalação nem exclusão de dados pessoais.
+
+O script extraído e o ZIP na Área de Trabalho foram atualizados. ZIP corrigido:
+1.968.361.310bytes, SHA-256
+`6b424766dfe26d9aab0e4b5129cce2be7f77e72fbe18ac3e8ef2193726125d9c`.
+`instalar.ps1`: SHA-256
+`48a4e65973415cc2ce0795a21a2edb162a770859718651a5162ccfc4b52e8637`.
+Hashes do APK e do pacote de conteúdo permanecem iguais; nenhum PDF foi retirado.

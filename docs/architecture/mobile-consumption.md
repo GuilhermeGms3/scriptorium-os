@@ -27,6 +27,12 @@ desinstalar, transfere o pacote como bytes para uma entrada privada do aplicativ
 o identificador ativo confirmar a instalação. Não habilita ADB remoto nem escolhe outro
 aparelho silenciosamente; se houver mais de um, informe `-Serial`.
 
+Compatível com Windows PowerShell 5.1: o envio usa `adb push`, não stdin binário do
+PowerShell/`ProcessStartInfo`. Uma pasta temporária Android com modo 0700 recebe o
+pacote; o shell autorizado o copia por pipe local para a entrada privada do aplicativo.
+A cópia temporária é removida e o SHA-256 no aparelho precisa coincidir com o do kit
+antes de renomear `.part` para `.scriptorium`. Falha de transferência não ativa conteúdo.
+
 Na primeira abertura o aplicativo confere SHA-256/tamanhos/SQLite e ativa uma geração
 privada atomicamente. Uma transferência `.part` interrompida não é instalada. A cópia de
 entrada é removida depois do sucesso; os originais permanecem no PC. Reserve 8 GB livres
