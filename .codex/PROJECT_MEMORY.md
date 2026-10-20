@@ -1,5 +1,29 @@
 # Project Memory
 
+## Desktop — retomada contextual — 2026-10-20
+
+- Mobile fora do escopo. Acervo canônico: data/workspace/workspace.sqlite3, 57 documentos.
+- Importadas 118 relações de aberturas de homilias de Crisóstomo: 80 Atos/38 Romanos. Perfil novo
+  chrysostom-acts-romans.json; 85 lemas válidos/84 aberturas publicadas, 5 exceções. Lote integral 507 NÃO importado:
+  não ligar aplicações posteriores ao primeiro verso. Restante aguarda segmentação própria.
+- Suma: 12 localizadores temáticos reais com SHA da edição/texto da página; estudos/árvore usam
+  Leituras selecionadas via repository. Não equivale ao grafo de argumentos nem à leitura integral.
+  Objeções/solução distinguidas no aviso; compilação de traduções mistas permanece identificada.
+- Baseline preservada, quick_check/FKs aprovados; idempotência: 0 novas/118 reutilizadas. Recibos
+  privados em data/workspace/desktop-context-20261020. Catálogo Suma: 12/12, somente leitura.
+- Docker parado/religado com autorização. Lock antigo preservado após backup e confirmação do
+  container parado. Importador aceita 25–28 sem migration alheia e manteve 25. Docker possui
+  schema 26 e cria seu próprio backup/migração aditiva ao reabrir a instalação.
+- Reabertura concluída: HTTP 200, schema 26, 57 documentos. Backup do caderno terminou;
+  os timeouts iniciais ocorreram durante VACUUM síncrono, não foram perda do acervo.
+- QA em cópia temporária isolada; não impor 28 ao original: imagem Docker existente até 26.
+  Código novo de estudos exige rebuild posterior da imagem; nesta entrega não reconstruir Docker.
+- Próximos: A Trindade/Institutas/métodos/léxicos/arqueologia; Salmos exigem crosswalk e 6 PDFs sem
+  texto continuam com OCR pendente. Detalhes: docs/content/desktop-context-expansion-2026-10-20.md.
+- Passaram 494 testes TS, 113 Python, typecheck, build, ESLint alterados, Ruff e mypy/app.
+  Playwright em 1440/390 px: Suma por página, janela original e Crisóstomo em Atos 1:1;
+  sem erros de console/overflow. Não testados tradução nem escrita de notas novas.
+
 ## Android — revisão do leitor e aulas 0.4.0 — 2026-10-20
 
 - Feedback atual substitui a decisão anterior do botão flutuante: retirar Ir para…, selo26dp,

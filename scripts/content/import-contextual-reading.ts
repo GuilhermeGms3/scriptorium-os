@@ -6,7 +6,8 @@ import { DatabaseSync, backup } from "node:sqlite";
 import { ContextualReadingService } from "../../src/lib/application/contextual-reading-service";
 import { ContextualReadingPackageSchema } from "../../src/lib/domain/contextual-reading";
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
-import { WORKSPACE_SCHEMA_VERSION, applyWorkspaceMigrations } from "../database/workspace-migrate";
+import { applyWorkspaceMigrations } from "../database/workspace-migrate";
+import { contextualImportSchema } from "./contextual-import-schema";
 import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.server";
 
 // Offline operator command. Never run against a Linux bind mount while Docker is writing it.
@@ -87,14 +88,13 @@ try {
     // Keep SQLite's synchronous/durability setting unchanged; the WAL remains the recovery log.
     database.exec("PRAGMA cache_size=-65536; PRAGMA wal_autocheckpoint=0;");
   const version = db.prepare("SELECT max(version) n FROM workspace_migrations").get()?.["n"];
-  if (version !== WORKSPACE_SCHEMA_VERSION && version !== 24 && version !== 23)
-    throw new Error("Schema incompatível: migre antes do lote.");
+  const schema = contextualImportSchema(version);
   if (db.prepare("PRAGMA foreign_key_check").all().length)
     throw new Error("Workspace com violação de integridade. Importação recusada.");
   const destination = `${path}.before-contextual-${batches[0]!.batchId}-${Date.now()}`;
   console.info("Criando backup consistente antes da importação:", destination);
   await backup(db, destination, { rate: 4096 });
-  if (version !== WORKSPACE_SCHEMA_VERSION) applyWorkspaceMigrations(database);
+  if (schema.migrate) applyWorkspaceMigrations(database);
   const adapter: WorkspaceDatabase = {
     persistence: "installation",
     async query(sql, bind = []) {

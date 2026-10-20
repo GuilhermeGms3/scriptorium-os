@@ -70,6 +70,40 @@ const hit: CorpusSearchHit = {
 };
 
 describe("real study topic discovery", () => {
+  it("preserves curated provenance and keeps search available when curated lookup fails", async () => {
+    const sources = {
+      works: async () => [],
+      primary: async () => [hit],
+      private: async () => [],
+      evidence: async () => ({ references: [], fragments: [] }),
+      curated: async () => {
+        throw new Error("unavailable edition");
+      },
+    };
+    const failed = await loadTopicReadings(topic, undefined, sources);
+    expect(failed.items).toEqual([]); // Hit's work is not installed.
+    expect(failed.warnings).toHaveLength(1);
+    const selected = {
+      id: "selected:q1",
+      title: "Synthetic",
+      locator: "q1",
+      excerpt: "",
+      origin: "private-curated" as const,
+      source: {
+        kind: "private-document" as const,
+        documentId: "doc:one",
+        page: 1,
+        title: "Synthetic",
+      },
+    };
+    const result = await loadTopicReadings(topic, undefined, {
+      ...sources,
+      works: async () => [work],
+      curated: async () => ({ items: [selected], warnings: [] }),
+    });
+    expect(result.items[0]).toEqual(selected);
+    expect(result.items.some((item) => item.origin === "primary-search")).toBe(true);
+  });
   it("does not pull unrelated notes from a group merely because one note mentions the topic", () => {
     const unrelated = {
       ...note,

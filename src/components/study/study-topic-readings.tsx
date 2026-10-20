@@ -14,6 +14,12 @@ import { TopicSourceText } from "./topic-source-text";
 
 const ORIGINS = [
   {
+    id: "private-curated",
+    label: "Leituras selecionadas",
+    detail:
+      "Percurso temático com questão e página conferidas na edição instalada; não é conclusão doutrinária verificada.",
+  },
+  {
     id: "catalog",
     label: "Obras de partida",
     detail: "Correspondências editoriais conferidas no catálogo instalado.",
@@ -65,6 +71,9 @@ export function StudyTopicReadings({
     );
   const activeOrigin =
     origin ??
+    (readings?.items.some((item) => item.origin === "private-curated")
+      ? "private-curated"
+      : undefined) ??
     (readings?.items.some((item) => item.origin === "private-search")
       ? "private-search"
       : undefined) ??
@@ -141,6 +150,9 @@ export function StudyTopicReadings({
             </p>
             <h3 className="mt-3 font-serif text-2xl">{current.title}</h3>
             <p className="mt-2 text-xs text-muted-foreground">{current.locator}</p>
+            {current.guidance && (
+              <p className="my-4 text-sm leading-6 text-muted-foreground">{current.guidance}</p>
+            )}
             <TopicSourceText key={current.id} reading={current} />
             <div className="flex flex-wrap items-center gap-3 border-t border-border pt-5">
               {current.source.kind === "primary-text" && !current.source.unitId ? (
@@ -156,7 +168,7 @@ export function StudyTopicReadings({
                   onClick={() =>
                     openSource({
                       source: current.source,
-                      context: `Estudo de ${topic.title} · ${current.origin === "catalog" ? "fonte do roteiro" : "resultado de busca textual"}`,
+                      context: `Estudo de ${topic.title} · ${current.origin === "catalog" ? "fonte do roteiro" : current.origin === "private-curated" ? "leitura temática selecionada" : "resultado de busca textual"}`,
                       links: topicNoteLinks(topic),
                       ...(studyId ? { studyId } : {}),
                     })

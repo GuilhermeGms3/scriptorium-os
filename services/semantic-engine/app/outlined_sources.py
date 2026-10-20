@@ -33,6 +33,9 @@ class Profile(BaseModel):
     author: str
     segments: list[Segment]
     maps: dict[int, str] = Field(default_factory=dict)
+    quarantine_unaligned_pages: bool = False
+    opening_excerpt_only: bool = False
+    minimum_inline_height: float = Field(default=0, ge=0, le=11)
 
 
 class Heading(BaseModel):
@@ -58,7 +61,14 @@ def targets(title: str, book: str, snapshot: Snapshot, homily: bool) -> list[dic
     """Only explicit closed lemmas; commas enumerate verses, never fill their gaps."""
     text = re.sub(r"\s+", "", title)
     if homily:
-        text = re.sub(r"^Matthew", "", text)
+        # The homily ordinal is not a biblical chapter. Require the book named
+        # in the primary lemma, and never accept another book's heading.
+        text = re.sub(r"^Homily[IVXLCDM]+on", "", text, flags=re.I)
+        prefixes = {"matthew": "Matthew", "acts": "Acts", "romans": "Rom\\."}
+        prefix = prefixes.get(book)
+        if prefix is None or not re.match(rf"^{prefix}", text, re.I):
+            return []
+        text = re.sub(rf"^{prefix}", "", text, flags=re.I).upper()
         match = re.fullmatch(r"([IVX]+|\d+)\.(\d+(?:[-,]\d+)*)\.?", text)
     else:
         aliases = next(b.aliases for b in snapshot.books if b.id == book)
@@ -151,13 +161,18 @@ def extract(
         raise ValueError("Edition checksum mismatch")
     if len(layout.pages) != len(snapshot.pages):
         raise ValueError("Page count mismatch")
+    quarantined: set[int] = set()
     for page, geometry in zip(snapshot.pages, layout.pages, strict=True):
-        if (
-            geometry.unmatched
-            or geometry.textChecksum != hashlib.sha256(page.text.encode()).hexdigest()
-        ):
+        if geometry.textChecksum != hashlib.sha256(page.text.encode()).hexdigest():
             raise ValueError("Unaligned source page")
+        if geometry.unmatched:
+            if not profile.quarantine_unaligned_pages:
+                raise ValueError("Unaligned source page")
+            quarantined.add(page.physicalPage)
     result = Extraction(version="outlined-sources-v1")
+    result.exceptions.extend(
+        {"page": number, "reason": "unaligned-page-quarantined"} for number in sorted(quarantined)
+    )
     duplicates: set[int] = set()
     if profile.strategy == "intertextual":
         for before, after in zip(snapshot.pages, snapshot.pages[1:], strict=False):
@@ -228,7 +243,7 @@ def extract(
                 continue
             pieces: list[Piece] = []
             for number in range(heading.page, min(following.page, segment.last) + 1):
-                if number in duplicates:
+                if number in duplicates or number in quarantined:
                     continue
                 page = snapshot.pages[number - 1]
                 start = offset if number == heading.page else 0
@@ -243,7 +258,9 @@ def extract(
                         if abs(s.height - 11) < 0.15 and 105 < s.y < 720
                     ]
                     for span in layout.pages[number - 1].spans:
-                        inline = span.height < 11 and any(abs(span.y - y) < 6 for y in body_lines)
+                        inline = profile.minimum_inline_height <= span.height < 11 and any(
+                            abs(span.y - y) < 6 for y in body_lines
+                        )
                         if (abs(span.height - 11) > 0.15 and not inline) or not 105 < span.y < 720:
                             continue
                         a, b = (
@@ -295,9 +312,14 @@ def extract(
                         if b - a >= 20
                     )
                 pieces = unprotected
-            for part in (
+            parts = (
                 [[piece] for piece in pieces] if profile.strategy == "handbook" else chunks(pieces)
-            ):
+            )
+            # Later paragraphs can move to other verses or moral applications.
+            # An opening lemma does not justify assigning the entire homily to it.
+            if profile.opening_excerpt_only:
+                parts = parts[:1]
+            for part in parts:
                 emit(result, snapshot, profile, heading.title, part, destinations)
     result.processed_pages = sum(s.last - s.first + 1 for s in profile.segments)
     return result
@@ -404,6 +426,14 @@ def emit(
                     ),
                     "limitations": [
                         rationale,
+                        *(
+                            [
+                                "Excerto de abertura da homilia, não comentário isolado de cada "
+                                "versículo; o restante exige segmentação própria."
+                            ]
+                            if profile.opening_excerpt_only
+                            else []
+                        ),
                         "Ligação determinística; auditoria pendente, "
                         "não revisão humana individual.",
                     ],
