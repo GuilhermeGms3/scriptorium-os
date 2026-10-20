@@ -1,5 +1,23 @@
 # Project Memory
 
+## Android — painel e percurso horizontal 0.3.1 — 2026-10-20
+
+- Decisão explícita: experiência única de leitura, sem separar culto/estudo. Não reconstruir
+  árvore nem identidade bronze/escura. Cabeçalho compacto e Ir para… flutuante acessível.
+- Painel contextual pela direita (tela inteira no telefone, max480dp em telas largas): visão
+  geral/texto e língua/fontes/minhas notas. Leitor preservado abaixo; notas por IDs exatos,
+  sem migration. Ferramentas existentes permanecem; retorno usa versículo visível.
+- Guias/aulas com etapas horizontais; cursos com módulos e etapas, uma seção por vez.
+  Textos conservados. Salvar antes de navegar/sair; conclusão e liberação mantêm CoursePolicy,
+  sem completar por clique/rolagem. Progresso atualizado sem desmontagem integral por etapa.
+- Título humano com dois-pontos não pode virar Estudo temático. Trilha usa Surface visual +
+  clickable para evitar falha de nó semântico destacado do Material em troca de estado.
+- 42 JVM e 5 dados instrumentados passaram, build/lint sem erros. Dois cenários UI passaram:
+  painel/retorno/versículo105 e 14 etapas/rascunho/saída sem conclusão automática.
+- Entrega só APK0.3.1/versionCode5 em C:/Users/comical/Desktop/Scriptorium-Android-0.3.1,
+  sem reenviar livros. Acervo b289f600.../3.637.896KiB mantido. QA somente AVD isolado;
+  sem teste físico/API28. Detalhes: docs/qa/android-contextual-reading-2026-10-20.md.
+
 ## Android — uso diário 0.3.0 — 2026-10-20
 
 - Feedback mobile implementado preservando tema/bronze e acervo: salto `Jo3:16`/ranges e grid

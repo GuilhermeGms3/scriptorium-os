@@ -59,6 +59,17 @@ class ReadingUiTest {
         }
         SystemClock.sleep(400)
     }
+    private fun reveal(value: String) {
+        repeat(10) {
+            if (nodes().any { it.text?.toString() == value }) return
+            val root = Rect(); automation.rootInActiveWindow.getBoundsInScreen(root)
+            automation.executeShellCommand("input swipe ${root.centerX()} ${root.top + root.height() * 8 / 10} ${root.centerX()} ${root.top + root.height() * 4 / 10} 180").use { descriptor ->
+                android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { it.readBytes() }
+            }
+            SystemClock.sleep(250)
+        }
+        waitNode(value)
+    }
     @Test fun directJumpIndependentCommentDisclosureBackHomeAndColorPalette() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val context = instrumentation.targetContext
@@ -71,6 +82,24 @@ class ReadingUiTest {
         waitNode("Salmos 119", false)
         waitNode("105")
         assertTrue("Deve abrir no versículo, sem rolar os 104 anteriores", nodes().any { label(it).contains("lâmpada", true) })
+        click("Painel")
+        waitNode("Salmos 119:105")
+        waitNode("Visão geral")
+        click("Texto e língua")
+        waitNode("Comparação")
+        click("Fontes")
+        waitNode("Comentários na leitura")
+        click("Minhas notas")
+        waitNode("Anotar esta passagem")
+        back()
+        waitNode("105")
+        assertTrue("Painel deve preservar a posição da leitura", nodes().any { label(it).contains("lâmpada", true) })
+        click("Painel")
+        click("Texto e língua")
+        click("Texto original")
+        waitNode("← Voltar à leitura · Texto original")
+        back()
+        waitNode("105")
         click("Ir para…")
         enter("Gn1:1")
         click("Abrir referência")
@@ -97,5 +126,40 @@ class ReadingUiTest {
         click("Home")
         waitNode("Seu scriptorium")
         println("READING_UI_QA direct105/comment-expand-collapse/source/back/home/palette passed")
+    }
+
+    @Test fun horizontalCourseRetainsDraftAcrossStepsAndExit() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        waitNode("Seu scriptorium")
+        click("Estudos")
+        reveal("Gênesis 1: texto, contexto e interpretações")
+        click("Gênesis 1: texto, contexto e interpretações")
+        waitNode("Módulos · 1 de 6")
+        waitNode("Etapas do módulo · 1 de 14")
+        repeat(12) {
+            reveal("Próxima etapa")
+            click("Próxima etapa")
+        }
+        waitNode("Minha atividade")
+        reveal("Sua resposta, com fontes")
+        val response = "QA isolado: argumento com observação da passagem e referência para verificar a conservação do rascunho entre as etapas."
+        enter(response)
+        // ACTION_SET_TEXT does not open the IME. Navigate explicitly to save the draft.
+        reveal("Anterior")
+        click("Anterior")
+        reveal("Próxima etapa")
+        click("Próxima etapa")
+        reveal("Sua resposta, com fontes")
+        assertTrue(nodes().any { it.text?.toString() == response })
+        click("Voltar aos percursos")
+        waitNode("Percursos acadêmicos")
+        val personal = org.scriptorium.app.data.PersonalRepository(java.io.File(context.filesDir, "personal.sqlite3"))
+        val progress = personal.progress("genesis-1", 1).single { it["module_id"] == "orientacao" }
+        assertEquals(response, org.json.JSONObject(progress["work_json"]!!).getString("response"))
+        assertTrue(progress["completed_at"].isNullOrBlank())
+        click("Home")
+        println("STUDY_UI_QA horizontal14/draft-stage-exit/no-automatic-completion passed")
     }
 }

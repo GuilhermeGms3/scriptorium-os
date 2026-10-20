@@ -9,8 +9,8 @@ import org.json.JSONObject
 import org.scriptorium.app.data.*
 
 @Composable
-fun ChapterContext(repository: MobileRepository, personal: PersonalRepository, passage: Passage) {
-    var expanded by remember(passage) { mutableStateOf(false) }
+fun ChapterContext(repository: MobileRepository, personal: PersonalRepository, passage: Passage, initiallyExpanded: Boolean = false) {
+    var expanded by remember(passage) { mutableStateOf(initiallyExpanded) }
     var selected by remember { mutableStateOf<Row?>(null) }
     var page by remember { mutableStateOf<Row?>(null) }
     TextButton(onClick = { expanded = !expanded }) { Text("Contexto histórico, geografia e fontes ${if (expanded) "▴" else "▾"}") }

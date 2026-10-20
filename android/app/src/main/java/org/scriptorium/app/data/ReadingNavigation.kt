@@ -14,7 +14,7 @@ data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, 
 /** Navigation only: actual chapter/verse availability is checked against the selected edition. */
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
     fun topic(id: String, fallback: String): String = labels.optJSONObject("topics")?.optString(id)?.takeIf(String::isNotBlank)
-        ?: fallback.takeUnless { it == id || it.contains(':') } ?: "Estudo temático"
+        ?: fallback.takeUnless { it == id || it.matches(Regex("^[a-z][a-z-]*:[^\\s]+$")) } ?: "Estudo temático"
     fun book(id: String): JSONObject? = labels.optJSONObject("books")?.optJSONObject(id)
     fun group(id: String): String = book(id)?.optString("group")?.takeIf(String::isNotBlank) ?: "Deuterocanônicos e outros textos"
     fun symbol(id: String): String = book(id)?.optString("symbol")?.takeIf(String::isNotBlank) ?: "▤"
@@ -79,4 +79,16 @@ fun Row.commentCategories(): Set<String> {
         }
         if (isEmpty()) add("Comentário da passagem")
     }
+}
+
+/** Addresses must agree explicitly; chapter context is included only when requested. */
+fun commentApplies(passage: Passage, addresses: List<Row>, includeContext: Boolean = false): Boolean = addresses.any { target ->
+    target.text("scheme_id") == passage.scheme && target.text("work_id") == passage.workId && target.text("book_id") == passage.bookId &&
+        (target["chapter"] == null || target.number("chapter") == passage.chapter) &&
+        when {
+            target["verse_start"] == null -> includeContext
+            passage.verse == null -> true
+            else -> target.number("verse_start") <= (passage.verseEnd ?: passage.verse) &&
+                target.number("verse_end").coerceAtLeast(target.number("verse_start")) >= passage.verse
+        }
 }

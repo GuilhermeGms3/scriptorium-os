@@ -10,8 +10,6 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -22,17 +20,9 @@ import org.scriptorium.app.data.*
 
 @Composable
 fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, current: Passage, explanations: Boolean,
-                  toggle: (Boolean) -> Unit, preferences: ReadingPreferences, open: (Passage) -> Unit,
-                  source: (Row) -> Unit, note: (String) -> Unit, bookmark: (Row) -> Unit, original: () -> Unit) {
-    var category by rememberSaveable { mutableStateOf<String?>(null) }
-    var document by rememberSaveable { mutableStateOf<String?>(null) }
-    var filters by rememberSaveable { mutableStateOf(false) }
+                  category: String?, document: String?, preferences: ReadingPreferences, open: (Passage) -> Unit,
+                  source: (Row) -> Unit, note: (String) -> Unit, bookmark: (Row) -> Unit, original: () -> Unit, inspect: (Row?) -> Unit, visible: (Row) -> Unit) {
     Column(Modifier.fillMaxSize()) {
-        Row(Modifier.fillMaxWidth().padding(horizontal = 16.dp), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-            TextButton(onClick = { filters = !filters }) { Text("Filtrar comentários ${if (category != null || document != null) "●" else "▾"}") }
-            Spacer(Modifier.weight(1f))
-            Switch(explanations, toggle, modifier = Modifier.semanticsLabel("Mostrar comentários"))
-        }
         Load(current.copy(verse = null, verseEnd = null), {
             repository.verses(current) to (repository.books(current.edition).find { it.text("id") == current.workId }?.number("chapters") ?: current.chapter)
         }) { (verses, lastChapter) ->
@@ -43,7 +33,6 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
             }
             val all = comments?.getOrNull()?.first.orEmpty()
             val targets = comments?.getOrNull()?.second.orEmpty()
-            if (filters) CommentFilters(all, category, document, { category = it }, { document = it })
             val filtered = if (!explanations) emptyList() else all.filter { (category == null || category in it.commentCategories()) && (document == null || it.text("document_id") == document) }
             val list = rememberLazyListState()
             LaunchedEffect(current, verses) {
@@ -52,24 +41,22 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
             }
             LaunchedEffect(current, verses, list) {
                 snapshotFlow { list.firstVisibleItemIndex }.distinctUntilChanged().collect { index ->
-                    verses.getOrNull(index - 1)?.let { preferences.savePassage(current.copy(verse = it.number("verse_start"), verseEnd = null)) }
+                    verses.getOrNull(index - 1)?.let { preferences.savePassage(current.copy(verse = it.number("verse_start"), verseEnd = null)); visible(it) }
                 }
             }
             val contextual = filtered.filter { comment -> targets[comment.text("id")].orEmpty().any { it["verse_start"] == null } }
             var contextExpanded by rememberSaveable(current) { mutableStateOf(false) }
-            LazyColumn(state = list, contentPadding = PaddingValues(20.dp), verticalArrangement = Arrangement.spacedBy(22.dp)) {
+            LazyColumn(state = list, contentPadding = PaddingValues(start = 20.dp, top = 12.dp, end = 20.dp, bottom = 96.dp), verticalArrangement = Arrangement.spacedBy(22.dp)) {
                 item(key = "chapter-heading") {
                     Heading("${current.title} ${current.chapter}")
-                    var studyContext by rememberSaveable(current) { mutableStateOf(false) }
-                    TextButton(onClick = { studyContext = !studyContext }) { Text(if (studyContext) "Recolher estudo do capítulo" else "Contexto e estudo do capítulo ▾") }
-                    if (studyContext) ChapterContext(repository, personal, current)
+                    TextButton(onClick = { inspect(null) }) { Text("Contexto e fontes da passagem ↗") }
                     if (explanations && comments == null) Text("Carregando comentários… A escritura já está disponível.", style = MaterialTheme.typography.labelSmall)
                     comments?.exceptionOrNull()?.let { Text("Comentários indisponíveis nesta abertura. O texto permanece disponível.", style = MaterialTheme.typography.labelSmall) }
                     if (contextual.isNotEmpty()) {
                         TextButton(onClick = { contextExpanded = !contextExpanded }) { Text("Contexto do livro/capítulo · ${contextual.size} ${if (contextExpanded) "▴" else "▾"}") }
                         if (contextExpanded) contextual.forEach { CommentPreview(it, personal, source) }
                     }
-                    if (explanations && all.isNotEmpty() && filtered.isEmpty()) Text("Nenhum comentário corresponde aos filtros. Limpe-os em Filtrar comentários.", style = MaterialTheme.typography.bodySmall)
+                    if (explanations && all.isNotEmpty() && filtered.isEmpty()) Text("Nenhum comentário corresponde aos filtros. Ajuste-os em Painel → Fontes.", style = MaterialTheme.typography.bodySmall)
                 }
                 items(verses, key = { it.text("id") }) { verse ->
                     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -78,8 +65,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                         val highlighted = current.verse != null && verseNumber <= (current.verseEnd ?: current.verse) && lastVerse >= current.verse
                         Surface(color = if (highlighted) MaterialTheme.colorScheme.primaryContainer else Color.Transparent, shape = MaterialTheme.shapes.small) {
                             Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                                Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
-                                    Box(Modifier.sizeIn(minWidth = 38.dp, minHeight = 38.dp).padding(6.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                Surface(onClick = { inspect(verse) }, color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
+                                    Box(Modifier.sizeIn(minWidth = 48.dp, minHeight = 48.dp).padding(6.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
                                         Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
                                     }
                                 }
@@ -91,10 +78,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                             item { TextButton(onClick = { note(verse.text("id")) }) { Text("Anotar") } }
                             item { TextButton(onClick = { bookmark(verse) }) { Text("Favoritar") } }
                         }
-                        val linked = filtered.filter { comment -> targets[comment.text("id")].orEmpty().any { target ->
-                            target.text("scheme_id") == current.scheme && target.text("work_id") == current.workId && target.text("book_id") == current.bookId &&
-                                target.number("chapter") == current.chapter && target["verse_start"] != null && verseNumber in target.number("verse_start")..target.number("verse_end").coerceAtLeast(target.number("verse_start"))
-                        } }
+                        val linked = filtered.filter { comment -> commentApplies(current.copy(verse = verseNumber, verseEnd = lastVerse), targets[comment.text("id")].orEmpty()) }
                         var more by rememberSaveable(current, verse.text("id")) { mutableStateOf(false) }
                         (if (more) linked else linked.take(2)).forEach { comment -> key(comment.text("id")) { CommentPreview(comment, personal, source) } }
                         if (linked.size > 2) TextButton(onClick = { more = !more }) { Text(if (more) "Mostrar só duas prévias" else "Mais ${linked.size - 2} comentários") }
@@ -113,7 +97,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
 }
 
 @Composable
-private fun CommentPreview(comment: Row, personal: PersonalRepository, source: (Row) -> Unit) {
+internal fun CommentPreview(comment: Row, personal: PersonalRepository, source: (Row) -> Unit) {
     var expanded by rememberSaveable(comment.text("id")) { mutableStateOf(false) }
     Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small, modifier = Modifier.padding(start = 12.dp, top = 6.dp)) {
         Column(Modifier.animateContentSize().padding(14.dp)) {
@@ -137,7 +121,7 @@ private fun CommentPreview(comment: Row, personal: PersonalRepository, source: (
 }
 
 @Composable
-private fun CommentFilters(comments: List<Row>, category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit) {
+internal fun CommentFilters(comments: List<Row>, category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit) {
     Column(Modifier.padding(horizontal = 16.dp)) {
         Text("Assunto · conforme a classificação da fonte", style = MaterialTheme.typography.labelSmall)
         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -155,5 +139,3 @@ private fun CommentFilters(comments: List<Row>, category: String?, document: Str
         if (category != null || document != null) TextButton(onClick = { chooseCategory(null); chooseDocument(null) }) { Text("Limpar filtros") }
     }
 }
-
-private fun Modifier.semanticsLabel(label: String): Modifier = this.then(Modifier.semantics { contentDescription = label })

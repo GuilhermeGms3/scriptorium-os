@@ -10,7 +10,18 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
-## Uso no celular — 0.3.0
+## Uso no celular — 0.3.1
+
+- Uma única experiência de leitura: referência e edição em uma faixa compacta, botão
+  **Ir para…** ao alcance do polegar e ferramentas secundárias em **Painel**.
+- O painel contextual entra pela direita, ocupando a tela no telefone e até 480dp em telas
+  largas. Abas **Visão geral**, **Texto e língua**, **Fontes** e **Minhas notas** reúnem contexto,
+  ferramentas existentes, filtros de comentários e notas com vínculo exato ao trecho/fontes.
+  Fechá-lo mantém a posição do leitor. Tocar o número bronze também abre a passagem no painel.
+- Guias e aulas exibem uma etapa por vez, com trilha horizontal e navegação anterior/próxima.
+  Os textos existentes são preservados. Percursos acadêmicos têm trilhas de módulos e etapas;
+  trocar de etapa salva o rascunho, sem marcar aula ou módulo como concluído automaticamente.
+  Leituras, resposta e critérios continuam necessários para liberar o próximo módulo.
 
 - **Leitura → Ir para…** abre referências como `Jo3:16`, `Gn 1:1-3`, `1Co 13:4-7`
   e `Sl 119:105`. Valida os endereços na edição instalada e posiciona a lista no versículo,

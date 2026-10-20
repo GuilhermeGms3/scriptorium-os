@@ -47,6 +47,7 @@ class ReadingNavigationTest {
     @Test fun topicLabelsComeFromDesktopEditorialNamesWithoutEntityIdentifiers() {
         assertEquals("Trindade", navigation.topic("doctrine:trinity", "doctrine:trinity"))
         assertFalse(navigation.topic("unknown:id", "unknown:id").contains(':'))
+        assertEquals("Gênesis 1: texto, contexto e interpretações", navigation.topic("course:genesis-1", "Gênesis 1: texto, contexto e interpretações"))
         assertEquals("Pentateuco", navigation.group("genesis"))
         assertEquals("Cartas paulinas", navigation.group("1-corinthians"))
     }

@@ -67,4 +67,18 @@ class PersonalDataTest {
             assertEquals(1, personal.groups().size)
         } finally { file.delete() }
     }
+
+    @Test fun passageNotesUseExactSourcesWithoutDuplicatesOrUnrelatedNotes() {
+        val file = temporary()
+        try {
+            val personal = PersonalRepository(file)
+            val verseNote = personal.save(null, "Versículo", "Observação", "verse:1")
+            val sourceNote = personal.save(null, "Fonte", "Discussão", "comment:1")
+            personal.save(null, "Outra passagem", "Não deve aparecer", "verse:10")
+            personal.save(null, "Sem vínculo", "Pessoal", null)
+            assertEquals(setOf(verseNote, sourceNote), personal.notesForSources(listOf("verse:1", "comment:1", "verse:1")).map { it.text("id") }.toSet())
+            assertTrue(personal.notesForSources(emptyList()).isEmpty())
+            assertTrue(personal.notesForSources(listOf("verse:' OR 1=1 --")).isEmpty())
+        } finally { file.delete() }
+    }
 }
