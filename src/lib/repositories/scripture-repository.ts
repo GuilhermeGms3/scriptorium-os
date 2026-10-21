@@ -329,6 +329,26 @@ export const ScriptureRepository = {
     if (loaded) loadedChapterCache.set(key, loaded);
     return loaded;
   },
+  /** Edition-specific lazy read for narration: never falls back to a different translation. */
+  async loadEditionTextUnits(
+    bookId: string,
+    chapter: number,
+    editionId: string,
+  ): Promise<TextUnit[]> {
+    const manifest = MANIFEST_BY_EDITION.get(editionId);
+    if (!manifest || !manifest.books.some((book) => book.id === bookId)) return [];
+    const storage = await corpusPackageRegistry.open(editionId, `work:${bookId}`);
+    const units = await storage.getTextUnits(
+      {
+        workId: `work:${bookId}`,
+        bookId,
+        chapter,
+        versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+      },
+      editionId,
+    );
+    return units.map(legacyTextUnit);
+  },
   primeChapter(chapter: ChapterContent | null): void {
     if (!chapter) return;
     const key = chapterKey(chapter.bookId, chapter.chapter);

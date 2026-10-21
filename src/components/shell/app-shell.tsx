@@ -26,6 +26,7 @@ import { InspectorPanel } from "./inspector-panel";
 import { CommandPalette } from "../search/command-palette";
 import { t } from "../../lib/i18n";
 import { supportsPassageInspector } from "./shell-route-context";
+import { AudioMiniPlayer } from "../audio/audio-player";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { inspectorOpen, setInspectorOpen, wordSelection, selectWord } = useWorkbench();
@@ -45,7 +46,7 @@ export function AppShell({ children }: { children: ReactNode }) {
 
         {/* Notes and Search have no passage inspector. Keep these workspaces mounted across
             viewport changes so rotation cannot discard drafts, queries or external results. */}
-        {isMobile || pathname === "/notes" || pathname === "/search" ? (
+        {isMobile || pathname === "/notes" || pathname === "/search" || pathname === "/audio" ? (
           <main className="min-w-0 flex-1 overflow-y-auto" id="workspace">
             {children}
           </main>
@@ -77,6 +78,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         )}
       </div>
 
+      <AudioMiniPlayer />
       <StatusBar />
       <MobileNav />
       <CommandPalette />

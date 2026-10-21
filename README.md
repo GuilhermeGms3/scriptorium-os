@@ -36,6 +36,11 @@ do YouTube. As fontes são consultadas sob demanda, sem conteúdo fictício para
 
 ## Desenvolvimento
 
+O [Scriptorium Áudio](docs/architecture/scriptorium-audio.md) permite ouvir capítulos,
+versículos/intervalos e texto pessoal com vozes locais reais do dispositivo. O mini player
+continua entre rotas; progresso e histórico são preferências locais, sem copiar o acervo.
+Esta fundação web não gera arquivos nem habilita provedores pagos ou narração Android.
+
 O aplicativo nativo Android está em [android/](android/README.md), com Kotlin/Compose e
 pacotes offline exportados pelo PC, inclusive [kit privado com aplicativo e todos os PDFs](docs/architecture/mobile-consumption.md).
 Leitura, comparação/interlinear, léxico, fontes, Rastro, estudos e notas têm interfaces nativas;

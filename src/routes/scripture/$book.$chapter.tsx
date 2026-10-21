@@ -4,6 +4,7 @@ import {
   type ReaderContextFilter,
 } from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { ScriptureAudioActions } from "../../components/audio/scripture-audio-actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
 import { CommentaryDock, type CommentaryLayout } from "../../components/scripture/commentary-dock";
@@ -396,6 +397,13 @@ function ChapterReader() {
           verses={bundle?.passage.verses.map((verse) => verse.verse) ?? []}
           selectedVerse={selectedVerse}
           onVerseChange={goToVerse}
+        />
+        <ScriptureAudioActions
+          key={`${bookId}:${chapter}:${effectiveEditionId}:${selectedVerse}`}
+          bookId={bookId}
+          chapter={chapter}
+          editionId={effectiveEditionId}
+          selectedVerse={selectedVerse}
         />
         {commentaryLayout !== "hidden" && view === "single" && (
           <CommentarySourceBar

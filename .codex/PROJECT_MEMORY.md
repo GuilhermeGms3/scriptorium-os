@@ -1,5 +1,22 @@
 # Project Memory
 
+## Scriptorium Áudio — Fase 1 — 2026-10-21
+
+- `/audio`, navegação web/Mais e player único no shell; capítulo, versículo/intervalo e texto
+  pessoal literais. Repositório abre somente obra/edição pedida, preserva unidades/esquema/licença.
+- Adapter Web Speech somente `localService === true`; sem nuvem, chave, dependência nova ou
+  arquivo exportável. Naturalidade depende das vozes instaladas; não prometer voz neural.
+- Progresso/histórico validado em `scriptorium.audio-progress.v1`, até20 referências/hash/posição;
+  não contém texto/PDF e não faz parte do backup SQLite. Texto pessoal e fila só na sessão.
+  Não abre outro banco nem altera schema/acervo. Android e Docker não atualizados nesta entrega.
+- 582 testes TS/88 arquivos aprovados (30 novos), typecheck, lint dos arquivos alterados e build
+  node-server. QA em workspace temporário: vozes reais Daniel/Maria detectadas; fala/pausa/retomada,
+  continuidade entre rotas, reload, Gênesis1:2–3, velocidade/volume/fila e ausência de voz tratada.
+  Produção1440/390 sem erros; ausência de voz simulada só no teste negativo. Acervo original
+  manteve mtime14:32:28, anterior ao trabalho. Não foi migrado para testar áudio.
+- Próximo: perfis/prévias, leitura ancorada de fontes/estudos/notas, fila persistente, arquivos
+  com direitos e player nativo Android. Escopo e limites: docs/architecture/scriptorium-audio.md.
+
 ## Desktop — auditoria e aproveitamento do acervo — 2026-10-21
 
 - Retomada executada sobre o original: 57 PDFs, 47.707 páginas/45.905 com texto, schema26.

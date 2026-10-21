@@ -3,6 +3,7 @@ import {
   GitBranch,
   HelpCircle,
   Home,
+  Headphones,
   Library,
   NotebookPen,
   StickyNote,
@@ -27,6 +28,7 @@ export const NAVIGATION_GROUPS: readonly { label: string; items: readonly Naviga
     items: [
       { to: "/", label: t("navigation.home"), icon: Home },
       { to: "/scripture", label: t("navigation.scripture"), icon: BookOpen },
+      { to: "/audio", label: "Áudio", icon: Headphones },
       { to: "/search", label: t("navigation.search"), icon: Search },
     ],
   },

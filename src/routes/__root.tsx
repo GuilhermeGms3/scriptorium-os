@@ -19,6 +19,7 @@ import { INTRO_INIT } from "../components/shell/intro-controller";
 import { DEFAULT_LOCALE, t } from "../lib/i18n";
 import { SourceReaderProvider } from "../components/study/source-reader";
 import { THEME_INIT } from "../lib/workbench/theme";
+import { AudioProvider } from "../components/audio/audio-context";
 
 function NotFoundComponent() {
   return (
@@ -138,11 +139,13 @@ function RootComponent() {
     <QueryClientProvider client={queryClient}>
       <WorkspaceQueryRefresh />
       <WorkbenchProvider>
-        <SourceReaderProvider>
-          <AppShell>
-            <Outlet />
-          </AppShell>
-        </SourceReaderProvider>
+        <AudioProvider>
+          <SourceReaderProvider>
+            <AppShell>
+              <Outlet />
+            </AppShell>
+          </SourceReaderProvider>
+        </AudioProvider>
       </WorkbenchProvider>
     </QueryClientProvider>
   );
