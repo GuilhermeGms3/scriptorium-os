@@ -23,7 +23,7 @@ import { useHiddenCommentarySources } from "../../hooks/use-hidden-commentary-so
 import { CommentaryNote } from "../../components/scripture/private-verse-knowledge";
 import {
   contextualCommentary,
-  isBroadCommentary,
+  belongsInChapterOverview,
 } from "../../components/scripture/commentary-presentation";
 import { Button } from "@/components/ui/button";
 import { errorMessage } from "@/lib/utils";
@@ -291,21 +291,19 @@ function ChapterReader() {
   // under every verse they touch, when comments are summarised.
   const chapterOverview = useMemo(
     () =>
-      density !== "summary"
-        ? []
-        : contextualCommentary(
-            (privateKnowledge?.items ?? []).filter(
-              (item) =>
-                isBroadCommentary(item) &&
-                !hiddenSources.has(item.document.id) &&
-                (!domainFilter ||
-                  item.proposals.some(
-                    (proposal) =>
-                      proposal.payload.kind === "topic-assignment" &&
-                      proposal.payload.domain === domainFilter,
-                  )),
-            ),
-          ),
+      contextualCommentary(
+        (privateKnowledge?.items ?? []).filter(
+          (item) =>
+            belongsInChapterOverview(item, density === "summary") &&
+            !hiddenSources.has(item.document.id) &&
+            (!domainFilter ||
+              item.proposals.some(
+                (proposal) =>
+                  proposal.payload.kind === "topic-assignment" &&
+                  proposal.payload.domain === domainFilter,
+              )),
+        ),
+      ),
     [density, domainFilter, hiddenSources, privateKnowledge],
   );
   const privateDomains = useMemo(
@@ -626,6 +624,24 @@ function ChapterReader() {
                     document.getElementById("commentary-layout")?.focus();
                   }}
                 >
+                  {chapterOverview.length > 0 && (
+                    <details className="mb-4 border-b border-border pb-3">
+                      <summary className="cursor-pointer text-sm">
+                        Contextos de capítulo e livro · {chapterOverview.length}
+                      </summary>
+                      {chapterOverview.map((item) => (
+                        <CommentaryNote
+                          key={item.id}
+                          item={item}
+                          label={
+                            item.passageRelation.payload.relationScope === "book"
+                              ? "Contexto do livro, não exclusivo deste capítulo"
+                              : "Contexto do capítulo"
+                          }
+                        />
+                      ))}
+                    </details>
+                  )}
                   {privateKnowledgeQuery.isPending && (
                     <p role="status" className="mb-4 text-sm text-muted-foreground">
                       Consultando sua biblioteca…

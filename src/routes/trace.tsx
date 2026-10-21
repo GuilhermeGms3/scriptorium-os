@@ -17,11 +17,12 @@ import { ContextualReadingImport } from "../components/library/contextual-readin
 import { PageHeader } from "../components/layout/page-header";
 import { EmptyState } from "../components/layout/empty-state";
 import { ResearchDossier } from "../components/study/research-dossier";
+import { LibraryUtilizationReport } from "../components/library/library-utilization";
 
 const SearchSchema = TraceFilterSchema.extend({
   proposal: z.string().max(500).optional(),
   q: z.string().trim().max(500).optional(),
-  view: z.enum(["research", "history"]).optional(),
+  view: z.enum(["research", "history", "utilization"]).optional(),
 });
 type TraceSearch = z.infer<typeof SearchSchema>;
 export const Route = createFileRoute("/trace")({
@@ -88,7 +89,7 @@ function TraceFilters({
     const positive = (key: string) => (form.get(key) ? Number(form.get(key)) : undefined);
     void navigate({
       search: {
-        view: "history",
+        view: search.view === "utilization" ? "utilization" : "history",
         state: search.state,
         offset: 0,
         documentId: String(form.get("documentId") ?? "") || undefined,
@@ -371,11 +372,35 @@ function TracePage() {
         >
           Investigar palavra ou passagem
         </AppLink>
-        <AppLink href="/trace?view=history" aria-current={!research ? "page" : undefined}>
+        <AppLink
+          href="/trace?view=history"
+          aria-current={!research && search.view !== "utilization" ? "page" : undefined}
+        >
           Histórico e proveniência
         </AppLink>
+        <AppLink
+          href={`/trace?${new URLSearchParams(
+            Object.entries({ ...search, view: "utilization", offset: 0 })
+              .filter(([, value]) => value !== undefined)
+              .map(([key, value]) => [key, String(value)]),
+          )}`}
+          aria-current={search.view === "utilization" ? "page" : undefined}
+        >
+          Aproveitamento do acervo
+        </AppLink>
       </nav>
-      {research ? (
+      {search.view === "utilization" ? (
+        <LibraryUtilizationReport
+          filter={search}
+          renderFilters={(rows) => (
+            <TraceFilters
+              key={JSON.stringify(search)}
+              search={search}
+              documents={rows.map((row) => ({ id: row.id, title: row.title, links: row.linked }))}
+            />
+          )}
+        />
+      ) : research ? (
         <ResearchDossier
           query={search.q ?? ""}
           onQuery={(q) =>

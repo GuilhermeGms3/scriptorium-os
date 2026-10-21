@@ -14,6 +14,14 @@ export const ContextualReadingPackageSchema = z.object({
     .array(
       z.object({
         sourceChecksum: z.string().regex(/^[a-f0-9]{64}$/),
+        /** Correct a machine-visible extraction without deleting its evidence or human revisions. */
+        supersedes: z
+          .object({
+            proposalId: z.string().min(1).max(400),
+            payloadChecksum: z.string().regex(/^[a-f0-9]{64}$/),
+            reason: z.string().min(20).max(2000),
+          })
+          .optional(),
         fragments: z
           .array(
             z.object({

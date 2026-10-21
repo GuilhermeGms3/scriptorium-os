@@ -28,6 +28,18 @@ export const ContextualAnalysisSchema = z.object({
       caption: z.string().min(3).max(600),
     })
     .optional(),
+  historicalContext: z
+    .object({
+      place: z.string().min(1).max(300),
+      period: z.string().min(1).max(300),
+      evidenceType: z.enum([
+        "reported-find",
+        "historical-reconstruction",
+        "theological-interpretation",
+      ]),
+      qualification: z.string().min(20).max(1000),
+    })
+    .optional(),
   rationale: z.string().min(20).max(2000),
   contentType: z.enum([
     "exegetical-note",

@@ -29,6 +29,34 @@ function ContextEntry({ item }: { item: WorkspacePassageKnowledgeItem }) {
       </summary>
       {open && (
         <div className="mt-3 space-y-2">
+          {analysis.historicalContext && (
+            <dl className="space-y-1 text-xs">
+              <div>
+                <dt className="font-medium">Lugar</dt>
+                <dd>{analysis.historicalContext.place}</dd>
+              </div>
+              <div>
+                <dt className="font-medium">Período indicado pela fonte</dt>
+                <dd>{analysis.historicalContext.period}</dd>
+              </div>
+              <div>
+                <dt className="font-medium">Natureza da informação</dt>
+                <dd>
+                  {
+                    {
+                      "reported-find": "Achado relatado pela fonte",
+                      "historical-reconstruction": "Reconstrução histórica",
+                      "theological-interpretation": "Interpretação teológica",
+                    }[analysis.historicalContext.evidenceType]
+                  }
+                </dd>
+              </div>
+              <div>
+                <dt className="font-medium">Limites da evidência</dt>
+                <dd>{analysis.historicalContext.qualification}</dd>
+              </div>
+            </dl>
+          )}
           {visual && (
             <button
               type="button"

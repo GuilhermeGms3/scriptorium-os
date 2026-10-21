@@ -9,6 +9,9 @@ const EvidenceSchema = z.object({
   quote: z.string().optional(),
   sourceSchemeConfirmed: z.boolean().optional(),
   policy: z.string().optional(),
+  contextualCorrection: z
+    .object({ replacementId: z.string(), reason: z.string(), analyst: z.string(), at: z.string() })
+    .optional(),
   decisions: z
     .array(z.object({ rationale: z.string().optional(), evidenceQuote: z.string().optional() }))
     .optional(),
@@ -61,6 +64,10 @@ export function explainKnowledgeTrace(row: TraceRow): KnowledgeTraceItem {
       "O processamento registra a numeração da fonte como confirmada pelo operador. Essa confirmação não comprova relevância contextual.",
     );
   if (row.review_note) explanation.push(row.review_note);
+  if (data.contextualCorrection)
+    explanation.push(
+      `Correção rastreada por ${data.contextualCorrection.analyst}: ${data.contextualCorrection.reason} Substituição: ${data.contextualCorrection.replacementId}. A evidência original foi preservada; isto não é uma aprovação humana.`,
+    );
   if (row.publication === "exception")
     explanation.push("Encaminhada às exceções para auditoria; não publicada automaticamente.");
   if (row.publication === "withheld")

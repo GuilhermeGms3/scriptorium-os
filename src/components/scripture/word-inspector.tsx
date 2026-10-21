@@ -16,6 +16,7 @@ import { morphologyLabel, t } from "../../lib/i18n";
 import type { WordKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import type { LexicalDictionaryEntry } from "../../lib/domain/linguistic";
 import { LexicalOccurrences } from "./lexical-occurrences";
+import { PrivateLexicalReadings } from "./private-lexical-readings";
 
 const TABS = [
   { id: "lexicon", label: t("scripture.tab.lexicon") },
@@ -179,6 +180,15 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
             </div>
           )}
           <Tabs.Content value="lexicon" className="space-y-4">
+            <PrivateLexicalReadings
+              lemmas={[
+                ...(wordBundle?.lexeme.status === "available" ? wordBundle.lexeme.data.lemmas : []),
+                ...(wordBundle?.dictionary.status === "available"
+                  ? wordBundle.dictionary.data.map((entry) => entry.lemma)
+                  : []),
+                ...(annotation?.normalized.lemmas ?? [token.lemma ?? token.surface]),
+              ]}
+            />
             {wordBundle?.dictionary.status === "available" &&
               wordBundle.dictionary.data.map((entry) => (
                 <LexiconEntry key={entry.id} entry={entry} />

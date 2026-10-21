@@ -2,6 +2,10 @@ import { describe, expect, it } from "vitest";
 import type { WorkspacePassageKnowledgeItem } from "./workspace-passage-knowledge";
 import { knowledgeItemCoversVerse } from "./workspace-passage-knowledge";
 import { readerContextMatches, itemTradition } from "./reader-context-filter";
+import {
+  belongsInChapterOverview,
+  isBroadCommentary,
+} from "../../components/scripture/commentary-presentation";
 
 function item(scope: "verse" | "range" | "chapter"): WorkspacePassageKnowledgeItem {
   const now = "2026-10-09T00:00:00.000Z";
@@ -69,6 +73,14 @@ function item(scope: "verse" | "range" | "chapter"): WorkspacePassageKnowledgeIt
 }
 
 describe("knowledgeItemCoversVerse", () => {
+  it("preserves chapter comments in the panorama in both full and summary modes, never under each verse", () => {
+    const chapter = item("chapter");
+    expect(isBroadCommentary(chapter)).toBe(true);
+    expect(belongsInChapterOverview(chapter, true)).toBe(true);
+    expect(belongsInChapterOverview(chapter, false)).toBe(true);
+    expect(knowledgeItemCoversVerse(chapter, "john", 2, 1)).toBe(false);
+    expect(belongsInChapterOverview(item("verse"), true)).toBe(false);
+  });
   it("filters only declared traditions, never guesses from a title", () => {
     const value = item("verse");
     value.document.title = "Comentário ortodoxo reformado";

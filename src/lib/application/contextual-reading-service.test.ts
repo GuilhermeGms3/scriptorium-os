@@ -17,8 +17,45 @@ import { createElement } from "react";
 import { PrivateVerseKnowledge } from "../../components/scripture/private-verse-knowledge";
 import { ChapterSourceContext } from "../../components/scripture/chapter-source-context";
 import { chapterContextItems } from "../domain/workspace-passage-knowledge";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 const databases: DatabaseSync[] = [];
+it("supersedes only untouched automatic proposals, preserves evidence and is idempotent", async () => {
+  const { db, adapter } = await source();
+  const original = batch();
+  await ContextualReadingService.importJson(JSON.stringify(original), adapter);
+  const old = db
+    .prepare(
+      "SELECT id,payload_json FROM knowledge_proposals WHERE proposal_kind='passage-relation'",
+    )
+    .get()!;
+  const corrected = batch();
+  corrected.batchId = "corrected-fixture";
+  corrected.notes[0]!.passage.verseStart = 2;
+  corrected.notes[0]!.supersedes = {
+    proposalId: String(old["id"]),
+    payloadChecksum: await sha256Hex(String(old["payload_json"])),
+    reason: "Escopo incorreto conferido na evidência original sintética.",
+  };
+  const bad = structuredClone(corrected);
+  bad.notes[0]!.supersedes!.payloadChecksum = "a".repeat(64);
+  await expect(ContextualReadingService.importJson(JSON.stringify(bad), adapter)).rejects.toThrow(
+    "Substituição exige",
+  );
+  await ContextualReadingService.importJson(JSON.stringify(corrected), adapter);
+  expect(
+    db
+      .prepare("SELECT publication,evidence_json FROM pipeline_decisions WHERE proposal_id=?")
+      .get(old["id"]!)?.["publication"],
+  ).toBe("withheld");
+  expect(
+    await ContextualReadingService.importJson(JSON.stringify(corrected), adapter),
+  ).toMatchObject({ imported: 0, reused: 1 });
+  db.prepare("UPDATE knowledge_proposals SET review_status='accepted' WHERE id=?").run(old["id"]!);
+  await expect(
+    ContextualReadingService.importJson(JSON.stringify(corrected), adapter),
+  ).rejects.toThrow("revisões humanas");
+});
 function workspace() {
   const db = new DatabaseSync(":memory:");
   databases.push(db);

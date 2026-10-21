@@ -2,6 +2,7 @@ import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { loadTopicReadingText } from "../../lib/application/topic-reading-text";
 import type { TopicReading } from "../../lib/application/study-topic-service";
 import { PageTranslation } from "../library/page-translation";
+import { StructuredSourceText } from "./structured-source-text";
 
 export function TopicSourceText({ reading }: { reading: TopicReading }) {
   const query = useWorkspaceQuery(
@@ -38,7 +39,7 @@ export function TopicSourceText({ reading }: { reading: TopicReading }) {
           : "Texto integral da unidade encontrada · idioma da edição"}
       </p>
       {query.data.trim() ? (
-        <blockquote className="topic-reading-excerpt topic-original-text">{query.data}</blockquote>
+        <StructuredSourceText source={reading.source} text={query.data} />
       ) : (
         <p className="my-6 text-sm">
           Esta página não contém texto extraído disponível. Consulte o documento original.

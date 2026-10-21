@@ -10,10 +10,20 @@ function passageWidth(item: WorkspacePassageKnowledgeItem): number {
  * belongs to the chapter, not to each verse it touches.
  */
 export function isBroadCommentary(item: WorkspacePassageKnowledgeItem): boolean {
+  const scope = item.passageRelation.payload.relationScope;
+  if (scope === "chapter" || scope === "book") return true;
   const analysis = item.passageRelation.payload.contextualAnalysis;
   const longPatristicContext =
     analysis?.sourceContext?.kind === "patristic-exposition" && analysis.summary.length > 1500;
   return passageWidth(item) > 6 || longPatristicContext;
+}
+
+export function belongsInChapterOverview(
+  item: WorkspacePassageKnowledgeItem,
+  summary: boolean,
+): boolean {
+  const scope = item.passageRelation.payload.relationScope;
+  return scope === "chapter" || scope === "book" || (summary && isBroadCommentary(item));
 }
 
 /** Contextual notes first by how narrowly they speak of the verse, then by source and page. */

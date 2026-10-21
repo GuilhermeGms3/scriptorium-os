@@ -1,6 +1,31 @@
 # Project Memory
 
-## Desktop — estudos e notas na leitura — 2026-10-21
+## Desktop — auditoria e aproveitamento do acervo — 2026-10-21
+
+- Retomada executada sobre o original: 57 PDFs, 47.707 páginas/45.905 com texto, schema26.
+  Backup consistente, FKs limpas e baseline de 232 propostas anteriores preservado.
+- `audit-delivery-20261021`: publicados 8 vínculos de A Trindade que antes só existiam no QA,
+  2 notas Shedd delimitadas (2Ts1:1/1:3) e 2 destinos Price (Lc3:1/Jo18). 12 novas, uma antiga
+  retida com evidência e sucessora; reimportação somente leitura 0 novas/12 reutilizadas.
+- 24 amostras estruturais das quatro Bíblias; leitura contextual seletiva. Corrigida exclusão
+  visual de notas de capítulo/livro também nos modos completo/painel (930 Wesley,34 Shedd).
+  Não confundir amostra assistida com aprovação humana ou todos os comentários corretos.
+- Jerusalém instalada é texto bíblico sem aparato identificado (p2/600/1100/1220 revalidadas).
+  Não fabricar comentários. Precisa da edição anotada. Veja checksum no relatório canônico.
+- Inspetor lexical privado: FTS limitada + delimitação grega e 3 localizadores com hash
+  (ראשית p497, ארץ DITAT p150, שאר NDITAT IV p44); fragmentos/OCR qualificados, não obra integral.
+- Estudos:22 localizadores; separação local de questão/artigo/objeções/solução/respostas,
+  Institutas e confissões; Ware tem localizadores temáticos, não falsa estrutura escolástica.
+- Rastro `/trace?view=utilization`: SQL por documento/passagem/esquema; contagens de ligações,
+  não versículos únicos. Arqueologia traz lugar/período/limites e imagem real Price p252.
+- 513 testes TS/84 arquivos passaram, typecheck/lint alterados/build. QA produção1440/390:
+  panorama nos três modos, filtro relatório, nota de seção salva, λόγος com destaque, imagem.
+  Aviso React ocorreu durante HMR; repetição de produção sem erros. Python não alterado nesta fase.
+- Não reconstruído Docker (daemon desligado), não modificado Android. Não publicar PDFs no Git.
+  Continuação: ampliar auditoria/OCR/verbetes multipágina/roteiros e imagens, sem alegar cobertura
+  integral. Relatório: docs/content/acervo-utilization-audit-2026-10-21.md.
+
+## Desktop — estudos e notas na leitura — 2026-10-21 (estado anterior; publicação atualizada acima)
 
 - Commits9013cac (funcionalidade) e e676003 (integração do remoto20bb808) preservam melhorias
   colaborativas: versículo por URL, comentários resumidos, panorama e barra de fontes persistente.

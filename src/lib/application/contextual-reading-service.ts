@@ -139,6 +139,47 @@ export const ContextualReadingService = {
           "Comentário original deve coincidir integralmente com a evidência da fonte.",
         );
       const proposalId = `${document.id}:contextual:${seed}`;
+      if (note.supersedes) {
+        const old = (
+          await db.query(
+            `SELECT p.document_id,p.payload_json,p.review_status,d.publication,d.audit_status,d.evidence_json FROM knowledge_proposals p JOIN pipeline_decisions d ON d.proposal_id=p.id WHERE p.id=?`,
+            [note.supersedes.proposalId],
+          )
+        )[0];
+        if (
+          !old ||
+          note.supersedes.proposalId === proposalId ||
+          old["document_id"] !== document.id ||
+          old["review_status"] !== "machine-proposed" ||
+          old["audit_status"] !== "pending" ||
+          (await digest(String(old["payload_json"]))) !== note.supersedes.payloadChecksum
+        )
+          throw new Error(
+            "Substituição exige proposta automática pendente da mesma edição e payload original íntegro; revisões humanas são preservadas.",
+          );
+        const evidence: unknown = JSON.parse(String(old["evidence_json"]));
+        if (!evidence || typeof evidence !== "object" || Array.isArray(evidence))
+          throw new Error("Evidência da proposta substituída inválida.");
+        const correction = {
+          replacementId: proposalId,
+          batchId: batch.batchId,
+          reason: note.supersedes.reason,
+          analyst: batch.analyst,
+          at: batch.createdAt,
+        };
+        const updatedEvidence = JSON.stringify({ ...evidence, contextualCorrection: correction });
+        if (old["publication"] !== "withheld" || old["evidence_json"] !== updatedEvidence)
+          statements.push({
+            sql: `UPDATE pipeline_decisions SET publication='withheld',evidence_json=?,updated_at=? WHERE proposal_id=? AND audit_status='pending' AND evidence_json=? AND EXISTS(SELECT 1 FROM knowledge_proposals p WHERE p.id=pipeline_decisions.proposal_id AND p.review_status='machine-proposed' AND p.payload_json=?)`,
+            bind: [
+              updatedEvidence,
+              new Date().toISOString(),
+              note.supersedes.proposalId,
+              String(old["evidence_json"]),
+              String(old["payload_json"]),
+            ],
+          });
+      }
       if (ids.has(proposalId)) throw new Error("Lote contém a mesma nota duas vezes.");
       ids.add(proposalId);
       const previous = await db.query("SELECT payload_json FROM knowledge_proposals WHERE id=?", [

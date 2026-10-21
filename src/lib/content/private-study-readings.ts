@@ -15,6 +15,44 @@ export interface PrivateStudyReading {
 const SUMMA = "bce9882610a0564144fdd1fb2ced480a1c25a30db48b4cbb004958d16034fbed";
 export const PRIVATE_STUDY_READINGS: readonly PrivateStudyReading[] = [
   {
+    id: "ware-nicea-first-councils",
+    checksum: "6a07e12ae01058d6acaa0a33bd86bda47ba94c689a56173ec24af71905afae5d",
+    page: 11,
+    pageTextChecksum: "fa8692fb695f0d13c780c1a50c87436cb350f5857160dd20c04a10e00b783cb4",
+    locator: "Kallistos Ware · Niceia e os primeiros concílios",
+    topics: [
+      "study-guide:historia-tradicoes",
+      "study-guide:trindade-cristologia",
+      "study-guide:teologia",
+    ],
+    purpose:
+      "Estudar a apresentação ortodoxa de Niceia, das relações Igreja–Império e das definições conciliares, distinguindo narrativa histórica e posição confessional.",
+  },
+  {
+    id: "ware-florence-union",
+    checksum: "6a07e12ae01058d6acaa0a33bd86bda47ba94c689a56173ec24af71905afae5d",
+    page: 41,
+    pageTextChecksum: "3f5883183cb0ca09ef1f2a40d564e98b9376e7a3baa19f2d61432fd548eb1a42",
+    locator: "Kallistos Ware · Florença e a recepção da união",
+    topics: ["study-guide:historia-tradicoes", "study-guide:teologia"],
+    purpose:
+      "Ler a perspectiva ortodoxa sobre Florença, divergências e recepção. Este capítulo não equivale às atas do concílio nem à posição de todas as tradições.",
+  },
+  {
+    id: "catechism-prologue-catechesis",
+    checksum: "17a34221d239025a27503c061c0ce69b5bf3da1c8b5e35767f0b56c4de05d332",
+    page: 6,
+    pageTextChecksum: "3b6c8621fc75b704657a3dc4e752f50c36bf4bc8f444384c99225ef379a29f86",
+    locator: "Catecismo da Igreja Católica · prólogo, §§ 1–8",
+    topics: [
+      "study-guide:teologia",
+      "study-guide:historia-tradicoes",
+      "study-guide:etica-soteriologia",
+    ],
+    purpose:
+      "Distinguir a exposição catequética católica, seus parágrafos e referências bíblicas. Referência de apoio doutrinário não é automaticamente comentário exegético da passagem citada.",
+  },
+  {
     id: "augustine-trinity-john16",
     checksum: "455fad64bb39d2f9ef1c1294f054f925d672334a06d4c51e2e96ebfbfb934227",
     page: 39,

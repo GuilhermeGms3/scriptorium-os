@@ -86,7 +86,9 @@ describe("edition-pinned thematic readings", () => {
     expect(dependencies.page).toHaveBeenCalledTimes(2);
   });
   it("keeps stable unique locators without copying private book content into the catalog", () => {
-    expect(new Set(PRIVATE_STUDY_READINGS.map((item) => item.id)).size).toBe(19);
+    expect(new Set(PRIVATE_STUDY_READINGS.map((item) => item.id)).size).toBe(
+      PRIVATE_STUDY_READINGS.length,
+    );
     for (const item of PRIVATE_STUDY_READINGS) {
       expect(item.page).toBeGreaterThan(0);
       if (item.id.startsWith("summa-")) expect(item.page).toBeGreaterThan(115);
