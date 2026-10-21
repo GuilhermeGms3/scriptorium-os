@@ -2,24 +2,27 @@ import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import type { WorkspacePassageKnowledgeItem } from "../../lib/domain/workspace-passage-knowledge";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseExplanations } from "./verse-explanations";
-import { PrivateVerseKnowledge } from "./private-verse-knowledge";
+import { PrivateVerseKnowledge, type CommentaryDensity } from "./private-verse-knowledge";
 
 /** One rendering path for inline and dock; review actions retain their canonical repositories. */
 export function VerseCommentary({
   bundle,
   verse,
   items,
-  sourceId,
+  hiddenSources,
   domain,
   open,
   onOpenChange,
   showEmpty = false,
+  density = "full",
 }: {
   bundle: PassageKnowledgeBundle;
   verse: number;
   items: WorkspacePassageKnowledgeItem[];
-  sourceId?: string;
+  /** Sources the reader turned off in the source bar. */
+  hiddenSources?: ReadonlySet<string>;
   domain?: string;
+  density?: CommentaryDensity;
   open: boolean;
   onOpenChange: (open: boolean) => void;
   showEmpty?: boolean;
@@ -29,7 +32,7 @@ export function VerseCommentary({
   const claims = hasAvailableData(bundle.claims) ? bundle.claims.data : [];
   const matchingItems = items.filter(
     (item) =>
-      (!sourceId || item.document.id === sourceId) &&
+      !hiddenSources?.has(item.document.id) &&
       (!domain ||
         item.proposals.some(
           (proposal) =>
@@ -66,6 +69,7 @@ export function VerseCommentary({
         items={matchingItems}
         open={open}
         onOpenChange={onOpenChange}
+        density={density}
       />
       {showEmpty && !hasEditorial && !matchingItems.length && (
         <p className="text-sm text-muted-foreground">

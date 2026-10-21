@@ -5,6 +5,7 @@ export interface ReaderContextFilter {
   kind: "all" | "commentary" | "confessional";
   domain?: string;
   source?: string;
+  hiddenSources?: readonly string[];
 }
 export function itemTradition(item: WorkspacePassageKnowledgeItem): string | undefined {
   const declared = item.passageRelation.payload.contextualAnalysis?.sourceContext?.traditionLabel;
@@ -24,6 +25,7 @@ export function readerContextMatches(
   filter: ReaderContextFilter,
 ): boolean {
   if (filter.source && filter.source !== item.document.id) return false;
+  if (filter.hiddenSources?.includes(item.document.id)) return false;
   if (
     filter.domain &&
     !item.proposals.some(

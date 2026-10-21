@@ -252,3 +252,33 @@ Conhecimento voltou a ter entrada própria no menu).
   grupos/notas no grafo sem inferir relações por coincidência de palavras.
 - YouTube é opcional e explícito: chave restrita de navegador somente na memória da aba,
   sem envio de notas/livros, cache temporário e player carregado apenas sob ação do usuário.
+
+## Leitura no celular sem procurar — 2026-10-20
+
+Depois do uso real no celular (Nielsen 6, reconhecimento em vez de memorização, e excesso de carga
+cognitiva), o leitor e a busca passaram a levar direto ao versículo e a mostrar só o que se escolhe.
+
+- **Direto ao versículo.** Resultados de referência e de texto apontam para
+  `/scripture/<livro>/<cap>?v=<versículo>` (e `edition`, quando o resultado é de uma edição),
+  montado por `scriptureHref`. O leitor rola só a coluna do texto até o versículo e o seleciona; volta
+  a rolar uma vez quando os comentários da biblioteca chegam. O `#verse-N` antigo continua aceito.
+- **Seletor “Versículo”** na barra do leitor, ao lado de “Livro capítulo ▾”: escolher o número leva
+  ao versículo sem rolar o capítulo.
+- **Barra do leitor numa linha.** Tradução, comentários e modo de leitura ficam na barra quando há
+  espaço (container ≥ 60rem) e, no celular ou ao lado do painel, atrás de “Opções”, com os nomes por
+  extenso.
+- **Comentários resumidos (padrão).** Debaixo de cada versículo, uma etiqueta por fonte que o comenta;
+  tocar abre só aquela nota (“Abrir todos” abre as demais). As opções são “resumidos”, “completos”
+  (o comportamento anterior, tudo aberto), “no painel” e “ocultar”. Notas sobre mais de sete
+  versículos vão uma vez para o “Panorama do capítulo”, em vez de se repetirem em cada versículo. A
+  pílula “N ligações na biblioteca” só aparece, no modo resumido, quando há ligação por confirmar.
+  Medido com três fontes em João 3: o capítulo caiu de cerca de 28.900 px para 5.500 px de altura.
+- **Barra de fontes.** Sob a barra do leitor, sempre visível, uma etiqueta por fonte que comenta o
+  capítulo (ligada/desligada) e o filtro de área. As fontes desligadas ficam lembradas entre capítulos
+  e visitas (`scriptorium.commentary-hidden-sources.v1`); o filtro de área volta a “todas” ao trocar de
+  capítulo. Substitui a caixa “Filtrar biblioteca conectada”, que ficava no topo do texto.
+- **Busca.** No celular os três caminhos viram uma fileira compacta e a caixa de busca fica na primeira
+  tela; o campo tem 16 px (o iOS dá zoom abaixo disso) e foco ao abrir. A consulta fica no endereço
+  (`?q=`), então voltar de um versículo reencontra a busca.
+- **Links internos sem recarregar.** `AppLink` navega dentro do app a partir de um endereço completo;
+  os `<a href>` internos que recarregavam a página (e repetiam a abertura) passaram a usá-lo.

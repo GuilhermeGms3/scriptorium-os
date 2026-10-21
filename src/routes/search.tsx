@@ -1,4 +1,4 @@
-import { createFileRoute, Link } from "@tanstack/react-router";
+import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { errorMessage } from "@/lib/utils";
 import { useDebouncedValue, useWorkspaceQuery } from "../hooks/use-workspace-query";
@@ -18,6 +18,7 @@ import type { SearchHit } from "../lib/application/search-workspace";
 import { ToggleGroup, ToggleGroupItem } from "../components/ui/toggle-group";
 import { Button } from "../components/ui/button";
 import { ScriptureRepository } from "../lib/repositories/scripture-repository";
+import { AppLink } from "../components/common/app-link";
 
 interface SearchParams {
   q?: string;
@@ -31,6 +32,7 @@ export const Route = createFileRoute("/search")({
 
 function SearchPage() {
   const { q = "" } = Route.useSearch();
+  const navigate = Route.useNavigate();
   const { setPassageContext } = useWorkbench();
   const [query, setQuery] = useState(q);
   const [scope, setScope] = useState<SearchScope>("local");
@@ -53,6 +55,14 @@ function SearchPage() {
   useEffect(() => setPassageContext(null), [setPassageContext]);
   useEffect(() => setGroup("all"), [query]);
   const settledQuery = useDebouncedValue(query.trim(), 180);
+  // The query lives in the address: coming back from a verse finds the same search.
+  useEffect(() => {
+    if (settledQuery !== q.trim())
+      void navigate({
+        search: settledQuery ? { q: settledQuery } : {},
+        replace: true,
+      });
+  }, [navigate, q, settledQuery]);
   const searchQuery = useWorkspaceQuery(
     ["search", mode, selectedEdition, settledQuery],
     async (signal): Promise<{ hits: SearchHit[]; semantic?: boolean }> =>
@@ -210,7 +220,9 @@ function SearchPage() {
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("search.placeholder")}
-              className="w-full bg-transparent text-sm outline-none"
+              enterKeyHint="search"
+              autoFocus
+              className="w-full bg-transparent outline-none"
             />
           </label>
           {!query.trim() && (
@@ -325,8 +337,8 @@ function SearchPage() {
               <ul className="divide-y divide-border border-y border-border">
                 {visibleHits.map((hit) => (
                   <li key={hit.id}>
-                    <Link
-                      to={hit.to as never}
+                    <AppLink
+                      href={hit.to ?? "/search"}
                       className="grid gap-1 py-2.5 sm:grid-cols-[90px_1fr]"
                     >
                       <span className="meta-label tracking-wider text-muted-foreground">
@@ -340,7 +352,7 @@ function SearchPage() {
                           </span>
                         )}
                       </span>
-                    </Link>
+                    </AppLink>
                   </li>
                 ))}
               </ul>

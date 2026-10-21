@@ -2,6 +2,7 @@ import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useLocation } from "@tanstack/react-router";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "../ui/dialog";
 import { Button } from "../ui/button";
+import { AppLink } from "../common/app-link";
 import { SourcePagePreview } from "../common/source-page-preview";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { StudySourceService } from "../../lib/application/study-source-service";
@@ -142,11 +143,11 @@ function SourceReading({
       </DialogHeader>
       <div className="flex shrink-0 flex-wrap gap-2">
         <Button size="sm" variant="outline" asChild>
-          <a href={studySourceHref(source)}>
+          <AppLink href={studySourceHref(source)}>
             {source.kind === "bibliographic"
               ? "Abrir referência na Biblioteca"
               : "Abrir na Biblioteca · trecho destacado"}
-          </a>
+          </AppLink>
         </Button>
         <Button
           type="button"

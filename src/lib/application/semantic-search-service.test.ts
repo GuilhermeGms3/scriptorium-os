@@ -24,7 +24,7 @@ describe("semantic search client contract", () => {
     const [hit] = semanticSearchHits(response, "edition:a");
     expect(hit?.detail).toBe(candidate.text);
     expect(hit?.label).toContain("edition:a");
-    expect(hit?.to).toBe("/scripture/matthew/5?edition=edition%3Aa#verse-44");
+    expect(hit?.to).toBe("/scripture/matthew/5?v=44&edition=edition%3Aa");
     expect(() => semanticSearchHits(response, "other")).toThrow("edição diferente");
   });
   it("refuses invalid ranks and incomplete addresses", () => {

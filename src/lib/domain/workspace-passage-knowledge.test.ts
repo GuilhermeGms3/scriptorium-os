@@ -87,6 +87,20 @@ describe("knowledgeItemCoversVerse", () => {
     expect(readerContextMatches(value, { tradition: "", kind: "all", source: "other" })).toBe(
       false,
     );
+    expect(
+      readerContextMatches(value, {
+        tradition: "",
+        kind: "all",
+        hiddenSources: [value.document.id],
+      }),
+    ).toBe(false);
+    expect(
+      readerContextMatches(value, {
+        tradition: "",
+        kind: "all",
+        hiddenSources: ["another-source"],
+      }),
+    ).toBe(true);
     expect(readerContextMatches(value, { tradition: "", kind: "all", domain: "exegesis" })).toBe(
       false,
     );

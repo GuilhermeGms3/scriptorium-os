@@ -1,7 +1,8 @@
 import { ChevronLeft, ChevronRight, PanelBottom, X } from "lucide-react";
 import type { ReactNode } from "react";
 
-export type CommentaryLayout = "inline" | "dock" | "hidden";
+/** "inline": a chip per source under each verse; "full": every note open under its verse. */
+export type CommentaryLayout = "inline" | "full" | "dock" | "hidden";
 
 export function CommentaryDock({
   label,

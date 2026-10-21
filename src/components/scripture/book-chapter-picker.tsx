@@ -142,9 +142,11 @@ export function BookChapterPicker({ book, chapter }: { book: Book; chapter: numb
         <button
           type="button"
           aria-label={`Escolher livro e capítulo. Agora: ${label} ${chapter}`}
-          className="inline-flex h-9 items-center gap-1.5 rounded-md border border-input px-3 font-serif text-base font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-9 min-w-0 items-center gap-1.5 whitespace-nowrap rounded-md border border-input px-3 font-serif text-base font-semibold transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          {label} {chapter}
+          {/* One line always; a long book name ("1 Tessalonicenses") is cut, the chapter is not. */}
+          <span className="max-w-[7.5rem] truncate @min-[28rem]:max-w-none">{label}</span>
+          <span>{chapter}</span>
           <ChevronDown className="size-4 text-muted-foreground" aria-hidden="true" />
         </button>
       </DialogTrigger>
