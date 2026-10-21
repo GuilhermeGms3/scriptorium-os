@@ -40,7 +40,8 @@ describe("edition-pinned thematic readings", () => {
       excerpt: "",
       source: { page: 12, documentId: "doc:one" },
     });
-    expect(result.items[0]?.guidance).toContain("objeções");
+    expect(result.items[0]?.guidance).toContain("Read the whole argument");
+    expect(result.items[0]?.guidance).not.toContain("Tomás");
     expect(result.warnings).toEqual([]);
   });
   it("does not query pages or editions for unrelated topics", async () => {
@@ -85,9 +86,10 @@ describe("edition-pinned thematic readings", () => {
     expect(dependencies.page).toHaveBeenCalledTimes(2);
   });
   it("keeps stable unique locators without copying private book content into the catalog", () => {
-    expect(new Set(PRIVATE_STUDY_READINGS.map((item) => item.id)).size).toBe(12);
+    expect(new Set(PRIVATE_STUDY_READINGS.map((item) => item.id)).size).toBe(19);
     for (const item of PRIVATE_STUDY_READINGS) {
-      expect(item.page).toBeGreaterThan(115); // Not the table of contents.
+      expect(item.page).toBeGreaterThan(0);
+      if (item.id.startsWith("summa-")) expect(item.page).toBeGreaterThan(115);
       expect(item.pageTextChecksum).toMatch(/^[a-f0-9]{64}$/);
       expect(item.checksum).toMatch(/^[a-f0-9]{64}$/);
       expect(item.topics.length).toBeGreaterThan(0);

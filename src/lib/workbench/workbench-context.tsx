@@ -15,6 +15,7 @@ import {
 } from "react";
 import type { PassageRef, TokenOccurrence } from "../domain/scripture";
 import type { Note, NoteLink, Study } from "../domain/study";
+import type { ReaderContextFilter } from "../domain/reader-context-filter";
 import { StudyRepository } from "../repositories/study-repository";
 
 import { parseTheme, resolveTheme, type ThemeMode, type ResolvedTheme } from "./theme";
@@ -34,6 +35,7 @@ export interface WordSelection {
 export interface PassageContext {
   ref: PassageRef;
   label: string;
+  contextFilter?: ReaderContextFilter;
 }
 
 interface WorkbenchState {

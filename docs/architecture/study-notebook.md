@@ -1,5 +1,27 @@
 # Leitor contextual e caderno de notas
 
+## Anotar durante a leitura — 21/10/2026
+
+A janela contextual e os leitores de documentos/fontes primárias reutilizam o editor de página de
+**Notas**, com títulos, negrito, itálico, listas, citações, escrita/visualização Markdown e seletor
+de links. Não é um editor DOCX nem um campo HTML arbitrário. Escolha o grupo e, opcionalmente,
+a pasta/cor. Um grupo novo só é criado ao salvar; uma falha posterior conserva sua identificação
+para não criar outro grupo na tentativa seguinte. A confirmação de persistência não depende de
+uma atualização bem-sucedida da lista de notas.
+
+Selecione palavras no texto original e use **Anotar trecho selecionado**, na Biblioteca, ou
+**Marcar seleção para a nota**, na janela. A origem JSON já existente recebe opcionalmente
+`selection: { start, end, quote }`: posições UTF-16 na página/unidade integral, nunca no snippet,
+na tradução ou na imagem do PDF. O limite é de 20 mil caracteres por seleção. O contrato valida
+intervalo e comprimento; ao consultar a fonte, o destaque só aparece se a fatia coincidir exatamente
+com o original atual. Texto alterado gera aviso, não um destaque adivinhado.
+
+O trecho reaparece marcado em **Consultar fonte**. **Abrir na Biblioteca** mantém a navegação por
+página/unidade e os destaques de evidência já existentes; não foi implementado um parâmetro de URL
+novo para reproduzir a seleção pessoal exata no leitor integral. A seleção pessoal é preservada
+no backup do workspace, sem migration adicional. Essa funcionalidade foi validada no desktop/web;
+não representa uma atualização do aplicativo Android.
+
 ## Uso
 
 1. Nas Escrituras, selecione uma passagem e abra o material da sidebar. Imagens/mapas,

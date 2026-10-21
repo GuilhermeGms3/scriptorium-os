@@ -1,6 +1,7 @@
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { loadTopicReadingText } from "../../lib/application/topic-reading-text";
 import type { TopicReading } from "../../lib/application/study-topic-service";
+import { PageTranslation } from "../library/page-translation";
 
 export function TopicSourceText({ reading }: { reading: TopicReading }) {
   const query = useWorkspaceQuery(
@@ -42,6 +43,16 @@ export function TopicSourceText({ reading }: { reading: TopicReading }) {
         <p className="my-6 text-sm">
           Esta página não contém texto extraído disponível. Consulte o documento original.
         </p>
+      )}
+      {query.data && reading.language && (
+        <PageTranslation
+          id={reading.id}
+          text={query.data}
+          language={reading.language}
+          sourceKind={
+            reading.source.kind === "primary-text" ? "primary-text-unit" : "private-segment"
+          }
+        />
       )}
     </>
   );

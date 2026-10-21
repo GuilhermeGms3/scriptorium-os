@@ -1,3 +1,4 @@
+import { SourceSelectionAction } from "../../../components/study/source-selection-action";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import {
   ArrowLeft,
@@ -373,6 +374,7 @@ function PrivateDocumentReaderPage() {
                     setWord(selected);
                     setPanelTab("about");
                   }}
+                  id="private-source-page-text"
                   className="mt-5 whitespace-pre-wrap font-serif text-[var(--reading-size)] leading-[var(--reading-leading)]"
                 >
                   {evidenceSpans.length && page.pageIndex === (requestedPage ?? 1) - 1
@@ -385,6 +387,15 @@ function PrivateDocumentReaderPage() {
                   recuperá-la.
                 </p>
               )}
+              <SourceSelectionAction
+                elementId="private-source-page-text"
+                source={{
+                  kind: "private-document",
+                  documentId,
+                  title: document.title,
+                  page: page.pageIndex + 1,
+                }}
+              />
               <p className="mt-8 text-xs text-muted-foreground">
                 Dica: dê dois cliques em uma palavra para procurá-la nos dicionários do acervo.
               </p>

@@ -1,5 +1,29 @@
 # Project Memory
 
+## Desktop — estudos e notas na leitura — 2026-10-21
+
+- Commits9013cac (funcionalidade) e e676003 (integração do remoto20bb808) preservam melhorias
+  colaborativas: versículo por URL, comentários resumidos, panorama e barra de fontes persistente.
+  Filtros de tradição/tipo em detalhe na barra; sidebar acompanha fontes ocultas/área/tradição.
+- Editor de página de Notas reutilizado na janela/leitores, sem migration. Seleção UTF16 + quote
+  validada no original integral e guardada no JSON da fonte; volta marcada em Consultar fonte.
+  Biblioteca integral conserva âncora de página/unidade, não seleção pessoal exata por URL.
+- 19 localizadores verificados por hash, sete novos de Agostinho/Calvino/hermenêutica/Augsburgo;
+  13 capítulos introdutórios históricos/conciliares/confessionais, sem fingir atas completas.
+  Vídeo ao lado por link validado ou API, sem recomendações fictícias; recolher desmonta player.
+- Lote privado desktop-context-20261021:8 notas literais de A Trindade, páginas39/43/51, preparado
+  e importado SOMENTE no snapshot de QA (8 novas,0 novas/8 reutilizadas na verificação).
+  NÃO está publicado no banco original. Docker indisponível; lock Linux original preservado.
+- Original confirmado:57 docs, schema26, quick_check=ok e FKs limpas. Não migrar original para28
+  só para QA. Snapshot temporário em AppData/Local/Temp/scriptorium-study-context-qa-20261021;
+  seus rascunhos e relações de teste NÃO são produção. Documentos via junction apenas leitura.
+- 506 testes TS/113 Python aprovados; mypy em 15 fontes, Ruff, typecheck, lint TS/TSX alterados e build.
+  QA produção1440/390: fonte real, nota/grupo/formatação, reload+destaque, filtros e Biblioteca.
+  Tradução nova não validada: somente cache existente e erro recuperável com serviço desligado.
+- Próximo seguro: concluir publicação do lote original com exclusão de escritores; reativar e
+  testar tradutor real. Não reconstruído Docker, não modificado Android. Não alegar cobertura
+  integral dos temas/concílios/acervo. Relato: docs/content/desktop-study-context-2026-10-21.md.
+
 ## Desktop — retomada contextual — 2026-10-20
 
 - Mobile fora do escopo. Acervo canônico: data/workspace/workspace.sqlite3, 57 documentos.

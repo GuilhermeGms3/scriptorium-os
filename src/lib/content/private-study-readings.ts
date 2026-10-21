@@ -9,10 +9,109 @@ export interface PrivateStudyReading {
   locator: string;
   topics: readonly string[];
   purpose: string;
+  notice?: string;
 }
 
 const SUMMA = "bce9882610a0564144fdd1fb2ced480a1c25a30db48b4cbb004958d16034fbed";
 export const PRIVATE_STUDY_READINGS: readonly PrivateStudyReading[] = [
+  {
+    id: "augustine-trinity-john16",
+    checksum: "455fad64bb39d2f9ef1c1294f054f925d672334a06d4c51e2e96ebfbfb934227",
+    page: 39,
+    pageTextChecksum: "1fb2ff2ce8118e8e6123b5cb18a905a66535bc6f5ef11bab5e8cd91045c32c1b",
+    locator: "A Trindade · leitura de João 16:25 e contexto",
+    topics: [
+      "study-guide:trindade-cristologia",
+      "doctrine:trinity",
+      "study-guide:patristica",
+      "study-guide:exegese-recepcao",
+    ],
+    purpose:
+      "Observar a interpretação de Agostinho acerca de falar do Pai, visão e mediação do Verbo.",
+  },
+  {
+    id: "augustine-trinity-john5-26",
+    checksum: "455fad64bb39d2f9ef1c1294f054f925d672334a06d4c51e2e96ebfbfb934227",
+    page: 43,
+    pageTextChecksum: "1f542e13007124fe0bc1736850a424a7fd658c504165220e2745ca880d388a30",
+    locator: "A Trindade · discussão de João 5:26",
+    topics: [
+      "study-guide:trindade-cristologia",
+      "doctrine:trinity",
+      "study-guide:patristica",
+      "topic:christology",
+    ],
+    purpose:
+      "Examinar a distinção agostiniana entre geração do Filho e concessão da vida; leitura teológica do autor, não resultado lexical automático.",
+  },
+  {
+    id: "augustine-trinity-john5-19",
+    checksum: "455fad64bb39d2f9ef1c1294f054f925d672334a06d4c51e2e96ebfbfb934227",
+    page: 51,
+    pageTextChecksum: "7dac5ef9c5ee3454e5d9d9a0ea3fd94d7bf9e1de7d4cf50b4613a33e7210f8f6",
+    locator: "A Trindade · discussão de João 5:19",
+    topics: [
+      "study-guide:trindade-cristologia",
+      "study-guide:exegese-recepcao",
+      "doctrine:trinity",
+    ],
+    purpose:
+      "Ler como Agostinho argumenta sobre unidade da operação do Pai e do Filho a partir de João.",
+  },
+  {
+    id: "calvin-i-2",
+    checksum: "3a1ec505530e29550ac4d735a63d81854c6c75b548a1e9f19a93468e99fe063d",
+    page: 41,
+    pageTextChecksum: "2ecef093aea316a891b83c59d67d40f278124df00e079ec4cc256e3205aa4c87",
+    locator: "Institutas · livro I, capítulo II · conhecimento de Deus",
+    topics: [
+      "study-guide:teologia",
+      "tradition:reformed",
+      "study-guide:historia-tradicoes",
+      "study-guide:hermeneutica-metodos",
+    ],
+    purpose:
+      "Estudar o vínculo entre conhecimento e piedade na exposição reformada de Calvino; este é o volume 1, não o tratado completo da justificação.",
+  },
+  {
+    id: "reimer-acts16",
+    checksum: "74684b5e9334d9864dc22d5c1d34310f649716858c9a828c949933f322384424",
+    page: 36,
+    pageTextChecksum: "d44bdf5ca0c87c80f87a6a055f32013f5e257291629b3d27859b6c5501eb88c1",
+    locator: "Exegese e hermenêutica · Filipos, delimitação e contexto de Atos 16",
+    topics: [
+      "study-guide:exegese-recepcao",
+      "study-guide:hermeneutica-metodos",
+      "study-guide:biblia-interpretacao",
+    ],
+    purpose: "Acompanhar o emprego de geografia e estrutura literária na delimitação da perícope.",
+  },
+  {
+    id: "reimer-genesis1",
+    checksum: "74684b5e9334d9864dc22d5c1d34310f649716858c9a828c949933f322384424",
+    page: 141,
+    pageTextChecksum: "0da5de7e0d4edbddc5f5d9d04adac75962f221cc40308ef7f497207b623129e1",
+    locator: "Exegese e hermenêutica · Gênesis e linguagem da criação",
+    topics: ["study-guide:hermeneutica-metodos", "study-guide:biblia-interpretacao"],
+    purpose:
+      "Comparar a abordagem histórico-literária dos autores com leituras confessionais, preservando a diferença de método.",
+  },
+  {
+    id: "augsburg-justification",
+    checksum: "f6f4069eaadc0f2070a16665b4e70562df30d1ee7d93019496ad7bdf7d178351",
+    page: 7,
+    pageTextChecksum: "9513c1628151094efbc44b4d4f653c08268c732f391dd34db9682b5fa36dec99",
+    locator: "Confissão de Augsburgo · artigos IV–VII e contexto",
+    topics: [
+      "tradition:lutheran",
+      "study-guide:hamartiologia-justificacao",
+      "study-guide:etica-soteriologia",
+      "topic:justification",
+      "study-guide:historia-tradicoes",
+    ],
+    purpose:
+      "Conferir a formulação luterana de justificação, ministério e nova obediência no documento, sem atribuí-la às demais tradições.",
+  },
   {
     id: "summa-i-q1",
     checksum: SUMMA,

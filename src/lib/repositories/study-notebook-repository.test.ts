@@ -145,7 +145,12 @@ describe("caderno de estudos persistente", () => {
     const { db } = setup();
     const group = await notebook.createGroup("Tema", "#aabbcc", db);
     const a = await notebook.saveNote(
-      { title: "A", body: "Nota própria", studyId: group, source },
+      {
+        title: "A",
+        body: "Nota própria",
+        studyId: group,
+        source: { ...source, selection: { start: 2, end: 7, quote: "Éden!" } },
+      },
       db,
     );
     const b = await notebook.saveNote(

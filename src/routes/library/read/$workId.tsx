@@ -1,13 +1,13 @@
+import { SourceSelectionAction } from "../../../components/study/source-selection-action";
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { BookOpen, Check, Clipboard, Languages, LoaderCircle, NotebookPen } from "lucide-react";
+import { BookOpen, Check, Clipboard, Languages, LoaderCircle } from "lucide-react";
 import { LocalTranslationService } from "../../../lib/application/local-translation-service";
 import type { LocalTranslation } from "../../../lib/domain/semantic-content";
 import {
   PrimarySourceRepository,
   type PrimarySourceDocument,
 } from "../../../lib/repositories/primary-source-repository";
-import { StudyRepository } from "../../../lib/repositories/study-repository";
 import { errorMessage } from "@/lib/utils";
 import { useWorkspaceQuery } from "../../../hooks/use-workspace-query";
 
@@ -31,9 +31,6 @@ function PrimarySourceReader() {
   const [selectedId, setSelectedId] = useState<string | undefined>(requestedUnit);
   const [unitQuery, setUnitQuery] = useState("");
   const [copied, setCopied] = useState(false);
-  const [noteTitle, setNoteTitle] = useState("");
-  const [noteBody, setNoteBody] = useState("");
-  const [noteStatus, setNoteStatus] = useState<string>();
   const [translation, setTranslation] = useState<LocalTranslation | null>();
   const [translationError, setTranslationError] = useState<string>();
   const [translating, setTranslating] = useState(false);
@@ -125,37 +122,6 @@ function PrimarySourceReader() {
       : document.language === "en"
         ? "Esta edição histórica está em inglês. Os controles do Scriptorium permanecem em português e o texto-fonte não é traduzido silenciosamente."
         : `O texto-fonte está identificado como ${document.language}; a interface permanece em português.`;
-  const saveNote = async () => {
-    if (!selected || !noteBody.trim()) return;
-    setNoteStatus("Salvando…");
-    await StudyRepository.createNote({
-      title:
-        noteTitle.trim() ||
-        `Nota sobre ${document.title} ${selected.address?.section ?? selected.sequence}`,
-      body: noteBody.trim(),
-      links: [
-        {
-          kind: "resource",
-          target: selected.id,
-          label: selected.displayAddress ?? document.title,
-          anchor: {
-            type: "canonical-text",
-            anchor: {
-              kind: "text-unit",
-              corpusId: document.corpusId,
-              editionId: document.editionId,
-              workId: document.id,
-              versificationSchemeId: selected.versificationSchemeId,
-              startUnitId: selected.id,
-            },
-          },
-        },
-      ],
-    });
-    setNoteTitle("");
-    setNoteBody("");
-    setNoteStatus("Nota persistida e ancorada à unidade textual.");
-  };
   const translateSelected = async () => {
     if (!selected || document.language !== "en") return;
     const controller = pendingTranslation.current;
@@ -283,7 +249,12 @@ function PrimarySourceReader() {
               </section>
             )}
             <p className="meta-label mb-3">Texto original · {document.language}</p>
-            <p className="whitespace-pre-line font-serif text-lg leading-8">{selected.text}</p>
+            <p
+              id="primary-source-unit-text"
+              className="whitespace-pre-wrap font-serif text-lg leading-8"
+            >
+              {selected.text}
+            </p>
             <section className="mt-10 border-t border-border pt-5">
               <div className="flex items-center justify-between gap-3">
                 <h3 className="meta-label">Citação estruturada</h3>
@@ -300,38 +271,15 @@ function PrimarySourceReader() {
               </div>
               <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{citation}</p>
             </section>
-            <section className="mt-6 border-t border-border pt-5">
-              <h3 className="meta-label flex items-center gap-1.5">
-                <NotebookPen className="size-3" /> Nota neste trecho
-              </h3>
-              <input
-                aria-label="Título da nota"
-                value={noteTitle}
-                onChange={(event) => setNoteTitle(event.target.value)}
-                placeholder="Título opcional"
-                className="mt-2 h-9 w-full rounded border border-input bg-background px-3 text-sm"
-              />
-              <textarea
-                aria-label="Conteúdo da nota"
-                value={noteBody}
-                onChange={(event) => setNoteBody(event.target.value)}
-                placeholder="Sua observação…"
-                className="mt-2 min-h-28 w-full rounded border border-input bg-background p-3 text-sm"
-              />
-              <button
-                type="button"
-                disabled={!noteBody.trim()}
-                onClick={() => void saveNote()}
-                className="mt-2 rounded bg-primary px-3 py-2 text-xs text-primary-foreground disabled:opacity-50"
-              >
-                Salvar nota ancorada
-              </button>
-              {noteStatus && (
-                <p role="status" className="mt-2 text-xs text-muted-foreground">
-                  {noteStatus}
-                </p>
-              )}
-            </section>
+            <SourceSelectionAction
+              elementId="primary-source-unit-text"
+              source={{
+                kind: "primary-text",
+                workId: document.id,
+                unitId: selected.id,
+                title: document.title,
+              }}
+            />
           </article>
         )}
       </main>

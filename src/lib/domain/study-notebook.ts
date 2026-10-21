@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { SourceSelectionSchema } from "./source-selection";
 
 export const StudyColorSchema = z.string().regex(/^#[\da-f]{6}$/iu);
 const identity = z.string().min(1).max(500);
@@ -16,10 +17,12 @@ export const StudySourceSchema = z.discriminatedUnion("kind", [
     unitId: identity.optional(),
     title: z.string().min(1).max(1000),
     page: z.number().int().positive(),
+    selection: SourceSelectionSchema.optional(),
   }),
   z.object({
     kind: z.literal("primary-text"),
     workId: identity,
+    selection: SourceSelectionSchema.optional(),
     unitId: identity.optional(),
     title: z.string().min(1).max(1000),
   }),

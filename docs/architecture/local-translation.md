@@ -1,5 +1,17 @@
 # Tradução local inglês → português
 
+## Superfícies de leitura — 21/10/2026
+
+As leituras temáticas e a janela contextual reutilizam `PageTranslation`, incluindo cancelamento
+ao trocar de fonte e cache identificado pelo conteúdo/modelo. O leitor integral de fontes primárias
+mantém seus controles existentes. Português não recebe botão desnecessário; outras línguas indicam
+que o modelo instalado não as suporta, em vez de enviar hebraico/grego ao tradutor inglês→português.
+
+No QA desta data, uma tradução da Didaquê já armazenada continuou visível, e uma unidade não
+traduzida mostrou erro recuperável ao solicitar o serviço desligado. O Docker estava indisponível:
+**não houve validação de uma nova inferência real nem da qualidade de tradução nessa sessão**.
+Testes Python aprovados com modelos falsos não substituem essa verificação operacional.
+
 ## Limite arquitetural
 
 O tradutor é um serviço Python opcional e local. Ele não faz parte do SSR, do bundle Vite nem do

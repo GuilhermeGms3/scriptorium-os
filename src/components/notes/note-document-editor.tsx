@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type RefObject } from "react";
+import { useEffect, useId, useRef, useState } from "react";
 import { BookOpen, Link2, Pencil, Save } from "lucide-react";
 import { Button } from "../ui/button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
@@ -13,6 +13,7 @@ import {
 import type { Note, Study } from "../../lib/domain/study";
 import type { StudySource } from "../../lib/domain/study-notebook";
 import { useSourceReader } from "../study/source-reader-context";
+import { formatNoteSelection, type NoteFormat } from "../../lib/domain/note-format";
 
 export interface NoteDraft {
   key: string;
@@ -36,6 +37,8 @@ export function NoteDocumentEditor({
   onChange,
   onSave,
   onOpen,
+  showSourceLink = true,
+  saveDisabled = false,
 }: {
   draft: NoteDraft;
   group: Study | undefined;
@@ -46,7 +49,10 @@ export function NoteDocumentEditor({
   onChange: (patch: Partial<NoteDraft>) => void;
   onSave: () => void;
   onOpen: (id: string) => void;
+  showSourceLink?: boolean;
+  saveDisabled?: boolean;
 }) {
+  const editorId = useId();
   const [mode, setMode] = useState("write");
   const [picker, setPicker] = useState<{ start: number; end: number; query: string } | null>(null);
   const editor = useRef<HTMLTextAreaElement>(null);
@@ -71,6 +77,20 @@ export function NoteDocumentEditor({
   }, [mode]);
   const openSource = useSourceReader();
   const unresolved = wikiReferences(draft.body, notes).filter((ref) => !ref.targetId);
+  function formatSelection(format: NoteFormat) {
+    const element = editor.current;
+    const result = formatNoteSelection(
+      draft.body,
+      element?.selectionStart ?? draft.body.length,
+      element?.selectionEnd ?? draft.body.length,
+      format,
+    );
+    onChange({ body: result.body });
+    requestAnimationFrame(() => {
+      element?.focus();
+      element?.setSelectionRange(result.start, result.end);
+    });
+  }
   function openPicker() {
     const element = editor.current;
     setPicker({
@@ -79,29 +99,19 @@ export function NoteDocumentEditor({
       query: "",
     });
   }
-  function insert(text: string, ref: RefObject<HTMLTextAreaElement | null>) {
-    const element = ref.current;
-    const start = element?.selectionStart ?? draft.body.length;
-    const end = element?.selectionEnd ?? start;
-    onChange({ body: draft.body.slice(0, start) + text + draft.body.slice(end) });
-    requestAnimationFrame(() => {
-      element?.focus();
-      element?.setSelectionRange(start + text.length, start + text.length);
-    });
-  }
   return (
     <div
       className="flex min-h-0 min-w-0 flex-1 flex-col"
       onKeyDown={(event) => {
         if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "s") {
           event.preventDefault();
-          if (!busy) onSave();
+          if (!busy && !saveDisabled && draft.dirty && draft.title.trim()) onSave();
         }
       }}
     >
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border px-4 py-2">
         <p className="min-w-0 truncate text-xs text-muted-foreground">
-          {group?.title ?? "Grupo indisponível"} /{" "}
+          {group?.title ?? "Escolha um grupo"} /{" "}
           {folderPath(draft.folderId, folders) || "Sem pasta"}
         </p>
         <div className="flex flex-wrap items-center gap-1">
@@ -124,7 +134,11 @@ export function NoteDocumentEditor({
           <Button variant="ghost" size="sm" onClick={openPicker}>
             <Link2 data-icon="inline-start" /> Inserir link
           </Button>
-          <Button size="sm" disabled={busy || !draft.dirty || !draft.title.trim()} onClick={onSave}>
+          <Button
+            size="sm"
+            disabled={busy || saveDisabled || !draft.dirty || !draft.title.trim()}
+            onClick={onSave}
+          >
             <Save data-icon="inline-start" />
             {busy ? "Salvando…" : "Salvar"}
           </Button>
@@ -132,12 +146,12 @@ export function NoteDocumentEditor({
       </div>
       <div className="min-h-0 flex-1 overflow-y-auto px-5 py-7 md:px-10 md:py-9">
         <article className="mx-auto flex min-h-full max-w-3xl flex-col gap-5">
-          <label className="sr-only" htmlFor="note-document-title">
+          <label className="sr-only" htmlFor={`${editorId}-title`}>
             Título da nota
           </label>
           {mode === "write" ? (
             <input
-              id="note-document-title"
+              id={`${editorId}-title`}
               autoFocus={!draft.id}
               maxLength={500}
               value={draft.title}
@@ -211,7 +225,7 @@ export function NoteDocumentEditor({
                 className="h-7 w-9 cursor-pointer rounded border border-input bg-transparent"
               />
             )}
-            {draft.source && (
+            {draft.source && showSourceLink && (
               <button
                 type="button"
                 className="text-primary underline underline-offset-4"
@@ -232,7 +246,7 @@ export function NoteDocumentEditor({
                   variant="ghost"
                   size="sm"
                   disabled={busy}
-                  onClick={() => insert("\n## ", editor)}
+                  onClick={() => formatSelection("heading")}
                 >
                   Título
                 </Button>
@@ -240,7 +254,7 @@ export function NoteDocumentEditor({
                   variant="ghost"
                   size="sm"
                   disabled={busy}
-                  onClick={() => insert("**texto em destaque**", editor)}
+                  onClick={() => formatSelection("bold")}
                 >
                   Negrito
                 </Button>
@@ -248,22 +262,40 @@ export function NoteDocumentEditor({
                   variant="ghost"
                   size="sm"
                   disabled={busy}
-                  onClick={() => insert("\n- ", editor)}
+                  onClick={() => formatSelection("list")}
                 >
                   Lista
                 </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => formatSelection("italic")}
+                >
+                  Itálico
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  disabled={busy}
+                  onClick={() => formatSelection("quote")}
+                >
+                  Citação
+                </Button>
                 <span className="px-2">Digite / ou [[ para linkar</span>
               </div>
-              <label className="sr-only" htmlFor="note-document-body">
+              <label className="sr-only" htmlFor={`${editorId}-body`}>
                 Conteúdo da nota
               </label>
               <textarea
-                id="note-document-body"
+                id={`${editorId}-body`}
                 ref={editor}
                 value={draft.body}
                 maxLength={200000}
                 disabled={busy}
-                placeholder="Comece a escrever aqui…\n\nUse # para títulos, **negrito** e [[ para conectar suas ideias."
+                placeholder={
+                  "Comece a escrever aqui…\n\nUse # para títulos, **negrito** e [[ para conectar suas ideias."
+                }
                 className="min-h-[55dvh] w-full flex-1 resize-none overflow-hidden border-0 bg-transparent font-serif text-lg leading-[1.85] outline-none placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-ring"
                 onChange={(event) => {
                   const body = event.target.value;
@@ -293,7 +325,9 @@ export function NoteDocumentEditor({
             ? "Salvando no workspace…"
             : draft.dirty
               ? "Alterações não salvas · Ctrl+S para salvar"
-              : "Alterações salvas no workspace"}
+              : draft.id
+                ? "Alterações salvas no workspace"
+                : "Novo documento · escreva e salve sua nota"}
         </span>
         <span>
           {draft.body.trim() ? draft.body.trim().split(/\s+/).length : 0} palavras · Markdown

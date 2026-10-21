@@ -2,6 +2,7 @@
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
+import { readerContextMatches } from "../../lib/domain/reader-context-filter";
 import type { Argument } from "../../lib/domain/argument";
 import type { TextAnchor } from "../../lib/domain/knowledge";
 import type { PassageKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
@@ -176,7 +177,16 @@ export function PassageInspector() {
         : Promise.resolve(null),
     { enabled: ref !== undefined, refreshOnKnowledgeChange: true },
   );
-  const workspaceKnowledge = knowledgeQuery.data ?? null;
+  const workspaceKnowledge = knowledgeQuery.data
+    ? {
+        ...knowledgeQuery.data,
+        items: knowledgeQuery.data.items.filter(
+          (item) =>
+            !passageContext?.contextFilter ||
+            readerContextMatches(item, passageContext.contextFilter),
+        ),
+      }
+    : null;
   const label = passageContext ? passageLabel(passageContext.ref) : t("shell.noPassage");
   const historicalAnalyses =
     bundle && hasAvailableData(bundle.analyses)

@@ -1,4 +1,5 @@
 import { Library } from "lucide-react";
+import type { ReactNode } from "react";
 import { cn } from "@/lib/utils";
 import { SEMANTIC_DOMAIN_LABELS, type SemanticDomain } from "../../lib/domain/semantic-content";
 
@@ -19,6 +20,7 @@ export function CommentarySourceBar({
   domains,
   domain,
   onDomainChange,
+  children,
 }: {
   sources: readonly { id: string; title: string }[];
   hidden: ReadonlySet<string>;
@@ -26,6 +28,7 @@ export function CommentarySourceBar({
   domains: readonly string[];
   domain: string;
   onDomainChange: (domain: string) => void;
+  children?: ReactNode;
 }) {
   if (!sources.length) return null;
   const shown = sources.filter((source) => !hidden.has(source.id));
@@ -85,7 +88,7 @@ export function CommentarySourceBar({
           );
         })}
         {domains.length > 0 && (
-          <label className="ml-1 flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <label className="relative ml-1 flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
             <span className="sr-only">Área</span>
             <select
               value={domain}
@@ -102,6 +105,7 @@ export function CommentarySourceBar({
           </label>
         )}
       </div>
+      {children}
       {shown.length === 0 && (
         <p className="mt-1.5 text-sm text-muted-foreground">
           As fontes que você escolheu não comentam este capítulo.{" "}

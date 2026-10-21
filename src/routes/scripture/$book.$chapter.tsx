@@ -1,3 +1,8 @@
+import {
+  readerContextMatches,
+  itemTradition,
+  type ReaderContextFilter,
+} from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -13,6 +18,7 @@ import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseCommentary } from "../../components/scripture/verse-commentary";
 import { CommentarySourceBar } from "../../components/scripture/commentary-source-bar";
+import { ReaderContextControls } from "../../components/scripture/reader-context-controls";
 import { useHiddenCommentarySources } from "../../hooks/use-hidden-commentary-sources";
 import { CommentaryNote } from "../../components/scripture/private-verse-knowledge";
 import {
@@ -118,6 +124,10 @@ function ChapterReader() {
   };
   const [hiddenSources, setHiddenSources] = useHiddenCommentarySources();
   const [domainFilter, setDomainFilter] = useState("");
+  const [contextFilter, setContextFilter] = useState<ReaderContextFilter>({
+    tradition: "",
+    kind: "all",
+  });
   const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
 
@@ -147,7 +157,25 @@ function ChapterReader() {
     () => WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null),
     { refreshOnKnowledgeChange: true },
   );
-  const privateKnowledge = privateKnowledgeQuery.data;
+  const availableTraditions = [
+    ...new Set(
+      (privateKnowledgeQuery.data?.items ?? []).flatMap((item) =>
+        itemTradition(item) ? [itemTradition(item)!] : [],
+      ),
+    ),
+  ].sort();
+  const privateKnowledge = useMemo(
+    () =>
+      privateKnowledgeQuery.data
+        ? {
+            ...privateKnowledgeQuery.data,
+            items: privateKnowledgeQuery.data.items.filter((item) =>
+              readerContextMatches(item, contextFilter),
+            ),
+          }
+        : undefined,
+    [privateKnowledgeQuery.data, contextFilter],
+  );
   const privateKnowledgeError = privateKnowledgeQuery.error
     ? errorMessage(privateKnowledgeQuery.error)
     : undefined;
@@ -184,10 +212,33 @@ function ChapterReader() {
   }, [availableViews, view]);
 
   useEffect(() => {
-    setPassageContext(book ? { ref: inspectorRef, label: passageLabel(inspectorRef) } : null);
+    setPassageContext(
+      book
+        ? {
+            ref: inspectorRef,
+            label: passageLabel(inspectorRef),
+            contextFilter: {
+              ...contextFilter,
+              domain: domainFilter,
+              hiddenSources: [...hiddenSources],
+            },
+          }
+        : null,
+    );
     selectWord(null);
     window.localStorage.setItem("scriptorium:last-reading", JSON.stringify({ bookId, chapter }));
-  }, [book, bookId, bundle?.identity.label, chapter, inspectorRef, setPassageContext, selectWord]);
+  }, [
+    book,
+    bookId,
+    bundle?.identity.label,
+    chapter,
+    inspectorRef,
+    setPassageContext,
+    selectWord,
+    contextFilter,
+    domainFilter,
+    hiddenSources,
+  ]);
 
   useEffect(() => {
     setOpenVerses(new Set());
@@ -231,10 +282,10 @@ function ChapterReader() {
   const privateSources = useMemo(
     () => [
       ...new Map(
-        (privateKnowledge?.items ?? []).map((item) => [item.document.id, item.document]),
+        (privateKnowledgeQuery.data?.items ?? []).map((item) => [item.document.id, item.document]),
       ).values(),
     ],
-    [privateKnowledge],
+    [privateKnowledgeQuery.data],
   );
   // Notes about the whole chapter (or a long stretch of it), shown once at the top instead of
   // under every verse they touch, when comments are summarised.
@@ -261,14 +312,14 @@ function ChapterReader() {
     () =>
       [
         ...new Set(
-          (privateKnowledge?.items ?? []).flatMap((item) =>
+          (privateKnowledgeQuery.data?.items ?? []).flatMap((item) =>
             item.proposals.flatMap((proposal) =>
               proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
             ),
           ),
         ),
       ].sort(),
-    [privateKnowledge],
+    [privateKnowledgeQuery.data],
   );
   // Grouped once per answer, not re-filtered by every verse on every render.
   const privateItemsByVerse = useMemo(() => {
@@ -356,7 +407,13 @@ function ChapterReader() {
             domains={privateDomains}
             domain={domainFilter}
             onDomainChange={setDomainFilter}
-          />
+          >
+            <ReaderContextControls
+              value={contextFilter}
+              traditions={availableTraditions}
+              onChange={setContextFilter}
+            />
+          </CommentarySourceBar>
         )}
 
         <Group orientation="vertical" className="min-h-0 flex-1" id="scripture-reading-layout">
@@ -405,6 +462,12 @@ function ChapterReader() {
                     </div>
                   )}
 
+                  {privateKnowledgeQuery.data?.items.length && !privateKnowledge?.items.length ? (
+                    <p role="status" className="my-4 text-sm">
+                      Nenhuma ligação corresponde ao contexto escolhido neste capítulo. Limpe os
+                      filtros para consultar as demais fontes.
+                    </p>
+                  ) : null}
                   {showExplanations && chapterOverview.length > 0 && (
                     <details className="mb-6 rounded-md border border-border bg-muted/10 px-4 py-3">
                       <summary className="cursor-pointer text-sm font-medium">

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { WorkspacePassageKnowledgeItem } from "./workspace-passage-knowledge";
 import { knowledgeItemCoversVerse } from "./workspace-passage-knowledge";
+import { readerContextMatches, itemTradition } from "./reader-context-filter";
 
 function item(scope: "verse" | "range" | "chapter"): WorkspacePassageKnowledgeItem {
   const now = "2026-10-09T00:00:00.000Z";
@@ -68,6 +69,43 @@ function item(scope: "verse" | "range" | "chapter"): WorkspacePassageKnowledgeIt
 }
 
 describe("knowledgeItemCoversVerse", () => {
+  it("filters only declared traditions, never guesses from a title", () => {
+    const value = item("verse");
+    value.document.title = "Comentário ortodoxo reformado";
+    expect(itemTradition(value)).toBeUndefined();
+    expect(readerContextMatches(value, { tradition: "Ortodoxa", kind: "all" })).toBe(false);
+    expect(readerContextMatches(value, { tradition: "", kind: "all" })).toBe(true);
+    value.document.id =
+      "private-document:504c2c2665f24c40bf29287605cacc5f1e81e05206fcd4c6452a0fab9cd7bc6c";
+    expect(itemTradition(value)).toBe("Reformada · perfil editorial da fonte");
+  });
+  it("keeps proof texts separate and applies source/domain without discarding records", () => {
+    const value = item("verse");
+    value.passageRelation.payload.referenceRole = "proof-text";
+    expect(readerContextMatches(value, { tradition: "", kind: "commentary" })).toBe(false);
+    expect(readerContextMatches(value, { tradition: "", kind: "confessional" })).toBe(true);
+    expect(readerContextMatches(value, { tradition: "", kind: "all", source: "other" })).toBe(
+      false,
+    );
+    expect(
+      readerContextMatches(value, {
+        tradition: "",
+        kind: "all",
+        hiddenSources: [value.document.id],
+      }),
+    ).toBe(false);
+    expect(
+      readerContextMatches(value, {
+        tradition: "",
+        kind: "all",
+        hiddenSources: ["another-source"],
+      }),
+    ).toBe(true);
+    expect(readerContextMatches(value, { tradition: "", kind: "all", domain: "exegesis" })).toBe(
+      false,
+    );
+    expect(value.passageRelation.payload.referenceRole).toBe("proof-text");
+  });
   it("renders verse and range links only below the verses they cover", () => {
     expect(knowledgeItemCoversVerse(item("verse"), "john", 2, 1)).toBe(true);
     expect(knowledgeItemCoversVerse(item("verse"), "john", 2, 2)).toBe(false);

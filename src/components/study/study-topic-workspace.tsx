@@ -56,6 +56,7 @@ export function StudyTopicWorkspace({
     useWorkbench();
   useEffect(() => setPassageContext(null), [setPassageContext]);
   const [tab, setTab] = useState("content");
+  const [videoOpen, setVideoOpen] = useState(false);
   const [step, setStep] = useState(0);
   const [selectedGroup, setSelectedGroup] = useState("");
   const [attachGroup, setAttachGroup] = useState("");
@@ -221,28 +222,200 @@ export function StudyTopicWorkspace({
           {status}
         </p>
       )}
-      <Tabs value={tab} onValueChange={setTab} activationMode="manual">
-        <div className="topic-tabs-scroll">
-          <TabsList
-            className="topic-tabs h-auto w-max min-w-full justify-start gap-1 rounded-none bg-transparent p-0"
-            aria-label="Espaços do tema"
-          >
-            {TABS.map((item) => (
-              <TabsTrigger
-                key={item.id}
-                value={item.id}
-                className="rounded-none border-b-2 border-transparent px-4 py-4 shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+      <Button
+        variant="outline"
+        className="mb-4"
+        aria-expanded={videoOpen}
+        onClick={() => setVideoOpen((value) => !value)}
+      >
+        <Play className="mr-2 size-4" />
+        {videoOpen ? "Recolher vídeo de apoio" : "Estudar com vídeo ao lado"}
+      </Button>
+      <div
+        className={
+          videoOpen
+            ? "grid min-w-0 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_340px]"
+            : "min-w-0"
+        }
+      >
+        <Tabs value={tab} onValueChange={setTab} activationMode="manual">
+          <div className="topic-tabs-scroll">
+            <TabsList
+              className="topic-tabs h-auto w-max min-w-full justify-start gap-1 rounded-none bg-transparent p-0"
+              aria-label="Espaços do tema"
+            >
+              {TABS.map((item) => (
+                <TabsTrigger
+                  key={item.id}
+                  value={item.id}
+                  className="rounded-none border-b-2 border-transparent px-4 py-4 shadow-none data-[state=active]:border-primary data-[state=active]:bg-transparent data-[state=active]:text-primary data-[state=active]:shadow-none"
+                >
+                  <item.icon className="mr-2 size-4" />
+                  {item.label}
+                </TabsTrigger>
+              ))}
+            </TabsList>
+          </div>
+          <TabsContent value="content" className="topic-tab-content">
+            <StudyTopicContent key={topic.id} topic={topic} />
+            <details className="topic-lesson-acervo">
+              <summary>Continuar nos meus livros e nas fontes do acervo</summary>
+              <StudyTopicReadings
+                topic={topic}
+                {...(readings.data ? { readings: readings.data } : {})}
+                pending={readings.isPending}
+                error={Boolean(readings.error)}
+                onRetry={() => void readings.refetch()}
+                {...(groupId ? { studyId: groupId } : {})}
+              />
+            </details>
+          </TabsContent>
+          <TabsContent value="path" className="topic-tab-content topic-path">
+            <nav className="topic-path-rail" ref={stepRail} aria-label="Etapas do roteiro">
+              {modules.map((module, index) => (
+                <button
+                  key={`${index}:${module.title}`}
+                  type="button"
+                  aria-current={currentStep === index ? "step" : undefined}
+                  aria-controls="topic-step"
+                  onClick={() => changeStep(index)}
+                >
+                  <span className="topic-path-marker">{String(index + 1).padStart(2, "0")}</span>
+                  <span className="topic-path-label">{module.title}</span>
+                </button>
+              ))}
+            </nav>
+            <div className="topic-path-intro">
+              <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
+              <details className="topic-path-context">
+                <summary>Sobre este percurso</summary>
+                <p>
+                  {topic.kind === "entity" && topic.guide
+                    ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
+                    : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
+                </p>
+              </details>
+            </div>
+            <section
+              id="topic-step"
+              className="topic-study-desk"
+              aria-labelledby="topic-step-title"
+            >
+              <div className="topic-orientation">
+                <p className="topic-role-label">
+                  <Compass aria-hidden="true" /> Orientação de leitura{" "}
+                </p>
+                <div className="topic-chapter-heading">
+                  <span aria-hidden="true">{String(currentStep + 1).padStart(2, "0")}</span>
+                  <h3 id="topic-step-title">{current.title}</h3>
+                </div>
+                <p className="guide-explanation">{current.explanation}</p>
+                {current.passages.length > 0 && (
+                  <div className="topic-starting-texts">
+                    {current.passages.map((passage) => (
+                      <TopicPassageReading
+                        key={`${passage.book}:${passage.chapter}`}
+                        passage={passage}
+                      />
+                    ))}
+                  </div>
+                )}
+                <div className="topic-source-actions">
+                  <Button variant="outline" onClick={() => setTab("readings")}>
+                    <BookOpen className="mr-2 size-4" />
+                    Consultar leituras do tema
+                  </Button>
+                  <Button variant="ghost" onClick={() => setTab("connections")}>
+                    Explorar conexões
+                    <ArrowRight className="ml-2 size-4" />
+                  </Button>
+                </div>
+              </div>
+              <aside className="topic-inquiry" aria-label="Investigar e escrever">
+                <p className="topic-role-label">
+                  <Feather aria-hidden="true" /> Investigar e escrever
+                </p>
+                {current.questions.map((question) => (
+                  <div key={question} className="topic-inquiry-question">
+                    <p>{question}</p>
+                    <div className="topic-inquiry-actions">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busy || !canSave}
+                        onClick={() =>
+                          void action(async () => {
+                            const study = await ensureGroup();
+                            const questions = await StudyRepository.listResearchQuestions(study.id);
+                            if (!questions.some((item) => item.question === question))
+                              await StudyRepository.createResearchQuestion({
+                                studyId: study.id,
+                                question,
+                              });
+                            await refreshUserData();
+                            setStatus("Pergunta guardada na sua investigação.");
+                          })
+                        }
+                      >
+                        Guardar pergunta
+                      </Button>
+                      <Button
+                        size="sm"
+                        className="bg-[var(--inquiry-ink)] text-background hover:bg-[var(--inquiry-ink)] hover:brightness-110"
+                        disabled={busy || !canSave}
+                        onClick={() => {
+                          if (!replaceDraft()) return;
+                          void action(async () => {
+                            await ensureGroup();
+                            setDraft({ title: question, body: "" });
+                            setInitialNoteId(undefined);
+                            setNoteSession((value) => value + 1);
+                            setTab("notebook");
+                          });
+                        }}
+                      >
+                        Escrever minha resposta
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </aside>
+            </section>
+            {claim && (
+              <aside className="topic-recorded-claim">
+                <p className="meta-label">
+                  Afirmação já registrada no catálogo · {reviewStatusLabel(claim.reviewStatus)}
+                </p>
+                <p>{claim.proposition}</p>
+                <button
+                  className="text-sm text-primary hover:underline"
+                  onClick={() => setTab("connections")}
+                >
+                  Conferir relações e evidências →
+                </button>
+              </aside>
+            )}
+            <div className="topic-pager">
+              <Button
+                variant="ghost"
+                disabled={currentStep === 0}
+                onClick={() => changeStep(currentStep - 1)}
               >
-                <item.icon className="mr-2 size-4" />
-                {item.label}
-              </TabsTrigger>
-            ))}
-          </TabsList>
-        </div>
-        <TabsContent value="content" className="topic-tab-content">
-          <StudyTopicContent key={topic.id} topic={topic} />
-          <details className="topic-lesson-acervo">
-            <summary>Continuar nos meus livros e nas fontes do acervo</summary>
+                ← Etapa anterior
+              </Button>
+              <span>
+                {currentStep + 1} de {modules.length} · roteiro, sem progresso automático
+              </span>
+              <Button
+                variant="ghost"
+                disabled={currentStep === modules.length - 1}
+                onClick={() => changeStep(currentStep + 1)}
+              >
+                Próxima etapa →
+              </Button>
+            </div>
+          </TabsContent>
+          <TabsContent value="readings" className="topic-tab-content">
             <StudyTopicReadings
               topic={topic}
               {...(readings.data ? { readings: readings.data } : {})}
@@ -251,276 +424,137 @@ export function StudyTopicWorkspace({
               onRetry={() => void readings.refetch()}
               {...(groupId ? { studyId: groupId } : {})}
             />
-          </details>
-        </TabsContent>
-        <TabsContent value="path" className="topic-tab-content topic-path">
-          <nav className="topic-path-rail" ref={stepRail} aria-label="Etapas do roteiro">
-            {modules.map((module, index) => (
-              <button
-                key={`${index}:${module.title}`}
-                type="button"
-                aria-current={currentStep === index ? "step" : undefined}
-                aria-controls="topic-step"
-                onClick={() => changeStep(index)}
-              >
-                <span className="topic-path-marker">{String(index + 1).padStart(2, "0")}</span>
-                <span className="topic-path-label">{module.title}</span>
-              </button>
-            ))}
-          </nav>
-          <div className="topic-path-intro">
-            <h2>{topic.guide ? "Roteiro de estudo" : "Investigar a partir das fontes"}</h2>
-            <details className="topic-path-context">
-              <summary>Sobre este percurso</summary>
-              <p>
-                {topic.kind === "entity" && topic.guide
-                  ? `Este tema utiliza o percurso editorial de ${topic.guide.title}. As leituras e conexões abaixo são consultadas especificamente para ${topic.title}.`
-                  : "Um roteiro editorial orienta suas perguntas. Os textos, vínculos e notas vêm do acervo; nenhuma etapa registra domínio automaticamente."}
-              </p>
-            </details>
-          </div>
-          <section id="topic-step" className="topic-study-desk" aria-labelledby="topic-step-title">
-            <div className="topic-orientation">
-              <p className="topic-role-label">
-                <Compass aria-hidden="true" /> Orientação de leitura{" "}
-              </p>
-              <div className="topic-chapter-heading">
-                <span aria-hidden="true">{String(currentStep + 1).padStart(2, "0")}</span>
-                <h3 id="topic-step-title">{current.title}</h3>
-              </div>
-              <p className="guide-explanation">{current.explanation}</p>
-              {current.passages.length > 0 && (
-                <div className="topic-starting-texts">
-                  {current.passages.map((passage) => (
-                    <TopicPassageReading
-                      key={`${passage.book}:${passage.chapter}`}
-                      passage={passage}
-                    />
-                  ))}
-                </div>
-              )}
-              <div className="topic-source-actions">
-                <Button variant="outline" onClick={() => setTab("readings")}>
-                  <BookOpen className="mr-2 size-4" />
-                  Consultar leituras do tema
-                </Button>
-                <Button variant="ghost" onClick={() => setTab("connections")}>
-                  Explorar conexões
-                  <ArrowRight className="ml-2 size-4" />
-                </Button>
-              </div>
-            </div>
-            <aside className="topic-inquiry" aria-label="Investigar e escrever">
-              <p className="topic-role-label">
-                <Feather aria-hidden="true" /> Investigar e escrever
-              </p>
-              {current.questions.map((question) => (
-                <div key={question} className="topic-inquiry-question">
-                  <p>{question}</p>
-                  <div className="topic-inquiry-actions">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={busy || !canSave}
-                      onClick={() =>
-                        void action(async () => {
-                          const study = await ensureGroup();
-                          const questions = await StudyRepository.listResearchQuestions(study.id);
-                          if (!questions.some((item) => item.question === question))
-                            await StudyRepository.createResearchQuestion({
-                              studyId: study.id,
-                              question,
-                            });
-                          await refreshUserData();
-                          setStatus("Pergunta guardada na sua investigação.");
-                        })
-                      }
-                    >
-                      Guardar pergunta
-                    </Button>
-                    <Button
-                      size="sm"
-                      className="bg-[var(--inquiry-ink)] text-background hover:bg-[var(--inquiry-ink)] hover:brightness-110"
-                      disabled={busy || !canSave}
-                      onClick={() => {
-                        if (!replaceDraft()) return;
-                        void action(async () => {
-                          await ensureGroup();
-                          setDraft({ title: question, body: "" });
-                          setInitialNoteId(undefined);
-                          setNoteSession((value) => value + 1);
-                          setTab("notebook");
-                        });
-                      }}
-                    >
-                      Escrever minha resposta
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </aside>
-          </section>
-          {claim && (
-            <aside className="topic-recorded-claim">
-              <p className="meta-label">
-                Afirmação já registrada no catálogo · {reviewStatusLabel(claim.reviewStatus)}
-              </p>
-              <p>{claim.proposition}</p>
-              <button
-                className="text-sm text-primary hover:underline"
-                onClick={() => setTab("connections")}
-              >
-                Conferir relações e evidências →
-              </button>
-            </aside>
-          )}
-          <div className="topic-pager">
-            <Button
-              variant="ghost"
-              disabled={currentStep === 0}
-              onClick={() => changeStep(currentStep - 1)}
-            >
-              ← Etapa anterior
-            </Button>
-            <span>
-              {currentStep + 1} de {modules.length} · roteiro, sem progresso automático
-            </span>
-            <Button
-              variant="ghost"
-              disabled={currentStep === modules.length - 1}
-              onClick={() => changeStep(currentStep + 1)}
-            >
-              Próxima etapa →
-            </Button>
-          </div>
-        </TabsContent>
-        <TabsContent value="readings" className="topic-tab-content">
-          <StudyTopicReadings
-            topic={topic}
-            {...(readings.data ? { readings: readings.data } : {})}
-            pending={readings.isPending}
-            error={Boolean(readings.error)}
-            onRetry={() => void readings.refetch()}
-            {...(groupId ? { studyId: groupId } : {})}
-          />
-        </TabsContent>
-        <TabsContent value="connections" className="topic-tab-content">
-          <StudyTopicConnections
-            topic={topic}
-            {...(bundle ? { bundle } : {})}
-            onOpenNote={openNote}
-          />
-          {bundle && (
-            <details className="topic-evidence-details">
-              <summary>Abrir afirmações, argumentos e fontes do catálogo</summary>
-              <ExplorerContent bundle={bundle} focusedClaim={focusedClaim ?? null} />
-            </details>
-          )}
-        </TabsContent>
-        <TabsContent
-          value="notebook"
-          forceMount
-          hidden={tab !== "notebook"}
-          className="topic-tab-content"
-        >
-          <div className="topic-section-heading">
-            <p className="meta-label">Seu conhecimento em construção</p>
-            <h2>Um caderno ligado a {topic.title}</h2>
-            <p>
-              Notas, fontes e conexões pessoais permanecem no mesmo workspace. Você decide o que
-              relacionar e o que concluir.
-            </p>
-          </div>
-          <div className="topic-group-controls">
-            {groups.length > 0 && (
-              <label className="flex min-w-0 flex-col gap-2 text-sm">
-                Caderno deste tema
-                <select
-                  className="topic-reading-select"
-                  value={groupId ?? ""}
-                  onChange={(event) => openNote(event.target.value)}
-                >
-                  {groups.map((group) => (
-                    <option key={group.id} value={group.id}>
-                      {group.title}
-                    </option>
-                  ))}
-                </select>
-              </label>
+          </TabsContent>
+          <TabsContent value="connections" className="topic-tab-content">
+            <StudyTopicConnections
+              topic={topic}
+              {...(bundle ? { bundle } : {})}
+              onOpenNote={openNote}
+            />
+            {bundle && (
+              <details className="topic-evidence-details">
+                <summary>Abrir afirmações, argumentos e fontes do catálogo</summary>
+                <ExplorerContent bundle={bundle} focusedClaim={focusedClaim ?? null} />
+              </details>
             )}
-            <Button
-              variant="outline"
-              disabled={busy || !canSave}
-              onClick={() =>
-                void action(async () => {
-                  await ensureGroup();
-                  setTab("notebook");
-                })
-              }
-            >
-              {groupId ? "Retomar grupo associado" : "Criar caderno para este tema"}
-            </Button>
-            <details>
-              <summary className="cursor-pointer text-sm text-primary">
-                Associar um grupo existente
-              </summary>
-              <div className="mt-3 flex flex-wrap gap-2">
-                <select
-                  aria-label="Grupo para associar ao tema"
-                  className="topic-reading-select"
-                  value={attachGroup}
-                  onChange={(event) => setAttachGroup(event.target.value)}
-                >
-                  <option value="">Escolha um grupo…</option>
-                  {studies
-                    .filter((study) => !groups.some((group) => group.id === study.id))
-                    .map((study) => (
-                      <option key={study.id} value={study.id}>
-                        {study.title}
+          </TabsContent>
+          <TabsContent
+            value="notebook"
+            forceMount
+            hidden={tab !== "notebook"}
+            className="topic-tab-content"
+          >
+            <div className="topic-section-heading">
+              <p className="meta-label">Seu conhecimento em construção</p>
+              <h2>Um caderno ligado a {topic.title}</h2>
+              <p>
+                Notas, fontes e conexões pessoais permanecem no mesmo workspace. Você decide o que
+                relacionar e o que concluir.
+              </p>
+            </div>
+            <div className="topic-group-controls">
+              {groups.length > 0 && (
+                <label className="flex min-w-0 flex-col gap-2 text-sm">
+                  Caderno deste tema
+                  <select
+                    className="topic-reading-select"
+                    value={groupId ?? ""}
+                    onChange={(event) => openNote(event.target.value)}
+                  >
+                    {groups.map((group) => (
+                      <option key={group.id} value={group.id}>
+                        {group.title}
                       </option>
                     ))}
-                </select>
-                <Button
-                  disabled={!attachGroup || busy || !canSave}
-                  variant="outline"
-                  onClick={() => {
-                    if (!replaceDraft()) return;
-                    void action(async () => {
-                      await ensureGroup(attachGroup);
-                      setAttachGroup("");
-                    });
-                  }}
-                >
-                  Associar
-                </Button>
-              </div>
-            </details>
-          </div>
-          {groupId ? (
-            <StudyNotebook
-              key={`${groupId}:${noteSession}`}
-              studyId={groupId}
-              contextLinks={links}
-              onDirtyChange={setNoteDirty}
-              {...(initialNoteId ? { initialNoteId } : {})}
-              {...(draft ? { initialDraft: draft } : {})}
-              focused
-            />
-          ) : (
-            <div className="topic-empty">
-              <NotebookPen className="size-7 text-primary" />
-              <h3>O espaço está pronto para suas ideias.</h3>
-              <p>
-                Crie um caderno ou associe um grupo existente. As próximas notas já guardarão a
-                ligação com este tema.
-              </p>
+                  </select>
+                </label>
+              )}
+              <Button
+                variant="outline"
+                disabled={busy || !canSave}
+                onClick={() =>
+                  void action(async () => {
+                    await ensureGroup();
+                    setTab("notebook");
+                  })
+                }
+              >
+                {groupId ? "Retomar grupo associado" : "Criar caderno para este tema"}
+              </Button>
+              <details>
+                <summary className="cursor-pointer text-sm text-primary">
+                  Associar um grupo existente
+                </summary>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <select
+                    aria-label="Grupo para associar ao tema"
+                    className="topic-reading-select"
+                    value={attachGroup}
+                    onChange={(event) => setAttachGroup(event.target.value)}
+                  >
+                    <option value="">Escolha um grupo…</option>
+                    {studies
+                      .filter((study) => !groups.some((group) => group.id === study.id))
+                      .map((study) => (
+                        <option key={study.id} value={study.id}>
+                          {study.title}
+                        </option>
+                      ))}
+                  </select>
+                  <Button
+                    disabled={!attachGroup || busy || !canSave}
+                    variant="outline"
+                    onClick={() => {
+                      if (!replaceDraft()) return;
+                      void action(async () => {
+                        await ensureGroup(attachGroup);
+                        setAttachGroup("");
+                      });
+                    }}
+                  >
+                    Associar
+                  </Button>
+                </div>
+              </details>
             </div>
-          )}
-        </TabsContent>
-        <TabsContent value="videos" className="topic-tab-content">
-          <StudyTopicVideos title={topic.title} onRecord={noteFromVideo} />
-        </TabsContent>
-      </Tabs>
+            {groupId ? (
+              <StudyNotebook
+                key={`${groupId}:${noteSession}`}
+                studyId={groupId}
+                contextLinks={links}
+                onDirtyChange={setNoteDirty}
+                {...(initialNoteId ? { initialNoteId } : {})}
+                {...(draft ? { initialDraft: draft } : {})}
+                focused
+              />
+            ) : (
+              <div className="topic-empty">
+                <NotebookPen className="size-7 text-primary" />
+                <h3>O espaço está pronto para suas ideias.</h3>
+                <p>
+                  Crie um caderno ou associe um grupo existente. As próximas notas já guardarão a
+                  ligação com este tema.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="videos" className="topic-tab-content">
+            <p className="py-6">
+              Assista sem abandonar a leitura.{" "}
+              <Button variant="outline" onClick={() => setVideoOpen(true)}>
+                Abrir vídeo ao lado
+              </Button>
+            </p>
+          </TabsContent>
+        </Tabs>
+        <aside
+          hidden={!videoOpen}
+          className="min-w-0 border-l border-border pl-4 xl:sticky xl:top-4 xl:max-h-[85svh] xl:overflow-y-auto"
+          aria-label="Vídeo de apoio ao estudo"
+        >
+          <StudyTopicVideos title={topic.title} onRecord={noteFromVideo} active={videoOpen} />
+        </aside>
+      </div>
     </article>
   );
 }
