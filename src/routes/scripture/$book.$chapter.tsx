@@ -1,3 +1,8 @@
+import {
+  readerContextMatches,
+  itemTradition,
+  type ReaderContextFilter,
+} from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -96,6 +101,10 @@ function ChapterReader() {
   };
   const [sourceFilter, setSourceFilter] = useState("");
   const [domainFilter, setDomainFilter] = useState("");
+  const [contextFilter, setContextFilter] = useState<ReaderContextFilter>({
+    tradition: "",
+    kind: "all",
+  });
   const [openVerses, setOpenVerses] = useState<ReadonlySet<number>>(() => new Set());
   const [selectedVerse, setSelectedVerse] = useState<number | null>(null);
 
@@ -125,7 +134,25 @@ function ChapterReader() {
     () => WorkspacePassageKnowledgeService.load(activeRef, bundle ?? null),
     { refreshOnKnowledgeChange: true },
   );
-  const privateKnowledge = privateKnowledgeQuery.data;
+  const availableTraditions = [
+    ...new Set(
+      (privateKnowledgeQuery.data?.items ?? []).flatMap((item) =>
+        itemTradition(item) ? [itemTradition(item)!] : [],
+      ),
+    ),
+  ].sort();
+  const privateKnowledge = useMemo(
+    () =>
+      privateKnowledgeQuery.data
+        ? {
+            ...privateKnowledgeQuery.data,
+            items: privateKnowledgeQuery.data.items.filter((item) =>
+              readerContextMatches(item, contextFilter),
+            ),
+          }
+        : undefined,
+    [privateKnowledgeQuery.data, contextFilter],
+  );
   const privateKnowledgeError = privateKnowledgeQuery.error
     ? errorMessage(privateKnowledgeQuery.error)
     : undefined;
@@ -162,10 +189,29 @@ function ChapterReader() {
   }, [availableViews, view]);
 
   useEffect(() => {
-    setPassageContext(book ? { ref: inspectorRef, label: passageLabel(inspectorRef) } : null);
+    setPassageContext(
+      book
+        ? {
+            ref: inspectorRef,
+            label: passageLabel(inspectorRef),
+            contextFilter: { ...contextFilter, domain: domainFilter, source: sourceFilter },
+          }
+        : null,
+    );
     selectWord(null);
     window.localStorage.setItem("scriptorium:last-reading", JSON.stringify({ bookId, chapter }));
-  }, [book, bookId, bundle?.identity.label, chapter, inspectorRef, setPassageContext, selectWord]);
+  }, [
+    book,
+    bookId,
+    bundle?.identity.label,
+    chapter,
+    inspectorRef,
+    setPassageContext,
+    selectWord,
+    contextFilter,
+    domainFilter,
+    sourceFilter,
+  ]);
 
   useEffect(() => {
     setOpenVerses(new Set());
@@ -176,23 +222,23 @@ function ChapterReader() {
   const privateSources = useMemo(
     () => [
       ...new Map(
-        (privateKnowledge?.items ?? []).map((item) => [item.document.id, item.document]),
+        (privateKnowledgeQuery.data?.items ?? []).map((item) => [item.document.id, item.document]),
       ).values(),
     ],
-    [privateKnowledge],
+    [privateKnowledgeQuery.data],
   );
   const privateDomains = useMemo(
     () =>
       [
         ...new Set(
-          (privateKnowledge?.items ?? []).flatMap((item) =>
+          (privateKnowledgeQuery.data?.items ?? []).flatMap((item) =>
             item.proposals.flatMap((proposal) =>
               proposal.payload.kind === "topic-assignment" ? [proposal.payload.domain] : [],
             ),
           ),
         ),
       ].sort(),
-    [privateKnowledge],
+    [privateKnowledgeQuery.data],
   );
   // Grouped once per answer, not re-filtered by every verse on every render.
   const privateItemsByVerse = useMemo(() => {
@@ -316,9 +362,60 @@ function ChapterReader() {
                     </div>
                   )}
 
-                  {commentaryLayout !== "hidden" && privateKnowledge?.items.length ? (
+                  {commentaryLayout !== "hidden" && privateKnowledgeQuery.data?.items.length ? (
                     <div className="mb-5 flex flex-wrap items-center gap-2 rounded border border-border bg-muted/20 p-2 text-xs">
                       <span className="font-medium">Filtrar biblioteca conectada</span>
+                      <label>
+                        Tradição declarada{" "}
+                        <select
+                          className="ml-1 rounded border border-input bg-background p-1"
+                          value={contextFilter.tradition}
+                          onChange={(event) =>
+                            setContextFilter((value) => ({
+                              ...value,
+                              tradition: event.target.value,
+                            }))
+                          }
+                        >
+                          <option value="">Todas, incluindo não classificadas</option>
+                          {availableTraditions.map((tradition) => (
+                            <option key={tradition}>{tradition}</option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Tipo de ligação{" "}
+                        <select
+                          className="ml-1 rounded border border-input bg-background p-1"
+                          value={contextFilter.kind}
+                          onChange={(event) =>
+                            setContextFilter((value) => ({
+                              ...value,
+                              kind: event.target.value as ReaderContextFilter["kind"],
+                            }))
+                          }
+                        >
+                          <option value="all">Comentários e documentos confessionais</option>
+                          <option value="commentary">Contextos e comentários</option>
+                          <option value="confessional">
+                            Citações confessionais (não exegese direta)
+                          </option>
+                        </select>
+                      </label>
+                      {(contextFilter.tradition || contextFilter.kind !== "all") && (
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setContextFilter({ tradition: "", kind: "all" })}
+                        >
+                          Limpar contexto
+                        </Button>
+                      )}
+                      <p className="w-full text-muted-foreground">
+                        Área filtra exegese, hermenêutica e história. Tradição usa apenas
+                        classificação declarada na fonte; não converte o texto para outra posição.
+                      </p>
+
                       <label>
                         Fonte{" "}
                         <select
@@ -350,6 +447,12 @@ function ChapterReader() {
                         </select>
                       </label>
                     </div>
+                  ) : null}
+                  {privateKnowledgeQuery.data?.items.length && !privateKnowledge?.items.length ? (
+                    <p role="status" className="my-4 text-sm">
+                      Nenhuma ligação corresponde ao contexto escolhido neste capítulo. Limpe os
+                      filtros para consultar as demais fontes.
+                    </p>
                   ) : null}
                   {privateKnowledgeError ? (
                     <p role="alert" className="mb-4 text-xs text-destructive">

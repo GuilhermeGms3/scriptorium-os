@@ -57,7 +57,7 @@ export async function loadCuratedTopicReadings(
       excerpt: "",
       origin: "private-curated",
       ...(document.language ? { language: document.language } : {}),
-      guidance: `${reading.purpose} ${SUMMA_READING_NOTICE}`,
+      guidance: `${reading.purpose} ${reading.notice ?? (reading.id.startsWith("summa-") ? SUMMA_READING_NOTICE : "Leitura de partida na edição privada identificada. A página pode começar ou terminar no meio da seção; consulte as páginas vizinhas na Biblioteca. A posição do autor não representa uma interpretação universal do sistema.")}`,
       source: {
         kind: "private-document",
         documentId: document.id,

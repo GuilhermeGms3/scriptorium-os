@@ -3,13 +3,16 @@ import { ExternalLink, KeyRound, Play, Search, X } from "lucide-react";
 import { YouTubeStudyService, type StudyVideo } from "../../lib/application/youtube-study-service";
 import { Button } from "../ui/button";
 import { Input } from "../ui/input";
+import { studyVideoId } from "../../lib/domain/study-video-link";
 
 export function StudyTopicVideos({
   title,
   onRecord,
+  active = true,
 }: {
   title: string;
   onRecord: (video: StudyVideo) => void;
+  active?: boolean;
 }) {
   const revision = useSyncExternalStore(
     YouTubeStudyService.subscribe,
@@ -24,6 +27,7 @@ export function StudyTopicVideos({
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
   const [origin, setOrigin] = useState("");
+  const [videoUrl, setVideoUrl] = useState("");
   const controller = useRef<AbortController | null>(null);
   useEffect(() => {
     setOrigin(window.location.origin);
@@ -64,7 +68,50 @@ export function StudyTopicVideos({
           acadêmica do Scriptorium.
         </p>
       </div>
-      <details className="topic-api-setup" open={!configured}>
+      <details className="my-4 border-y border-border py-3" open={!configured}>
+        <summary className="cursor-pointer text-sm">
+          Assistir um vídeo por link · sem chave de API
+        </summary>
+        <form
+          className="mt-3 flex flex-wrap gap-2"
+          onSubmit={(event) => {
+            event.preventDefault();
+            const id = studyVideoId(videoUrl);
+            if (!id) {
+              setError("Use um link HTTPS válido de um vídeo do YouTube.");
+              return;
+            }
+            setError("");
+            setSelected({
+              id,
+              title: `Vídeo escolhido sobre ${title}`,
+              channel: "Escolha pessoal; não é indicação acadêmica do Scriptorium",
+              description: "Vídeo informado pelo usuário; metadados não consultados.",
+              publishedAt: "",
+            });
+          }}
+        >
+          <label className="min-w-0 flex-1 text-sm">
+            Link do vídeo
+            <Input
+              type="url"
+              value={videoUrl}
+              onChange={(event) => setVideoUrl(event.target.value)}
+              maxLength={2048}
+              placeholder="https://www.youtube.com/watch?v=…"
+              required
+            />
+          </label>
+          <Button type="submit" variant="outline">
+            Abrir vídeo
+          </Button>
+        </form>
+        <p className="mt-2 text-xs text-muted-foreground">
+          O player externo só carrega depois da sua escolha. O YouTube precisa de conexão; seus
+          livros e notas não são enviados.
+        </p>
+      </details>
+      <details className="topic-api-setup">
         <summary>
           <KeyRound className="size-4" />
           {configured
@@ -172,14 +219,16 @@ export function StudyTopicVideos({
               <X className="size-4" />
             </Button>
           </div>
-          <iframe
-            className="aspect-video w-full border border-border"
-            src={`https://www.youtube-nocookie.com/embed/${selected.id}`}
-            title={selected.title}
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
-            referrerPolicy="strict-origin-when-cross-origin"
-            allowFullScreen
-          />
+          {active && (
+            <iframe
+              className="aspect-video w-full border border-border"
+              src={`https://www.youtube-nocookie.com/embed/${selected.id}`}
+              title={selected.title}
+              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
+              referrerPolicy="strict-origin-when-cross-origin"
+              allowFullScreen
+            />
+          )}
           <div className="mt-3 flex flex-wrap items-center justify-between gap-3 text-sm">
             <span className="text-muted-foreground">YouTube · {selected.channel}</span>
             <Button variant="outline" onClick={() => onRecord(selected)}>

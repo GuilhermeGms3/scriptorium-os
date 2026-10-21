@@ -3,6 +3,43 @@ import type { LessonReference } from "./types";
 /** Bibliography for original explanatory prose; external pages are never scraped at runtime. */
 export const LESSON_REFERENCES: readonly LessonReference[] = [
   {
+    id: "oca-councils",
+    title: "Os concílios — The Orthodox Faith",
+    url: "https://www.oca.org/orthodoxy/the-orthodox-faith/doctrine-scripture/sources-of-christian-doctrine/the-councils",
+    perspective: "Autodescrição ortodoxa; recepção dos sete concílios",
+  },
+  {
+    id: "calvin-justification",
+    title: "Calvino — Institutas III.11: justificação",
+    url: "https://www.ccel.org/ccel/calvin/institutes.v.xii.html",
+    perspective:
+      "Fonte reformada em tradução histórica; capítulo externo, não confundido com o volume local",
+  },
+  {
+    id: "clermont-sources",
+    title: "Clermont (1095) — versões do discurso e carta de Urbano II",
+    url: "https://sourcebooks.web.fordham.edu/source/urban2-5vers.asp",
+    perspective: "Coleção documental; testemunhos distintos, não transcrição literal única",
+  },
+  {
+    id: "gui-cathars",
+    title: "Bernard Gui — acusações contra albigenses",
+    url: "https://sourcebooks.web.fordham.edu/source/gui-cathars.asp",
+    perspective: "Fonte inquisitorial adversária; tradução histórica; consultar criticamente",
+  },
+  {
+    id: "cathar-ritual",
+    title: "Ritual de Lyon — Traditio",
+    url: "https://sourcebooks.web.fordham.edu/source/cathar-traditio.asp",
+    perspective: "Testemunho ritual para comparação com relatos adversários",
+  },
+  {
+    id: "met-islam",
+    title: "The Birth of Islam — Metropolitan Museum of Art",
+    url: "https://www.metmuseum.org/essays/the-birth-of-islam",
+    perspective: "Síntese histórico-cultural de museu; não fonte primária do século VII",
+  },
+  {
     id: "atonement",
     title: "Atonement — Stanford Encyclopedia of Philosophy",
     url: "https://plato.stanford.edu/entries/atonement/index.html",

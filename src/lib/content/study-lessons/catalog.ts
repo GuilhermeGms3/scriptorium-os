@@ -5,6 +5,11 @@ import { TRADITION_PRIMERS } from "./traditions";
 import { READING_CHAPTERS, THEOLOGY_CHAPTERS } from "./foundations";
 import { TEACHING_CHAPTERS } from "./teachings";
 import { chapter, type LessonChapter, type StudyLesson } from "./types";
+import {
+  COUNCIL_STUDY_CHAPTERS,
+  CONFESSIONAL_STUDY_CHAPTERS,
+  MEDIEVAL_STUDY_CHAPTERS,
+} from "./church-history";
 export { LESSON_REFERENCES } from "./references";
 
 export const TOPIC_PRIMERS = {
@@ -57,6 +62,26 @@ export function lessonForTopic(topic: { id: string; title: string }): StudyLesso
   const chapters = [
     ...(primer
       ? [chapter(`overview:${topic.id}`, topic.title, primer.paragraphs, primer.references)]
+      : []),
+    ...([
+      "study-guide:historia-tradicoes",
+      "study-guide:eclesiologia-liturgia",
+      "study-guide:teologia",
+      "study-guide:patristica",
+    ].includes(topic.id)
+      ? [
+          ...COUNCIL_STUDY_CHAPTERS,
+          ...CONFESSIONAL_STUDY_CHAPTERS,
+          ...(topic.id === "study-guide:patristica" ? [] : MEDIEVAL_STUDY_CHAPTERS),
+        ]
+      : []),
+    ...([
+      "tradition:lutheran",
+      "tradition:reformed",
+      "tradition:eastern-orthodox",
+      "tradition:oriental-orthodox",
+    ].includes(topic.id)
+      ? CONFESSIONAL_STUDY_CHAPTERS
       : []),
     ...families.flatMap((family) => FAMILIES[family] ?? []),
   ];

@@ -6,10 +6,12 @@ export function PageTranslation({
   id,
   text,
   language,
+  sourceKind = "private-segment",
 }: {
   id: string;
   text: string;
   language: string | undefined;
+  sourceKind?: LocalTranslation["sourceKind"];
 }) {
   const [translation, setTranslation] = useState<LocalTranslation | null>(null);
   const [busy, setBusy] = useState(false);
@@ -23,7 +25,7 @@ export function PageTranslation({
     return () => pending.current?.abort();
   }, [id, text, language]);
   if (!language || language.startsWith("pt") || !text.trim()) return null;
-  const supported = language === "en";
+  const supported = language.toLowerCase().split(/[-_]/)[0] === "en";
   return (
     <section className="my-4 border-y border-border py-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -43,9 +45,9 @@ export function PageTranslation({
             try {
               const result = await LocalTranslationService.translate(
                 {
-                  sourceKind: "private-segment",
+                  sourceKind,
                   sourceId: id,
-                  sourceLanguage: language,
+                  sourceLanguage: "en",
                   text,
                 },
                 undefined,
