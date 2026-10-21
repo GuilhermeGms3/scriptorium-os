@@ -102,9 +102,10 @@ describe("Bíblia Livre official N4", () => {
     expect(bundle?.texts.map((t) => t.edition.id)).toEqual([
       BIBLIA_LIVRE_EDITION_ID,
       "biblia-portuguesa-mundial-2026-08-19",
+      "king-james-version-2026-09-26",
       "sblgnt-1.2",
     ]);
-    expect(new Set(bundle?.texts.map((t) => t.provenance.packageId)).size).toBe(3);
+    expect(new Set(bundle?.texts.map((t) => t.provenance.packageId)).size).toBe(4);
     await ScriptureKnowledgeEngine.loadLinguisticPassage({ bookId: "john", chapter: 1 });
     const loadedBundle = ScriptureKnowledgeEngine.getPassageKnowledgeBundle({
       bookId: "john",

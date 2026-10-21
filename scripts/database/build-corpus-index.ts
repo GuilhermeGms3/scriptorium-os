@@ -189,6 +189,16 @@ const definitions: PackageDefinition[] = [
     license: "Public-Domain",
   },
   {
+    generatedDirectory: "generated/corpora/king-james-version/2026-09-26",
+    title: "King James Version (1769)",
+    abbreviation: "KJV",
+    language: "en",
+    script: "Latn",
+    direction: "ltr",
+    kind: "translation",
+    license: "Public-Domain",
+  },
+  {
     generatedDirectory: "generated/corpora/sblgnt/1.2",
     title: "SBL Greek New Testament 1.2",
     abbreviation: "SBLGNT",

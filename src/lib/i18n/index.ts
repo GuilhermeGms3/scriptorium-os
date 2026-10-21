@@ -103,6 +103,10 @@ const BOOK_LABELS: Record<string, string> = {
   "2-esdras": "2 Esdras",
   "4-maccabees": "4 Macabeus",
   "greek-daniel": "Daniel Grego",
+  "additions-to-esther": "Adições a Ester",
+  "song-of-three-youths": "Cântico dos Três Jovens",
+  susanna: "Susana",
+  "bel-and-the-dragon": "Bel e o Dragão",
 };
 
 export function bookLabel(bookId: string, fallback?: string): string {
