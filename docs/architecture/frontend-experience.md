@@ -295,3 +295,11 @@ Os exemplos ficam num só arquivo, `src/lib/application/scripture-reference.case
 testes dos dois lados (`scripture-reference.test.ts` e `ReadingNavigationTest.kt`). Um caso novo
 entra ali, nunca em só um dos testes; se um lado mudar a regra sem o outro, o teste dele falha. O
 CI do Android também roda quando esse arquivo muda.
+
+O mesmo vale para **onde cada nota aparece**. `noteTargets` (`src/lib/domain/note-placement.ts`)
+decide se uma nota vai sob os versículos que cobre, para o contexto do capítulo (fala do capítulo
+ou do livro inteiro) ou para lugar nenhum (menção de dicionário). O site usa essa função direto, e
+o exportador do celular grava exatamente esses alvos, que o Android compara do mesmo jeito. Os casos
+ficam em `src/lib/domain/note-placement.cases.json`. Com isso, notas sobre o capítulo ou o livro
+inteiro passaram a aparecer no "Panorama do capítulo" do site, nos modos resumido e completo, como
+já apareciam no topo do capítulo no Android; antes só apareciam na lista do painel lateral.

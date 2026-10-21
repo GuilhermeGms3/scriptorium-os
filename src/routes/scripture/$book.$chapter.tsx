@@ -32,6 +32,7 @@ import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { WorkspacePassageKnowledgeService } from "../../lib/application/workspace-passage-knowledge-service";
 import {
   knowledgeItemCoversVerse,
+  knowledgeItemIsChapterContext,
   type WorkspacePassageKnowledgeItem,
 } from "../../lib/domain/workspace-passage-knowledge";
 import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
@@ -287,26 +288,25 @@ function ChapterReader() {
     ],
     [privateKnowledgeQuery.data],
   );
-  // Notes about the whole chapter (or a long stretch of it), shown once at the top instead of
-  // under every verse they touch, when comments are summarised.
+  // Notes about the whole chapter or book always go here, once, as on Android. A long stretch of
+  // the chapter joins them when comments are summarised, instead of repeating under every verse.
   const chapterOverview = useMemo(
     () =>
-      density !== "summary"
-        ? []
-        : contextualCommentary(
-            (privateKnowledge?.items ?? []).filter(
-              (item) =>
-                isBroadCommentary(item) &&
-                !hiddenSources.has(item.document.id) &&
-                (!domainFilter ||
-                  item.proposals.some(
-                    (proposal) =>
-                      proposal.payload.kind === "topic-assignment" &&
-                      proposal.payload.domain === domainFilter,
-                  )),
-            ),
-          ),
-    [density, domainFilter, hiddenSources, privateKnowledge],
+      contextualCommentary(
+        (privateKnowledge?.items ?? []).filter(
+          (item) =>
+            (knowledgeItemIsChapterContext(item, bookId, chapter) ||
+              (density === "summary" && isBroadCommentary(item))) &&
+            !hiddenSources.has(item.document.id) &&
+            (!domainFilter ||
+              item.proposals.some(
+                (proposal) =>
+                  proposal.payload.kind === "topic-assignment" &&
+                  proposal.payload.domain === domainFilter,
+              )),
+        ),
+      ),
+    [bookId, chapter, density, domainFilter, hiddenSources, privateKnowledge],
   );
   const privateDomains = useMemo(
     () =>

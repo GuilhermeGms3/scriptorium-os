@@ -33,6 +33,28 @@ class ReadingNavigationTest {
         val invalid = cases.getJSONArray("invalid")
         for (index in 0 until invalid.length()) assertNull(invalid.getString(index), navigation.parse(invalid.getString(index), caseBooks))
     }
+    /** The same cases run on the site (note-placement.test.ts): a note lands in the same place. */
+    @Test fun notesLandWhereTheSiteShowsThem() {
+        val cases = JSONObject(File("../../src/lib/domain/note-placement.cases.json").readText())
+        val chapter = cases.getJSONObject("chapter")
+        val passage = Passage(Edition("ed", "Edição", "ed.sqlite3"), "work:" + chapter.getString("bookId"), chapter.getString("bookId"), "João", chapter.getInt("chapter"), chapter.getString("schemeId"))
+        val verses = (1..chapter.getInt("verses")).map { mapOf("verse_start" to "$it", "verse_end" to "$it") }
+        fun text(json: JSONObject, key: String) = if (json.isNull(key)) null else json.get(key).toString()
+        val notes = cases.getJSONArray("notes")
+        for (index in 0 until notes.length()) {
+            val note = notes.getJSONObject(index)
+            val name = note.getString("name")
+            val list = note.getJSONArray("targets")
+            val targets = (0 until list.length()).map { list.getJSONObject(it) }.map { target ->
+                mapOf("work_id" to target.getString("workId"), "scheme_id" to target.getString("schemeId"), "book_id" to target.getString("bookId"),
+                    "chapter" to text(target, "chapter"), "verse_start" to text(target, "verseStart"), "verse_end" to text(target, "verseEnd"))
+            }
+            val groups = commentGroups(passage, verses, listOf(mapOf("id" to name)), mapOf(name to targets))
+            val expected = note.getJSONArray("verses").let { array -> (0 until array.length()).map(array::getInt) }
+            assertEquals(name, expected, groups.mapNotNull { it.verse })
+            assertEquals(name, note.getBoolean("context"), groups.any { it.verse == null })
+        }
+    }
     @Test fun savedPassageRetainsExactEditionSchemeAndRange() {
         val edition = Edition("test", "Teste", "corpus/test.sqlite3")
         val passage = Passage(edition, "work:john", "john", "João", 3, "another-scheme", 16, 18)

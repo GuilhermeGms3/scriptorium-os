@@ -5,6 +5,7 @@ import type {
   SemanticUnit,
 } from "./document-knowledge";
 import type { LocalTranslation, SemanticDomain } from "./semantic-content";
+import { noteTargets, targetCoversVerse, targetIsChapterContext } from "./note-placement";
 
 /**
  * confirmed: a person accepted the link; auto-visible: the pipeline published it and nobody has
@@ -111,24 +112,27 @@ export const COVERAGE_LABELS: Record<PassageCoverageArea, string> = {
   "religious-currents": "Correntes religiosas",
 };
 
-/** Whether any passage of the item's relation covers the given verse. */
+/** Whether the item belongs under this verse (see note-placement.ts, shared with Android). */
 export function knowledgeItemCoversVerse(
   item: WorkspacePassageKnowledgeItem,
   bookId: string,
   chapter: number,
   verse: number,
 ): boolean {
-  const payload = item.passageRelation.payload;
-  // A dictionary entry only mentions the verse; it belongs in the inspector, not under the verse.
-  if (payload.referenceRole === "lexical-mention") return false;
-  return [payload.passage, ...payload.additionalPassages].some((passage) => {
-    if (passage.bookId !== bookId) return false;
-    // Book/chapter relations belong in the contextual inspector, never duplicated below every verse.
-    if (payload.relationScope === "book" || payload.relationScope === "chapter") return false;
-    if (passage.chapter !== chapter) return false;
-    if (passage.verseStart === undefined) return false;
-    return passage.verseStart <= verse && (passage.verseEnd ?? passage.verseStart) >= verse;
-  });
+  return noteTargets(item.passageRelation.payload).some((target) =>
+    targetCoversVerse(target, bookId, chapter, verse),
+  );
+}
+
+/** Whether the item speaks of the whole chapter or book: shown once, in the chapter panorama. */
+export function knowledgeItemIsChapterContext(
+  item: WorkspacePassageKnowledgeItem,
+  bookId: string,
+  chapter: number,
+): boolean {
+  return noteTargets(item.passageRelation.payload).some((target) =>
+    targetIsChapterContext(target, bookId, chapter),
+  );
 }
 
 export const REFERENCE_ROLE_LABELS: Record<ReferenceRole, string> = {

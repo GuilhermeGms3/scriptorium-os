@@ -6,14 +6,16 @@ on:
     paths:
       - "android/**"
       - "scripts/mobile/**"
-      # Typed references shared with the site, read by ReadingNavigationTest.
+      # Rules shared with the site (typed references, note placement), read by ReadingNavigationTest.
       - "src/lib/application/scripture-reference.cases.json"
+      - "src/lib/domain/note-placement.cases.json"
       - ".github/workflows/android.yml"
   pull_request:
     paths:
       - "android/**"
       - "scripts/mobile/**"
       - "src/lib/application/scripture-reference.cases.json"
+      - "src/lib/domain/note-placement.cases.json"
       - ".github/workflows/android.yml"
 jobs:
   verify:
