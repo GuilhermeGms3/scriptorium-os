@@ -282,3 +282,16 @@ cognitiva), o leitor e a busca passaram a levar direto ao versículo e a mostrar
   (`?q=`), então voltar de um versículo reencontra a busca.
 - **Links internos sem recarregar.** `AppLink` navega dentro do app a partir de um endereço completo;
   os `<a href>` internos que recarregavam a página (e repetiam a abertura) passaram a usá-lo.
+
+## Referências digitadas: uma regra para o site e o Android — 2026-10-21
+
+O site e o Android leem a referência digitada com as mesmas regras: nome, abreviação ou nome em
+inglês, com ou sem acento e espaço ("Jo3:16", "joao 3,16", "1Co13:4-7", "I Coríntios 13:4",
+"Sl 119"), e recusam capítulo inexistente, versículo 0 ou intervalo invertido. No site,
+`parseScriptureReference` (`src/lib/application/scripture-reference.ts`) é a mesma lógica de
+`ReadingNavigation.parse` no Android.
+
+Os exemplos ficam num só arquivo, `src/lib/application/scripture-reference.cases.json`, lido pelos
+testes dos dois lados (`scripture-reference.test.ts` e `ReadingNavigationTest.kt`). Um caso novo
+entra ali, nunca em só um dos testes; se um lado mudar a regra sem o outro, o teste dele falha. O
+CI do Android também roda quando esse arquivo muda.

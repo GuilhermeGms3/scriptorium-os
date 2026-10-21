@@ -3,9 +3,18 @@ permissions:
   contents: read
 on:
   push:
-    paths: ["android/**", "scripts/mobile/**", ".github/workflows/android.yml"]
+    paths:
+      - "android/**"
+      - "scripts/mobile/**"
+      # Typed references shared with the site, read by ReadingNavigationTest.
+      - "src/lib/application/scripture-reference.cases.json"
+      - ".github/workflows/android.yml"
   pull_request:
-    paths: ["android/**", "scripts/mobile/**", ".github/workflows/android.yml"]
+    paths:
+      - "android/**"
+      - "scripts/mobile/**"
+      - "src/lib/application/scripture-reference.cases.json"
+      - ".github/workflows/android.yml"
 jobs:
   verify:
     runs-on: ubuntu-latest

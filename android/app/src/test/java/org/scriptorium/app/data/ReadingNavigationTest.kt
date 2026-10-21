@@ -13,22 +13,25 @@ class ReadingNavigationTest {
     private val books = listOf("john" to 21, "job" to 42, "jonah" to 4, "1-corinthians" to 16, "psalms" to 150, "genesis" to 50).map { (id, chapters) ->
         mapOf("id" to "work:$id", "book_id" to id, "title" to navigation.book(id)?.getString("title"), "chapters" to "$chapters", "scheme" to "scriptorium-bcv-1")
     }
-    @Test fun portugueseNamesAbbreviationsAndCompactReferences() {
-        for (value in listOf("Jo 3:16", "Jo3:16", "João 3:16", "joao 3,16", "John 3:16")) {
-            val ref = requireNotNull(navigation.parse(value, books))
-            assertEquals(value, "john", ref.book.text("book_id")); assertEquals(3, ref.chapter); assertEquals(16, ref.verse)
+    /** The same cases run on the site (scripture-reference.test.ts): both readers must agree. */
+    @Test fun typedReferencesMatchTheSharedCasesOfTheSite() {
+        val cases = JSONObject(File("../../src/lib/application/scripture-reference.cases.json").readText())
+        val caseBooks = cases.getJSONArray("books").let { list -> (0 until list.length()).map { list.getJSONObject(it) } }.map { book ->
+            val id = book.getString("id")
+            mapOf("id" to "work:$id", "book_id" to id, "title" to navigation.book(id)?.getString("title"), "chapters" to book.getInt("chapters").toString(), "scheme" to "scriptorium-bcv-1")
         }
-        assertEquals("job", navigation.parse("Jó 3:16", books)?.book?.text("book_id"))
-        assertEquals("jonah", navigation.parse("Jn 3:2", books)?.book?.text("book_id"))
-        assertEquals(4, navigation.parse("1Co13:4-7", books)?.verse)
-        assertEquals(7, navigation.parse("I Coríntios 13:4-7", books)?.end)
-        assertEquals(119, navigation.parse("Sl 119:105", books)?.chapter)
-        assertEquals(119, navigation.parse("Salmo 119:105", books)?.chapter)
-        assertEquals(4, navigation.parse("1 Cor 13:4", books)?.verse)
-        assertNull(navigation.parse("Gênesis 1", books)?.verse)
-    }
-    @Test fun malformedAmbiguousAndUnavailableAddressesAreRejected() {
-        for (value in listOf("Jo 99:1", "Jo 0:1", "Jo 1:0", "Jo 3:16-2", "Livro 1:1", "Jo -1:2", "Jo 3:16 SELECT", "J 3:16")) assertNull(value, navigation.parse(value, books))
+        val valid = cases.getJSONArray("valid")
+        for (index in 0 until valid.length()) {
+            val case = valid.getJSONObject(index)
+            val input = case.getString("input")
+            val ref = requireNotNull(navigation.parse(input, caseBooks)) { input }
+            assertEquals(input, case.getString("book"), ref.book.text("book_id"))
+            assertEquals(input, case.getInt("chapter"), ref.chapter)
+            assertEquals(input, if (case.has("verse")) case.getInt("verse") else null, ref.verse)
+            assertEquals(input, if (case.has("end")) case.getInt("end") else null, ref.end)
+        }
+        val invalid = cases.getJSONArray("invalid")
+        for (index in 0 until invalid.length()) assertNull(invalid.getString(index), navigation.parse(invalid.getString(index), caseBooks))
     }
     @Test fun savedPassageRetainsExactEditionSchemeAndRange() {
         val edition = Edition("test", "Teste", "corpus/test.sqlite3")
