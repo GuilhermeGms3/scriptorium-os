@@ -88,7 +88,7 @@ export function CommentarySourceBar({
           );
         })}
         {domains.length > 0 && (
-          <label className="ml-1 flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
+          <label className="relative ml-1 flex shrink-0 items-center gap-1.5 text-sm text-muted-foreground">
             <span className="sr-only">Área</span>
             <select
               value={domain}

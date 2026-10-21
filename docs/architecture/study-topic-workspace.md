@@ -1,5 +1,30 @@
 # Estudos a partir do acervo
 
+## Ampliação de 21/10/2026
+
+- **Estudar com vídeo ao lado** mantém Conteúdo/Leituras abertos e oferece um painel opcional.
+  Em telas menores ele fica abaixo do conteúdo. Recolher o painel desmonta o iframe, interrompendo
+  a reprodução; a escolha permanece na tela até sair do tema. Sem chave, pode-se fornecer um link
+  HTTPS do YouTube. Os hosts e o ID são validados; nomes/canais não são inventados como metadados
+  consultados. A busca automática continua exigindo a chave da API. Não há vídeos acadêmicos
+  pré-curados nem garantia de disponibilidade/reprodução de cada vídeo externo.
+- Leituras selecionadas: **19 localizadores de edição/página conferidos**, sendo 12 da Suma e
+  sete de Agostinho, Institutas, hermenêutica e Augsburgo. Só aparecem quando a edição e o hash do
+  texto extraído coincidem. Isso é curadoria de partida, não leitura integral dessas obras.
+- Treze capítulos editoriais novos introduzem documentos/recepção conciliar, os sete primeiros
+  concílios, comparação luterana/reformada, ortodoxias, cruzadas, crítica das fontes cátaras e início
+  do islã. Entram nos guias explicitamente correspondentes; a abertura específica de cada entidade
+  foi preservada. O guia patrístico não recebe silenciosamente as guerras medievais.
+- Referências externas identificam suas perspectivas. Não foram instaladas atas completas nem
+  transcrições de discursos; os credos anteriormente instalados continuam na Biblioteca. A série
+  católica de 21 concílios e uma história extensa das campanhas albigenses ainda não foram produzidas.
+- A leitura original oferece tradução auxiliar quando a língua é inglês e o serviço está disponível.
+  Notas e marcações utilizam o [editor compartilhado](study-notebook.md). O suporte atual não traduz
+  espanhol, grego, hebraico ou copta por meio do modelo inglês→português.
+
+Validação e pendências operacionais desta ampliação:
+[relato de integração desktop](../content/desktop-study-context-2026-10-21.md).
+
 A árvore abre espaços de investigação com **Conteúdo, Percurso, Leituras, Conexões, Caderno e Vídeos**.
 **Conteúdo** é a entrada inicial: explica o assunto antes de propor uma investigação.
 O ambiente usa os mesmos temas, fontes e componentes da leitura. Os núcleos apresentam até oito
