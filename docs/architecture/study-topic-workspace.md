@@ -6,7 +6,7 @@ O ambiente usa os mesmos temas, fontes e componentes da leitura. Os núcleos apr
 temas por página num diagrama, com filtro e navegação; não exibem todo o catálogo em uma lista.
 
 O percurso usa a direção visual **Biblioteca celeste**, escolhida pelo usuário: bronze envelhecido,
-pergaminho e gravuras astronômicas. A imagem em `public/images/study-celestial-library.png` é arte
+pergaminho e gravuras astronômicas. A imagem em `public/images/study-celestial-library.webp` é arte
 decorativa gerada com Image Gen, sem textos ou controles, e não representa dados nem um mapa científico.
 Ela ocupa o cabeçalho e o rodapé com máscaras independentes, mantendo o corpo da leitura livre.
 No ambiente branco, recebe tratamento de gravura; Preto, Cinza e Marrom preservam seus contrastes.

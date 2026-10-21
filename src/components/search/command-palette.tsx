@@ -6,6 +6,7 @@ import {
   Moon,
   Network,
   NotebookPen,
+  Palette,
   Plus,
   Search,
   Settings,
@@ -15,11 +16,12 @@ import { useMemo, useState } from "react";
 import { errorMessage } from "@/lib/utils";
 import { useDebouncedValue, useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
+import { THEMES } from "../../lib/workbench/theme";
 import { searchWorkspace } from "../../lib/application/search-workspace";
 import { t } from "../../lib/i18n";
 
 export function CommandPalette() {
-  const { paletteOpen, setPaletteOpen, resolvedTheme, setTheme, createStudy } = useWorkbench();
+  const { paletteOpen, setPaletteOpen, theme, setTheme, createStudy } = useWorkbench();
   const navigate = useNavigate();
   const [query, setQuery] = useState("");
   const settledQuery = useDebouncedValue(query.trim(), 180);
@@ -72,12 +74,13 @@ export function CommandPalette() {
           );
         },
       },
-      {
-        id: "cmd-theme",
-        label: resolvedTheme === "dark" ? t("command.lightMode") : t("command.darkMode"),
-        icon: resolvedTheme === "dark" ? Sun : Moon,
-        run: () => setTheme(resolvedTheme === "dark" ? "light" : "dark"),
-      },
+      // Every reading environment by name, as in the top bar, not only light/dark.
+      ...THEMES.filter((item) => item.id !== theme).map((item) => ({
+        id: `cmd-theme-${item.id}`,
+        label: `Ambiente de leitura: ${item.label}`,
+        icon: item.id === "light" ? Sun : item.id === "dark" ? Moon : Palette,
+        run: () => setTheme(item.id),
+      })),
       {
         id: "cmd-settings",
         label: t("command.openSettings"),
@@ -91,7 +94,7 @@ export function CommandPalette() {
         run: () => navigate({ to: "/study" }),
       },
     ],
-    [navigate, resolvedTheme, setTheme, createStudy],
+    [navigate, theme, setTheme, createStudy],
   );
 
   return (

@@ -13,7 +13,7 @@
   }
   .atlas-personal small {
     color: var(--muted-foreground);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
   }
   .atlas-personal:hover {
     color: var(--primary);
@@ -84,7 +84,7 @@
     z-index: -1;
     inset: 0;
     pointer-events: none;
-    background: url("/images/study-celestial-library.png") right top / max(100%, 1200px) auto
+    background: url("/images/study-celestial-library.webp") right top / max(100%, 1200px) auto
       no-repeat;
     filter: var(--sky-filter);
     mix-blend-mode: var(--sky-blend);
@@ -209,7 +209,7 @@
   }
   .topic-path-intro h2 {
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: var(--path-ink);
@@ -319,7 +319,7 @@
     align-items: center;
     gap: 0.65rem;
     font-family: var(--font-mono);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--path-ink);
@@ -378,7 +378,7 @@
   }
   .topic-starting-texts .topic-passage summary > span {
     margin-left: auto;
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
   }
   .topic-starting-texts .reading-text {
@@ -619,7 +619,7 @@
       0 0 0 7px var(--border);
   }
   .topic-orbit-center .meta-label {
-    font-size: 0.55rem;
+    font-size: 0.75rem;
   }
   .topic-orbit-center strong {
     font-family: var(--font-serif);
@@ -646,7 +646,7 @@
   }
   .topic-orbit-node small {
     max-width: 100%;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
   }
   .topic-orb {

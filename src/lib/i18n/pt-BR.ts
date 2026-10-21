@@ -126,8 +126,6 @@ export const ptBR = {
   "command.openKnowledge": "Abrir Conhecimento",
   "command.newStudy": "Novo estudo",
   "command.untitledStudy": "Estudo sem título",
-  "command.lightMode": "Mudar para modo claro",
-  "command.darkMode": "Mudar para modo escuro",
   "command.openSettings": "Abrir Configurações",
   "command.openStudy": "Abrir Ambiente de Estudo",
 

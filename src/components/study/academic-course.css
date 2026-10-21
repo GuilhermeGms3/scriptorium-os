@@ -81,7 +81,7 @@
   }
   .course-module-rail small {
     color: var(--muted-foreground);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
   }
   .course-module-marker {
     display: grid;
@@ -310,7 +310,7 @@
     color: var(--primary);
   }
   .course-passage summary > span {
-    font-size: 0.7rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
   }
   .course-purpose {
