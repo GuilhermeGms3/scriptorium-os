@@ -8,6 +8,8 @@ import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -72,12 +74,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                                         }
                                     }
                                     SelectionContainer(Modifier.weight(1f)) { Text(verse.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface) }
+                                    VerseActions(verseNumber, onNote = { note(verse.text("id")) }, onBookmark = { bookmark(verse) }, onLanguage = original)
                                 }
-                            }
-                            LazyRow {
-                                item { TextButton(onClick = original) { Text("Idioma") } }
-                                item { TextButton(onClick = { note(verse.text("id")) }) { Text("Anotar") } }
-                                item { TextButton(onClick = { bookmark(verse) }) { Text("Favoritar") } }
                             }
                             if (!appearance.dockedComments) {
                                 val linked = groups.find { it.verse == verseNumber }?.comments.orEmpty()
@@ -100,6 +98,21 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                     filtersOpen, { filtersOpen = !filtersOpen }, dockExpanded, { dockExpanded = !dockExpanded },
                     Modifier.fillMaxWidth().height(if (dockExpanded) (readerHeight * 0.48f).coerceAtLeast(190.dp).coerceAtMost(readerHeight * 0.7f) else 52.dp))
             }
+        }
+    }
+}
+
+/** Note, bookmark and language of a verse behind one "⋯", instead of three buttons under every verse. */
+@Composable
+private fun VerseActions(verse: Int, onNote: () -> Unit, onBookmark: () -> Unit, onLanguage: () -> Unit) {
+    var menu by remember { mutableStateOf(false) }
+    Box {
+        TextButton(onClick = { menu = true }, contentPadding = PaddingValues(0.dp),
+            modifier = Modifier.width(40.dp).semantics { contentDescription = "Anotar, favoritar ou ver a língua do versículo $verse" }) { Text("⋯", fontSize = 20.sp) }
+        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
+            DropdownMenuItem(text = { Text("Anotar") }, onClick = { menu = false; onNote() })
+            DropdownMenuItem(text = { Text("Favoritar") }, onClick = { menu = false; onBookmark() })
+            DropdownMenuItem(text = { Text("Idioma") }, onClick = { menu = false; onLanguage() })
         }
     }
 }

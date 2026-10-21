@@ -191,7 +191,7 @@
     gap: 0.5rem;
   }
   .atlas-origin .meta-label {
-    font-size: 0.55rem;
+    font-size: 0.75rem;
     letter-spacing: 0.1em;
   }
   .atlas-origin-star {
@@ -219,7 +219,7 @@
     gap: 0.25rem;
     margin-top: 0.65rem;
     font-family: var(--font-sans);
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: var(--branch-ink);
   }
   .atlas-origin:hover,
@@ -261,7 +261,7 @@
   .atlas-leaf-label small {
     display: block;
     margin-top: 3px;
-    font-size: 0.65rem;
+    font-size: 0.75rem;
     color: var(--muted-foreground);
   }
   .atlas-leaf:hover .atlas-leaf-label,

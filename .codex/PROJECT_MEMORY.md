@@ -18,10 +18,12 @@
   Institutas e confissões; Ware tem localizadores temáticos, não falsa estrutura escolástica.
 - Rastro `/trace?view=utilization`: SQL por documento/passagem/esquema; contagens de ligações,
   não versículos únicos. Arqueologia traz lugar/período/limites e imagem real Price p252.
-- 513 testes TS/84 arquivos passaram, typecheck/lint alterados/build. QA produção1440/390:
+- 552 testes TS/86 arquivos passaram após integração (513/84 antes), typecheck/lint alterados/build. QA produção1440/390:
   panorama nos três modos, filtro relatório, nota de seção salva, λόγος com destaque, imagem.
   Aviso React ocorreu durante HMR; repetição de produção sem erros. Python não alterado nesta fase.
-- Não reconstruído Docker (daemon desligado), não modificado Android. Não publicar PDFs no Git.
+- Integrados seis commits remotos até bad2498, incluindo KJV e regra noteTargets compartilhada;
+  preservada a exibição no painel, sem algoritmo concorrente de alcance. KJV abriu texto real em QA.
+- Não reconstruído Docker (daemon desligado); alterações Android do colega preservadas, sem novo APK validado. Não publicar PDFs no Git.
   Continuação: ampliar auditoria/OCR/verbetes multipágina/roteiros e imagens, sem alegar cobertura
   integral. Relatório: docs/content/acervo-utilization-audit-2026-10-21.md.
 

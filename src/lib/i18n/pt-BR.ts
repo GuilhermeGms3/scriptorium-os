@@ -126,8 +126,6 @@ export const ptBR = {
   "command.openKnowledge": "Abrir Conhecimento",
   "command.newStudy": "Novo estudo",
   "command.untitledStudy": "Estudo sem título",
-  "command.lightMode": "Mudar para modo claro",
-  "command.darkMode": "Mudar para modo escuro",
   "command.openSettings": "Abrir Configurações",
   "command.openStudy": "Abrir Ambiente de Estudo",
 
@@ -255,9 +253,9 @@ export const ptBR = {
   "scripture.studyThroughLenses": "Estude {passage} por lentes distintas",
   "scripture.structureOnly": "somente estrutura",
   "scripture.sourcedContent": "conteúdo com fonte",
-  "scripture.analysisPendingTitle": "Análises de {passage} ainda não importadas",
+  "scripture.analysisPendingTitle": "Sem análises editoriais adicionais para {passage}",
   "scripture.analysisPendingDescription":
-    "Esta área não contém explicações automáticas nem textos de preenchimento. Exegese, hermenêutica, história, filosofia e outras leituras só aparecerão quando houver registros vinculados a fontes e à passagem.",
+    "Os comentários do seu acervo, quando disponíveis, aparecem junto aos versículos e no panorama do capítulo. Esta seção reúne análises editoriais adicionais vinculadas a fontes; sua ausência não significa que não existam comentários nos seus livros.",
   "scripture.analysisPlannedLenses":
     "Ver tipos de análise que o sistema está preparado para receber",
   "scripture.lensesDisclaimer":

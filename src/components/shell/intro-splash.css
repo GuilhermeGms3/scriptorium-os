@@ -228,7 +228,7 @@ html.intro-on .intro {
 }
 .intro-skip kbd {
   font-family: var(--font-mono);
-  font-size: 0.6875rem;
+  font-size: 0.75rem;
   padding: 0 0.3rem;
   border: 1px solid var(--border);
   border-radius: 3px;

@@ -28,10 +28,14 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
     var page by rememberSaveable { mutableIntStateOf(1) }
     val context = androidx.compose.ui.platform.LocalContext.current
     val scope = rememberCoroutineScope()
+    val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var feedback by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Heading("Busca no acervo", "Texto bíblico e páginas dos livros instalados. Consulta local por índice, sem percorrer os livros em memória.")
-        OutlinedTextField(query, { query = it.take(240) }, label = { Text("O que deseja encontrar?") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        // The keyboard search key searches too, without finding the button below the options.
+        OutlinedTextField(query, { query = it.take(240) }, label = { Text("O que deseja encontrar?") }, placeholder = { Text("Jo 3:16, perdão, Agostinho…") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
+            keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),
+            keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { if (query.trim().length >= 2) { submitted = query.trim(); page = 1; keyboard?.hide() } }))
         androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             items(listOf("Meu acervo", "Pesquisa acadêmica", "Na web")) { name -> FilterChip(branch == name, { branch = name; submitted = "" }, label = { Text(name) }) }
         }
@@ -50,7 +54,7 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
             Row { Checkbox(openOnly, { openOnly = it }); Text("Apenas acesso aberto", Modifier.padding(top = 12.dp)) }
             Text("Somente a consulta digitada é enviada ao OpenAlex após Pesquisar. Seus livros e notas não são enviados.", style = MaterialTheme.typography.labelSmall)
         }
-        Button(onClick = { submitted = query.trim(); page = 1 }, enabled = query.trim().length >= 2) { Text("Pesquisar") }
+        Button(onClick = { submitted = query.trim(); page = 1; keyboard?.hide() }, enabled = query.trim().length >= 2) { Text("Pesquisar") }
         feedback?.let { Text(it) }
         if (submitted.isNotBlank() && branch == "Na web") LazyColumn {
             item { Text("Atalhos externos, não resultados importados nem fontes verificadas pelo Scriptorium.") }

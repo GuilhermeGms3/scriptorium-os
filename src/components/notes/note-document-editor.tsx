@@ -161,9 +161,9 @@ export function NoteDocumentEditor({
               className="w-full border-0 bg-transparent font-serif text-3xl font-semibold outline-none placeholder:text-muted-foreground/60 focus-visible:ring-1 focus-visible:ring-ring md:text-4xl"
             />
           ) : (
-            <h1 className="font-serif text-3xl font-semibold md:text-4xl">
+            <h2 className="font-serif text-3xl font-semibold md:text-4xl">
               {draft.title || "Sem título"}
-            </h1>
+            </h2>
           )}
           <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground">
             <label className="inline-flex items-center gap-1.5">

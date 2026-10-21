@@ -140,6 +140,10 @@ O extrator offline especializado em notas de Bíblias comentadas está descrito 
 Ele produz lotes privados, preserva comentários anteriores e separa o destino principal das
 comparações/menções no corpo. Não depende de LLM nem equivale a cobertura editorial integral.
 
+Em **Rastro → Aproveitamento do acervo**, o relatório local distingue extração, unidades,
+ligações, contextos disponíveis e auditorias, com filtros por obra e passagem. Confira os
+[pilotos lexicais, correções e limites da auditoria](docs/content/acervo-utilization-audit-2026-10-21.md).
+
 A [fila local de incorporação](docs/architecture/library-import-queue.md) permite importar e
 desmontar novos PDFs num worker independente do chat, com backup, lock e retomada. Use
 `library:enqueue`, `library:run` e `library:status`; EPUB/OCR e revisão contextual têm estados

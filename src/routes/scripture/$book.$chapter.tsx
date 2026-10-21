@@ -287,14 +287,14 @@ function ChapterReader() {
     ],
     [privateKnowledgeQuery.data],
   );
-  // Notes about the whole chapter (or a long stretch of it), shown once at the top instead of
-  // under every verse they touch, when comments are summarised.
+  // Notes about the whole chapter or book always go here, once, as on Android. A long stretch of
+  // the chapter joins them when comments are summarised, instead of repeating under every verse.
   const chapterOverview = useMemo(
     () =>
       contextualCommentary(
         (privateKnowledge?.items ?? []).filter(
           (item) =>
-            belongsInChapterOverview(item, density === "summary") &&
+            belongsInChapterOverview(item, density === "summary", bookId, chapter) &&
             !hiddenSources.has(item.document.id) &&
             (!domainFilter ||
               item.proposals.some(
@@ -304,7 +304,7 @@ function ChapterReader() {
               )),
         ),
       ),
-    [density, domainFilter, hiddenSources, privateKnowledge],
+    [bookId, chapter, density, domainFilter, hiddenSources, privateKnowledge],
   );
   const privateDomains = useMemo(
     () =>

@@ -1,0 +1,245 @@
+{
+  "$comment": "Where a note goes in John 3: under verses, in the chapter context, or nowhere. The site (note-placement.test.ts) checks noteTargets and its reader rule; Android (ReadingNavigationTest.kt) checks commentGroups against the same targets the mobile kit stores. Add a case here, not in one of the two tests.",
+  "chapter": { "bookId": "john", "chapter": 3, "schemeId": "scriptorium-bcv-1", "verses": 36 },
+  "notes": [
+    {
+      "name": "um versículo",
+      "relation": {
+        "passage": {
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 16,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 16,
+          "verseEnd": 16
+        }
+      ],
+      "verses": [16],
+      "context": false
+    },
+    {
+      "name": "intervalo",
+      "relation": {
+        "relationScope": "range",
+        "passage": {
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 16,
+          "verseEnd": 18,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 16,
+          "verseEnd": 18
+        }
+      ],
+      "verses": [16, 17, 18],
+      "context": false
+    },
+    {
+      "name": "intervalo invertido fica no primeiro versículo",
+      "relation": {
+        "passage": {
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 18,
+          "verseEnd": 16,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 18,
+          "verseEnd": 18
+        }
+      ],
+      "verses": [18],
+      "context": false
+    },
+    {
+      "name": "capítulo sem versículo",
+      "relation": {
+        "passage": { "bookId": "john", "chapter": 3, "versificationSchemeId": "scriptorium-bcv-1" }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": null,
+          "verseEnd": null
+        }
+      ],
+      "verses": [],
+      "context": true
+    },
+    {
+      "name": "escopo de capítulo, mesmo citando um versículo",
+      "relation": {
+        "relationScope": "chapter",
+        "passage": {
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": null,
+          "verseEnd": null
+        }
+      ],
+      "verses": [],
+      "context": true
+    },
+    {
+      "name": "livro inteiro vale para todo capítulo",
+      "relation": {
+        "relationScope": "book",
+        "passage": {
+          "bookId": "john",
+          "chapter": 1,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": null,
+          "verseStart": null,
+          "verseEnd": null
+        }
+      ],
+      "verses": [],
+      "context": true
+    },
+    {
+      "name": "outro capítulo",
+      "relation": {
+        "passage": {
+          "bookId": "john",
+          "chapter": 4,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 4,
+          "verseStart": 1,
+          "verseEnd": 1
+        }
+      ],
+      "verses": [],
+      "context": false
+    },
+    {
+      "name": "outro livro",
+      "relation": {
+        "passage": {
+          "bookId": "mark",
+          "chapter": 3,
+          "verseStart": 16,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [
+        {
+          "workId": "work:mark",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "mark",
+          "chapter": 3,
+          "verseStart": 16,
+          "verseEnd": 16
+        }
+      ],
+      "verses": [],
+      "context": false
+    },
+    {
+      "name": "passagem adicional neste capítulo",
+      "relation": {
+        "passage": {
+          "bookId": "john",
+          "chapter": 4,
+          "verseStart": 1,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        },
+        "additionalPassages": [
+          {
+            "bookId": "john",
+            "chapter": 3,
+            "verseStart": 5,
+            "verseEnd": 6,
+            "versificationSchemeId": "scriptorium-bcv-1"
+          }
+        ]
+      },
+      "targets": [
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 4,
+          "verseStart": 1,
+          "verseEnd": 1
+        },
+        {
+          "workId": "work:john",
+          "schemeId": "scriptorium-bcv-1",
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 5,
+          "verseEnd": 6
+        }
+      ],
+      "verses": [5, 6],
+      "context": false
+    },
+    {
+      "name": "menção de dicionário não entra no texto",
+      "relation": {
+        "referenceRole": "lexical-mention",
+        "passage": {
+          "bookId": "john",
+          "chapter": 3,
+          "verseStart": 16,
+          "versificationSchemeId": "scriptorium-bcv-1"
+        }
+      },
+      "targets": [],
+      "verses": [],
+      "context": false
+    }
+  ]
+}

@@ -3,9 +3,20 @@ permissions:
   contents: read
 on:
   push:
-    paths: ["android/**", "scripts/mobile/**", ".github/workflows/android.yml"]
+    paths:
+      - "android/**"
+      - "scripts/mobile/**"
+      # Rules shared with the site (typed references, note placement), read by ReadingNavigationTest.
+      - "src/lib/application/scripture-reference.cases.json"
+      - "src/lib/domain/note-placement.cases.json"
+      - ".github/workflows/android.yml"
   pull_request:
-    paths: ["android/**", "scripts/mobile/**", ".github/workflows/android.yml"]
+    paths:
+      - "android/**"
+      - "scripts/mobile/**"
+      - "src/lib/application/scripture-reference.cases.json"
+      - "src/lib/domain/note-placement.cases.json"
+      - ".github/workflows/android.yml"
 jobs:
   verify:
     runs-on: ubuntu-latest
@@ -14,8 +25,8 @@ jobs:
       run:
         working-directory: android
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-java@v4
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "21"
@@ -24,7 +35,7 @@ jobs:
           SDKMANAGER="$(command -v sdkmanager || echo "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager")"
           yes | "$SDKMANAGER" "platforms;android-36" "build-tools;36.0.0" > /dev/null
       - run: ./gradlew --no-daemon :app:assembleDebug :app:testDebugUnitTest :app:lintDebug
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: scriptorium-android-debug
           path: android/app/build/outputs/apk/debug/app-debug.apk

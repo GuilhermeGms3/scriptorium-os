@@ -16,6 +16,7 @@ import { pathToFileURL } from "node:url";
 import { Zip, ZipDeflate } from "fflate";
 import { z } from "zod";
 import { KnowledgeProposalPayloadSchema } from "../../src/lib/domain/document-knowledge";
+import { noteTargets } from "../../src/lib/domain/note-placement";
 import { bookLabel } from "../../src/lib/i18n";
 import { projectReadingExtras, writeReadingCatalog } from "./reading-catalog";
 
@@ -135,15 +136,16 @@ export function projectWorkspace(
         row["payload_json"]!,
         row["method"]!,
       );
-      for (const address of [payload.passage, ...(payload.additionalPassages ?? [])]) {
+      // The same placement the site uses; Android only matches these rows.
+      for (const place of noteTargets(payload)) {
         target.run(
           row["id"]!,
-          address.workId ?? `work:${address.bookId}`,
-          address.versificationSchemeId,
-          address.bookId,
-          address.chapter ?? null,
-          address.verseStart ?? null,
-          address.verseEnd ?? address.verseStart ?? null,
+          place.workId,
+          place.schemeId,
+          place.bookId,
+          place.chapter,
+          place.verseStart,
+          place.verseEnd,
         );
       }
       for (const evidence of source

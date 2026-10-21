@@ -1,4 +1,5 @@
 import type { WorkspacePassageKnowledgeItem } from "../../lib/domain/workspace-passage-knowledge";
+import { knowledgeItemIsChapterContext } from "../../lib/domain/workspace-passage-knowledge";
 
 function passageWidth(item: WorkspacePassageKnowledgeItem): number {
   const address = item.passageRelation.payload.passage;
@@ -10,8 +11,6 @@ function passageWidth(item: WorkspacePassageKnowledgeItem): number {
  * belongs to the chapter, not to each verse it touches.
  */
 export function isBroadCommentary(item: WorkspacePassageKnowledgeItem): boolean {
-  const scope = item.passageRelation.payload.relationScope;
-  if (scope === "chapter" || scope === "book") return true;
   const analysis = item.passageRelation.payload.contextualAnalysis;
   const longPatristicContext =
     analysis?.sourceContext?.kind === "patristic-exposition" && analysis.summary.length > 1500;
@@ -21,9 +20,13 @@ export function isBroadCommentary(item: WorkspacePassageKnowledgeItem): boolean 
 export function belongsInChapterOverview(
   item: WorkspacePassageKnowledgeItem,
   summary: boolean,
+  bookId: string,
+  chapter: number,
 ): boolean {
-  const scope = item.passageRelation.payload.relationScope;
-  return scope === "chapter" || scope === "book" || (summary && isBroadCommentary(item));
+  if (item.passageRelation.payload.referenceRole === "lexical-mention") return false;
+  return (
+    knowledgeItemIsChapterContext(item, bookId, chapter) || (summary && isBroadCommentary(item))
+  );
 }
 
 /** Contextual notes first by how narrowly they speak of the verse, then by source and page. */

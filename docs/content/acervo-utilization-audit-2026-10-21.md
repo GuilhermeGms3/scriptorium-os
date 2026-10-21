@@ -2,7 +2,8 @@
 
 ## Entrega e limites
 
-Implementação desktop no acervo canônico, sem outro banco de produção, LLM ou alteração Android.
+Implementação desktop no acervo canônico, sem outro banco de produção ou LLM. Alterações Android
+do colega foram preservadas na integração, sem nova implementação Android neste escopo.
 Os 57 PDFs permanecem privados em `data/workspace/documents`. Código e localizadores editoriais
 não redistribuem os textos dos livros. Esta entrega não equivale à leitura integral dos livros.
 
@@ -154,6 +155,21 @@ de 57 documentos cerca de 1,0s em execução local única. Não é benchmark de 
    automaticamente a imagem antiga nem o pacote Android.
 
 ## Validação desta entrega
+
+### Integração colaborativa
+
+O commit local `daa7f1e` foi preparado separadamente. Antes do envio, o remoto recebeu seis
+commits até `bad2498`, com navegação/referências unificadas, KJV, CI e posicionamento das notas.
+A integração preserva esses commits e usa `noteTargets`/`knowledgeItemIsChapterContext` como regra
+canônica compartilhada. O helper visual apenas acrescenta a opção de resumir notas extensas;
+não mantém outro algoritmo concorrente de alcance. O painel mantém o panorama acrescentado aqui.
+O aviso de ausência de análises editoriais também foi esclarecido: não significa ausência de
+comentários privados. Os índices públicos foram reconstruídos antes da verificação integrada.
+`npm test` passou após essa integração: **552 testes/86 arquivos, zero falhas**; typecheck, lint
+dos arquivos afetados e build também passaram. A rodada final de produção repetiu panorama,
+nota com reload/destaque, léxicos grego/hebraico, imagem arqueológica e relatório em1440/390 sem
+erros de aplicação. A KJV integrada abriu o texto real de Jo1:1. Android foi preservado no merge,
+mas não recompilado nem validado nesta entrega.
 
 - `npm test`: primeira execução identificou uma asserção antiga fixada em 19 localizadores.
   O teste passou a verificar unicidade contra o tamanho real do catálogo, preservando as demais
