@@ -21,6 +21,8 @@ test = ["httpx>=0.28,<1", "mypy>=1.11,<2", "pytest>=8.3,<9", "ruff>=0.6,<1"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
+# The project is not installed as a package (no build-system): tests import `app` from here.
+pythonpath = ["."]
 
 [tool.ruff]
 line-length = 100
