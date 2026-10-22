@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Headphones } from "lucide-react";
 import { Button } from "../ui/button";
 import { scriptureNarration } from "../../lib/audio/scripture-narration";
+import { cn } from "../../lib/utils";
 import { useAudio } from "./use-audio";
 
 export function ScriptureAudioActions({
@@ -9,16 +10,22 @@ export function ScriptureAudioActions({
   chapter,
   editionId,
   selectedVerse,
+  className,
 }: {
   bookId: string;
   chapter: number;
   editionId: string;
   selectedVerse: number | null;
+  className?: string | undefined;
 }) {
   const { engine } = useAudio();
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
-  const [end, setEnd] = useState("");
+  // The last verse belongs to the selection it was typed for; tapping another verse starts over
+  // without closing the panel.
+  const [range, setRange] = useState({ start: selectedVerse, end: "" });
+  const end = range.start === selectedVerse ? range.end : "";
+  const setEnd = (value: string) => setRange({ start: selectedVerse, end: value });
   const request = useRef(0);
   const [notice, setNotice] = useState("");
   useEffect(
@@ -58,12 +65,17 @@ export function ScriptureAudioActions({
     }
   }
   return (
-    <details className="border-b border-border bg-card px-4 py-2 text-sm">
-      <summary className="w-fit cursor-pointer list-none font-medium">
+    <details
+      className={cn(
+        "border-b border-border bg-card px-4 py-2 text-sm pointer-coarse:py-0",
+        className,
+      )}
+    >
+      <summary className="w-fit cursor-pointer list-none font-medium pointer-coarse:py-3">
         <Headphones aria-hidden="true" className="mr-2 inline size-4" />
         Ouvir esta passagem
       </summary>
-      <div className="mt-3 flex flex-wrap items-center gap-2">
+      <div className="mt-3 flex flex-wrap items-center gap-2 pointer-coarse:mt-0 pointer-coarse:pb-3">
         <Button
           size="sm"
           variant="secondary"

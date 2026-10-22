@@ -4,6 +4,7 @@ import {
   type ReaderContextFilter,
 } from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { Library } from "lucide-react";
 import { ScriptureAudioActions } from "../../components/audio/scripture-audio-actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -21,6 +22,7 @@ import { VerseCommentary } from "../../components/scripture/verse-commentary";
 import { CommentarySourceBar } from "../../components/scripture/commentary-source-bar";
 import { ReaderContextControls } from "../../components/scripture/reader-context-controls";
 import { useHiddenCommentarySources } from "../../hooks/use-hidden-commentary-sources";
+import { useIsMobile } from "../../hooks/use-mobile";
 import { CommentaryNote } from "../../components/scripture/private-verse-knowledge";
 import {
   contextualCommentary,
@@ -124,6 +126,7 @@ function ChapterReader() {
     }
   };
   const [hiddenSources, setHiddenSources] = useHiddenCommentarySources();
+  const isMobile = useIsMobile();
   const [domainFilter, setDomainFilter] = useState("");
   const [contextFilter, setContextFilter] = useState<ReaderContextFilter>({
     tradition: "",
@@ -365,13 +368,28 @@ function ChapterReader() {
     setDomainFilter("");
     setOpenVerses(new Set(unconfirmedVerses));
     const first = unconfirmedVerses[0];
-    if (first !== undefined)
-      requestAnimationFrame(() =>
-        document
-          .getElementById(`verse-${first}`)
-          ?.scrollIntoView({ behavior: "smooth", block: "center" }),
-      );
+    if (first !== undefined) requestAnimationFrame(() => scrollToVerse(first));
   };
+
+  const sourceBar =
+    commentaryLayout !== "hidden" && view === "single" && privateSources.length > 0 ? (
+      <CommentarySourceBar
+        sources={privateSources.map((source) => ({ id: source.id, title: source.title }))}
+        hidden={hiddenSources}
+        onHiddenChange={setHiddenSources}
+        domains={privateDomains}
+        domain={domainFilter}
+        onDomainChange={setDomainFilter}
+        className={isMobile ? "border-b-0 bg-transparent pt-0" : undefined}
+      >
+        <ReaderContextControls
+          value={contextFilter}
+          traditions={availableTraditions}
+          onChange={setContextFilter}
+        />
+      </CommentarySourceBar>
+    ) : null;
+  const shownSourceCount = privateSources.filter((source) => !hiddenSources.has(source.id)).length;
 
   if (!book) {
     return <EmptyReader message={t("scripture.unknownBook")} />;
@@ -398,29 +416,30 @@ function ChapterReader() {
           selectedVerse={selectedVerse}
           onVerseChange={goToVerse}
         />
-        <ScriptureAudioActions
-          key={`${bookId}:${chapter}:${effectiveEditionId}:${selectedVerse}`}
-          bookId={bookId}
-          chapter={chapter}
-          editionId={effectiveEditionId}
-          selectedVerse={selectedVerse}
-        />
-        {commentaryLayout !== "hidden" && view === "single" && (
-          <CommentarySourceBar
-            sources={privateSources.map((source) => ({ id: source.id, title: source.title }))}
-            hidden={hiddenSources}
-            onHiddenChange={setHiddenSources}
-            domains={privateDomains}
-            domain={domainFilter}
-            onDomainChange={setDomainFilter}
-          >
-            <ReaderContextControls
-              value={contextFilter}
-              traditions={availableTraditions}
-              onChange={setContextFilter}
-            />
-          </CommentarySourceBar>
-        )}
+        {/* On phones listening and the comment sources share one row and open on demand, so the
+            fixed bars above the text stay short. */}
+        <div className="flex flex-wrap border-b border-border bg-card md:block md:border-b-0">
+          <ScriptureAudioActions
+            key={`${bookId}:${chapter}:${effectiveEditionId}`}
+            bookId={bookId}
+            chapter={chapter}
+            editionId={effectiveEditionId}
+            selectedVerse={selectedVerse}
+            className="max-md:min-w-0 max-md:flex-1 max-md:border-b-0 max-md:open:basis-full"
+          />
+          {sourceBar &&
+            (isMobile ? (
+              <details className="min-w-0 flex-1 text-sm open:basis-full">
+                <summary className="w-fit cursor-pointer list-none px-4 py-2 font-medium pointer-coarse:py-3">
+                  <Library aria-hidden="true" className="mr-2 inline size-4" />
+                  Fontes · {shownSourceCount} de {privateSources.length}
+                </summary>
+                {sourceBar}
+              </details>
+            ) : (
+              sourceBar
+            ))}
+        </div>
 
         <Group orientation="vertical" className="min-h-0 flex-1" id="scripture-reading-layout">
           <Panel id="scripture-text" minSize="25%" defaultSize="62%">
@@ -500,13 +519,20 @@ function ChapterReader() {
                   {view === "single" && (
                     <div className="reading-text">
                       {bundle.passage.verses.map((v) => (
-                        <div key={v.verse}>
+                        // In paragraph reading the verses flow as one text; only a verse with a
+                        // comment breaks the line, where its comment opens.
+                        <div
+                          key={v.verse}
+                          className={
+                            readingPrefs.verseMode === "paragraph" ? "contents" : undefined
+                          }
+                        >
                           <Verse
                             verse={v}
                             editionId={effectiveEditionId}
                             bookName={bookLabel(book.id, book.name)}
                             chapter={chapter}
-                            verseMode={showExplanations ? "verse" : readingPrefs.verseMode}
+                            verseMode={readingPrefs.verseMode}
                             selected={selectedVerse === v.verse}
                             onSelect={() => {
                               setSelectedVerse(v.verse);

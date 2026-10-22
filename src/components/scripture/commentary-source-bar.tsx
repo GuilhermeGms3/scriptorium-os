@@ -21,6 +21,7 @@ export function CommentarySourceBar({
   domain,
   onDomainChange,
   children,
+  className,
 }: {
   sources: readonly { id: string; title: string }[];
   hidden: ReadonlySet<string>;
@@ -29,6 +30,7 @@ export function CommentarySourceBar({
   domain: string;
   onDomainChange: (domain: string) => void;
   children?: ReactNode;
+  className?: string | undefined;
 }) {
   if (!sources.length) return null;
   const shown = sources.filter((source) => !hidden.has(source.id));
@@ -44,7 +46,7 @@ export function CommentarySourceBar({
     onHiddenChange(next);
   };
   return (
-    <div className="border-b border-border bg-background/95 px-4 py-2">
+    <div className={cn("border-b border-border bg-background/95 px-4 py-2", className)}>
       <div
         className="flex items-center gap-1.5 overflow-x-auto [scrollbar-width:none]"
         role="group"
