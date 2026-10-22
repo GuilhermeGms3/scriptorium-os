@@ -112,6 +112,10 @@ function Home() {
       .then((bundle) => {
         if (active) setDailyBundle(bundle);
       })
+      // No passage of the day today (e.g. a package still loading): the home simply skips it.
+      .catch(() => {
+        if (active) setDailyBundle(null);
+      })
       .finally(() => {
         if (active) setDailyLoading(false);
       });

@@ -19,6 +19,7 @@ import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { THEMES } from "../../lib/workbench/theme";
 import { searchWorkspace } from "../../lib/application/search-workspace";
 import { t } from "../../lib/i18n";
+import { withFeedback } from "../common/feedback";
 
 export function CommandPalette() {
   const { paletteOpen, setPaletteOpen, theme, setTheme, createStudy } = useWorkbench();
@@ -69,8 +70,10 @@ export function CommandPalette() {
         label: t("command.newStudy"),
         icon: Plus,
         run: () => {
-          void createStudy(t("command.untitledStudy")).then((study) =>
-            navigate({ to: "/study/$slug", params: { slug: study.slug } }),
+          void withFeedback(createStudy(t("command.untitledStudy")), {
+            failure: "Não foi possível criar o estudo.",
+          }).then(
+            (study) => study && navigate({ to: "/study/$slug", params: { slug: study.slug } }),
           );
         },
       },

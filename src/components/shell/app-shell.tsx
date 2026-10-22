@@ -20,13 +20,15 @@ import { useMediaQuery, WIDE_READING_QUERY } from "../../hooks/use-media-query";
 import { Sheet, SheetContent, SheetDescription, SheetTitle } from "@/components/ui/sheet";
 import { PrimarySidebar } from "./primary-sidebar";
 import { TopBar } from "./top-bar";
-import { StatusBar } from "./status-bar";
+import { MobileStorageWarning, StatusBar } from "./status-bar";
+import { Toaster } from "@/components/ui/sonner";
 import { MobileNav } from "./mobile-nav";
 import { InspectorPanel } from "./inspector-panel";
 import { CommandPalette } from "../search/command-palette";
 import { t } from "../../lib/i18n";
 import { supportsPassageInspector } from "./shell-route-context";
 import { AudioMiniPlayer } from "../audio/audio-player";
+import { PanelBoundary } from "./panel-boundary";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { inspectorOpen, setInspectorOpen, wordSelection, selectWord } = useWorkbench();
@@ -38,50 +40,52 @@ export function AppShell({ children }: { children: ReactNode }) {
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-background text-foreground">
       <TopBar />
+      <MobileStorageWarning />
 
       <div className="flex min-h-0 flex-1">
         <div className="hidden md:flex">
           <PrimarySidebar />
         </div>
 
-        {/* Notes and Search have no passage inspector. Keep these workspaces mounted across
-            viewport changes so rotation cannot discard drafts, queries or external results. */}
-        {isMobile || pathname === "/notes" || pathname === "/search" || pathname === "/audio" ? (
-          <main className="min-w-0 flex-1 overflow-y-auto" id="workspace">
-            {children}
-          </main>
-        ) : (
-          <Group orientation="horizontal" className="min-w-0 flex-1" id="scriptorium-shell">
-            <Panel defaultSize="74%" minSize="45%" className="min-w-0">
-              <main className="h-full overflow-y-auto" id="workspace">
-                {children}
-              </main>
-            </Panel>
+        {/* One tree at every width: only the study panel beside the text comes and goes. A
+            bare <main> on phones and a panel group above 768 px rebuilt the page whenever a phone
+            turned sideways (most are wider than 768 px lying down), losing drafts, the selected
+            verse and the scroll position; the server render and a phone also disagreed. */}
+        <Group orientation="horizontal" className="min-w-0 flex-1" id="scriptorium-shell">
+          <Panel defaultSize="74%" minSize="45%" className="min-w-0">
+            <main className="h-full overflow-y-auto" id="workspace">
+              {children}
+            </main>
+          </Panel>
 
-            {passageInspectorAvailable && inspectorOpen && isWide && (
-              <>
-                <Separator
-                  className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
-                  aria-label={t("shell.resizeInspector")}
-                />
-                <Panel defaultSize="32%" minSize="320px" maxSize="45%" className="min-w-[320px]">
-                  <aside
-                    aria-label={t("shell.inspector")}
-                    className="h-full overflow-hidden bg-card"
-                  >
+          {passageInspectorAvailable && inspectorOpen && isWide && (
+            <>
+              <Separator
+                className="w-1 cursor-col-resize bg-border transition-colors hover:bg-ring"
+                aria-label={t("shell.resizeInspector")}
+              />
+              <Panel defaultSize="32%" minSize="320px" maxSize="45%" className="min-w-[320px]">
+                <aside aria-label={t("shell.inspector")} className="h-full overflow-hidden bg-card">
+                  <PanelBoundary where="no painel de estudo" resetKey={pathname}>
                     <InspectorPanel />
-                  </aside>
-                </Panel>
-              </>
-            )}
-          </Group>
-        )}
+                  </PanelBoundary>
+                </aside>
+              </Panel>
+            </>
+          )}
+        </Group>
       </div>
 
-      <AudioMiniPlayer />
+      <PanelBoundary where="no player de áudio" resetKey={pathname}>
+        <AudioMiniPlayer />
+      </PanelBoundary>
       <StatusBar />
       <MobileNav />
-      <CommandPalette />
+      <PanelBoundary where="na busca rápida" resetKey={pathname}>
+        <CommandPalette />
+      </PanelBoundary>
+      {/* Says how actions went (note created, study failed); at the top, clear of the bottom bar. */}
+      <Toaster position="top-center" />
 
       {/* Below 1280 px the study panel slides over the text instead of squeezing it. */}
       <Sheet
@@ -100,7 +104,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           <SheetDescription className="sr-only">
             Estudo do versículo selecionado: visão geral, texto, fontes e notas.
           </SheetDescription>
-          <InspectorPanel />
+          <PanelBoundary where="no painel de estudo" resetKey={pathname}>
+            <InspectorPanel />
+          </PanelBoundary>
         </SheetContent>
       </Sheet>
 
@@ -121,7 +127,9 @@ export function AppShell({ children }: { children: ReactNode }) {
           >
             <div className="mx-auto mt-2 h-1 w-10 rounded-full bg-muted-foreground/30" />
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <InspectorPanel />
+              <PanelBoundary where="no painel de estudo" resetKey={pathname}>
+                <InspectorPanel />
+              </PanelBoundary>
             </div>
           </Drawer.Content>
         </Drawer.Portal>

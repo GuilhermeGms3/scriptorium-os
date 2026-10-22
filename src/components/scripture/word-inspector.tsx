@@ -17,6 +17,7 @@ import type { WordKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import type { LexicalDictionaryEntry } from "../../lib/domain/linguistic";
 import { LexicalOccurrences } from "./lexical-occurrences";
 import { PrivateLexicalReadings } from "./private-lexical-readings";
+import { withFeedback } from "../common/feedback";
 
 const TABS = [
   { id: "lexicon", label: t("scripture.tab.lexicon") },
@@ -522,15 +523,21 @@ function WordNotes({
       ))}
       <button
         onClick={() =>
-          void addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
-            { kind: "word", target: wordId, label: wordLabel },
+          void withFeedback(
+            addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
+              { kind: "word", target: wordId, label: wordLabel },
+              {
+                kind: "passage",
+                target: passageRefKey(passageRef),
+                label: verseLabel,
+                anchor: { type: "passage", ref: passageRef },
+              },
+            ]),
             {
-              kind: "passage",
-              target: passageRefKey(passageRef),
-              label: verseLabel,
-              anchor: { type: "passage", ref: passageRef },
+              success: "Nota criada. Ela está em Notas.",
+              failure: "Não foi possível criar a nota.",
             },
-          ])
+          )
         }
         className="inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
       >
@@ -560,10 +567,13 @@ function AddToStudy({
         onChange={(e) => {
           const id = e.target.value;
           if (!id) return;
-          void addToStudy(id, { kind: "word", refId: wordId, label: wordLabel });
+          void withFeedback(addToStudy(id, { kind: "word", refId: wordId, label: wordLabel }), {
+            success: "Palavra adicionada ao estudo.",
+            failure: "Não foi possível adicionar ao estudo.",
+          });
           e.target.value = "";
         }}
-        className="h-8 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground"
+        className="h-8 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground pointer-coarse:min-h-11"
       >
         <option value="" disabled>
           {t("common.chooseStudy")}

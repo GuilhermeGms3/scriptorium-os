@@ -13,6 +13,7 @@ import { WorkspaceBackupButton } from "../../components/common/workspace-backup-
 import { PageHeader } from "../../components/layout/page-header";
 import { EmptyState } from "../../components/layout/empty-state";
 import { z } from "zod";
+import { withFeedback } from "../../components/common/feedback";
 
 type StudyView = "journey" | "investigations" | "notebook";
 
@@ -52,8 +53,10 @@ function StudyIndex() {
   useEffect(() => setPassageContext(null), [setPassageContext]);
 
   const createAndOpenStudy = async (studyTitle: string) => {
-    const study = await createStudy(studyTitle);
-    await navigate({ to: "/study/$slug", params: { slug: study.slug } });
+    const study = await withFeedback(createStudy(studyTitle), {
+      failure: "Não foi possível criar o estudo.",
+    });
+    if (study) await navigate({ to: "/study/$slug", params: { slug: study.slug } });
   };
 
   const submit = async (event: FormEvent) => {

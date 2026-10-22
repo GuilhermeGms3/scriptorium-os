@@ -2,6 +2,7 @@
  * StatusBar — contextual status: active passage, editions, data locality.
  */
 
+import { useState } from "react";
 import { AlertTriangle, Database, Globe, Wifi } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { t } from "../../lib/i18n";
@@ -71,5 +72,52 @@ export function StatusBar() {
         <Wifi className="size-3" /> {t("shell.offlineDemo")}
       </span>
     </footer>
+  );
+}
+
+const STORAGE_WARNING_SEEN = "scriptorium.storage-warning-seen.v1";
+
+/**
+ * The status bar is hidden on phones, where browsers without lasting storage are most likely: there
+ * the same warning comes as a banner, so notes are never lost without the reader having been told.
+ */
+export function MobileStorageWarning() {
+  const { workspacePersistence, workspaceError } = useWorkbench();
+  const [seen, setSeen] = useState(() => {
+    try {
+      return sessionStorage.getItem(STORAGE_WARNING_SEEN) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const message =
+    workspacePersistence === "memory"
+      ? "Armazenamento temporário: este navegador não guarda notas e estudos depois de fechado."
+      : workspacePersistence === "unavailable" && workspaceError
+        ? workspaceError
+        : null;
+  if (!message || seen) return null;
+  return (
+    <div
+      role="status"
+      className="flex shrink-0 items-start gap-2 border-b border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-800 md:hidden dark:text-amber-300"
+    >
+      <AlertTriangle className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
+      <span className="min-w-0 flex-1">{message}</span>
+      <button
+        type="button"
+        onClick={() => {
+          setSeen(true);
+          try {
+            sessionStorage.setItem(STORAGE_WARNING_SEEN, "1");
+          } catch {
+            // Without session storage the banner simply comes back on the next visit.
+          }
+        }}
+        className="-my-1 min-h-11 shrink-0 px-2 font-medium underline underline-offset-4"
+      >
+        Entendi
+      </button>
+    </div>
   );
 }
