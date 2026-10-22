@@ -1,4 +1,5 @@
 import { MAX_MUSIC_BYTES } from "./music-assets";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 import { MusicTrackSchema, type MusicTrack } from "./ambience-contracts";
 
 export function detectMusicType(
@@ -43,7 +44,7 @@ export function inspectMusic(blob: Blob, signal?: AbortSignal): Promise<number> 
     const finish = (duration?: number, message?: string) => {
       clearTimeout(timer);
       signal?.removeEventListener("abort", abort);
-      audio.oncanplay = audio.onerror = null;
+      audio.onloadedmetadata = audio.oncanplay = audio.onerror = null;
       audio.pause();
       audio.removeAttribute("src");
       audio.load();
@@ -56,7 +57,9 @@ export function inspectMusic(blob: Blob, signal?: AbortSignal): Promise<number> 
       () => finish(undefined, "O áudio não pôde ser decodificado em 15 segundos."),
       15_000,
     );
-    audio.oncanplay = () => {
+    // iOS Safari often never fires canplay for a file it was not asked to play; the duration is
+    // already known once the metadata loads.
+    audio.onloadedmetadata = audio.oncanplay = () => {
       if (Number.isFinite(audio.duration) && audio.duration > 0 && audio.duration <= 7200)
         finish(audio.duration);
       else finish(undefined, "Duração inválida. Use trilhas com até duas horas.");
@@ -89,9 +92,8 @@ export async function prepareMusicImport(
   );
   const blob = file.slice(0, file.size, mimeType);
   const duration = await inspect(blob, signal);
-  const hash = await crypto.subtle.digest("SHA-256", await blob.arrayBuffer());
+  const id = await sha256Hex(await blob.arrayBuffer(), { operation: "A importação de música" });
   if (signal?.aborted) throw new Error("Importação cancelada.");
-  const id = [...new Uint8Array(hash)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
   const track = MusicTrackSchema.parse({
     id,
     title:

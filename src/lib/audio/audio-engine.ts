@@ -145,11 +145,7 @@ export class AudioEngine {
       void this.ambience?.play();
     }
     if (this.#state.status === "playing" || this.#state.status === "loading") return;
-    if (this.#state.status === "paused") {
-      this.provider?.resume();
-      this.#patch({ status: "playing" });
-      return;
-    }
+    // A paused reading starts again from the last word heard (see pause).
     if (this.#state.status === "ended") this.#patch({ segmentIndex: 0, offset: 0 });
     this.#speak();
   }
@@ -222,9 +218,16 @@ export class AudioEngine {
       }
     }
   }
+  /** Lets the device voice start later, after an await; call it inside the tap that plays. */
+  unlock() {
+    this.provider?.unlock?.();
+  }
   pause() {
-    if (this.#state.status !== "playing") return;
-    this.provider?.pause();
+    if (this.#state.status !== "playing" && this.#state.status !== "loading") return;
+    // Chrome on Android ignores or mishandles speechSynthesis.pause(): stop instead, keep the offset
+    // of the last word heard, and speak again from there on play. It works the same everywhere.
+    this.#token++;
+    this.provider?.cancel();
     this.#patch({ status: "paused" });
     this.#save();
     if (

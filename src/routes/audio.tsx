@@ -43,6 +43,8 @@ function AudioPage() {
   const book = ScriptureRepository.getBook(bookId);
   const voices = state.voices;
   async function prepare(action: "text" | "passage", queue = false) {
+    // Still inside the tap: iOS blocks speech that first starts after the await below.
+    if (!queue) engine.unlock();
     const token = ++operation.current;
     setPending(true);
     setError("");
@@ -71,6 +73,7 @@ function AudioPage() {
   }
   async function restore(entry: AudioProgress) {
     if (entry.source.kind !== "scripture") return;
+    engine.unlock();
     const token = ++operation.current;
     setPending(true);
     setError("");

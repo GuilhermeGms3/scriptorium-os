@@ -1,3 +1,4 @@
+import { sha256Hex } from "../workspace-runtime/secure-context";
 import {
   AudioSourceSchema,
   type AudioItem,
@@ -37,9 +38,7 @@ export function segmentLiteralText(text: string, limit = 600): NarrationSegment[
 }
 
 export async function audioFingerprint(value: unknown): Promise<string> {
-  const bytes = new TextEncoder().encode(JSON.stringify(value));
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(JSON.stringify(value), { operation: "A narração" });
 }
 
 export async function createAudioItem(input: {

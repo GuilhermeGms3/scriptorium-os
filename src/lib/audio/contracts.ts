@@ -66,8 +66,8 @@ export interface NarrationProvider {
   voices(): NarrationVoice[];
   onVoicesChanged(listener: () => void): () => void;
   speak(text: string, language: string, settings: NarrationSettings, events: SpeechEvents): void;
-  pause(): void;
-  resume(): void;
+  /** Called inside the reader's tap, before any await: iOS only lets later speech start this way. */
+  unlock?(): void;
   cancel(): void;
 }
 export type PlaybackStatus =

@@ -101,11 +101,14 @@ export class NativeSpeechProvider implements NarrationProvider {
       );
     }
   }
-  pause() {
-    this.synthesis.pause();
-  }
-  resume() {
-    this.synthesis.resume();
+  #unlocked = false;
+  unlock() {
+    if (this.#unlocked) return;
+    this.#unlocked = true;
+    // A silent utterance spoken inside the tap; later utterances may then start after an await.
+    const primer = this.makeUtterance(" ");
+    primer.volume = 0;
+    this.synthesis.speak(primer);
   }
   cancel() {
     this.#generation++;

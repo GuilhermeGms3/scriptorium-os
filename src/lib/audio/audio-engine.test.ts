@@ -29,8 +29,7 @@ class TestProvider implements NarrationProvider {
   events: SpeechEvents | undefined;
   spoken: string[] = [];
   cancel = vi.fn();
-  pause = vi.fn();
-  resume = vi.fn();
+  unlock = vi.fn();
   voices() {
     return [{ id: "pt", name: "Português local", language: "pt-BR", local: true }];
   }
@@ -103,15 +102,37 @@ describe("literal narration preparation", () => {
 describe("single audio engine", () => {
   it("does not start another segment after a pause raced with an end event", async () => {
     const { engine, provider } = setup();
-    engine.load(await item("Uma frase completa. ".repeat(90)));
+    const source = await item("Uma frase completa. ".repeat(90));
+    engine.load(source);
     engine.play();
     engine.pause();
+    // The cancelled utterance may still report its end: it no longer moves the reading.
     provider.events!.ended();
     expect(provider.spoken).toHaveLength(1);
-    expect(engine.getSnapshot().segmentIndex).toBe(1);
-    expect(engine.getSnapshot().status).toBe("ready");
+    expect(engine.getSnapshot().segmentIndex).toBe(0);
+    expect(engine.getSnapshot().status).toBe("paused");
     engine.play();
     expect(provider.spoken).toHaveLength(2);
+    expect(provider.spoken[1]).toBe(source.segments[0]!.spokenText);
+  });
+  it("pauses by stopping the voice and continues from the last word heard", async () => {
+    const { engine, provider } = setup();
+    const source = await item();
+    engine.load(source);
+    engine.play();
+    provider.events!.boundary(4);
+    provider.cancel.mockClear();
+    engine.pause();
+    // speechSynthesis.pause() is unreliable on Android Chrome; the engine never relies on it.
+    expect(provider.cancel).toHaveBeenCalledOnce();
+    expect(engine.getSnapshot().status).toBe("paused");
+    engine.play();
+    expect(provider.spoken.at(-1)).toBe(source.originalText.slice(4));
+  });
+  it("unlocks the device voice inside the tap, for iOS", () => {
+    const { engine, provider } = setup();
+    engine.unlock();
+    expect(provider.unlock).toHaveBeenCalledOnce();
   });
   it("replays a completed reading from the beginning after reloading its source", async () => {
     const { engine, provider } = setup();
@@ -133,9 +154,9 @@ describe("single audio engine", () => {
     expect(engine.getSnapshot().status).toBe("playing");
     provider.events!.boundary(4);
     engine.pause();
-    expect(provider.pause).toHaveBeenCalledOnce();
+    expect(engine.getSnapshot().status).toBe("paused");
     engine.play();
-    expect(provider.resume).toHaveBeenCalledOnce();
+    expect(provider.spoken.at(-1)).toBe(source.originalText.slice(4));
     engine.configure({ rate: 1.5 });
     expect(provider.spoken.at(-1)).toBe(source.originalText.slice(4));
     expect(source.originalText).toBe("No princípio. Outra frase.");
@@ -336,6 +357,13 @@ describe("native local provider privacy and errors", () => {
     provider.cancel();
     vi.runAllTimers();
     expect(callbacks.failed).not.toHaveBeenCalled();
+  });
+  it("unlocks iOS speech once, with a silent utterance", () => {
+    const { provider, synthesis } = browserSynthesis([local]);
+    provider.unlock();
+    provider.unlock();
+    expect(synthesis.speak).toHaveBeenCalledOnce();
+    expect(synthesis.speak.mock.calls[0]![0].volume).toBe(0);
   });
   it("recovers synchronous device errors", () => {
     vi.useFakeTimers();

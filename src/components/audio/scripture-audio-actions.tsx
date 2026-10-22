@@ -28,6 +28,8 @@ export function ScriptureAudioActions({
     [],
   );
   async function prepare(queue: boolean, selection: boolean) {
+    // Still inside the tap: iOS blocks speech that first starts after the await below.
+    if (!queue) engine.unlock();
     const token = ++request.current;
     setPending(true);
     setError("");

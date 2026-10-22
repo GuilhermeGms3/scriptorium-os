@@ -74,8 +74,6 @@ function fixture(preferences: unknown = null) {
       events = callbacks;
       callbacks.started();
     }),
-    pause: vi.fn(),
-    resume: vi.fn(),
     cancel: vi.fn(),
   };
   const engine = new AudioEngine(voice, null, music);
@@ -138,10 +136,10 @@ describe("coordinated voice and ambience", () => {
     await vi.waitFor(() => expect(f.music.getSnapshot().status).toBe("playing"));
     await f.engine.selectMusic("b".repeat(64));
     expect(f.voice.speak).toHaveBeenCalledTimes(1);
-    expect(f.voice.pause).not.toHaveBeenCalled();
+    expect(f.engine.getSnapshot().status).toBe("playing");
     expect(f.music.getSnapshot().preferences.selectedTrackId).toBe("b".repeat(64));
   });
-  it("switches music-only then resumes paused speech without re-generating it", async () => {
+  it("switches music-only then continues the same reading from where the voice stopped", async () => {
     const f = fixture();
     await f.initialize();
     await f.engine.selectMusic(track().id);
@@ -153,13 +151,17 @@ describe("coordinated voice and ambience", () => {
         source: { kind: "personal", id: "x" },
       }),
     );
+    const reading = f.engine.getSnapshot().item?.id;
     f.engine.play();
+    vi.mocked(f.voice.cancel).mockClear();
     f.engine.setSoundMode("music");
     await vi.waitFor(() => expect(f.music.getSnapshot().status).toBe("playing"));
-    expect(f.voice.pause).toHaveBeenCalledOnce();
+    // The voice stops (pause is unreliable on Android) and the reading waits where it was.
+    expect(f.voice.cancel).toHaveBeenCalledOnce();
+    expect(f.engine.getSnapshot().status).toBe("paused");
     f.engine.setSoundMode("mixed");
-    expect(f.voice.resume).toHaveBeenCalledOnce();
-    expect(f.voice.speak).toHaveBeenCalledTimes(1);
+    expect(f.voice.speak).toHaveBeenCalledTimes(2);
+    expect(f.engine.getSnapshot().item?.id).toBe(reading);
     f.engine.setSoundMode("voice");
     expect(f.music.getSnapshot().status).toBe("paused");
     expect(f.engine.getSnapshot().status).toBe("playing");
