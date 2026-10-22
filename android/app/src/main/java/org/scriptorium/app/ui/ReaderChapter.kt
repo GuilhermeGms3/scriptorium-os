@@ -1,15 +1,16 @@
 package org.scriptorium.app.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.ViewConfiguration
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
@@ -17,6 +18,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.distinctUntilChanged
 import org.scriptorium.app.data.*
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, current: Passage, explanations: Boolean, toggle: (Boolean) -> Unit,
                   category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit, preferences: ReadingPreferences, open: (Passage) -> Unit,
@@ -49,8 +51,12 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                     positioned = true
                 }
                 LaunchedEffect(current, verses, list) {
-                    snapshotFlow { list.firstVisibleItemIndex }.distinctUntilChanged().collect { index ->
-                        verses.getOrNull(index - 1)?.let { activeVerse = it.number("verse_start"); preferences.savePassage(current.copy(verse = activeVerse, verseEnd = null)); visible(it) }
+                    snapshotFlow {
+                        val layout = list.layoutInfo
+                        readingAnchor(layout.visibleItemsInfo.filter { it.key != "chapter-heading" && it.key != "chapter-navigation" }
+                            .map { VisibleReadingItem(it.index, it.offset, it.size) }, layout.viewportStartOffset, layout.viewportEndOffset)
+                    }.distinctUntilChanged().collect { index ->
+                        verses.getOrNull((index ?: 0) - 1)?.let { activeVerse = it.number("verse_start"); preferences.savePassage(current.copy(verse = activeVerse, verseEnd = null)); visible(it) }
                     }
                 }
                 if (!appearance.dockedComments) CommentToolbar(all, filtered.size, explanations, toggle, category, document, chooseCategory, chooseDocument, filtersOpen, { filtersOpen = !filtersOpen })
@@ -66,17 +72,31 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                         Column((if (verse.number("verse_start") <= 4) Modifier.revealSection(verse.number("verse_start")) else Modifier), verticalArrangement = Arrangement.spacedBy(4.dp)) {
                             val verseNumber = verse.number("verse_start")
                             val lastVerse = verse.number("verse_end").coerceAtLeast(verseNumber)
-                            Surface(color = Color.Transparent, shape = MaterialTheme.shapes.small) {
-                                Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                    Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
-                                        Box(Modifier.widthIn(min = 26.dp, max = 44.dp).heightIn(min = 26.dp).padding(horizontal = 4.dp, vertical = 3.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
-                                            Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
+                            var actions by remember { mutableStateOf(false) }
+                            val baseConfiguration = LocalViewConfiguration.current
+                            val holdConfiguration = remember(baseConfiguration) { object : ViewConfiguration by baseConfiguration { override val longPressTimeoutMillis = 2000L } }
+                            CompositionLocalProvider(LocalViewConfiguration provides holdConfiguration) {
+                                Surface(color = Color.Transparent, shape = MaterialTheme.shapes.small,
+                                    modifier = Modifier.combinedClickable(onClick = { activeVerse = verseNumber; visible(verse) }, onLongClickLabel = "Ações do versículo $verseNumber", onLongClick = { actions = true })) {
+                                    Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                        Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
+                                            Box(Modifier.widthIn(min = 26.dp, max = 44.dp).heightIn(min = 26.dp).padding(horizontal = 4.dp, vertical = 3.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                                Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
+                                            }
                                         }
+                                        Text(verse.text("surface_text"), Modifier.weight(1f), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface)
                                     }
-                                    SelectionContainer(Modifier.weight(1f)) { Text(verse.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface) }
-                                    VerseActions(verseNumber, onNote = { note(verse.text("id")) }, onBookmark = { bookmark(verse) }, onLanguage = original)
                                 }
                             }
+                            if (actions) AlertDialog(onDismissRequest = { actions = false }, title = { Text("${current.title} ${current.chapter}:$verseNumber") }, confirmButton = { TextButton(onClick = { actions = false }) { Text("Fechar") } }, text = {
+                                val context = androidx.compose.ui.platform.LocalContext.current
+                                Column {
+                                    TextButton(onClick = { actions = false; note(verse.text("id")) }) { Text("Anotar") }
+                                    TextButton(onClick = { actions = false; bookmark(verse) }) { Text("Favoritar") }
+                                    TextButton(onClick = { actions = false; activeVerse = verseNumber; visible(verse); original() }) { Text("Interlinear") }
+                                    TextButton(onClick = { (context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as android.content.ClipboardManager).setPrimaryClip(android.content.ClipData.newPlainText("${current.title} ${current.chapter}:$verseNumber", verse.text("surface_text"))); actions = false }) { Text("Copiar versículo") }
+                                }
+                            })
                             if (!appearance.dockedComments) {
                                 val linked = groups.find { it.verse == verseNumber }?.comments.orEmpty()
                                 var more by rememberSaveable(current, verse.text("id")) { mutableStateOf(false) }
@@ -98,21 +118,6 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                     filtersOpen, { filtersOpen = !filtersOpen }, dockExpanded, { dockExpanded = !dockExpanded },
                     Modifier.fillMaxWidth().height(if (dockExpanded) (readerHeight * 0.48f).coerceAtLeast(190.dp).coerceAtMost(readerHeight * 0.7f) else 52.dp))
             }
-        }
-    }
-}
-
-/** Note, bookmark and language of a verse behind one "⋯", instead of three buttons under every verse. */
-@Composable
-private fun VerseActions(verse: Int, onNote: () -> Unit, onBookmark: () -> Unit, onLanguage: () -> Unit) {
-    var menu by remember { mutableStateOf(false) }
-    Box {
-        TextButton(onClick = { menu = true }, contentPadding = PaddingValues(0.dp),
-            modifier = Modifier.width(40.dp).semantics { contentDescription = "Anotar, favoritar ou ver a língua do versículo $verse" }) { Text("⋯", fontSize = 20.sp) }
-        DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-            DropdownMenuItem(text = { Text("Anotar") }, onClick = { menu = false; onNote() })
-            DropdownMenuItem(text = { Text("Favoritar") }, onClick = { menu = false; onBookmark() })
-            DropdownMenuItem(text = { Text("Idioma") }, onClick = { menu = false; onLanguage() })
         }
     }
 }

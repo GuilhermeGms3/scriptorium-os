@@ -45,8 +45,9 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
             details?.exceptionOrNull()?.let { Text("Não foi possível carregar as páginas desta fonte.", color = MaterialTheme.colorScheme.error) }
             if (details?.isSuccess == true && evidence.isEmpty()) Text("Sem página de origem disponível neste pacote.", style = MaterialTheme.typography.bodySmall)
             if (comment.text("mode") == "source-excerpt") TranslationBlock(comment.text("body"), comment.text("source_language"), personal)
-            SelectionContainer { Text(comment.text("body"), style = MaterialTheme.typography.bodyLarge,
-                fontFamily = appearance.fontFamily, fontSize = (appearance.size * 0.86f).sp, lineHeight = (appearance.size * 1.35f).sp) }
+            SelectionContainer { Text(readingParagraphs(comment.text("body")), style = MaterialTheme.typography.bodyLarge,
+                fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = (appearance.size * 0.8f).coerceIn(16f, 19f).sp,
+                lineHeight = (appearance.size * 1.2f).coerceIn(24f, 29f).sp, letterSpacing = 0.sp) }
             Text(comment.commentLabel(), Modifier.padding(top = 12.dp), style = MaterialTheme.typography.labelSmall, color = accent)
             Heading("Sobre esta leitura")
             Text(comment.text("rationale"))
@@ -59,7 +60,7 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
                 val start = page.number("start_offset").coerceIn(0, text.length)
                 val end = page.number("end_offset").coerceIn(start, text.length)
                 Text("Página ${page.number("page_index") + 1}", Modifier.padding(top = 16.dp, bottom = 8.dp), style = MaterialTheme.typography.labelLarge, color = accent)
-                SelectionContainer { Text(text.substring(start, end), fontFamily = appearance.fontFamily, lineHeight = 26.sp) }
+                SelectionContainer { Text(readingParagraphs(text.substring(start, end)), fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = 16.sp, lineHeight = 25.sp, letterSpacing = 0.sp) }
             }
             TextButton(onClick = { showTrace = !showTrace }) { Text("Rastro da ligação ${if (showTrace) "▴" else "▾"}") }
             if (showTrace) {

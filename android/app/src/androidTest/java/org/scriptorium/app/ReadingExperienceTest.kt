@@ -41,6 +41,25 @@ class ReadingExperienceTest {
         val genesis = requireNotNull(repository.resolveReference("Gn1:1", edition))
         assertTrue(repository.comments(genesis).flatMap { it.commentCategories() }.distinct().size > 1)
     }
+    @Test fun searchScopesSeparateScriptureFromRealLibraryPages() {
+        val repository = repository()
+        val edition = repository.scriptureEditions().first()
+        val scripture = repository.search("Deus", edition, LocalSearchScope.SCRIPTURE)
+        assertTrue(scripture.isNotEmpty()); assertTrue(scripture.all { it.passage != null && it.page == null })
+        val library = repository.search("Deus", edition, LocalSearchScope.LIBRARY)
+        assertTrue(library.isNotEmpty()); assertTrue(library.all { it.page != null && it.passage == null })
+        for (scope in listOf(LocalSearchScope.EXEGESIS, LocalSearchScope.HERMENEUTICS)) {
+            val started = System.nanoTime()
+            val results = repository.search("Deus", edition, scope)
+            val elapsed = (System.nanoTime() - started) / 1_000_000
+            assertTrue("Filtro precisa responder sem varrer vínculos por resultado: ${elapsed}ms", elapsed < 10_000)
+            assertTrue(results.all { it.page != null && it.passage == null })
+            println("SEARCH_SCOPE_QA $scope pages=${results.size} elapsedMs=$elapsed")
+        }
+        val result = scripture.first().passage!!
+        assertTrue(repository.verses(result).any { it.number("verse_start") == result.verse })
+    }
+
     @Test fun localTranslationDownloadsAndTranslatesAnActualText() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("translationQa") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext

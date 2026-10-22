@@ -8,8 +8,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.saveable.Saver
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -18,27 +16,26 @@ import org.scriptorium.app.content.Edition
 import org.scriptorium.app.data.*
 
 @Composable
-fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, requestPanel: Boolean = false, consumePanel: () -> Unit = {}, panelAvailable: (Boolean) -> Unit = {}) {
+fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, requestPanel: Boolean = false, consumePanel: () -> Unit = {}, panelAvailable: (Boolean) -> Unit = {}, consumePassage: () -> Unit = {}) {
     Load("scripture-editions", repository::scriptureEditions) { editions ->
-        if (editions.isEmpty()) Text("Nenhuma edição bíblica instalada. Instale um pacote em Mais → Pacotes.", Modifier.padding(24.dp))
-        else ReaderContent(repository, personal, requested, editions, requestPanel, consumePanel, panelAvailable)
+        if (editions.isEmpty()) Text("Nenhuma edição bíblica instalada. Instale um pacote em Menu → Pacotes.", Modifier.padding(24.dp))
+        else ReaderContent(repository, personal, requested, editions, requestPanel, consumePanel, panelAvailable, consumePassage)
     }
 }
 
 @Composable
-private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit) {
+private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit, consumePassage: () -> Unit) {
     val context = LocalContext.current
     val preferences = remember { ReadingPreferences(context) }
     val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = { decodePassage(it, editions) })
-    var passage by rememberSaveable(requested, stateSaver = passageSaver) { mutableStateOf(requested ?: decodePassage(preferences.lastPassage(), editions)) }
-    var editionId by rememberSaveable(requested) { mutableStateOf(passage?.edition?.id ?: editions.first().id) }
+    var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf(decodePassage(preferences.lastPassage(), editions)) }
+    var editionId by rememberSaveable { mutableStateOf(passage?.edition?.id ?: editions.first().id) }
     val edition = editions.firstOrNull { it.id == editionId } ?: editions.first()
     var bookId by rememberSaveable { mutableStateOf<String?>(null) }
     var explanations by rememberSaveable { mutableStateOf(true) }
     var selected by remember { mutableStateOf<Row?>(null) }
     var primary by remember { mutableStateOf<Row?>(null) }
     var page by remember { mutableStateOf<Row?>(null) }
-    var editionMenu by remember { mutableStateOf(false) }
     var mode by rememberSaveable { mutableStateOf("Leitura") }
     var noteUnit by remember { mutableStateOf<String?>(null) }
     var panelOpen by rememberSaveable { mutableStateOf(false) }
@@ -46,7 +43,16 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     var category by rememberSaveable { mutableStateOf<String?>(null) }
     var document by rememberSaveable { mutableStateOf<String?>(null) }
     var feedback by remember { mutableStateOf<String?>(null) }
-    var readerHistory by rememberSaveable(requested) { mutableStateOf(listOf<String>()) }
+    var readerHistory by rememberSaveable { mutableStateOf(listOf<String>()) }
+    var navigationRevision by rememberSaveable { mutableIntStateOf(0) }
+    LaunchedEffect(requested) {
+        requested?.let {
+            editionId = it.edition.id; passage = it; bookId = null; mode = "Leitura"; visibleVerse = it.verse
+            primary = null; panelOpen = false; readerHistory = emptyList(); preferences.savePassage(it)
+            navigationRevision++
+            consumePassage()
+        }
+    }
     SideEffect { panelAvailable(passage != null && primary == null) }
     LaunchedEffect(requestPanel, passage) { if (requestPanel && passage != null) { panelOpen = true; consumePanel() } }
     val scope = rememberCoroutineScope()
@@ -59,8 +65,10 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
         mode = value
         panelOpen = false
     }
-    BackHandler(readerHistory.isNotEmpty() || mode != "Leitura") {
-        if (mode != "Leitura") mode = "Leitura" else {
+    BackHandler(passage != null || bookId != null || readerHistory.isNotEmpty() || mode != "Leitura") {
+        if (mode != "Leitura") mode = "Leitura"
+        else if (passage != null || bookId != null) { passage = null; bookId = null; readerHistory = emptyList() }
+        else {
             val previous = org.json.JSONObject(readerHistory.last())
             readerHistory = readerHistory.dropLast(1)
             editionId = previous.getString("edition")
@@ -74,33 +82,30 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = { if (passage != null || bookId != null) rememberPage(); passage = null; bookId = null }, modifier = Modifier.weight(1f)) {
                     Column(Modifier.fillMaxWidth()) {
-                        Text(passage?.let { "${it.title} ${it.chapter} ▾" } ?: "Escolher livro", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        Text(edition.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(if (passage != null || bookId != null) "← Voltar pra escolha" else "Escolher livro", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(passage?.let { "${it.title} ${it.chapter} · ${edition.title}" } ?: edition.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
-                Box {
-                    IconButton(onClick = { editionMenu = true }, modifier = Modifier.semantics { contentDescription = "Escolher edição" }) { Text("⋮") }
-                    DropdownMenu(expanded = editionMenu, onDismissRequest = { editionMenu = false }) {
-                        editions.forEach { item -> DropdownMenuItem(text = { Text(item.title) }, onClick = {
-                            rememberPage(); editionId = item.id; passage = null; bookId = null; editionMenu = false
-                        }) }
-                    }
-                }
+
             }
             feedback?.let { Text(it, Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.labelSmall) }
             val current = passage
             if (current == null) ReadingBookPicker(repository, edition, bookId, { rememberPage(); bookId = it }, ::open, { primary = it }, { page = it })
             else {
-                if (mode != "Leitura") TextButton(onClick = { mode = "Leitura" }) { Text("← Voltar à leitura · $mode") }
-                if (mode != "Leitura") PassageMode(repository, personal, current, mode)
-                else ReaderChapter(repository, personal, current, explanations, { explanations = it }, category, document, { category = it }, { document = it }, preferences, ::open, { selected = it }, { noteUnit = it }, { verse ->
+                PrimaryTabRow(selectedTabIndex = listOf("Leitura", "Interlinear", "Comparação").indexOf(mode).coerceAtLeast(0)) {
+                    listOf("Leitura", "Interlinear", "Comparação").forEach { label ->
+                        Tab(selected = mode == label, onClick = { mode = label; panelOpen = false }, text = { Text(label, style = MaterialTheme.typography.labelMedium) })
+                    }
+                }
+                if (mode != "Leitura") PassageMode(repository, personal, current.copy(verse = visibleVerse), mode)
+                else key(current.edition.id, current.workId, current.chapter, navigationRevision) { ReaderChapter(repository, personal, current, explanations, { explanations = it }, category, document, { category = it }, { document = it }, preferences, ::open, { selected = it }, { noteUnit = it }, { verse ->
                     scope.launch {
                         try {
                             withContext(Dispatchers.IO) { personal.bookmark(org.json.JSONObject().put("editionId", current.edition.id).put("workId", current.workId).put("bookId", current.bookId).put("chapter", current.chapter).put("scheme", current.scheme).put("unitId", verse.text("id")), "${current.title} ${current.chapter}:${verse.text("verse_start")}") }
                             feedback = "Favorito salvo em Ajustes e backup."
                         } catch (failure: Exception) { feedback = failure.message }
                     }
-                }, { openTool("Texto original") }, { verse -> visibleVerse = verse.number("verse_start") })
+                }, { openTool("Interlinear") }, { verse -> visibleVerse = verse.number("verse_start") }) }
             }
         }
     }

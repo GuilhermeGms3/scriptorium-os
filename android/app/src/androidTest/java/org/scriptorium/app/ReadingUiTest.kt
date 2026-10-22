@@ -58,6 +58,14 @@ class ReadingUiTest {
         }
         error("Campo de referência não ficou disponível: ${nodes().map(::label).filter(String::isNotBlank)}")
     }
+    private fun capture(name: String) {
+        SystemClock.sleep(500)
+        val bitmap = automation.takeScreenshot() ?: error("Screenshot indisponível")
+        File(instrumentation.targetContext.getExternalFilesDir(null), "feedback-041-$name.png").outputStream().use {
+            bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
+        }
+        bitmap.recycle()
+    }
     private fun back() {
         automation.executeShellCommand("input keyevent KEYCODE_BACK").use { descriptor ->
             android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { it.readBytes() }
@@ -89,6 +97,74 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun searchNavigatesAfterRestoredReaderAndSameChapterRequests() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val original = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance(dockedComments = true, motion = false)
+            startAt("Gn1:1"); click("Leitura"); waitNode("Gênesis 1", false)
+            val homeBounds = Rect(); waitNode("Home").getBoundsInScreen(homeBounds)
+            assertTrue(kotlin.math.abs(homeBounds.centerX() - instrumentation.targetContext.resources.displayMetrics.widthPixels / 2) < 10)
+            click("Busca"); enter("maldição"); click("Pesquisar")
+            val firstHit = repository().search("maldição", repository().scriptureEditions().first(), LocalSearchScope.SCRIPTURE).first()
+            waitNode(firstHit.title); capture("search")
+            val resultList = nodes().filter { it.isScrollable }.maxByOrNull { val rect = Rect(); it.getBoundsInScreen(rect); rect.height() }
+            val resultsBounds = Rect(); requireNotNull(resultList).getBoundsInScreen(resultsBounds)
+            assertTrue("Resultados precisam de espaço útil", resultsBounds.height() > instrumentation.targetContext.resources.displayMetrics.heightPixels * 0.3)
+            for (reference in listOf("Jo 3:16", "Jo 3:18")) {
+                click("Busca"); enter(reference); click("Pesquisar")
+                val result = requireNotNull(repository().resolveReference(reference, repository().scriptureEditions().first()))
+                capture("search-reference")
+                click("${result.title} ${result.chapter}:${result.verse}")
+                waitNode("${result.title} ${result.chapter}:${result.verse}")
+                waitNode(result.verse.toString())
+                assertFalse(nodes().any { it.text?.toString() in listOf("Idioma", "Anotar", "Favoritar", "Comentários no capítulo") })
+                val actual = decodePassage(preferences.lastPassage(), repository().scriptureEditions())
+                assertEquals(result.bookId, actual?.bookId); assertEquals(result.chapter, actual?.chapter)
+                assertEquals(result.verse, actual?.verse)
+            }
+            capture("reader")
+            click("Interlinear")
+            val requested = requireNotNull(repository().resolveReference("Jo3:18", repository().scriptureEditions().first()))
+            val originalEdition = repository().originalEditions(requested).first()
+            val originalUnit = repository().verses(requested.copy(edition = originalEdition)).first { it.number("verse_start") == 18 }
+            waitNode(originalUnit.text("display_address")); capture("interlinear")
+            assertFalse(nodes().any { label(it).contains("rawMorphologyCode") || label(it).contains("partOfSpeech") })
+            click("Comparação"); waitNode("${requested.title} 3:18")
+            click("Leitura"); waitNode("Voltar pra escolha", false)
+            back(); waitNode("Escrituras e textos antigos"); capture("books")
+            click("Gênesis"); waitNode("Escolha o capítulo", false); back(); waitNode("Escrituras e textos antigos")
+            click("Menu"); waitNode("Aparência e leitura"); waitNode("Pacotes"); capture("menu"); back()
+            println("FEEDBACK_UI_QA centredHome/searchExact/sameChapter/backBooks/readerTabs/centredMenu passed")
+        } finally { preferences.appearance = original }
+    }
+
+    @Test fun holdVerseRevealsActionsOnlyAfterTwoSeconds() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val original = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance(dockedComments = true, motion = false)
+            startAt("Gn12:2"); click("Leitura"); waitNode("Gênesis 12:2")
+            val passage = requireNotNull(repository().resolveReference("Gn12:2", repository().scriptureEditions().first()))
+            val verse = repository().verses(passage).first { it.number("verse_start") == 2 }
+            val bounds = Rect(); waitNode(verse.text("surface_text")).getBoundsInScreen(bounds)
+            val now = SystemClock.uptimeMillis()
+            val down = MotionEvent.obtain(now, now, MotionEvent.ACTION_DOWN, bounds.centerX().toFloat(), bounds.centerY().toFloat(), 0)
+            automation.injectInputEvent(down, true); down.recycle()
+            SystemClock.sleep(1000)
+            assertFalse(nodes().any { it.text?.toString() == "Anotar" })
+            SystemClock.sleep(1300)
+            val up = MotionEvent.obtain(now, SystemClock.uptimeMillis(), MotionEvent.ACTION_UP, bounds.centerX().toFloat(), bounds.centerY().toFloat(), 0)
+            automation.injectInputEvent(up, true); up.recycle()
+            waitNode("Anotar"); waitNode("Favoritar"); waitNode("Copiar versículo")
+            click("Fechar"); waitNode("Gênesis 12:2")
+            assertFalse(nodes().any { label(it).contains("Comentários no capítulo") })
+            println("HOLD_VERSE_QA actionsHidden/hold2seconds/dockReference2 passed")
+        } finally { preferences.appearance = original }
+    }
+
     @Test fun compactReaderCollapsedSourcesFiltersAndLibraryAction() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         startAt("Gn1:1")
@@ -103,14 +179,14 @@ class ReadingUiTest {
         val first = commentGroups(passage, repository.verses(passage), repository.comments(passage), repository.chapterTargets(passage)).first { it.verse == 1 }.comments.first()
         val title = first.text("source_title")
         waitNode(title)
-        assertFalse(nodes().any { it.text?.toString() == first.text("body") })
+        assertFalse(nodes().any { it.text?.toString() == readingParagraphs(first.text("body")) })
         click("Expandir comentário de $title")
         waitNode("Recolher ▴")
-        waitNode(first.text("body"))
+        waitNode(readingParagraphs(first.text("body")))
         click("Recolher comentário de $title")
-        assertFalse(nodes().any { it.text?.toString() == first.text("body") })
+        assertFalse(nodes().any { it.text?.toString() == readingParagraphs(first.text("body")) })
         click(title)
-        waitNode("Biblioteca ↗")
+        waitNode("Biblioteca ↗"); capture("source")
         assertFalse(nodes().any { label(it).contains("Detalhes técnicos") || label(it).contains("Fonte completa, página") })
         click("Biblioteca ↗")
         waitNode("Ver PDF original")
@@ -144,7 +220,7 @@ class ReadingUiTest {
         try {
             preferences.appearance = ReadingAppearance()
             startAt("Sl119:105"); click("Leitura"); waitNode("105")
-            click("Mais"); click("Aparência e leitura")
+            click("Menu"); click("Aparência e leitura")
             waitNode("Fonte de leitura"); click("Sem serifa"); click("Aumentar letra")
             reveal("Cinza"); click("Cinza")
             reveal("Comentários no painel inferior"); click("Comentários no painel inferior")

@@ -41,7 +41,9 @@ fun WordInspector(repository: MobileRepository, personal: PersonalRepository, ed
                 "Morfologia" -> Column {
                     Heading("Forma e análise")
                     Text("Lema: ${token.text("lemma_text").ifBlank { token.text("lemma_id") }}")
-                    Text("Código da fonte: ${token.text("morphology")}")
+                    val analysis = remember(token) { tokenMorphology(token.text("morphology")) }
+                    Text(analysis.description)
+                    if (analysis.code.isNotBlank()) Text("Código da fonte: ${analysis.code}", style = MaterialTheme.typography.labelSmall)
                     Text("Strong: ${token.text("strongs")}")
                     Text("O código é uma anotação linguística da fonte, não uma interpretação teológica.", Modifier.padding(top = 16.dp), style = MaterialTheme.typography.bodySmall)
                 }
@@ -69,12 +71,13 @@ fun OriginalTokens(repository: MobileRepository, personal: PersonalRepository, e
         else CompositionLocalProvider(LocalLayoutDirection provides if (tokens.first().text("language") in listOf("he", "hbo", "arc")) LayoutDirection.Rtl else LayoutDirection.Ltr) {
           androidx.compose.foundation.layout.FlowRow(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
             tokens.forEach { token ->
-                TextButton(onClick = { selected = token }) { Column {
-                    Text(token.text("surface_form"), fontSize = 23.sp)
+                Surface(onClick = { selected = token }, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small) { Column(Modifier.widthIn(min = 60.dp, max = 144.dp).padding(8.dp), horizontalAlignment = androidx.compose.ui.Alignment.CenterHorizontally) {
+                    Text(token.text("surface_form"), fontSize = 23.sp, color = MaterialTheme.colorScheme.primary)
                     if (interlinear) {
-                        Text(token.text("lemma_text").ifBlank { token.text("lemma_id") }, style = MaterialTheme.typography.labelSmall)
-                        Text(token.text("transliteration"), style = MaterialTheme.typography.labelSmall)
-                        Text(token.text("morphology"), style = MaterialTheme.typography.labelSmall)
+                        Text(token.text("transliteration"), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                        Text(token.text("lemma_text").ifBlank { "Lema não informado" }, style = MaterialTheme.typography.bodySmall)
+                        val analysis = remember(token) { tokenMorphology(token.text("morphology")) }
+                        Text(analysis.description, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant, maxLines = 3, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 } }
             }

@@ -1,5 +1,23 @@
 # Project Memory
 
+## Android — correções de uso 0.4.1 — 2026-10-21
+
+- Substitui decisões anteriores de Home junto à marca/duas colunas: Home centralizado,
+  Menu modal2×3 e livros em lista com emblemas locais. Seletor redundante de edição retirado;
+  originais/edições continuam disponíveis em Interlinear/Comparação no cabeçalho do leitor.
+- Busca separa Escrituras/Biblioteca/Exegese/Hermenêutica e conserva acadêmica/web. Assuntos
+  dependem da classificação existente nas associações; não é classificação completa de PDFs.
+- Destino da busca consumido uma vez com revisão de navegação, inclusive no mesmo capítulo;
+  capítulo isola carga assíncrona anterior. Voltar físico na passagem retorna aos livros.
+- Ações por versículo somente ao segurar2s; toque indica foco. Dock compacto com Filtrar central,
+  sem contagem redundante; âncora ignora sobra do versículo anterior. Comentários preservados.
+- Fonte em serifa limitada/refluxo visual de linhas; originais/offsets não alterados. Interlinear
+  em blocos, morfologia legível em vez de JSON, códigos preservados no inspetor.
+- 49 testes JVM, lint0 erros/22 avisos, build;6 cenários nativos103,058s e3 dados reais11,091s
+  aprovados.467 comentários em Gn1/14 leituras Trindade. Hash pessoal mantido no install-r.
+  QA exclusivo AVD porta5562; celular não conectado. Desktop/pipeline/schema/acervo preservados.
+- Relatório: docs/qa/android-usage-fixes-2026-10-21.md. Atualizar APK por cima, sem reimportar livros.
+
 ## Scriptorium Áudio — Fase 1 — 2026-10-21
 
 - `/audio`, navegação web/Mais e player único no shell; capítulo, versículo/intervalo e texto

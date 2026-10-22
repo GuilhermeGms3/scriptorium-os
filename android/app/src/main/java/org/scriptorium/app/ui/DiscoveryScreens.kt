@@ -18,10 +18,10 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
     var query by rememberSaveable { mutableStateOf("") }
     var submitted by rememberSaveable { mutableStateOf("") }
     val editions = remember { repository.scriptureEditions() }
-    var edition by remember { mutableStateOf(editions.first()) }
-    var editionMenu by remember { mutableStateOf(false) }
+    val edition = editions.firstOrNull { it.id.contains("biblia-livre") } ?: editions.firstOrNull()
+    if (edition == null) { Text("Instale uma edição das Escrituras para pesquisar."); return }
     var selected by remember { mutableStateOf<Row?>(null) }
-    var branch by rememberSaveable { mutableStateOf("Meu acervo") }
+    var branch by rememberSaveable { mutableStateOf("Escrituras") }
     var sense by rememberSaveable { mutableStateOf(false) }
     var language by rememberSaveable { mutableStateOf("all") }
     var openOnly by rememberSaveable { mutableStateOf(false) }
@@ -30,23 +30,24 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
     val scope = rememberCoroutineScope()
     val keyboard = androidx.compose.ui.platform.LocalSoftwareKeyboardController.current
     var feedback by remember { mutableStateOf<String?>(null) }
-    Column(Modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Heading("Busca no acervo", "Texto bíblico e páginas dos livros instalados. Consulta local por índice, sem percorrer os livros em memória.")
+    Column(Modifier.fillMaxSize().padding(horizontal = 16.dp), verticalArrangement = Arrangement.spacedBy(4.dp)) {
+        Text("Busca no acervo", style = MaterialTheme.typography.headlineSmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif)
+        Text("Encontre passagens e fontes.", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+        Text("O que deseja encontrar?", Modifier.fillMaxWidth().padding(top = 6.dp), textAlign = androidx.compose.ui.text.style.TextAlign.Center, style = MaterialTheme.typography.labelLarge)
         // The keyboard search key searches too, without finding the button below the options.
-        OutlinedTextField(query, { query = it.take(240) }, label = { Text("O que deseja encontrar?") }, placeholder = { Text("Jo 3:16, perdão, Agostinho…") }, modifier = Modifier.fillMaxWidth(), singleLine = true,
+        OutlinedTextField(query, { query = it.take(240) }, placeholder = { Text("Jo 3:16, perdão, Agostinho…") }, modifier = Modifier.fillMaxWidth(), shape = androidx.compose.foundation.shape.RoundedCornerShape(18.dp), singleLine = true,
+            textStyle = LocalTextStyle.current.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
             keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(imeAction = androidx.compose.ui.text.input.ImeAction.Search),
             keyboardActions = androidx.compose.foundation.text.KeyboardActions(onSearch = { if (query.trim().length >= 2) { submitted = query.trim(); page = 1; keyboard?.hide() } }))
         androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(listOf("Meu acervo", "Pesquisa acadêmica", "Na web")) { name -> FilterChip(branch == name, { branch = name; submitted = "" }, label = { Text(name) }) }
+            items(listOf("Escrituras", "Biblioteca", "Exegese", "Hermenêutica", "Pesquisa acadêmica", "Na web")) { name -> FilterChip(branch == name, { branch = name; submitted = "" }, label = { Text(name) }) }
         }
-        if (branch == "Meu acervo") Box {
-            TextButton(onClick = { editionMenu = true }) { Text(edition.title) }
-            DropdownMenu(expanded = editionMenu, onDismissRequest = { editionMenu = false }) {
-                editions.forEach { item -> DropdownMenuItem(text = { Text(item.title) }, onClick = { edition = item; editionMenu = false }) }
-            }
+        if (branch == "Exegese" || branch == "Hermenêutica") Text("Páginas com associações classificadas no acervo.", style = MaterialTheme.typography.labelSmall)
+        Box(Modifier.fillMaxWidth(), contentAlignment = androidx.compose.ui.Alignment.Center) {
+            if (branch == "Escrituras") FilterChip(sense, { sense = !sense }, label = { Text("Por sentido", style = MaterialTheme.typography.labelMedium) }, modifier = Modifier.align(androidx.compose.ui.Alignment.CenterStart))
+            Button(onClick = { submitted = query.trim(); page = 1; keyboard?.hide() }, enabled = query.trim().length >= 2, contentPadding = PaddingValues(horizontal = 20.dp, vertical = 8.dp)) { Text("Pesquisar") }
         }
-        if (branch == "Meu acervo") Row { Checkbox(sense, { sense = it }); Text("Por sentido · experimental", Modifier.padding(top = 12.dp)) }
-        if (branch == "Meu acervo" && sense) Text("A aproximação semântica pode recuperar contextos contrários ao desejado. Confira o texto e as fontes; a busca textual permanece disponível.", style = MaterialTheme.typography.labelSmall)
+        if (branch == "Escrituras" && sense) Text("Busca por proximidade de significado, não por frase exata.", style = MaterialTheme.typography.labelSmall)
         if (branch == "Pesquisa acadêmica") {
             Row {
                 listOf("all" to "Todos", "pt" to "PT", "en" to "EN", "es" to "ES").forEach { (id, label) -> FilterChip(language == id, { language = id }, label = { Text(label) }) }
@@ -54,45 +55,51 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
             Row { Checkbox(openOnly, { openOnly = it }); Text("Apenas acesso aberto", Modifier.padding(top = 12.dp)) }
             Text("Somente a consulta digitada é enviada ao OpenAlex após Pesquisar. Seus livros e notas não são enviados.", style = MaterialTheme.typography.labelSmall)
         }
-        Button(onClick = { submitted = query.trim(); page = 1; keyboard?.hide() }, enabled = query.trim().length >= 2) { Text("Pesquisar") }
         feedback?.let { Text(it) }
-        if (submitted.isNotBlank() && branch == "Na web") LazyColumn {
-            item { Text("Atalhos externos, não resultados importados nem fontes verificadas pelo Scriptorium.") }
-            items(ExternalResearch.links(submitted)) { (name, url) -> TextButton(onClick = {
-                safeExternalUrl(url)?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) }
-            }) { Text("├─ $name") } }
-        }
-        if (submitted.isNotBlank() && branch == "Pesquisa acadêmica") Load(listOf(submitted, language, openOnly, page), { ExternalResearch.academic(submitted, language, openOnly, page) }) { works -> LazyColumn {
-            items(works, key = { it.text("id") }) { work -> Column(Modifier.padding(vertical = 10.dp)) {
-                Text(work.text("title"), style = MaterialTheme.typography.titleMedium)
-                Text("${work.text("year")} · ${work.text("authors")}", style = MaterialTheme.typography.bodySmall)
-                Row {
-                    TextButton(onClick = { safeExternalUrl(work.text("url"))?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) } }) { Text("Abrir fonte") }
-                    TextButton(onClick = { scope.launch {
-                        try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { personal.saveReference(work.text("id"), work.text("title"), work.text("payload_json")) }; feedback = "Referência guardada na Biblioteca." }
-                        catch (failure: Exception) { feedback = failure.message }
-                    } }) { Text("Guardar referência") }
-                }
+        Box(Modifier.weight(1f).fillMaxWidth()) {
+            if (submitted.isNotBlank() && branch == "Na web") LazyColumn(Modifier.fillMaxSize()) {
+                item { Text("Atalhos externos, não resultados importados nem fontes verificadas pelo Scriptorium.") }
+                items(ExternalResearch.links(submitted)) { (name, url) -> TextButton(onClick = {
+                    safeExternalUrl(url)?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) }
+                }) { Text("├─ $name") } }
+            }
+            if (submitted.isNotBlank() && branch == "Pesquisa acadêmica") Load(listOf(submitted, language, openOnly, page), { ExternalResearch.academic(submitted, language, openOnly, page) }) { works -> LazyColumn {
+                items(works, key = { it.text("id") }) { work -> Column(Modifier.padding(vertical = 10.dp)) {
+                    Text(work.text("title"), style = MaterialTheme.typography.titleMedium)
+                    Text("${work.text("year")} · ${work.text("authors")}", style = MaterialTheme.typography.bodySmall)
+                    Row {
+                        TextButton(onClick = { safeExternalUrl(work.text("url"))?.let { context.startActivity(android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(it))) } }) { Text("Abrir fonte") }
+                        TextButton(onClick = { scope.launch {
+                            try { kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.IO) { personal.saveReference(work.text("id"), work.text("title"), work.text("payload_json")) }; feedback = "Referência guardada na Biblioteca." }
+                            catch (failure: Exception) { feedback = failure.message }
+                        } }) { Text("Guardar referência") }
+                    }
+                } }
+                item { Row {
+                    TextButton(enabled = page > 1, onClick = { page-- }) { Text("Anterior") }
+                    Text("$page", Modifier.padding(12.dp))
+                    TextButton(enabled = works.size == 10 && page < 10, onClick = { page++ }) { Text("Próxima") }
+                } }
             } }
-            item { Row {
-                TextButton(enabled = page > 1, onClick = { page-- }) { Text("Anterior") }
-                Text("$page", Modifier.padding(12.dp))
-                TextButton(enabled = works.size == 10 && page < 10, onClick = { page++ }) { Text("Próxima") }
-            } }
-        } }
-        if (submitted.isNotBlank() && branch == "Meu acervo") Load(Triple(submitted, edition, sense), {
-            val reference = repository.resolveReference(submitted, edition)
-            if (reference != null) listOf(SearchHit("${reference.title} ${reference.chapter}${reference.verse?.let { ":$it" }.orEmpty()}${reference.verseEnd?.let { "–$it" }.orEmpty()}", "Abrir diretamente no texto", passage = reference))
-            else if (sense) repository.semanticSearch(submitted, edition) else repository.search(submitted, edition)
-        }) { results ->
-            LazyColumn {
-                item { Text("${results.size} resultados · até 40 passagens e 40 páginas por consulta", style = MaterialTheme.typography.labelSmall) }
-                if (results.isEmpty()) item { Text("Nenhum resultado neste pacote.", Modifier.padding(16.dp)) }
-                items(results) { result ->
-                    ListItem(headlineContent = { Text(result.title) }, supportingContent = { Text(result.text) }, modifier = Modifier.clickable {
-                        result.passage?.let(open)
-                        result.page?.let { selected = it }
-                    })
+            if (submitted.isNotBlank() && branch in listOf("Escrituras", "Biblioteca", "Exegese", "Hermenêutica")) Load(listOf(submitted, edition, sense, branch), {
+                val reference = if (branch == "Escrituras") repository.resolveReference(submitted, edition) else null
+                if (reference != null) listOf(SearchHit("${reference.title} ${reference.chapter}${reference.verse?.let { ":$it" }.orEmpty()}${reference.verseEnd?.let { "–$it" }.orEmpty()}", "Abrir diretamente no texto", passage = reference))
+                else if (sense && branch == "Escrituras") repository.semanticSearch(submitted, edition) else repository.search(submitted, edition, when (branch) {
+                    "Biblioteca" -> LocalSearchScope.LIBRARY
+                    "Exegese" -> LocalSearchScope.EXEGESIS
+                    "Hermenêutica" -> LocalSearchScope.HERMENEUTICS
+                    else -> LocalSearchScope.SCRIPTURE
+                })
+            }) { results ->
+                LazyColumn {
+                    item { Text("${results.size} resultados · até 40 por consulta", style = MaterialTheme.typography.labelSmall) }
+                    if (results.isEmpty()) item { Text("Nenhum resultado neste pacote.", Modifier.padding(16.dp)) }
+                    items(results) { result ->
+                        ListItem(headlineContent = { Text(result.title) }, supportingContent = { Text(result.text) }, modifier = Modifier.clickable {
+                            result.passage?.let(open)
+                            result.page?.let { selected = it }
+                        })
+                    }
                 }
             }
         }

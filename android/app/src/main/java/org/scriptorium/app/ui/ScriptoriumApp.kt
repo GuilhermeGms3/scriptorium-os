@@ -58,23 +58,17 @@ fun ScriptoriumApp(model: AppModel) {
     fun importPackage() { importer.launch(arrayOf("application/zip", "application/octet-stream", "*/*")) }
     Scaffold(
         topBar = {
-            TopAppBar(title = {
-                Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                    Text("SCRIPTORIUM", Modifier.weight(1f, fill = false).clickable { navigate("Início") }, style = MaterialTheme.typography.titleMedium, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                    if (destination != "Início") TextButton(onClick = { navigate("Início") }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Home", style = MaterialTheme.typography.labelLarge) }
-                    if (destination == "Leitura" && readerHasPassage && state.ready && !state.busy)
-                        TextButton(onClick = { requestPanel = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Painel", style = MaterialTheme.typography.labelLarge) }
-                }
-            }, actions = {
-                Box {
-                    TextButton(onClick = { menu = true }) { Text("Mais") }
-                    DropdownMenu(expanded = menu, onDismissRequest = { menu = false }) {
-                        listOf("Início", "Aparência e leitura", "Mapa", "Rastro", "Pacotes", "Ajustes e backup").forEach { route ->
-                            DropdownMenuItem(text = { Text(route) }, onClick = { navigate(route); menu = false })
-                        }
+            Surface(color = MaterialTheme.colorScheme.surfaceContainer) {
+                Box(Modifier.fillMaxWidth().statusBarsPadding().height(64.dp).padding(horizontal = 12.dp)) {
+                    Text("SCRIPTORIUM", Modifier.align(androidx.compose.ui.Alignment.CenterStart).clickable { navigate("Início") }, style = MaterialTheme.typography.titleSmall)
+                    if (destination != "Início") TextButton(onClick = { navigate("Início") }, modifier = Modifier.align(androidx.compose.ui.Alignment.Center), contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Home", style = MaterialTheme.typography.labelLarge) }
+                    Row(Modifier.align(androidx.compose.ui.Alignment.CenterEnd), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        if (destination == "Leitura" && readerHasPassage && state.ready && !state.busy)
+                            TextButton(onClick = { requestPanel = true }, contentPadding = PaddingValues(horizontal = 4.dp)) { Text("Painel", style = MaterialTheme.typography.labelMedium) }
+                        TextButton(onClick = { menu = true }, contentPadding = PaddingValues(horizontal = 8.dp)) { Text("Menu", style = MaterialTheme.typography.labelMedium) }
                     }
                 }
-            })
+            }
         },
         bottomBar = {
             if (state.ready && !state.busy) NavigationBar {
@@ -112,7 +106,7 @@ fun ScriptoriumApp(model: AppModel) {
                 (fadeIn(tween(if (motion) 440 else 0)) + slideInVertically(tween(if (motion) 440 else 0)) { if (motion) it / 28 else 0 }).togetherWith(fadeOut(tween(if (motion) 140 else 0)))
             }, label = "Abrir módulo") { route -> screenState.SaveableStateProvider(route) {
                 when (route) {
-                    "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it })
+                    "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it }, { requestedPassage = null })
                     "Início" -> TodayScreen(model.repository, open = { requestedPassage = it; navigate("Leitura") }, openGuide = { requestedGuide = it; navigate("Estudos") })
                     "Biblioteca" -> LibraryScreen(model.repository, model.personal, requestedLibrary)
                     "Estudos" -> StudyScreen(model.repository, model.personal, requestedGuide, { requestedPassage = it; navigate("Leitura") }, { requestedLibrary = it; navigate("Biblioteca") })
@@ -124,6 +118,25 @@ fun ScriptoriumApp(model: AppModel) {
                     "Aparência e leitura" -> AppearanceSettings()
                 }
             } } }
+        }
+    }
+    if (menu) androidx.compose.ui.window.Dialog(onDismissRequest = { menu = false }) {
+        Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 8.dp) {
+            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                Text("Seu scriptorium", style = MaterialTheme.typography.titleLarge)
+                listOf("Início" to "Aparência e leitura", "Mapa" to "Rastro", "Pacotes" to "Ajustes e backup").forEach { pair ->
+                    Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        listOf(pair.first, pair.second).forEach { route ->
+                            OutlinedCard(onClick = { menu = false; navigate(route) }, modifier = Modifier.weight(1f).heightIn(min = 88.dp)) {
+                                Box(Modifier.fillMaxWidth().heightIn(min = 88.dp).padding(12.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                    Text(route, textAlign = androidx.compose.ui.text.style.TextAlign.Center, style = MaterialTheme.typography.labelLarge)
+                                }
+                            }
+                        }
+                    }
+                }
+                TextButton(onClick = { menu = false }, modifier = Modifier.align(androidx.compose.ui.Alignment.CenterHorizontally)) { Text("Voltar à página") }
+            }
         }
     }
 }

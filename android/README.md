@@ -10,7 +10,32 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
-## Uso no celular — 0.4.0
+## Correções de uso — 0.4.1
+
+- Home centralizado no cabeçalho em todos os módulos; Menu abre seis opções em uma janela
+  central com a página ao fundo escurecida. Painel continua exclusivo da passagem aberta.
+- Busca com cabeçalho curto, campo arredondado, Pesquisar central e resultados usando o espaço
+  restante. Escrituras/Biblioteca são separados; Exegese e Hermenêutica consultam páginas com
+  associações explicitamente classificadas no pacote. Não classificam todos os livros por inferência.
+  Pesquisa acadêmica e Na web continuam separados e acionados pelo usuário.
+- Por sentido usa o motor semântico local existente, apenas em Escrituras; a explicação curta
+  distingue proximidade de significado de frase exata. Sem novo modelo, serviço ou áudio.
+- Resultados da busca enviam endereço completo ao leitor, consumido uma vez e aplicado sobre
+  a passagem restaurada. Voltar do Android e Voltar pra escolha retornam ao catálogo de livros.
+- Livros em lista de retângulos com emblemas temáticos locais; Gênesis representa a origem.
+  O seletor de edição redundante foi retirado do cabeçalho; os originais e demais edições
+  continuam acessíveis pelo interlinear/comparação. Filtros e textos não canônicos foram preservados.
+- Leitura/Interlinear/Comparação acessíveis por abas. As ferramentas conservam a referência
+  visível e as relações reais por unidade; não criam alinhamento lexical inexistente.
+- Segurar o versículo por dois segundos abre Anotar, Favoritar, Interlinear e Copiar. A leitura
+  normal não repete botões por versículo. O painel deixa de ancorar em uma sobra do anterior.
+- Dock com referência, Filtrar e recolhimento em uma linha, sem a contagem redundante.
+  Filtros começam recolhidos. Todas as fontes existentes continuam disponíveis.
+- Janelas de comentários usam serifa de leitura, tamanho limitado e recomposição visual de
+  quebras de linha de PDF. Texto original, offsets da evidência e PDF não são alterados.
+
+## Histórico de uso — 0.4.0
+
 
 - **Home** fica junto ao nome Scriptorium. **Painel** aparece ao lado apenas em Leitura,
   quando uma passagem está aberta. O acesso flutuante Ir para… foi retirado.

@@ -29,7 +29,7 @@ internal fun CommentPreview(comment: Row, personal: PersonalRepository, source: 
                 TextButton(onClick = { expanded = !expanded }, modifier = Modifier.semantics { contentDescription = "${if (expanded) "Recolher" else "Expandir"} comentário de ${comment.text("source_title")}" }) { Text(if (expanded) "Recolher ▴" else "Expandir ▾", style = MaterialTheme.typography.labelMedium) }
             }
             if (expanded) {
-                Text(comment.text("body"), Modifier.padding(end = 6.dp, bottom = 12.dp), fontSize = (appearance.size * 0.77f).coerceAtLeast(14f).sp,
+                Text(readingParagraphs(comment.text("body")), Modifier.padding(end = 6.dp, bottom = 12.dp), fontSize = (appearance.size * 0.77f).coerceIn(14f, 18f).sp,
                     lineHeight = (appearance.size * 1.18f).coerceAtLeast(23f).sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(listOf(comment.commentCategories().joinToString(" · "), if (comment.text("mode") == "source-excerpt") "Trecho da fonte" else "Síntese contextual assistida").joinToString(" · "),
                     Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.labelSmall, color = accent)
@@ -43,9 +43,10 @@ internal fun CommentToolbar(comments: List<Row>, count: Int, explanations: Boole
     category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit, filtersOpen: Boolean, toggleFilters: () -> Unit) {
     Column {
         Row(Modifier.fillMaxWidth().padding(horizontal = 12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Text(if (explanations) "Comentários no capítulo · $count/${comments.size}" else "Comentários ocultos", Modifier.weight(1f), style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+            Spacer(Modifier.weight(1f))
             if (!explanations) TextButton(onClick = { toggle(true) }) { Text("Mostrar") }
             TextButton(onClick = toggleFilters) { Text("Filtrar${if (category != null || document != null) " ●" else " ▾"}") }
+            Spacer(Modifier.weight(1f))
         }
         if (filtersOpen) CommentFilters(comments, category, document, chooseCategory, chooseDocument)
     }
@@ -87,12 +88,14 @@ internal fun CommentsDock(groups: List<CommentGroup>, activeVerse: Int?, referen
     Surface(modifier, color = MaterialTheme.colorScheme.surface, shadowElevation = 6.dp) {
         Column {
             HorizontalDivider(color = MaterialTheme.colorScheme.secondary.copy(alpha = 0.6f))
-            Row(Modifier.fillMaxWidth().padding(start = 16.dp), verticalAlignment = Alignment.CenterVertically) {
-                Text("$reference${activeVerse?.let { ":$it" }.orEmpty()}", Modifier.weight(1f), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
-                TextButton(onClick = toggleExpanded) { Text(if (expanded) "Recolher painel ▾" else "Comentários ▴") }
+            Box(Modifier.fillMaxWidth().height(48.dp).padding(horizontal = 8.dp)) {
+                Text("$reference${activeVerse?.let { ":$it" }.orEmpty()}", Modifier.align(Alignment.CenterStart).widthIn(max = 120.dp), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                if (expanded) TextButton(onClick = toggleFilters, modifier = Modifier.align(Alignment.Center)) { Text("Filtrar${if (category != null || document != null) " ●" else " ▾"}", style = MaterialTheme.typography.labelMedium) }
+                TextButton(onClick = toggleExpanded, modifier = Modifier.align(Alignment.CenterEnd), contentPadding = PaddingValues(horizontal = 4.dp)) { Text(if (expanded) "Recolher painel ▾" else "Comentários ▴", style = MaterialTheme.typography.labelMedium) }
             }
             if (expanded) {
-                CommentToolbar(all, count, explanations, toggle, category, document, chooseCategory, chooseDocument, filtersOpen, toggleFilters)
+                if (!explanations) TextButton(onClick = { toggle(true) }) { Text("Mostrar comentários") }
+                if (filtersOpen) CommentFilters(all, category, document, chooseCategory, chooseDocument)
                 LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     if (groups.isEmpty()) item { Text(if (!explanations) "Ative Mostrar para consultar as fontes." else "Nenhum comentário corresponde a este capítulo e aos filtros.", style = MaterialTheme.typography.bodySmall) }
                     groups.forEach { group ->

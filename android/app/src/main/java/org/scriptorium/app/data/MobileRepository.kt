@@ -11,6 +11,8 @@ data class StudyReading(val id: String, val title: String, val reason: String, v
 
 data class SearchHit(val title: String, val text: String, val passage: Passage? = null, val page: Row? = null)
 
+enum class LocalSearchScope { ALL, SCRIPTURE, LIBRARY, EXEGESIS, HERMENEUTICS }
+
 fun Row.commentLabel(): String {
     val payload = JSONObject(text("payload_json"))
     if (payload.optString("referenceRole") == "proof-text") return "Texto-prova confessional · não equivale a exegese"
@@ -98,19 +100,26 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
     fun tokens(edition: Edition, unitId: String): List<Row> = corpus(edition) {
         it.rows("SELECT id,surface_form,lemma_id,lemma_text,morphology,strongs,transliteration,language FROM tokens WHERE text_unit_id=? ORDER BY position", listOf(unitId))
     }
-    fun search(value: String, edition: Edition): List<SearchHit> {
+    fun search(value: String, edition: Edition, scope: LocalSearchScope = LocalSearchScope.ALL): List<SearchHit> {
         val query = ftsQuery(value)
         if (query.isEmpty()) return emptyList()
-        val scripture = corpus(edition) { db ->
+        val scripture = if (scope !in setOf(LocalSearchScope.ALL, LocalSearchScope.SCRIPTURE)) emptyList() else corpus(edition) { db ->
             db.rows("""SELECT t.surface_text,t.work_id,w.title,a.* FROM text_units_fts f
                 JOIN text_units t ON t.id=f.text_unit_id JOIN works w ON w.id=t.work_id
                 JOIN text_addresses a ON a.text_unit_id=t.id WHERE text_units_fts MATCH ?
                 AND t.edition_id=? AND $preferredAddress ORDER BY bm25(text_units_fts) LIMIT 40""".trimIndent(), listOf(query, edition.id))
         }.map { row -> SearchHit(row.text("display_address"), row.text("surface_text"),
             Passage(edition, row.text("work_id"), row.text("book_id"), row.text("title"), row.number("chapter"), row.text("versification_scheme_id"), row["verse_start"]?.toIntOrNull(), row["verse_end"]?.toIntOrNull())) }
-        val pages = content { db -> db.rows("""SELECT p.id,p.document_id,p.page_index,d.title source_title,d.checksum,
+        val types = when (scope) {
+            LocalSearchScope.EXEGESIS -> listOf("exegetical-note", "exegetical-commentary", "textual-observation", "source-commentary")
+            LocalSearchScope.HERMENEUTICS -> listOf("methodological-guidance")
+            else -> emptyList()
+        }
+        // Classify each comment once, then use the spans primary key instead of a correlated page scan.
+        val subjectFilter = if (types.isEmpty()) "" else "AND p.id IN (SELECT s.page_id FROM spans s WHERE s.comment_id IN (SELECT c.id FROM comments c WHERE json_extract(c.payload_json,'$.contextualAnalysis.contentType') IN (${types.joinToString(",") { "?" }})))"
+        val pages = if (scope == LocalSearchScope.SCRIPTURE) emptyList() else content { db -> db.rows("""SELECT p.id,p.document_id,p.page_index,d.title source_title,d.checksum,d.pages document_pages,
             snippet(pages_fts,1,'','', ' … ',45) excerpt FROM pages_fts f JOIN pages p ON p.id=f.page_id
-            JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? ORDER BY bm25(pages_fts) LIMIT 40""".trimIndent(), listOf(query))
+            JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? $subjectFilter ORDER BY bm25(pages_fts) LIMIT 40""".trimIndent(), listOf(query) + types)
         }.map { SearchHit("${it.text("source_title")} · p. ${it.number("page_index") + 1}", it.text("excerpt"), page = it) }
         return scripture + pages
     }

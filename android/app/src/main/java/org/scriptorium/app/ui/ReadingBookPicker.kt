@@ -1,6 +1,7 @@
 package org.scriptorium.app.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.grid.*
@@ -66,12 +67,12 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             }
             val visible = books.filter { filter in listOf("Todos", "Bíblia") && (group == null || repository.navigation.group(it.text("book_id")) == group) && normalizedReading(it.text("title")).contains(normalizedReading(query)) }
             val additional = extras.filter { (filter == "Todos" || filter in it.tags) && normalizedReading(it.row.text("title")).contains(normalizedReading(query)) }
-            LazyVerticalGrid(GridCells.Fixed(2), contentPadding = PaddingValues(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            LazyColumn(contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 visible.groupBy { repository.navigation.group(it.text("book_id")) }.forEach { (name, rows) ->
-                    item(span = { GridItemSpan(2) }) { Text(name, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
-                    items(rows, key = { "bible:${it.text("id")}" }) { row -> BookTile(row.text("title"), "${row.number("chapters")} capítulos", repository.navigation.symbol(row.text("book_id"))) { chooseBook(row.text("id")) } }
+                    item { Text(name, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
+                    items(rows, key = { "bible:${it.text("id")}" }) { row -> BookTile(row.text("title"), "${row.number("chapters")} capítulos", repository.navigation.symbol(row.text("book_id")), row.text("book_id")) { chooseBook(row.text("id")) } }
                 }
-                if (additional.isNotEmpty()) item(span = { GridItemSpan(2) }) {
+                if (additional.isNotEmpty()) item {
                     Heading("Outros textos do acervo", "Textos não canônicos e fontes históricas permanecem distintos da edição bíblica. Os rótulos não definem o cânon de todas as tradições.")
                 }
                 items(additional, key = { "${it.kind}:${it.row.text("id")}" }) { extra ->
@@ -80,20 +81,69 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
                         else page(extra.row + mapOf("document_id" to extra.row.text("id"), "source_title" to extra.row.text("title"), "page_index" to "0", "document_pages" to extra.row.text("pages")))
                     }
                 }
-                if (filter != "Bíblia" && extraResult == null) item(span = { GridItemSpan(2) }) { LinearProgressIndicator(Modifier.fillMaxWidth()) }
-                if (filter != "Bíblia" && extraResult?.isFailure == true) item(span = { GridItemSpan(2) }) { Text("Não foi possível consultar os textos antigos. Abra novamente esta seleção para tentar de novo.") }
-                if (visible.isEmpty() && additional.isEmpty() && (filter == "Bíblia" || extraResult?.isSuccess == true)) item(span = { GridItemSpan(2) }) { Text("Nenhum texto instalado corresponde a este filtro. O catálogo de Nag Hammadi continua em Biblioteca; uma entrada de catálogo não equivale ao texto integral.", Modifier.padding(vertical = 20.dp)) }
+                if (filter != "Bíblia" && extraResult == null) item { LinearProgressIndicator(Modifier.fillMaxWidth()) }
+                if (filter != "Bíblia" && extraResult?.isFailure == true) item { Text("Não foi possível consultar os textos antigos. Abra novamente esta seleção para tentar de novo.") }
+                if (visible.isEmpty() && additional.isEmpty() && (filter == "Bíblia" || extraResult?.isSuccess == true)) item { Text("Nenhum texto instalado corresponde a este filtro. O catálogo de Nag Hammadi continua em Biblioteca; uma entrada de catálogo não equivale ao texto integral.", Modifier.padding(vertical = 20.dp)) }
             }
         }
     }
 }
 
 @Composable
-private fun BookTile(title: String, detail: String, symbol: String, open: () -> Unit) {
-    Surface(onClick = open, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth().heightIn(min = 112.dp)) {
-        Box(Modifier.padding(14.dp)) {
-            Text(symbol, Modifier.align(Alignment.BottomEnd).clearAndSetSemantics { }, color = MaterialTheme.colorScheme.primary.copy(alpha = 0.13f), fontSize = 64.sp)
-            Column { Text(title, fontFamily = FontFamily.Serif, fontSize = 19.sp); Text(detail, Modifier.padding(top = 8.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary) }
+private fun BookTile(title: String, detail: String, symbol: String, bookId: String = "", open: () -> Unit) {
+    Surface(onClick = open, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
+        Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+            BookEmblem(bookId, symbol)
+            Column(Modifier.weight(1f)) {
+                Text(title, fontFamily = FontFamily.Serif, fontSize = 19.sp)
+                Text(detail, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+            }
+            Text("›", color = MaterialTheme.colorScheme.primary, fontSize = 24.sp)
         }
+    }
+}
+
+/** Small local vector illustration; no image downloads or new book assets. */
+@Composable
+private fun BookEmblem(bookId: String, symbol: String) {
+    val bronze = MaterialTheme.colorScheme.primary
+    Box(Modifier.size(44.dp).clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
+        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
+            val centre = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
+            drawCircle(bronze.copy(alpha = 0.1f))
+            drawCircle(bronze.copy(alpha = 0.4f), radius = size.width * 0.44f, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
+            if (bookId == "genesis") {
+                drawCircle(bronze, radius = size.width * 0.12f)
+                repeat(8) { index ->
+                    val angle = index * Math.PI / 4
+                    val start = centre + androidx.compose.ui.geometry.Offset((kotlin.math.cos(angle) * size.width * 0.23).toFloat(), (kotlin.math.sin(angle) * size.height * 0.23).toFloat())
+                    val end = centre + androidx.compose.ui.geometry.Offset((kotlin.math.cos(angle) * size.width * 0.34).toFloat(), (kotlin.math.sin(angle) * size.height * 0.34).toFloat())
+                    drawLine(bronze, start, end, strokeWidth = 1.5.dp.toPx())
+                }
+            }
+        }
+        if (bookId != "genesis") Text(when (bookId) {
+            "exodus" -> "🌊"
+            "leviticus", "1-maccabees", "2-maccabees" -> "🔥"
+            "numbers" -> "🏕"
+            "deuteronomy", "ezra", "nehemiah" -> "📜"
+            "joshua" -> "🏞"
+            "judges" -> "⚖"
+            "ruth" -> "🌾"
+            "1-samuel", "2-samuel", "1-kings", "2-kings", "1-chronicles", "2-chronicles", "esther" -> "♛"
+            "job" -> "🕯"
+            "psalms" -> "♫"
+            "proverbs", "wisdom", "sirach" -> "🦉"
+            "ecclesiastes" -> "⌛"
+            "song-of-songs" -> "🌹"
+            "lamentations" -> "💧"
+            "jonah" -> "🐟"
+            "daniel", "revelation" -> "✦"
+            "isaiah", "jeremiah", "ezekiel", "hosea", "joel", "amos", "obadiah", "micah", "nahum", "habakkuk", "zephaniah", "haggai", "zechariah", "malachi", "baruch" -> "📯"
+            "matthew", "mark", "luke", "john" -> "✝"
+            "acts" -> "🕊"
+            "romans", "1-corinthians", "2-corinthians", "galatians", "ephesians", "philippians", "colossians", "1-thessalonians", "2-thessalonians", "1-timothy", "2-timothy", "titus", "philemon", "hebrews", "james", "1-peter", "2-peter", "1-john", "2-john", "3-john", "jude" -> "✉"
+            else -> symbol
+        }, fontSize = 25.sp, color = bronze)
     }
 }
