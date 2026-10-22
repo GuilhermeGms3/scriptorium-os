@@ -298,7 +298,7 @@ export function NotesWorkspace({
           role="alert"
           className="border-b border-destructive/40 px-4 py-3 text-sm text-destructive"
         >
-          O workspace está indisponível. {workspaceError} As notas não foram apagadas.
+          O ambiente de estudo está indisponível. {workspaceError} As notas não foram apagadas.
         </p>
       )}
       {error && (

@@ -32,6 +32,7 @@ import {
   claimKindLabel,
   formatNumber,
   passageLabel,
+  researchQuestionStatusLabel,
   reviewStatusLabel,
   statusLabel,
   supportLevelLabel,
@@ -739,12 +740,14 @@ export function PassageInspector() {
                         className="rounded border border-border bg-muted/30 p-2.5"
                       >
                         <p className="text-xs font-medium">{question.question}</p>
-                        <p className="mt-1 meta-label text-muted-foreground">{question.status}</p>
+                        <p className="mt-1 meta-label text-muted-foreground">
+                          {researchQuestionStatusLabel(question.status)}
+                        </p>
                         <Link
                           to="/study"
                           className="mt-1 inline-block text-xs underline underline-offset-2"
                         >
-                          Abrir workspace
+                          Abrir estudos
                         </Link>
                       </li>
                     ))}

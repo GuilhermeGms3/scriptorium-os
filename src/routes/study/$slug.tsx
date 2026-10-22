@@ -48,7 +48,7 @@ function StudyWorkspace() {
   const [questionError, setQuestionError] = useState<string>();
 
   if (!study && workspacePersistence === "loading")
-    return <p className="p-8 text-sm text-muted-foreground">Abrindo workspace local…</p>;
+    return <p className="p-8 text-sm text-muted-foreground">Abrindo o estudo…</p>;
   if (!study)
     return (
       <div className="p-8">

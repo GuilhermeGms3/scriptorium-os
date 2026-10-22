@@ -5,6 +5,7 @@ import type { Citation } from "../../lib/domain/bibliography";
 import type { SourceDetails } from "../../lib/repositories/library-repository";
 import { EntityRelationPicker } from "../common/entity-relation-picker";
 import { AppLink } from "../common/app-link";
+import { citationKindLabel } from "../../lib/i18n";
 
 export function ResourceDetails({
   details,
@@ -42,7 +43,7 @@ export function ResourceDetails({
       setContent("");
       setPage("");
       setClaimId("");
-      setStatus("Citação persistida no workspace local.");
+      setStatus("Citação salva.");
       await onChanged?.();
     } catch (cause) {
       setStatus(cause instanceof Error ? cause.message : String(cause));
@@ -167,7 +168,7 @@ export function ResourceDetails({
             {citations.map((citation) => (
               <li key={citation.id} className="border-l-2 border-primary/40 pl-3">
                 <p className="meta-label text-muted-foreground">
-                  {citation.contentKind.replaceAll("-", " ")} ·{" "}
+                  {citationKindLabel(citation.contentKind)} ·{" "}
                   {citation.locator?.canonicalLocator ??
                     citation.locator?.pageStart ??
                     "sem localizador"}

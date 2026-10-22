@@ -7,6 +7,7 @@ import type {
 import { EvidenceTag } from "../knowledge/knowledge-entity";
 import {
   argumentRelationLabel,
+  citationKindLabel,
   formatNumber,
   reviewStatusLabel,
   supportLevelLabel,
@@ -203,7 +204,7 @@ export function ExplorerContent({
           title="Citações acadêmicas"
           items={citations.map(
             (citation) =>
-              `${citation.contentKind}: ${citation.originalText ?? citation.note ?? citation.locator?.canonicalLocator ?? citation.locator?.pageStart ?? citation.id}`,
+              `${citationKindLabel(citation.contentKind)}: ${citation.originalText ?? citation.note ?? citation.locator?.canonicalLocator ?? citation.locator?.pageStart ?? citation.id}`,
           )}
         />
         {sourceLinks.length > 0 && (

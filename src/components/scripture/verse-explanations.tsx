@@ -1,7 +1,7 @@
 import { BookOpenCheck, Quote } from "lucide-react";
 import type { PassageAnalysis } from "../../lib/domain/analysis";
 import type { KnowledgeClaim, TextAnchor } from "../../lib/domain/knowledge";
-import { reviewStatusLabel, studyLensPresentation } from "../../lib/i18n";
+import { claimKindLabel, reviewStatusLabel, studyLensPresentation } from "../../lib/i18n";
 import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import type { SourceFragment, SourceReference } from "../../lib/domain/source";
 
@@ -103,7 +103,7 @@ export function VerseExplanations({
               <div>
                 <p className="commentary-text">{claim.proposition}</p>
                 <p className="mt-1 font-mono text-xs text-muted-foreground">
-                  {claim.kind.replaceAll("-", " ")} · {reviewStatusLabel(claim.reviewStatus)}
+                  {claimKindLabel(claim.kind)} · {reviewStatusLabel(claim.reviewStatus)}
                 </p>
                 {sources?.fragments
                   .filter((fragment) => claim.sourceFragmentIds.includes(fragment.id))

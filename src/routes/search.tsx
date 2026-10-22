@@ -134,8 +134,9 @@ function SearchPage() {
               aria-label="Configuração da busca por sentido"
             >
               <p>
-                Combina palavras e embeddings locais. A relevância não indica verdade teológica e
-                não usa LLM geradora.
+                Encontra versículos de sentido parecido, mesmo com outras palavras. Tudo roda neste
+                computador. A ordem dos resultados não indica verdade teológica, e nenhum texto é
+                gerado por inteligência artificial.
               </p>
               <label className="flex w-full min-w-0 flex-wrap items-center gap-2">
                 Edição

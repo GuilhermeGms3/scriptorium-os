@@ -202,7 +202,7 @@ export function CoursePrivateReadings({
               {current.item.pages.map((p) => p + 1).join(", ")} ·{" "}
               {current.item.reviewState === "confirmed"
                 ? "vínculo conferido individualmente"
-                : "vínculo publicado pelo pipeline"}
+                : "vínculo publicado pelo processamento do acervo"}
             </p>
             <blockquote className="course-original-source" lang={current.item.document.language}>
               {current.item.unit.text}

@@ -4,6 +4,7 @@ import {
   KnowledgeRepository,
   type KnowledgeSearchHit,
 } from "../../lib/repositories/knowledge-repository";
+import { knowledgeKindLabel } from "../../lib/i18n";
 
 export function EntityRelationPicker({
   allowedKinds,
@@ -68,7 +69,7 @@ export function EntityRelationPicker({
               >
                 <span className="block font-medium">{hit.label}</span>
                 <span className="text-xs uppercase text-muted-foreground">
-                  {hit.kind.replaceAll("-", " ")}
+                  {knowledgeKindLabel(hit.kind)}
                 </span>
               </button>
             </li>

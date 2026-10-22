@@ -322,11 +322,11 @@ export function NoteDocumentEditor({
       <footer className="flex flex-wrap items-center justify-between gap-2 border-t border-border px-5 py-2 text-xs text-muted-foreground">
         <span role="status">
           {busy
-            ? "Salvando no workspace…"
+            ? "Salvando…"
             : draft.dirty
               ? "Alterações não salvas · Ctrl+S para salvar"
               : draft.id
-                ? "Alterações salvas no workspace"
+                ? "Alterações salvas"
                 : "Novo documento · escreva e salve sua nota"}
         </span>
         <span>

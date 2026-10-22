@@ -373,6 +373,49 @@ const ARGUMENT_RELATION_LABELS: Readonly<Record<string, string>> = {
   influences: "influencia",
 };
 
+const RESEARCH_QUESTION_STATUS_LABELS: Readonly<Record<string, string>> = {
+  open: "Aberta",
+  investigating: "Investigando",
+  provisional: "Provisória",
+  answered: "Respondida",
+  archived: "Arquivada",
+};
+
+export function researchQuestionStatusLabel(status: string): string {
+  return RESEARCH_QUESTION_STATUS_LABELS[status] ?? status.replaceAll("-", " ");
+}
+
+const CITATION_KIND_LABELS: Readonly<Record<string, string>> = {
+  "exact-quote": "Citação literal",
+  paraphrase: "Paráfrase",
+  summary: "Resumo",
+  "reference-only": "Só a referência",
+};
+
+export function citationKindLabel(kind: string): string {
+  return CITATION_KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
+}
+
+const KNOWLEDGE_KIND_LABELS: Readonly<Record<string, string>> = {
+  "knowledge-entity": "Registro",
+  "theological-topic": "Tema",
+  doctrine: "Doutrina",
+  tradition: "Tradição",
+  school: "Escola",
+  method: "Método",
+  "epistemic-stance": "Postura epistemológica",
+  "interpretive-framework": "Sistema interpretativo",
+  position: "Posição",
+  theory: "Teoria",
+  claim: "Proposição",
+  argument: "Argumento",
+  lexeme: "Palavra do léxico",
+};
+
+export function knowledgeKindLabel(kind: string): string {
+  return KNOWLEDGE_KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
+}
+
 export function argumentRelationLabel(relation: string): string {
   return ARGUMENT_RELATION_LABELS[relation] ?? relation.replaceAll("-", " ");
 }

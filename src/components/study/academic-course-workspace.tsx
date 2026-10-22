@@ -576,7 +576,7 @@ function CourseModuleWorkspace({
               : saved?.completedAt
                 ? "Etapa concluída; você pode revisitar as leituras."
                 : saved
-                  ? "Progresso salvo neste workspace."
+                  ? "Progresso salvo."
                   : "Seu progresso será salvo ao confirmar.")}
         </p>
         <div>

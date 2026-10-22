@@ -85,7 +85,7 @@ function DossierEvidence({
             {item.context.authors.join(" · ") || "Autoria não cadastrada"} ·{" "}
             {item.reviewState === "confirmed"
               ? "Ligação conferida individualmente"
-              : "Ligação publicada pelo pipeline"}{" "}
+              : "Ligação publicada pelo processamento do acervo"}{" "}
             ·{" "}
             {item.passageRelation.payload.referenceRole === "lexical-mention"
               ? "Menção lexical"

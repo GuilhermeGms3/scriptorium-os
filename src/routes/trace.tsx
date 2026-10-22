@@ -43,7 +43,7 @@ const EVENT_LABELS = {
   removed: "Ligação removida durante alteração ou reprocessamento",
 };
 const STATUS_LABELS: Record<string, string> = {
-  "machine-visible": "Visível pelo pipeline",
+  "machine-visible": "Publicado automaticamente",
   exception: "Exceção para auditoria",
   withheld: "Retida",
   revoked: "Revogada",
@@ -272,7 +272,7 @@ function TraceDetail({
             </summary>
             <p className="mt-3 whitespace-pre-wrap text-sm leading-relaxed">
               {detail.unit?.text ||
-                "Texto original indisponível neste workspace. Reimporte o PDF original para recuperar as páginas."}
+                "Texto original indisponível neste ambiente de estudo. Reimporte o PDF original para recuperar as páginas."}
             </p>
             <dl className="mt-4 space-y-2 break-all text-xs text-muted-foreground">
               <div>
@@ -473,7 +473,7 @@ function TraceHistory() {
         }
       />
       {!search.proposal && <ContextualReadingImport />}
-      {!state.data && !state.error && <p role="status">Carregando registros do workspace…</p>}
+      {!state.data && !state.error && <p role="status">Carregando registros…</p>}
       {state.error && (
         <div role="alert" className="space-y-2 text-sm">
           <p>Não foi possível abrir o Rastro: {state.error}</p>

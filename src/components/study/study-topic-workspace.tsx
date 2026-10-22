@@ -208,8 +208,8 @@ export function StudyTopicWorkspace({
       )}
       {workspacePersistence === "unavailable" && (
         <p role="alert" className="mb-4 text-sm text-destructive">
-          Seu workspace está indisponível. As fontes públicas continuam acessíveis; notas não podem
-          ser salvas agora.
+          Seu ambiente de estudo está indisponível. As fontes públicas continuam acessíveis; notas
+          não podem ser salvas agora.
         </p>
       )}
       {workspacePersistence === "memory" && (

@@ -168,8 +168,8 @@ function PersonalInvestigations({
             Investigações pessoais
           </h2>
           <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
-            Estudos são workspaces locais: perguntas, passagens, fontes, notas e conclusões
-            provisórias permanecem juntos e podem ser retomados.
+            Cada estudo reúne perguntas, passagens, fontes, notas e conclusões provisórias, e pode
+            ser retomado quando quiser.
           </p>
 
           <form onSubmit={(event) => void onSubmit(event)} className="mt-5 flex max-w-xl gap-2">
@@ -222,7 +222,7 @@ function PersonalInvestigations({
 
         <aside className="border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
           <p className="meta-label">Portabilidade</p>
-          <h2 className="mt-1 text-sm font-medium">Backup do workspace</h2>
+          <h2 className="mt-1 text-sm font-medium">Cópia de segurança dos estudos e notas</h2>
           <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
             Exporte perguntas, notas e estudos antes de trocar de navegador, origem ou dispositivo.
           </p>
