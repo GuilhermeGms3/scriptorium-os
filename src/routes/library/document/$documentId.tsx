@@ -208,7 +208,7 @@ function PrivateDocumentReaderPage() {
       </header>
 
       <div className="grid min-h-0 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(340px,400px)] lg:overflow-hidden">
-        <main className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
+        <section aria-label="Página do documento" className="min-w-0 lg:min-h-0 lg:overflow-y-auto">
           <div className="sticky top-0 z-10 flex flex-wrap items-center gap-2 border-b border-border bg-background/95 px-4 py-2 backdrop-blur md:px-6">
             <button
               type="button"
@@ -403,7 +403,7 @@ function PrivateDocumentReaderPage() {
           ) : (
             <p className="p-8 text-sm text-destructive">Página não encontrada.</p>
           )}
-        </main>
+        </section>
 
         <aside
           ref={panelRef}

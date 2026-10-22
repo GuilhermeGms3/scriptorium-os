@@ -16,6 +16,7 @@ import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
 import type { Study } from "../../lib/domain/study";
 import { StudyBranchConstellation } from "./study-branch-constellation";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
+import { useIsMobile } from "../../hooks/use-mobile";
 
 const BRANCH_CENTERS = {
   biblia: { x: 390, y: 205 },
@@ -36,6 +37,7 @@ export function StudyLearningMap({
   const [focused, setFocused] = useState("");
   const [selectedGroup, setSelectedGroup] = useState("");
   const [query, setQuery] = useState("");
+  const isMobile = useIsMobile();
   const catalog = useWorkspaceQuery(["knowledge-entities"], () =>
     KnowledgeQueryService.listEntities(),
   );
@@ -66,6 +68,22 @@ export function StudyLearningMap({
       y: center.y + (i - (count - 1) / 2) * 41,
     }));
   });
+  const isStarted = (leaf: (typeof leaves)[number]) => {
+    const path = leaf.node?.pathId ? studyPathById(leaf.node.pathId) : undefined;
+    return !!path && studyPathProgress(path, studies).state === "started";
+  };
+  const openGroup = (key: string) => {
+    setSelectedGroup(key);
+    setQuery("");
+    requestAnimationFrame(() =>
+      document.getElementById("study-branch-content")?.scrollIntoView({
+        block: "start",
+        behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
+          ? "instant"
+          : "smooth",
+      }),
+    );
+  };
   return (
     <section aria-label="Árvore de estudos e fontes" className="study-atlas">
       <nav aria-label="Ramos de estudo" className="atlas-journeys">
@@ -94,159 +112,222 @@ export function StudyLearningMap({
           </button>
         ))}
       </nav>
-      <div
-        className="atlas-viewport"
-        tabIndex={0}
-        aria-label="Diagrama de estudo; role horizontalmente em telas menores"
-      >
-        <div className="atlas-canvas">
-          <svg viewBox="0 0 1280 730" className="absolute inset-0 size-full" aria-hidden="true">
-            <g className="atlas-orbits" fill="none" stroke="currentColor">
-              <circle cx="640" cy="365" r="125" />
-              <circle cx="640" cy="365" r="153" strokeDasharray="2 9" />
-              <circle cx="640" cy="365" r="181" />
-              <path d="M435 365H845M640 160V570" strokeDasharray="2 8" />
-            </g>
+      {/* The diagram needs 1060 px; on a phone the same routes and groups come as a list. */}
+      {isMobile ? (
+        <div className="space-y-6 px-5 py-4">
+          <div className="flex flex-wrap gap-2">
+            <Link
+              to="/study/guide/$topic"
+              params={{ topic: "teologia" }}
+              className="inline-flex min-h-11 items-center gap-2 rounded-md border border-border px-3 text-sm font-medium"
+            >
+              <span aria-hidden="true">✦</span> Teologia: estudar e relacionar
+            </Link>
+            <Link
+              to="/study"
+              search={{ view: "notebook" }}
+              className="inline-flex min-h-11 items-center rounded-md border border-border px-3 text-sm"
+            >
+              Minhas notas · {notes.length}
+            </Link>
+          </div>
+          {STUDY_JOURNEYS.filter((journey) => !focused || focused === journey.id).map((journey) => (
+            <section key={journey.id} data-journey={journey.id} aria-label={journey.title}>
+              <Link
+                to="/study/guide/$topic"
+                params={{ topic: JOURNEY_GUIDE_IDS[journey.id] }}
+                className="flex min-h-11 items-center justify-between gap-3 border-b border-border font-serif text-lg font-semibold"
+              >
+                {journey.title}
+                <span className="inline-flex items-center gap-1 font-sans text-sm font-normal text-primary">
+                  Abrir percurso <ArrowRight className="size-4" />
+                </span>
+              </Link>
+              <ul className="mt-1">
+                {leaves
+                  .filter((leaf) => leaf.journeyId === journey.id)
+                  .map((leaf) => (
+                    <li key={leaf.key}>
+                      {leaf.node ? (
+                        <Link
+                          to="/study/guide/$topic"
+                          params={{ topic: guideIdForNode(leaf.node) }}
+                          className="flex min-h-11 items-center gap-2 py-2 text-sm"
+                        >
+                          {isStarted(leaf) && (
+                            <Check className="size-4 text-primary" aria-label="iniciada" />
+                          )}
+                          {leaf.title}
+                        </Link>
+                      ) : (
+                        <button
+                          type="button"
+                          aria-pressed={selectedGroup === leaf.key}
+                          aria-controls="study-branch-content"
+                          onClick={() => openGroup(leaf.key)}
+                          className="flex min-h-11 w-full items-center justify-between gap-2 py-2 text-left text-sm"
+                        >
+                          {leaf.title}
+                          <span className="text-xs text-muted-foreground">
+                            {leaf.group?.entities.length} registros
+                          </span>
+                        </button>
+                      )}
+                    </li>
+                  ))}
+              </ul>
+            </section>
+          ))}
+        </div>
+      ) : (
+        <div
+          className="atlas-viewport"
+          tabIndex={0}
+          aria-label="Diagrama de estudo; role horizontalmente em telas menores"
+        >
+          <div className="atlas-canvas">
+            <svg viewBox="0 0 1280 730" className="absolute inset-0 size-full" aria-hidden="true">
+              <g className="atlas-orbits" fill="none" stroke="currentColor">
+                <circle cx="640" cy="365" r="125" />
+                <circle cx="640" cy="365" r="153" strokeDasharray="2 9" />
+                <circle cx="640" cy="365" r="181" />
+                <path d="M435 365H845M640 160V570" strokeDasharray="2 8" />
+              </g>
+              {STUDY_JOURNEYS.map((journey) => {
+                const p = BRANCH_CENTERS[journey.id];
+                return (
+                  <line
+                    key={journey.id}
+                    data-journey={journey.id}
+                    x1={CENTER.x}
+                    y1={CENTER.y}
+                    x2={p.x}
+                    y2={p.y}
+                    className={clsx(
+                      "atlas-line",
+                      focused && focused !== journey.id && "opacity-15",
+                    )}
+                  />
+                );
+              })}
+              {leaves.map((leaf) => {
+                const p = BRANCH_CENTERS[leaf.journeyId];
+                return (
+                  <path
+                    key={leaf.key}
+                    data-journey={leaf.journeyId}
+                    d={`M${p.x} ${p.y} C${leaf.left ? p.x - 90 : p.x + 90} ${p.y},${leaf.left ? leaf.x + 55 : leaf.x - 55} ${leaf.y},${leaf.x} ${leaf.y}`}
+                    className={clsx(
+                      "atlas-line",
+                      focused && focused !== leaf.journeyId && "opacity-15",
+                    )}
+                    fill="none"
+                  />
+                );
+              })}
+              <line
+                x1="640"
+                y1="445"
+                x2="640"
+                y2="590"
+                stroke="currentColor"
+                strokeWidth="1"
+                strokeDasharray="3 7"
+                className="text-primary opacity-40"
+              />
+            </svg>
+            <Link to="/study" search={{ view: "notebook" }} className="atlas-personal">
+              <span className="topic-orb" />
+              <span>Minhas notas</span>
+              <small>
+                {notes.length} {notes.length === 1 ? "nota" : "notas"} · conexões pessoais
+              </small>
+            </Link>
+            <Link
+              to="/study/guide/$topic"
+              params={{ topic: "teologia" }}
+              className="atlas-origin"
+              style={{ left: "50%", top: "50%" }}
+              aria-label="Abrir guia: Teologia"
+            >
+              <span className="meta-label">Estudar e relacionar</span>
+              <span>Teologia</span>
+              <span className="atlas-origin-star" aria-hidden="true">
+                ✦
+              </span>
+            </Link>
             {STUDY_JOURNEYS.map((journey) => {
               const p = BRANCH_CENTERS[journey.id];
               return (
-                <line
+                <Link
                   key={journey.id}
+                  to="/study/guide/$topic"
+                  params={{ topic: JOURNEY_GUIDE_IDS[journey.id] }}
                   data-journey={journey.id}
-                  x1={CENTER.x}
-                  y1={CENTER.y}
-                  x2={p.x}
-                  y2={p.y}
-                  className={clsx("atlas-line", focused && focused !== journey.id && "opacity-15")}
-                />
+                  className={clsx(
+                    "atlas-branch",
+                    focused && focused !== journey.id && "opacity-25",
+                  )}
+                  style={{ left: `${p.x / 12.8}%`, top: `${p.y / 7.3}%` }}
+                >
+                  <span>{journey.title}</span>
+                  <span className="atlas-branch-caption">
+                    Abrir percurso <ArrowRight className="size-3" />
+                  </span>
+                </Link>
               );
             })}
             {leaves.map((leaf) => {
-              const p = BRANCH_CENTERS[leaf.journeyId];
-              return (
-                <path
+              const node = leaf.node;
+              const started = isStarted(leaf);
+              const content = (
+                <>
+                  <span className="atlas-leaf-dot">{started && <Check className="size-3" />}</span>
+                  <span className="atlas-leaf-label">
+                    {leaf.title}
+                    {leaf.group && <small>{leaf.group.entities.length} registros</small>}
+                  </span>
+                </>
+              );
+              const common = {
+                "data-journey": leaf.journeyId,
+                className: clsx(
+                  "atlas-leaf",
+                  leaf.left && "atlas-leaf-left",
+                  focused && focused !== leaf.journeyId && "opacity-25",
+                ),
+                style: { left: `${leaf.x / 12.8}%`, top: `${leaf.y / 7.3}%` },
+              };
+              return node ? (
+                <Link
+                  {...common}
                   key={leaf.key}
-                  data-journey={leaf.journeyId}
-                  d={`M${p.x} ${p.y} C${leaf.left ? p.x - 90 : p.x + 90} ${p.y},${leaf.left ? leaf.x + 55 : leaf.x - 55} ${leaf.y},${leaf.x} ${leaf.y}`}
-                  className={clsx(
-                    "atlas-line",
-                    focused && focused !== leaf.journeyId && "opacity-15",
-                  )}
-                  fill="none"
-                />
+                  to="/study/guide/$topic"
+                  params={{ topic: guideIdForNode(node) }}
+                  aria-label={`Abrir guia: ${node.title}${started ? ", investigação iniciada" : ""}`}
+                >
+                  {content}
+                </Link>
+              ) : (
+                <button
+                  {...common}
+                  key={leaf.key}
+                  type="button"
+                  aria-pressed={selectedGroup === leaf.key}
+                  aria-controls="study-branch-content"
+                  onClick={() => openGroup(leaf.key)}
+                >
+                  {content}
+                </button>
               );
             })}
-            <line
-              x1="640"
-              y1="445"
-              x2="640"
-              y2="590"
-              stroke="currentColor"
-              strokeWidth="1"
-              strokeDasharray="3 7"
-              className="text-primary opacity-40"
-            />
-          </svg>
-          <Link to="/study" search={{ view: "notebook" }} className="atlas-personal">
-            <span className="topic-orb" />
-            <span>Minhas notas</span>
-            <small>
-              {notes.length} {notes.length === 1 ? "nota" : "notas"} · conexões pessoais
-            </small>
-          </Link>
-          <Link
-            to="/study/guide/$topic"
-            params={{ topic: "teologia" }}
-            className="atlas-origin"
-            style={{ left: "50%", top: "50%" }}
-            aria-label="Abrir guia: Teologia"
-          >
-            <span className="meta-label">Estudar e relacionar</span>
-            <span>Teologia</span>
-            <span className="atlas-origin-star" aria-hidden="true">
-              ✦
-            </span>
-          </Link>
-          {STUDY_JOURNEYS.map((journey) => {
-            const p = BRANCH_CENTERS[journey.id];
-            return (
-              <Link
-                key={journey.id}
-                to="/study/guide/$topic"
-                params={{ topic: JOURNEY_GUIDE_IDS[journey.id] }}
-                data-journey={journey.id}
-                className={clsx("atlas-branch", focused && focused !== journey.id && "opacity-25")}
-                style={{ left: `${p.x / 12.8}%`, top: `${p.y / 7.3}%` }}
-              >
-                <span>{journey.title}</span>
-                <span className="atlas-branch-caption">
-                  Abrir percurso <ArrowRight className="size-3" />
-                </span>
-              </Link>
-            );
-          })}
-          {leaves.map((leaf) => {
-            const node = leaf.node;
-            const path = node?.pathId ? studyPathById(node.pathId) : undefined;
-            const started = path && studyPathProgress(path, studies).state === "started";
-            const content = (
-              <>
-                <span className="atlas-leaf-dot">{started && <Check className="size-3" />}</span>
-                <span className="atlas-leaf-label">
-                  {leaf.title}
-                  {leaf.group && <small>{leaf.group.entities.length} registros</small>}
-                </span>
-              </>
-            );
-            const common = {
-              "data-journey": leaf.journeyId,
-              className: clsx(
-                "atlas-leaf",
-                leaf.left && "atlas-leaf-left",
-                focused && focused !== leaf.journeyId && "opacity-25",
-              ),
-              style: { left: `${leaf.x / 12.8}%`, top: `${leaf.y / 7.3}%` },
-            };
-            return node ? (
-              <Link
-                {...common}
-                key={leaf.key}
-                to="/study/guide/$topic"
-                params={{ topic: guideIdForNode(node) }}
-                aria-label={`Abrir guia: ${node.title}${started ? ", investigação iniciada" : ""}`}
-              >
-                {content}
-              </Link>
-            ) : (
-              <button
-                {...common}
-                key={leaf.key}
-                type="button"
-                aria-pressed={selectedGroup === leaf.key}
-                aria-controls="study-branch-content"
-                onClick={() => {
-                  setSelectedGroup(leaf.key);
-                  setQuery("");
-                  requestAnimationFrame(() =>
-                    document.getElementById("study-branch-content")?.scrollIntoView({
-                      block: "start",
-                      behavior: window.matchMedia("(prefers-reduced-motion: reduce)").matches
-                        ? "instant"
-                        : "smooth",
-                    }),
-                  );
-                }}
-              >
-                {content}
-              </button>
-            );
-          })}
-          <p className="atlas-legend">
-            Círculos maiores abrem roteiros. Núcleos menores reúnem os registros do acervo.
-            <br />✓ Investigação iniciada · linhas indicam organização de estudo.
-          </p>
+            <p className="atlas-legend">
+              Círculos maiores abrem roteiros. Núcleos menores reúnem os registros do acervo.
+              <br />✓ Investigação iniciada · linhas indicam organização de estudo.
+            </p>
+          </div>
         </div>
-      </div>
+      )}
       <div id="study-branch-content" className="atlas-content">
         {catalog.isPending ? (
           <p role="status" className="text-sm text-muted-foreground">
