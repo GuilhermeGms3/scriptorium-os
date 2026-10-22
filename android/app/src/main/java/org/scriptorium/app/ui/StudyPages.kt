@@ -37,40 +37,63 @@ internal fun StudyNavigation(index: Int, count: Int, enabled: Boolean = true, ch
 @Composable
 internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit) {
     val pages = remember(guide, lesson) { StudySequence.guide(guide, lesson) }
-    var selected by rememberSaveable(guide.getString("id")) { mutableIntStateOf(0) }
+    val guideId = "guide:${guide.getString("id") }"
+    val scope = rememberCoroutineScope()
+    var selected by rememberSaveable(guideId) { mutableIntStateOf(-1) }
+    var saving by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
     var note by remember { mutableStateOf(false) }
-    val page = pages[selected.coerceIn(pages.indices)]
-    val list = rememberLazyListState()
-    LaunchedEffect(selected) { list.scrollToItem(0) }
-    Column(Modifier.fillMaxSize()) {
-        Text(guide.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-        StudyRail(pages.map { it.title }, selected, "Etapas de leitura") { selected = it }
-        LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
-            item(key = page.id) { Column {
-                Heading(page.title)
-                when (page.kind) {
-                    StudyPageKind.INTRODUCTION -> {
-                        StudyParagraphs(listOf(guide.getString("introduction")))
-                        Text("Percorra o conteúdo, consulte as leituras e registre sua síntese. As etapas deste guia são de navegação; não certificam conclusão acadêmica.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-                    }
-                    StudyPageKind.GUIDE_MODULE -> page.content?.let { module ->
-                        StudyParagraphs(listOf(module.getString("explanation")))
-                        if (module.strings("questions").isNotEmpty()) {
-                            Text("PARA INVESTIGAR", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-                            module.strings("questions").forEach { Text(it, Modifier.padding(vertical = 10.dp), style = MaterialTheme.typography.titleMedium) }
+    Load(guideId, { personal.progress(guideId, 1) }) { loaded ->
+        var completed by remember(guideId) { mutableStateOf(loaded.filter { !it["completed_at"].isNullOrBlank() }.map { it.text("module_id") }.toSet()) }
+        fun unlocked(index: Int) = StudySequence.readingUnlocked(pages.map { it.id }, index, completed)
+        val index = selected.takeIf { unlocked(it) } ?: pages.indexOfFirst { it.id !in completed }.takeIf { it >= 0 } ?: pages.lastIndex
+        val page = pages[index]
+        val list = rememberLazyListState()
+        LaunchedEffect(index) { list.scrollToItem(0) }
+        Column(Modifier.fillMaxSize()) {
+            Text(guide.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+            StudyRail(pages.map { it.title }, index, "Etapas de leitura", enabled = { !saving && unlocked(it) }, completed = { pages[it].id in completed }) { selected = it }
+            LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
+                item(key = page.id) { Column {
+                    Heading(page.title)
+                    when (page.kind) {
+                        StudyPageKind.INTRODUCTION -> {
+                            StudyParagraphs(listOf(guide.getString("introduction")))
+                            Text("Conclua um ponto para liberar o seguinte. Consulte as fontes e registre sua síntese. O avanço é uma marcação pessoal de estudo, não uma certificação acadêmica.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         }
-                        module.objects("passages").forEach { passage -> PassageButton(repository, passage.getString("book"), passage.getInt("chapter"), passage.getString("label"), open) }
+                        StudyPageKind.GUIDE_MODULE -> page.content?.let { module ->
+                            StudyParagraphs(listOf(module.getString("explanation")))
+                            if (module.strings("questions").isNotEmpty()) {
+                                Text("PARA INVESTIGAR", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                                module.strings("questions").forEach { Text(it, Modifier.padding(vertical = 10.dp), style = MaterialTheme.typography.titleMedium) }
+                            }
+                            module.objects("passages").forEach { passage -> PassageButton(repository, passage.getString("book"), passage.getInt("chapter"), passage.getString("label"), open) }
+                        }
+                        StudyPageKind.CHAPTER -> StudyParagraphs(page.content?.strings("paragraphs").orEmpty())
+                        StudyPageKind.SOURCES -> StudyReadings("study-guide:${guide.getString("id")}", guide.getString("title"), repository, openLibrary)
+                        StudyPageKind.NOTEBOOK -> {
+                            Text("Reúna suas observações e referências em uma nota vinculada a este tema.", style = MaterialTheme.typography.bodyLarge)
+                            Button(onClick = { note = true }, modifier = Modifier.padding(top = 16.dp)) { Text("Registrar minha investigação") }
+                        }
+                        else -> Unit
                     }
-                    StudyPageKind.CHAPTER -> StudyParagraphs(page.content?.strings("paragraphs").orEmpty())
-                    StudyPageKind.SOURCES -> StudyReadings("study-guide:${guide.getString("id")}", guide.getString("title"), repository, openLibrary)
-                    StudyPageKind.NOTEBOOK -> {
-                        Text("Reúna suas observações e referências em uma nota vinculada a este tema.", style = MaterialTheme.typography.bodyLarge)
-                        Button(onClick = { note = true }, modifier = Modifier.padding(top = 16.dp)) { Text("Registrar minha investigação") }
+                    error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+                    Row(Modifier.fillMaxWidth().padding(vertical = 16.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+                        OutlinedButton(enabled = !saving && index > 0, onClick = { selected = index - 1 }) { Text("Anterior") }
+                        Button(enabled = !saving && !(index == pages.lastIndex && page.id in completed), onClick = {
+                            saving = true; error = null
+                            scope.launch {
+                                try {
+                                    withContext(Dispatchers.IO) { personal.saveProgress(guideId, 1, page.id, "{}", true) }
+                                    completed = completed + page.id
+                                    if (index < pages.lastIndex) selected = index + 1
+                                } catch (failure: Exception) { error = "Não foi possível guardar o avanço. ${failure.message.orEmpty()}" }
+                                finally { saving = false }
+                            }
+                        }) { Text(if (saving) "Salvando…" else if (index == pages.lastIndex && page.id in completed) "Guia concluído ✓" else if (index == pages.lastIndex) "Concluir guia" else "Concluir ponto e avançar") }
                     }
-                    else -> Unit
-                }
-                StudyNavigation(selected, pages.size) { selected = it }
-            } }
+                } }
+            }
         }
     }
     if (note) NoteEditor(personal, null, "study-guide:${guide.getString("id")}") { note = false }
@@ -94,7 +117,7 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
         Column(Modifier.fillMaxSize()) {
             Text(lesson.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
             LinearProgressIndicator(progress = { completed.size.toFloat() / pageIds.size }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
-            StudyRail(titles, selected, "Etapas da aula", enabled = { !saving }, completed = { pageIds[it] in completed }) { selected = it }
+            StudyRail(titles, selected, "Etapas da aula", enabled = { !saving && StudySequence.readingUnlocked(pageIds, it, completed) }, completed = { pageIds[it] in completed }) { selected = it }
             LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item(key = pageIds[selected]) {
                     Column {
@@ -102,7 +125,7 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
                             selected < chapters.size -> {
                                 Heading(chapters[selected].getString("title"))
                                 StudyParagraphs(chapters[selected].strings("paragraphs"))
-                                StudyReadings(id, lesson.getString("title"), repository, openLibrary, openAll = { selected = chapters.size })
+                                StudyReadings(id, lesson.getString("title"), repository, openLibrary)
                             }
                             selected == chapters.size -> { Heading("Leituras do acervo"); StudyReadings(id, lesson.getString("title"), repository, openLibrary) }
                             else -> {
@@ -123,7 +146,8 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
                                 finally { saving = false }
                             }
                         }, modifier = Modifier.padding(top = 16.dp)) { Text(if (pageIds[selected] in completed) "Etapa lida ✓" else "Marcar etapa como lida") }
-                        StudyNavigation(selected, pageIds.size, !saving) { selected = it }
+                        if (selected > 0) TextButton(enabled = !saving, onClick = { selected-- }) { Text("Anterior") }
+                        if (selected < pageIds.lastIndex && pageIds[selected] in completed) TextButton(enabled = !saving, onClick = { selected++ }) { Text("Próximo ponto") }
                     }
                 }
             }

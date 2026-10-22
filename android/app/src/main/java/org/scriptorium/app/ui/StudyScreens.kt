@@ -22,6 +22,7 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
     var lessonsOpen by rememberSaveable { mutableStateOf(false) }
     val currentGuide = guide
     val currentCourse = course
+    val homeList = androidx.compose.foundation.lazy.rememberLazyListState()
     BackHandler(lessonId != null || course != null || guide != null || lessonsOpen) {
         when { lessonId != null -> lessonId = null; course != null -> course = null; guide != null -> guide = null; else -> lessonsOpen = false }
     }
@@ -32,7 +33,7 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
                 if (lesson != null) LessonSequence(requireNotNull(lessonId).removePrefix("lesson:"), lesson, repository, personal, openLibrary)
             }
         } else if (currentCourse != null) {
-            Load(currentCourse, { repository.catalogItem(currentCourse) }) { json -> if (json != null) CourseScreen(json, repository, personal, openPassage) { course = null } }
+            Load(currentCourse, { repository.catalogItem(currentCourse) }) { json -> if (json != null) CourseScreen(json, repository, personal, openPassage, openLibrary) { course = null } }
         } else if (currentGuide != null) {
             TextButton(onClick = { guide = null }) { Text("Voltar à árvore") }
             Load(currentGuide, { repository.catalogItem("guide:$currentGuide") to repository.catalogItem("lesson:study-guide:$currentGuide") }) { (json, lesson) ->
@@ -40,8 +41,18 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
             }
         } else Load("study-map", { repository.catalogItem("study-map") to listOf(repository.catalog("guide"), repository.catalog("course"), repository.catalog("lesson")) }) { (map, catalogs) ->
             val guides = catalogs[0]; val courses = catalogs[1]; val lessons = catalogs[2]
-            LazyColumn {
-                item { Heading("Teologia", "Os mesmos guias e aulas do desktop, com progresso pessoal neste aparelho.") }
+            LazyColumn(state = homeList) {
+                item { Heading("Teologia", "Guias, leituras e formação em etapas. Seu progresso fica neste aparelho.") }
+                courses.find { it.text("id") == "course:theology-formation" }?.let { formation -> item {
+                    OutlinedCard(onClick = { course = formation.text("id") }, modifier = Modifier.fillMaxWidth().padding(bottom = 12.dp)) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("FORMAÇÃO GERAL", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                            Text(formation.text("title"), style = MaterialTheme.typography.titleLarge)
+                            Text("Fundamentos → Bíblia e método → história → sistemática → síntese", Modifier.padding(vertical = 8.dp), style = MaterialTheme.typography.bodySmall)
+                            Text("Abrir percurso →", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                        }
+                    }
+                } }
                 if (map != null) item {
                     val nodes = map.objects("nodes")
                     KnowledgeGraph(nodes.map { GraphNode(it.getString("id"), it.getString("shortTitle"), it.getDouble("x").toFloat(), it.getDouble("y").toFloat()) },

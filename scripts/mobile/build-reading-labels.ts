@@ -9,6 +9,7 @@ import { groupScriptureBooks } from "../../src/lib/content/scripture-navigation"
 import { TOPIC_PRIMERS, lessonForTopic } from "../../src/lib/content/study-lessons/catalog";
 import { STUDY_GUIDES } from "../../src/lib/content/study-guides";
 import type { Book } from "../../src/lib/domain/scripture";
+import { THEOLOGY_FORMATION } from "./theology-formation";
 
 // Public editorial labels, lesson families and exact work links. No private books or databases.
 const groups = groupScriptureBooks(
@@ -82,6 +83,15 @@ const lessons = Object.fromEntries([
 ]);
 writeFileSync(
   "android/reading-labels.json",
-  JSON.stringify({ books, topics: PORTUGUESE_KNOWLEDGE_LABELS, lessons, studyAreas }, null, 2) +
-    "\n",
+  JSON.stringify(
+    {
+      books,
+      topics: PORTUGUESE_KNOWLEDGE_LABELS,
+      lessons,
+      studyAreas,
+      formation: THEOLOGY_FORMATION,
+    },
+    null,
+    2,
+  ) + "\n",
 );

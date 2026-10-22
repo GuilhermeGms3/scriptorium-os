@@ -1,5 +1,24 @@
 # Project Memory
 
+## Android — formação e estações de estudo 0.5.0 — 2026-10-22
+
+- Estudos mantém a árvore. Guias/aulas e percursos usam estações horizontais conectadas,
+  ponto atual, concluídos e cadeados; conclusão libera o próximo, com revisão dos anteriores.
+- Novo `course:theology-formation`, revisão1, distribuído em `reading-labels.json` no APK:
+  18 pontos graduais,58 aulas,199 parágrafos,48 capítulos bíblicos. Formação geral introdutória;
+  capítulos editoriais existentes + panoramas AT/NT/ética, sem fingir trechos de obras privadas.
+- Fontes de cada módulo usam guia editorial e busca temática no acervo real; abrem Biblioteca.
+  CoursePolicy preservada (aulas/passagens/resposta/critérios), sem certificação automática.
+- Guias retomam primeiro ponto incompleto; progresso na tabela pessoal existente, sem schema
+  ou reimportação. Navegação dos cursos fora do conteúdo rolável; rascunho preservado.
+- Janela de comentários mantém a correção0.4.1: serifa/tamanho limitado/refluxo de PDF,
+  sem alterar texto-fonte, offsets ou quantidade de comentários.
+- QA e limites: `docs/qa/android-study-progression-2026-10-22.md`. Entrega é APK de atualização,
+  sem acervo privado; instalação sobre a versão atual. Celular físico não conectado nesta rodada.
+- Verificação:50 testes JVM,11 testes TS,4 cenários com dados reais e8 cenários nativos
+  (148,202s) aprovados; typecheck/lint focado/build aprovados; Android lint0 erros/22 avisos.
+- Trabalho de música web foi preservado e entregue separadamente no commit9d8d881.
+
 ## Música e Ambiente — primeira entrega web — 2026-10-22
 
 - Motor global de áudio coordena voz + canal musical: modos Voz/Misto/Música, volumes separados,

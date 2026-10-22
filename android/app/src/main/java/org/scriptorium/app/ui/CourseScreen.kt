@@ -4,6 +4,7 @@ import android.content.Intent
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.*
@@ -21,12 +22,13 @@ import org.json.JSONObject
 import org.scriptorium.app.data.*
 
 @Composable
-internal fun CourseScreen(course: JSONObject, repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit, close: () -> Unit) {
+internal fun CourseScreen(course: JSONObject, repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit = {}, close: () -> Unit) {
     val modules = course.objects("modules")
     if (modules.isEmpty()) { Text("Este percurso não tem módulos disponíveis."); TextButton(onClick = close) { Text("Voltar aos percursos") }; return }
     var selected by rememberSaveable(course.getString("id")) { mutableIntStateOf(-1) }
     var stage by rememberSaveable(selected) { mutableIntStateOf(0) }
     var message by remember { mutableStateOf<String?>(null) }
+    var showMap by rememberSaveable(course.getString("id")) { mutableStateOf(true) }
     var saving by remember { mutableStateOf(false) }
     val scope = rememberCoroutineScope()
     Load(course.getString("id"), { personal.progress(course.getString("id"), course.getInt("revision")) }) { loadedProgress ->
@@ -56,7 +58,9 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                         personal.saveProgress(course.getString("id"), course.getInt("revision"), moduleId, snapshot, complete || (wasCompleted && issues.isEmpty()))
                         personal.progress(course.getString("id"), course.getInt("revision"))
                     }
-                    message = if (complete) "Módulo concluído. O próximo está disponível." else null
+                    if (complete) { stage = 0; selected = (moduleIndex + 1).coerceAtMost(modules.lastIndex); showMap = true }
+                    message = if (complete && moduleIndex == modules.lastIndex) "Percurso concluído. Os pontos continuam disponíveis para revisão."
+                    else if (complete) "Avanço salvo. Este ponto foi liberado." else null
                     then()
                 } catch (failure: Exception) { message = "Não foi possível salvar. ${failure.message.orEmpty()}" }
                 finally { saving = false }
@@ -68,17 +72,37 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
             if (value in values) values.remove(value) else values.add(value)
             work = JSONObject(work.toString()).put(key, JSONArray(values))
         }
-        BackHandler { if (!saving) save { if (pageIndex > 0) stage = pageIndex - 1 else close() } }
+        BackHandler { if (!saving) save { if (showMap) close() else if (pageIndex > 0) stage = pageIndex - 1 else showMap = true } }
         Column(Modifier.fillMaxSize()) {
             TextButton(enabled = !saving, onClick = { save(then = close) }) { Text("Voltar aos percursos") }
             Text(course.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-            StudyRail(modules.map { it.getString("title") }, moduleIndex, "Módulos",
-                enabled = { !saving && StudySequence.unlocked(modules, it, progress) },
-                completed = { index -> progress.any { it.text("module_id") == modules[index].getString("id") && !it["completed_at"].isNullOrBlank() } }) { index ->
-                if (index != moduleIndex) save { selected = index; stage = 0 }
-            }
+            if (showMap) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                item { Text("Conclua um ponto para liberar o seguinte. Os anteriores ficam disponíveis para revisão.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+                item {
+                StudyRail(modules.map { it.getString("title") }, moduleIndex, "Módulos",
+                    enabled = { !saving && StudySequence.unlocked(modules, it, progress) },
+                    completed = { index -> progress.any { it.text("module_id") == modules[index].getString("id") && !it["completed_at"].isNullOrBlank() } }) { index ->
+                    if (index != moduleIndex) save { selected = index; stage = 0 }
+                }
+                }
+                item {
+                    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
+                        Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                            Text("PONTO ${moduleIndex + 1} · ${current.optString("phase", "Percurso acadêmico")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                            Text(current.getString("title"), style = MaterialTheme.typography.headlineSmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif)
+                            Text(current.getString("description"), style = MaterialTheme.typography.bodyMedium)
+                            Text("${current.objects("lessons").size} aulas · ${current.objects("passages").size} leituras bíblicas · atividade de síntese", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                            message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary) }
+                            Button(enabled = !saving, onClick = { showMap = false }) { Text("Estudar este ponto") }
+                            Text("${progress.count { !it["completed_at"].isNullOrBlank() }} de ${modules.size} pontos concluídos", style = MaterialTheme.typography.labelMedium)
+                            if (moduleIndex < modules.lastIndex && StudySequence.unlocked(modules, moduleIndex + 1, progress)) TextButton(onClick = { save { selected = moduleIndex + 1; stage = 0 } }) { Text("Avançar para o próximo ponto") }
+                        }
+                    }
+                }
+            } else {
+            TextButton(enabled = !saving, onClick = { save { showMap = true } }) { Text("← Ver percurso · ponto ${moduleIndex + 1} de ${modules.size}") }
             LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                item { StudyRail(pages.map { it.title }, pageIndex, "Etapas do módulo", enabled = { !saving }, choose = ::choosePage) }
+                item { StudyRail(pages.map { it.title }, pageIndex, "Etapas do módulo", enabled = { !saving }, compact = true, choose = ::choosePage) }
                 item(key = "$moduleId:${page.id}") { Column {
                     if (page.lessonTitle != null) Text(page.lessonTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                     Heading(page.title)
@@ -97,6 +121,9 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             if (page.lastInLesson && page.lessonId != null) StudyCheck("Li esta aula", page.lessonId in work.strings("lessons"), !saving) { toggle("lessons", page.lessonId) }
                         }
                         StudyPageKind.READINGS -> {
+                            current.optString("studyGuideId").takeIf(String::isNotBlank)?.let { guideId ->
+                                StudyReadings("study-guide:$guideId", current.optString("readingSearch", current.getString("title")), repository, { target -> save { openLibrary(target) } })
+                            }
                             current.objects("passages").forEach { passage ->
                                 val ref = passage.getJSONObject("ref")
                                 PassageButton(repository, ref.getString("bookId"), ref.getInt("chapter"), passage.getString("label")) { target -> save { open(target) } }
@@ -125,6 +152,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             }
                             Text("${work.strings("lessons").size} aulas confirmadas · ${work.strings("readings").size} leituras confirmadas", Modifier.padding(vertical = 12.dp), style = MaterialTheme.typography.labelLarge)
                             StudyReferences(course.objects("references"))
+                            message?.let { Text(it, Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.error) }
                             Button(enabled = !saving, onClick = { save(complete = true) }, modifier = Modifier.padding(top = 16.dp)) { Text("Concluir módulo") }
                             if (moduleIndex < modules.lastIndex && StudySequence.unlocked(modules, moduleIndex + 1, progress)) {
                                 TextButton(enabled = !saving, onClick = { save { selected = moduleIndex + 1; stage = 0 } }) { Text("Abrir próximo módulo") }
@@ -132,10 +160,11 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                         }
                         else -> Unit
                     }
-                    message?.let { Text(it, Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary) }
+                    if (page.kind != StudyPageKind.REVIEW) message?.let { Text(it, Modifier.padding(vertical = 12.dp), color = MaterialTheme.colorScheme.secondary) }
                     TextButton(enabled = !saving, onClick = { save { message = "Rascunho salvo." } }) { Text(if (saving) "Salvando…" else "Salvar rascunho") }
-                    StudyNavigation(pageIndex, pages.size, !saving, ::choosePage)
                 } }
+            }
+            StudyNavigation(pageIndex, pages.size, !saving, ::choosePage)
             }
         }
     }
@@ -143,8 +172,8 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
 
 @Composable
 private fun StudyCheck(label: String, checked: Boolean, enabled: Boolean, change: () -> Unit) {
-    Row(Modifier.fillMaxWidth().padding(vertical = 4.dp)) {
-        Checkbox(checked, { change() }, enabled = enabled)
+    Row(Modifier.fillMaxWidth().toggleable(value = checked, enabled = enabled, role = androidx.compose.ui.semantics.Role.Checkbox, onValueChange = { change() }).padding(vertical = 4.dp)) {
+        Checkbox(checked, onCheckedChange = null, enabled = enabled)
         Text(label, Modifier.weight(1f).padding(top = 12.dp), style = MaterialTheme.typography.bodyMedium)
     }
 }

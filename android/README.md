@@ -10,6 +10,21 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
+## Formação e percurso por pontos — 0.5.0
+
+- **Formação em Teologia** aparece em Estudos com 18 pontos graduais, 58 aulas e
+  48 leituras de capítulos bíblicos. Parte de fundamentos e leitura, passa por método,
+  história e doutrinas e termina em ética e investigação final.
+- Mapa horizontal com estações conectadas, destaque do ponto atual, conclusão e
+  cadeados. Concluir A libera B; é possível revisar pontos anteriores. O percurso
+  acadêmico mantém a regra de aulas/leituras confirmadas, resposta e critérios.
+- Guias e aulas temáticas também apresentam avanço por pontos. O progresso pessoal
+  usa o banco existente; não há migração ou reimportação do acervo.
+- Um conteúdo por etapa; navegação Anterior/Próxima fixa nos percursos acadêmicos.
+  Leituras do acervo abrem a obra/página na Biblioteca. A árvore foi preservada.
+- Atualize instalando o APK sobre a versão existente, sem desinstalar. A versão mantém
+  as correções de comentários da 0.4.1. Consulte [escopo e QA](../docs/qa/android-study-progression-2026-10-22.md).
+
 ## Correções de uso — 0.4.1
 
 - Home centralizado no cabeçalho em todos os módulos; Menu abre seis opções em uma janela

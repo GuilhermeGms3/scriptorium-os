@@ -13,6 +13,7 @@ data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, 
 
 /** Navigation only: actual chapter/verse availability is checked against the selected edition. */
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
+    fun formation(id: String? = null): JSONObject? = labels.optJSONObject("formation")?.takeIf { id == null || it.optString("id") == id }?.let { JSONObject(it.toString()) }
     fun topic(id: String, fallback: String): String = labels.optJSONObject("topics")?.optString(id)?.takeIf(String::isNotBlank)
         ?: fallback.takeUnless { it == id || it.matches(Regex("^[a-z][a-z-]*:[^\\s]+$")) } ?: "Estudo temático"
     fun lesson(id: String): JSONObject? = labels.optJSONObject("lessons")?.optJSONObject(id.removePrefix("lesson:"))

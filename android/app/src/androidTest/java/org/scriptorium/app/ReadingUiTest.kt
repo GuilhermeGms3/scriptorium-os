@@ -46,6 +46,15 @@ class ReadingUiTest {
         try { automation.injectInputEvent(down, true); automation.injectInputEvent(up, true) } finally { down.recycle(); up.recycle() }
         SystemClock.sleep(350)
     }
+    private fun checked(value: String): Boolean {
+        var node: AccessibilityNodeInfo? = waitNode(value)
+        while (node != null) {
+            node.refresh()
+            if (node.isCheckable) return node.isChecked
+            node = node.parent
+        }
+        return false
+    }
     private fun enter(value: String) {
         val end = SystemClock.uptimeMillis() + 30_000
         while (SystemClock.uptimeMillis() < end) {
@@ -97,6 +106,76 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun guideMapPersistsCompletedPointAndKeepsFuturePointsLocked() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
+        val guide = requireNotNull(repository().catalogItem("guide:biblia-interpretacao"))
+        val lesson = repository().catalogItem("lesson:study-guide:biblia-interpretacao")
+        val pages = StudySequence.guide(guide, lesson)
+        pages.forEach { personal.saveProgress("guide:biblia-interpretacao", 1, it.id, "{}", false) }
+        startAt("Gn1:1"); click("Estudos"); reveal("Guias de estudo"); click("Bíblia e interpretação")
+        waitNode("Etapas de leitura · 1", false)
+        assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
+        capture("guide-map")
+        reveal("Concluir ponto e avançar"); click("Concluir ponto e avançar")
+        waitNode("Etapas de leitura · 2", false)
+        assertTrue(personal.progress("guide:biblia-interpretacao", 1).any { it.text("module_id") == "introduction" && !it["completed_at"].isNullOrBlank() })
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        waitNode("Seu scriptorium"); click("Estudos"); reveal("Guias de estudo"); click("Bíblia e interpretação")
+        waitNode("Etapas de leitura · 2", false)
+        println("GUIDE_MAP_UI_QA islands/lockedFuture/advanceAtoB/persistReload passed")
+    }
+
+    @Test fun formationMapUnlocksNextPointOnlyAfterAcademicWorkAndResumes() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance(motion = false)
+            val repo = repository()
+            val formation = requireNotNull(repo.catalogItem("course:theology-formation"))
+            val modules = formation.objects("modules")
+            // Isolated QA course state only; never run on the user's phone.
+            val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
+            modules.forEach { personal.saveProgress(formation.getString("id"), 1, it.getString("id"), "{}", false) }
+            startAt("Gn1:1"); click("Estudos"); click("Abrir percurso →")
+            waitNode("Módulos · 1 de 18")
+            assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
+            capture("formation-map")
+            click("Estudar este ponto"); waitNode("Etapas do módulo", false)
+            val pages = StudySequence.module(modules.first())
+            repeat(pages.size - 1) { reveal("Próxima etapa"); click("Próxima etapa") }
+            reveal("Concluir módulo"); click("Concluir módulo")
+            waitNode("Confirme a aula:", false)
+            assertTrue(personal.progress(formation.getString("id"), 1).all { it["completed_at"].isNullOrBlank() })
+            // Fill the real module through its UI, preserving the shared completion policy.
+            repeat(pages.size - 1) { reveal("Anterior"); click("Anterior") }
+            pages.forEachIndexed { index, page ->
+                if (page.kind == StudyPageKind.LESSON_SECTION && page.lastInLesson) {
+                    reveal("Li esta aula")
+                    click("Li esta aula")
+                    assertTrue(checked("Li esta aula"))
+                }
+                if (page.kind == StudyPageKind.ACTIVITY) { reveal("Sua resposta, com fontes"); enter("Minha questão distingue interpretação e descrição histórica. Vou confrontar a passagem com uma fonte identificada por edição e seção e revisar a hipótese diante de uma objeção documentada.") }
+                if (index < pages.lastIndex) { reveal("Próxima etapa"); click("Próxima etapa") }
+            }
+            for (criterion in modules.first().getJSONObject("activity").strings("criteria")) {
+                reveal(criterion)
+                click(criterion)
+                assertTrue("Critério não marcado: $criterion", checked(criterion))
+            }
+            reveal("Concluir módulo"); click("Concluir módulo")
+            waitNode("Módulos · 2 de 18"); capture("formation-unlocked")
+            assertEquals(1, personal.progress(formation.getString("id"), 1).count { !it["completed_at"].isNullOrBlank() })
+            click("Estudar este ponto"); waitNode("Etapas do módulo · 1", false)
+            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            waitNode("Seu scriptorium"); click("Estudos"); click("Abrir percurso →"); waitNode("Módulos · 2 de 18")
+            println("FORMATION_UI_QA islands/lockedB/refusesIncomplete/completesA/unlocksB/reload passed")
+        } finally { preferences.appearance = appearance }
+    }
+
     @Test fun searchNavigatesAfterRestoredReaderAndSameChapterRequests() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val preferences = ReadingPreferences(instrumentation.targetContext)
@@ -252,9 +331,10 @@ class ReadingUiTest {
         assertTrue("A Biblioteca deve identificar o livro aberto", nodes().any { it.text?.toString() in titles })
         back(); back()
         waitNode("Etapas da aula", false)
-        reveal("Próxima etapa")
-        val mark = if (nodes().any { it.text?.toString() == "Etapa lida ✓" }) "Etapa lida ✓" else "Marcar etapa como lida"
-        click(mark)
+        val firstStep = repository().catalogItem("lesson:doctrine:trinity")!!.objects("chapters").first().getString("id")
+        val done = PersonalRepository(File(instrumentation.targetContext.filesDir, "personal.sqlite3")).progress("lesson:doctrine:trinity", 1).any { it.text("module_id") == firstStep && !it["completed_at"].isNullOrBlank() }
+        val mark = if (done) "Etapa lida ✓" else "Marcar etapa como lida"
+        reveal(mark); click(mark)
         waitNode("Etapas da aula · 2", false)
         val personal = PersonalRepository(File(instrumentation.targetContext.filesDir, "personal.sqlite3"))
         assertTrue(personal.progress("lesson:doctrine:trinity", 1).any { !it["completed_at"].isNullOrBlank() })
@@ -271,6 +351,7 @@ class ReadingUiTest {
         reveal("Gênesis 1: texto, contexto e interpretações")
         click("Gênesis 1: texto, contexto e interpretações")
         waitNode("Módulos · 1 de 6")
+        click("Estudar este ponto")
         waitNode("Etapas do módulo · 1 de 14")
         repeat(12) {
             reveal("Próxima etapa")

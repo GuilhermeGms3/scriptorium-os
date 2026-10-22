@@ -8,10 +8,11 @@ data class StudyPage(val id: String, val title: String, val kind: StudyPageKind,
 
 /** Presentation sequence only. Original content, identifiers and completion rules are preserved. */
 object StudySequence {
+    fun readingUnlocked(ids: List<String>, index: Int, completed: Set<String>): Boolean = index in ids.indices && ids.take(index).all { it in completed }
     fun guide(guide: JSONObject, lesson: JSONObject?): List<StudyPage> = buildList {
         add(StudyPage("introduction", "Começar", StudyPageKind.INTRODUCTION))
-        guide.objects("modules").forEachIndexed { index, module -> add(StudyPage("module:$index", module.getString("title"), StudyPageKind.GUIDE_MODULE, module)) }
         lesson?.objects("chapters")?.forEach { chapter -> add(StudyPage("chapter:${chapter.getString("id")}", chapter.getString("title"), StudyPageKind.CHAPTER, chapter)) }
+        guide.objects("modules").forEachIndexed { index, module -> add(StudyPage("module:$index", module.getString("title"), StudyPageKind.GUIDE_MODULE, module)) }
         add(StudyPage("sources", "Leituras e fontes", StudyPageKind.SOURCES))
         add(StudyPage("notebook", "Minha síntese", StudyPageKind.NOTEBOOK))
     }

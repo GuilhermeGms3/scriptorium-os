@@ -6,6 +6,15 @@ import org.junit.Test
 import org.scriptorium.app.content.Edition
 
 class StudySequenceTest {
+    @Test fun readingPointsRequireEveryPredecessorWithoutErasingExistingMarks() {
+        val ids = listOf("a", "b", "c")
+        assertTrue(StudySequence.readingUnlocked(ids, 0, emptySet()))
+        assertFalse(StudySequence.readingUnlocked(ids, 1, emptySet()))
+        assertTrue(StudySequence.readingUnlocked(ids, 1, setOf("a")))
+        assertFalse(StudySequence.readingUnlocked(ids, 2, setOf("b", "c")))
+        assertTrue(StudySequence.readingUnlocked(ids, 0, setOf("a", "b")))
+        assertFalse(StudySequence.readingUnlocked(ids, -1, emptySet()))
+    }
     @Test fun everySectionAndParagraphIsPreservedInItsOriginalOrder() {
         val module = JSONObject("""{"id":"m","lessons":[{"id":"a","title":"Aula A","sections":[{"title":"Introdução","paragraphs":["primeiro","segundo"]},{"title":"Discussão","paragraphs":["terceiro"]}]},{"id":"b","title":"Aula B","sections":[{"title":"Introdução","paragraphs":["quarto"]}]}]}""")
         val pages = StudySequence.module(module)
@@ -21,8 +30,8 @@ class StudySequenceTest {
         val guide = JSONObject("""{"modules":[{"title":"Método","explanation":"Conteúdo"},{"title":"Fontes"}]}""")
         val lesson = JSONObject("""{"chapters":[{"id":"c","title":"Contexto","paragraphs":["Texto integral"]}]}""")
         val pages = StudySequence.guide(guide, lesson)
-        assertEquals(listOf("Começar", "Método", "Fontes", "Contexto", "Leituras e fontes", "Minha síntese"), pages.map { it.title })
-        assertEquals("Texto integral", pages[3].content!!.strings("paragraphs").single())
+        assertEquals(listOf("Começar", "Contexto", "Método", "Fontes", "Leituras e fontes", "Minha síntese"), pages.map { it.title })
+        assertEquals("Texto integral", pages[1].content!!.strings("paragraphs").single())
         assertEquals(5, StudySequence.guide(guide, null).size)
     }
 

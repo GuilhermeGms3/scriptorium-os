@@ -12,6 +12,27 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class ReadingExperienceTest {
+    @Test fun academicFormationHasRealChaptersPassagesAndLibraryLinks() {
+        val repository = repository()
+        val formation = requireNotNull(repository.catalogItem("course:theology-formation"))
+        val modules = formation.objects("modules")
+        assertEquals(18, modules.size)
+        assertEquals(1, repository.catalog("course").count { it.text("id") == formation.getString("id") })
+        val edition = repository.scriptureEditions().first { it.id == "biblia-livre-n4-2025.1.0" }
+        var readingCount = 0
+        for (module in modules) {
+            module.objects("passages").forEach { reading ->
+                val ref = reading.getJSONObject("ref")
+                val book = repository.books(edition).first { it.text("book_id") == ref.getString("bookId") }
+                val passage = Passage(edition, book.text("id"), book.text("book_id"), book.text("title"), ref.getInt("chapter"), book.text("scheme"))
+                assertTrue(repository.verses(passage).isNotEmpty()); readingCount++
+            }
+            assertTrue(repository.lessonReadings("study-guide:${module.getString("studyGuideId")}", module.optString("readingSearch", module.getString("title"))).isNotEmpty())
+            assertTrue(CoursePolicy.issues(module, JSONObject()).isNotEmpty())
+        }
+        assertEquals(48, readingCount)
+        println("FORMATION_DATA_QA modules=${modules.size} passages=$readingCount linkedLibrary=18 noFakeCompletion passed")
+    }
     private fun repository(): MobileRepository {
         assumeTrue(InstrumentationRegistry.getArguments().getString("fullQa") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
