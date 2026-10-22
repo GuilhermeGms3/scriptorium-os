@@ -130,6 +130,11 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             if (file == null) emptyList() else Sqlite.open(file).use { it.rows("SELECT * FROM ontology_entities ORDER BY ontology_kind,canonical_name") }
         }
     }
+    /** Every explicit link between themes, in one query, for the Teologia map. */
+    fun ontologyRelations(): List<Row> = store.readCurrent { current ->
+        val file = current?.files?.get("knowledge.sqlite3")
+        if (file == null) emptyList() else Sqlite.open(file).use { it.rows("SELECT * FROM ontology_relations ORDER BY id") }
+    }
     fun ontologyRelations(id: String): List<Row> {
         return store.readCurrent { current ->
             val file = current?.files?.get("knowledge.sqlite3")

@@ -1,6 +1,14 @@
 import { writeFileSync } from "node:fs";
 import { BIBLIA_LIVRE_BOOKS } from "../../src/lib/corpus-config/biblia-livre";
-import { bookLabel } from "../../src/lib/i18n";
+import {
+  argumentRelationLabel,
+  bookLabel,
+  claimKindLabel,
+  reviewStatusLabel,
+} from "../../src/lib/i18n";
+import { ARGUMENT_RELATION_TYPES } from "../../src/lib/domain/argument";
+import { CLAIM_KINDS, REVIEW_STATUSES } from "../../src/lib/domain/knowledge";
+import { ONTOLOGY_RELATION_TYPES } from "../../src/lib/domain/theology";
 import {
   PORTUGUESE_KNOWLEDGE_LABELS,
   knowledgeSourceLinks,
@@ -102,6 +110,19 @@ writeFileSync(
       lessons,
       studyAreas,
       formation: THEOLOGY_FORMATION,
+      // The site's names for codes the Android screens show (Teologia, proposições).
+      vocabulary: {
+        claimKinds: Object.fromEntries(CLAIM_KINDS.map((kind) => [kind, claimKindLabel(kind)])),
+        reviewStatus: Object.fromEntries(
+          REVIEW_STATUSES.map((status) => [status, reviewStatusLabel(status)]),
+        ),
+        relations: Object.fromEntries(
+          [...ONTOLOGY_RELATION_TYPES, ...ARGUMENT_RELATION_TYPES].map((type) => [
+            type,
+            argumentRelationLabel(type),
+          ]),
+        ),
+      },
     },
     null,
     2,

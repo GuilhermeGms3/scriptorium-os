@@ -363,6 +363,14 @@ const ARGUMENT_RELATION_LABELS: Readonly<Record<string, string>> = {
   "alternative-to": "alternativa a",
   "competes-with": "concorre com",
   "derived-from": "deriva de",
+  // Links between themes of the theology tree (ontology), shown by the same explorer.
+  "belongs-to-topic": "pertence ao tema",
+  "addresses-doctrine": "trata da doutrina",
+  "historically-affirms": "historicamente afirma",
+  "historically-rejects": "historicamente rejeita",
+  "associated-with": "associado a",
+  "used-by-analysis": "usado pela análise",
+  influences: "influencia",
 };
 
 export function argumentRelationLabel(relation: string): string {

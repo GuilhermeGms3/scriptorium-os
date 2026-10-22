@@ -7,6 +7,10 @@ class ReadingPreferences(context: Context) {
     private val preferences = context.getSharedPreferences("reading", Context.MODE_PRIVATE)
     fun lastPassage(): String? = preferences.getString("last-passage", null)
     fun savePassage(passage: Passage) { preferences.edit().putString("last-passage", passage.encoded()).apply() }
+    /** Until the reader opens a verse's actions once, the chapter shows how to reach them. */
+    var verseActionsHint: Boolean
+        get() = preferences.getBoolean("verse-actions-hint", true)
+        set(value) { preferences.edit().putBoolean("verse-actions-hint", value).apply() }
     var sound: Boolean
         get() = preferences.getBoolean("ambient-sound", false)
         set(value) { preferences.edit().putBoolean("ambient-sound", value).apply() }

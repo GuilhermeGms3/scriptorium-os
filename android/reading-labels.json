@@ -5060,5 +5060,51 @@
         "perspective": "Perfil institucional — Bethel University"
       }
     ]
+  },
+  "vocabulary": {
+    "claimKinds": {
+      "textual-observation": "Observação textual",
+      "historical-source-observation": "Observação de fonte histórica",
+      "linguistic-analysis": "Análise linguística",
+      "textual-critical-analysis": "Crítica textual",
+      "historical-reconstruction": "Reconstrução histórica",
+      "exegetical-interpretation": "Interpretação exegética",
+      "theological-interpretation": "Interpretação teológica",
+      "symbolic-interpretation": "Interpretação simbólica",
+      "mystical-tradition": "Tradição mística",
+      "philosophical-analysis": "Análise filosófica",
+      "reception-history": "História da recepção",
+      "academic-hypothesis": "Hipótese acadêmica",
+      "speculation": "Especulação"
+    },
+    "reviewStatus": {
+      "imported": "Importado",
+      "machine-linked": "Vinculado por máquina",
+      "source-checked": "Fonte conferida",
+      "draft": "Rascunho",
+      "reviewed": "Revisado",
+      "verified": "Verificado",
+      "disputed": "Contestado"
+    },
+    "relations": {
+      "belongs-to-topic": "pertence ao tema",
+      "addresses-doctrine": "trata da doutrina",
+      "historically-affirms": "historicamente afirma",
+      "historically-rejects": "historicamente rejeita",
+      "associated-with": "associado a",
+      "used-by-analysis": "usado pela análise",
+      "competes-with": "concorre com",
+      "influences": "influencia",
+      "supports": "sustenta",
+      "opposes": "se opõe a",
+      "objects-to": "objeta a",
+      "responds-to": "responde a",
+      "qualifies": "qualifica",
+      "depends-on": "depende de",
+      "undercuts": "enfraquece a base de",
+      "rebuts": "refuta",
+      "alternative-to": "alternativa a",
+      "derived-from": "deriva de"
+    }
   }
 }

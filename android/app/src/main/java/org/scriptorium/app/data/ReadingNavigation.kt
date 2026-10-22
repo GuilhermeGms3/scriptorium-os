@@ -24,6 +24,9 @@ class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
     fun formation(id: String? = null): JSONObject? = labels.optJSONObject("formation")?.takeIf { id == null || it.optString("id") == id }?.let { JSONObject(it.toString()) }
     fun topic(id: String, fallback: String): String = labels.optJSONObject("topics")?.optString(id)?.takeIf(String::isNotBlank)
         ?: fallback.takeUnless { it == id || it.matches(Regex("^[a-z][a-z-]*:[^\\s]+$")) } ?: "Estudo temático"
+    /** The site's Portuguese name for a code (claim kinds, review status, relations), from reading-labels.json. */
+    fun term(group: String, code: String): String = labels.optJSONObject("vocabulary")?.optJSONObject(group)?.optString(code)?.takeIf(String::isNotBlank)
+        ?: code.replace('-', ' ')
     fun lesson(id: String): JSONObject? = labels.optJSONObject("lessons")?.optJSONObject(id.removePrefix("lesson:"))
     fun lessonSupport(id: String): JSONObject? = lesson(id)?.optString("supportGuide")?.let { labels.optJSONObject("studyAreas")?.optJSONObject(it) }
     fun book(id: String): JSONObject? = labels.optJSONObject("books")?.optJSONObject(id)

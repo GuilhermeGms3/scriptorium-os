@@ -84,6 +84,15 @@ class ReadingNavigationTest {
             assertEquals(name, note.getBoolean("context"), groups.any { it.verse == null })
         }
     }
+    @Test fun theologyCodesUseTheSiteNames() {
+        assertEquals("concorre com", navigation.term("relations", "competes-with"))
+        assertEquals("pertence ao tema", navigation.term("relations", "belongs-to-topic"))
+        assertEquals("Análise linguística", navigation.term("claimKinds", "linguistic-analysis"))
+        assertEquals("Fonte conferida", navigation.term("reviewStatus", "source-checked"))
+        // A code the site has not named yet still reads as words, never as a hyphenated id.
+        assertEquals("brand new", navigation.term("relations", "brand-new"))
+        assertEquals("Cristologia", navigation.topic("topic:christology", "Christology"))
+    }
     @Test fun savedPassageRetainsExactEditionSchemeAndRange() {
         val edition = Edition("test", "Teste", "corpus/test.sqlite3")
         val passage = Passage(edition, "work:john", "john", "João", 3, "another-scheme", 16, 18)

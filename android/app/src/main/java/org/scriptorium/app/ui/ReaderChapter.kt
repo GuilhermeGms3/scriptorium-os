@@ -1,6 +1,7 @@
 package org.scriptorium.app.ui
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.ui.platform.LocalViewConfiguration
@@ -43,6 +44,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                 var filtersOpen by rememberSaveable { mutableStateOf(false) }
                 var dockExpanded by rememberSaveable { mutableStateOf(true) }
                 val list = rememberLazyListState()
+                var hint by remember { mutableStateOf(preferences.verseActionsHint) }
                 var positioned by rememberSaveable(current) { mutableStateOf(false) }
                 LaunchedEffect(current, verses) {
                     if (positioned) return@LaunchedEffect
@@ -63,6 +65,10 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                 LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     item(key = "chapter-heading") {
                         Heading("${current.title} ${current.chapter}")
+                        if (hint) Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                            Text("Toque no número de um versículo para anotar, favoritar ou copiar.", Modifier.weight(1f), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                            TextButton(onClick = { hint = false; preferences.verseActionsHint = false }) { Text("Entendi") }
+                        }
                         if (explanations && comments == null) Text("Carregando comentários… A escritura já está disponível.", style = MaterialTheme.typography.labelSmall)
                         comments?.exceptionOrNull()?.let { Text("Comentários indisponíveis nesta abertura. O texto permanece disponível.", style = MaterialTheme.typography.labelSmall) }
                         if (!appearance.dockedComments) groups.find { it.verse == null }?.comments?.forEach { CommentPreview(it, personal, source) }
@@ -77,10 +83,12 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                             val holdConfiguration = remember(baseConfiguration) { object : ViewConfiguration by baseConfiguration { override val longPressTimeoutMillis = 2000L } }
                             CompositionLocalProvider(LocalViewConfiguration provides holdConfiguration) {
                                 Surface(color = Color.Transparent, shape = MaterialTheme.shapes.small,
-                                    modifier = Modifier.combinedClickable(onClick = { activeVerse = verseNumber; visible(verse) }, onLongClickLabel = "Ações do versículo $verseNumber", onLongClick = { actions = true })) {
+                                    modifier = Modifier.combinedClickable(onClick = { activeVerse = verseNumber; visible(verse) }, onLongClickLabel = "Ações do versículo $verseNumber", onLongClick = { actions = true; hint = false; preferences.verseActionsHint = false })) {
                                     Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                                        Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small) {
-                                            Box(Modifier.widthIn(min = 26.dp, max = 44.dp).heightIn(min = 26.dp).padding(horizontal = 4.dp, vertical = 3.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
+                                        // The number is the visible way to the verse's actions; holding the text also works.
+                                        Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small,
+                                            modifier = Modifier.clickable(onClickLabel = "Anotar, favoritar ou copiar o versículo $verseNumber") { actions = true; hint = false; preferences.verseActionsHint = false }) {
+                                            Box(Modifier.widthIn(min = 32.dp, max = 48.dp).heightIn(min = 32.dp).padding(horizontal = 4.dp, vertical = 3.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
                                                 Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
                                             }
                                         }

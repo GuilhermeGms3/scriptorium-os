@@ -111,61 +111,115 @@ fun SearchScreen(repository: MobileRepository, personal: PersonalRepository, ope
 fun KnowledgeScreen(repository: MobileRepository, personal: PersonalRepository) {
     var selected by remember { mutableStateOf<Row?>(null) }
     var claim by remember { mutableStateOf<Row?>(null) }
-    var graph by rememberSaveable { mutableStateOf(true) }
+    // The tree reads well on a phone; the map is an extra, only where themes are actually linked.
+    var graph by rememberSaveable { mutableStateOf(false) }
+    val navigation = repository.navigation
+    fun name(row: Row) = navigation.topic(row.text("id"), row.text("canonical_name"))
+    fun humanized(id: String) = id.substringAfter(':').replace('-', ' ').replaceFirstChar(Char::uppercase)
     Column(Modifier.fillMaxSize().padding(16.dp)) {
-        Heading("Teologia", "Árvore do acervo instalado. Doutrina, tradição, método e posição permanecem categorias distintas.")
-        TextButton(onClick = { graph = !graph }) { Text(if (graph) "Mostrar lista de entidades" else "Mostrar mapa conectado") }
-        Load("ontology", { repository.ontology() to repository.publicClaims() }) { (entities, claims) ->
+        Heading("Teologia", "Os temas do acervo, por tipo. Toque num tema para ver a descrição e com o que ele se liga.")
+        Load("ontology", { Triple(repository.ontology(), repository.ontologyRelations(), repository.publicClaims()) }) { (entities, relations, claims) ->
+            val byId = entities.associateBy { it.text("id") }
+            val linked = relations.flatMap { listOf(it.text("from_entity_id"), it.text("to_entity_id")) }.filter { it in byId }.distinct()
+            // "Expiação" is both a doctrine and a theme: the map and its chips say which one.
+            fun mapName(row: Row) = if (entities.count { name(it) == name(row) } > 1) "${name(row)} (${ontologyKindName(row.text("ontology_kind"))})" else name(row)
+            if (linked.isNotEmpty()) TextButton(onClick = { graph = !graph }) {
+                Text(if (graph) "Ver a lista de temas" else "Ver as ligações entre temas (${relations.size})")
+            }
             LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                if (graph && entities.isNotEmpty()) item {
-                    Load("ontology-edges", { entities.flatMap { repository.ontologyRelations(it.text("id")) }.distinctBy { it.text("id") } }) { relations ->
-                        KnowledgeGraph(entities.mapIndexed { index, row ->
-                            val angle = index * 2 * Math.PI / entities.size
-                            GraphNode(row.text("id"), row.text("canonical_name"), (540 + kotlin.math.cos(angle) * 400).toFloat(), (380 + kotlin.math.sin(angle) * 280).toFloat())
-                        }, relations.map { GraphEdge(it.text("from_entity_id"), it.text("to_entity_id")) }) { id -> selected = entities.find { it.text("id") == id } }
-                    }
+                if (graph && linked.isNotEmpty()) item {
+                    KnowledgeGraph(linkedLayout(linked, relations).map { (id, x, y) -> GraphNode(id, mapName(byId.getValue(id)), x, y) }, relations.map { GraphEdge(it.text("from_entity_id"), it.text("to_entity_id"), navigation.term("relations", it.text("relation_type"))) }) { id -> selected = byId[id] }
+                    Text("Só os ${linked.size} temas com ligação explícita no acervo; os demais estão na lista.", style = MaterialTheme.typography.labelSmall)
                 }
                 if (entities.isEmpty()) item { Text("Este pacote não inclui a ontologia. Exporte também knowledge.sqlite3 no PC.") }
-                entities.groupBy { it.text("ontology_kind") }.forEach { (kind, group) ->
-                    item { Text("│  ${ontologyLabel(kind)}", color = MaterialTheme.colorScheme.primary, modifier = Modifier.padding(top = 16.dp)) }
-                    items(group, key = { it.text("id") }) { entity ->
-                        Row(Modifier.fillMaxWidth().clickable { selected = entity }.padding(12.dp)) {
-                            Text("├─  ", color = MaterialTheme.colorScheme.primary)
-                            Column { Text(entity.text("canonical_name")); Text(entity.text("description"), style = MaterialTheme.typography.bodySmall) }
+                if (!graph) entities.groupBy { it.text("ontology_kind") }.forEach { (kind, group) ->
+                    item { Text(ontologyLabel(kind), color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleSmall, modifier = Modifier.padding(top = 16.dp)) }
+                    items(group.sortedBy { name(it) }, key = { it.text("id") }) { entity ->
+                        Column(Modifier.fillMaxWidth().clickable { selected = entity }.padding(horizontal = 12.dp, vertical = 10.dp)) {
+                            Text(name(entity))
+                            entity.text("description").takeIf(String::isNotBlank)?.let {
+                                Text(it, style = MaterialTheme.typography.bodySmall, maxLines = 2, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                            }
                         }
                     }
                 }
-                item { Heading("Proposições e argumentos", "Não são pontuações de verdade. Cada proposição preserva seu tipo e revisão.") }
-                items(claims, key = { it.text("id") }) { row -> TextButton(onClick = { claim = row }) { Text(row.text("proposition")) } }
-            }
-        }
-    }
-    selected?.let { entity -> AlertDialog(onDismissRequest = { selected = null }, title = { Text(entity.text("canonical_name")) }, confirmButton = { TextButton(onClick = { selected = null }) { Text("Fechar") } }, text = {
-        Column {
-            Text(entity.text("description"))
-            TranslationBlock(entity.text("description"), "und", personal)
-            Load(entity.text("id"), { repository.ontologyRelations(entity.text("id")) }) { relations ->
-                if (relations.isEmpty()) Text("Sem relações explícitas exportadas para esta entidade.", Modifier.padding(top = 16.dp))
-                relations.forEach { Text("${it.text("from_title")} → ${it.text("relation_type")} → ${it.text("to_title")}", Modifier.padding(vertical = 8.dp)) }
-            }
-        }
-    }) }
-    claim?.let { row -> AlertDialog(onDismissRequest = { claim = null }, title = { Text("Proposição") }, confirmButton = { TextButton(onClick = { claim = null }) { Text("Fechar") } }, text = {
-        Column(Modifier.heightIn(max = 550.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())) {
-            TranslationBlock(row.text("proposition"), "und", personal)
-            Text(row.text("proposition")); Text("${row.text("claim_type")} · ${row.text("review_status")}", style = MaterialTheme.typography.labelSmall)
-            Load(row.text("id"), { repository.arguments(row.text("id")) }) { arguments ->
-                if (arguments.isEmpty()) Text("Nenhum argumento explícito para esta proposição.")
-                arguments.forEach { argument ->
-                    Heading(argument.text("title")); Text(argument.text("conclusion"))
-                    Load(argument.text("id"), { repository.argumentDetail(argument.text("id")) }) { (premises, relations) ->
-                        premises.forEach { Text("Premissa: ${it.text("proposition")}", Modifier.padding(top = 8.dp)) }
-                        relations.forEach { Text("${it.text("relation_type")}: ${it.text("from_id")} → ${it.text("to_id")}", Modifier.padding(top = 8.dp)) }
+                item { Heading("Proposições e argumentos", "Não são pontuações de verdade. Cada proposição mostra o tipo e o quanto já foi conferida.") }
+                items(claims, key = { it.text("id") }) { row ->
+                    Column(Modifier.fillMaxWidth().clickable { claim = row }.padding(horizontal = 12.dp, vertical = 8.dp)) {
+                        Text(row.text("proposition"))
+                        Text("${navigation.term("claimKinds", row.text("claim_type"))} · ${navigation.term("reviewStatus", row.text("review_status"))}",
+                            style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     }
                 }
             }
+            selected?.let { entity -> AlertDialog(onDismissRequest = { selected = null }, title = { Text(mapName(entity)) }, confirmButton = { TextButton(onClick = { selected = null }) { Text("Fechar") } }, text = {
+                Column {
+                    entity.text("description").takeIf(String::isNotBlank)?.let { Text(it); TranslationBlock(it, "und", personal) }
+                    Load(entity.text("id"), { repository.ontologyRelations(entity.text("id")) }) { links ->
+                        if (links.isEmpty()) Text("Nenhuma ligação explícita com outros temas no acervo.", Modifier.padding(top = 16.dp))
+                        links.forEach {
+                            Text("${byId[it.text("from_entity_id")]?.let(::mapName) ?: it.text("from_title")} ${navigation.term("relations", it.text("relation_type"))} ${byId[it.text("to_entity_id")]?.let(::mapName) ?: it.text("to_title")}", Modifier.padding(vertical = 8.dp))
+                        }
+                    }
+                }
+            }) }
+            claim?.let { row -> AlertDialog(onDismissRequest = { claim = null }, title = { Text("Proposição") }, confirmButton = { TextButton(onClick = { claim = null }) { Text("Fechar") } }, text = {
+                Column(Modifier.heightIn(max = 550.dp).verticalScroll(androidx.compose.foundation.rememberScrollState())) {
+                    TranslationBlock(row.text("proposition"), "und", personal)
+                    Text(row.text("proposition"))
+                    Text("${navigation.term("claimKinds", row.text("claim_type"))} · ${navigation.term("reviewStatus", row.text("review_status"))}", style = MaterialTheme.typography.labelSmall)
+                    Load(row.text("id"), { repository.arguments(row.text("id")) }) { arguments ->
+                        if (arguments.isEmpty()) Text("Nenhum argumento explícito para esta proposição.")
+                        // Names instead of identifiers: the proposition, the argument title or the theme.
+                        fun describe(kind: String, id: String) = when (kind) {
+                            "claim" -> claims.find { it.text("id") == id }?.text("proposition")
+                            "argument" -> arguments.find { it.text("id") == id }?.text("title")
+                            else -> byId[id]?.let(::name)
+                        } ?: humanized(id)
+                        arguments.forEach { argument ->
+                            Heading(argument.text("title")); Text(argument.text("conclusion"))
+                            Load(argument.text("id"), { repository.argumentDetail(argument.text("id")) }) { (premises, links) ->
+                                premises.forEach { Text("Premissa: ${it.text("proposition")}", Modifier.padding(top = 8.dp)) }
+                                links.forEach {
+                                    Text("${describe(it.text("from_kind"), it.text("from_id"))} ${navigation.term("relations", it.text("relation_type"))} ${describe(it.text("to_kind"), it.text("to_id"))}", Modifier.padding(top = 8.dp))
+                                }
+                            }
+                        }
+                    }
+                }
+            }) }
         }
-    }) }
+    }
+}
+
+/**
+ * Each group of linked themes on its own row, the most connected in the middle, so every line is
+ * horizontal and its name sits above it, clear of the theme names below the points.
+ */
+internal fun linkedLayout(ids: List<String>, relations: List<Row>): List<Triple<String, Float, Float>> {
+    val neighbours = ids.associateWith { id -> relations.filter { it.text("from_entity_id") == id || it.text("to_entity_id") == id }
+        .map { if (it.text("from_entity_id") == id) it.text("to_entity_id") else it.text("from_entity_id") }.filter { it in ids }.toSet() }
+    val groups = mutableListOf<List<String>>()
+    val seen = mutableSetOf<String>()
+    for (start in ids) if (seen.add(start)) {
+        val group = mutableListOf(start)
+        var index = 0
+        while (index < group.size) neighbours.getValue(group[index++]).forEach { if (seen.add(it)) group += it }
+        groups += group
+    }
+    return groups.flatMapIndexed { row, group ->
+        val hub = group.maxBy { neighbours.getValue(it).size }
+        val others = group - hub
+        val ordered = others.filterIndexed { index, _ -> index % 2 == 1 } + hub + others.filterIndexed { index, _ -> index % 2 == 0 }
+        val y = if (groups.size == 1) 380f else 140f + row * 480f / (groups.size - 1)
+        ordered.mapIndexed { index, id -> Triple(id, if (ordered.size == 1) 540f else 140f + index * 800f / (ordered.size - 1), y) }
+    }
+}
+
+private fun ontologyKindName(kind: String): String = when (kind) {
+    "theological-topic" -> "tema"; "doctrine" -> "doutrina"; "tradition" -> "tradição"; "school" -> "escola"
+    "method" -> "método"; "epistemic-stance" -> "postura"; "interpretive-framework" -> "sistema"; "position" -> "posição"; "theory" -> "teoria"
+    else -> kind
 }
 
 private fun ontologyLabel(kind: String): String = when (kind) {
