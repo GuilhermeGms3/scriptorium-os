@@ -8,6 +8,19 @@ import java.io.File
 import java.time.LocalDate
 
 class ReadingNavigationTest {
+    @Test fun additionalScripturesAndReferencesHavePortugueseLabelsAndFilters() {
+        val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
+        assertEquals("Judite", metadata.bookTitle("judith", "Judith"))
+        assertEquals("1 Macabeus", metadata.bookTitle("1-maccabees", "1 Maccabees"))
+        assertEquals("Susana", metadata.bookTitle("susanna", "Susanna"))
+        assertEquals("Daniel Grego", metadata.bookTitle("greek-daniel", "Greek Daniel"))
+        assertTrue(metadata.bookMatches("judith", "Apócrifo"))
+        assertTrue(metadata.bookMatches("2-maccabees", "Não canônico"))
+        assertFalse(metadata.bookMatches("matthew", "Apócrifo"))
+        assertEquals("1 Reis 2:3–5", metadata.reference("1-kings", "1 Kings", 2, 3, 5))
+        assertEquals("Mateus 5:1", metadata.reference("matthew", "Matthew", 5, 1))
+        assertTrue(metadata.workTitle("work:gospel-thomas-coptic", "Gospel of Thomas").startsWith("Evangelho de Tomé"))
+    }
     @Test fun bookCatalogIncludesOldTestamentDespitePartialEditionBeingFirst() {
         val greek = Edition("sbl", "Novo Testamento grego", "greek.sqlite3")
         val portuguese = Edition("biblia-livre-n4-2025.1.0", "Bíblia em português", "pt.sqlite3")

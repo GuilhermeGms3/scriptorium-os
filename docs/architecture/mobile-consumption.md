@@ -6,6 +6,23 @@ IDs, páginas físicas, fontes, estados de revisão e direitos acompanham o cont
 
 ## Entrega privada completa
 
+### Adicionar uma edição ao acervo existente
+
+Para acrescentar corpora já registrados no desktop, sem reexportar comentários ou PDFs:
+
+```powershell
+npx tsx scripts/mobile/add-corpus-editions.ts --base <manifesto-atual.json> --output <pasta-nova> --editions <id-da-edicao>
+```
+
+O manifesto-base deve corresponder à geração instalada. O delta conserva os arquivos e
+edições anteriores e leva somente os corpora novos; o instalador valida o ID-base e os
+hashes. O APK continua sendo atualizado separadamente. O complemento0.5.2 acrescenta
+a King James ao kit-base de10 edições; reaproveita os75 arquivos existentes e acrescenta
+um corpus de147.034.112 bytes, comprimido em um delta de15.654.404 bytes. Títulos localizados
+e filtros são metadados do APK e não traduzem os textos originais.
+
+### Gerar o kit completo
+
 No PC, com Node 22, Python via `uv`, JDK 21 e Android SDK 36:
 
 ```powershell

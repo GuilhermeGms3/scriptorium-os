@@ -5,10 +5,26 @@ no PC. Há entrega privada com aplicativo e todos os PDFs no mesmo kit; **não �
 O desktop, o pipeline Python e o workspace original não são substituídos.
 
 **Entrega completa com os livros:** siga [kit completo e consumo nativo](../docs/architecture/mobile-consumption.md).
-O pacote privado atual reúne 57 PDFs, 47.707 páginas e 10 edições. `npm run mobile:bundle`
+O kit-base reúne 57 PDFs, 47.707 páginas e 10 edições; o complemento 0.5.2 amplia para 11 edições. `npm run mobile:bundle`
 gera um ZIP com APK, acervo e instalador USB automático, sem importação livro por livro.
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
+
+## Textos adicionais e títulos em português — 0.5.2
+
+- Apócrifo/Não canônico incluem os livros das coleções adicionais já instaladas, como
+  Judite, Macabeus e Daniel Grego. O cânon varia conforme a tradição.
+- Metadados abrangem os 85 livros distintos da Bíblia Livre, Bíblia Portuguesa Mundial
+  e King James. Referências da busca normal/por sentido e títulos das obras estruturadas
+  são apresentados em português; nomes originais, IDs, edição e texto-fonte são preservados.
+- Evangelho de Judas tem acesso à seção real encontrada no PDF instalado (em espanhol).
+  Tomé tem título em português, com indicação de que a fonte é copta. Não há tradução
+  inventada do corpo dos textos.
+- O complemento do acervo acrescenta a edição King James já existente no desktop,
+  com Susana, Bel e o Dragão, Cântico dos Três Jovens e Adições a Ester como obras separadas.
+  Transferência de cerca de 15MB, aproximadamente 140MiB adicionais instalados;
+  arquivos antigos são reutilizados. O APK sozinho não instala esse corpus novo.
+- Consulte [QA e limites](../docs/qa/android-additional-texts-2026-10-22.md).
 
 ## Catálogo completo de leitura — 0.5.1
 

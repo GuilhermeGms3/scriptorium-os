@@ -8,7 +8,8 @@
         "Gn"
       ],
       "group": "Pentateuco",
-      "symbol": "✧"
+      "symbol": "✧",
+      "tags": []
     },
     "exodus": {
       "title": "Êxodo",
@@ -18,7 +19,8 @@
         "Êx"
       ],
       "group": "Pentateuco",
-      "symbol": "✧"
+      "symbol": "✧",
+      "tags": []
     },
     "leviticus": {
       "title": "Levítico",
@@ -28,7 +30,8 @@
         "Lv"
       ],
       "group": "Pentateuco",
-      "symbol": "✧"
+      "symbol": "✧",
+      "tags": []
     },
     "numbers": {
       "title": "Números",
@@ -38,7 +41,8 @@
         "Nm"
       ],
       "group": "Pentateuco",
-      "symbol": "✧"
+      "symbol": "✧",
+      "tags": []
     },
     "deuteronomy": {
       "title": "Deuteronômio",
@@ -48,7 +52,8 @@
         "Dt"
       ],
       "group": "Pentateuco",
-      "symbol": "✧"
+      "symbol": "✧",
+      "tags": []
     },
     "joshua": {
       "title": "Josué",
@@ -58,7 +63,8 @@
         "Js"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "judges": {
       "title": "Juízes",
@@ -68,7 +74,8 @@
         "Jz"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "ruth": {
       "title": "Rute",
@@ -78,7 +85,8 @@
         "Rt"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "1-samuel": {
       "title": "1 Samuel",
@@ -88,7 +96,8 @@
         "1Sm"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "2-samuel": {
       "title": "2 Samuel",
@@ -98,7 +107,8 @@
         "2Sm"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "1-kings": {
       "title": "1 Reis",
@@ -108,7 +118,8 @@
         "1Rs"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "2-kings": {
       "title": "2 Reis",
@@ -118,7 +129,8 @@
         "2Rs"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "1-chronicles": {
       "title": "1 Crônicas",
@@ -128,7 +140,8 @@
         "1Cr"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "2-chronicles": {
       "title": "2 Crônicas",
@@ -138,7 +151,8 @@
         "2Cr"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "ezra": {
       "title": "Esdras",
@@ -148,7 +162,8 @@
         "Ed"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "nehemiah": {
       "title": "Neemias",
@@ -158,7 +173,8 @@
         "Ne"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "esther": {
       "title": "Ester",
@@ -168,7 +184,8 @@
         "Et"
       ],
       "group": "Históricos",
-      "symbol": "▤"
+      "symbol": "▤",
+      "tags": []
     },
     "job": {
       "title": "Jó",
@@ -178,7 +195,8 @@
         "Jó"
       ],
       "group": "Poéticos e sapienciais",
-      "symbol": "♫"
+      "symbol": "♫",
+      "tags": []
     },
     "psalms": {
       "title": "Salmos",
@@ -188,7 +206,8 @@
         "Sl"
       ],
       "group": "Poéticos e sapienciais",
-      "symbol": "♫"
+      "symbol": "♫",
+      "tags": []
     },
     "proverbs": {
       "title": "Provérbios",
@@ -198,7 +217,8 @@
         "Pv"
       ],
       "group": "Poéticos e sapienciais",
-      "symbol": "♫"
+      "symbol": "♫",
+      "tags": []
     },
     "ecclesiastes": {
       "title": "Eclesiastes",
@@ -208,7 +228,8 @@
         "Ec"
       ],
       "group": "Poéticos e sapienciais",
-      "symbol": "♫"
+      "symbol": "♫",
+      "tags": []
     },
     "song-of-songs": {
       "title": "Cântico dos Cânticos",
@@ -218,7 +239,8 @@
         "Ct"
       ],
       "group": "Poéticos e sapienciais",
-      "symbol": "♫"
+      "symbol": "♫",
+      "tags": []
     },
     "isaiah": {
       "title": "Isaías",
@@ -228,7 +250,8 @@
         "Is"
       ],
       "group": "Profetas maiores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "jeremiah": {
       "title": "Jeremias",
@@ -238,7 +261,8 @@
         "Jr"
       ],
       "group": "Profetas maiores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "lamentations": {
       "title": "Lamentações",
@@ -248,7 +272,8 @@
         "Lm"
       ],
       "group": "Profetas maiores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "ezekiel": {
       "title": "Ezequiel",
@@ -258,7 +283,8 @@
         "Ez"
       ],
       "group": "Profetas maiores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "daniel": {
       "title": "Daniel",
@@ -268,7 +294,8 @@
         "Dn"
       ],
       "group": "Profetas maiores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "hosea": {
       "title": "Oseias",
@@ -278,7 +305,8 @@
         "Os"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "joel": {
       "title": "Joel",
@@ -288,7 +316,8 @@
         "Jl"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "amos": {
       "title": "Amós",
@@ -298,7 +327,8 @@
         "Am"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "obadiah": {
       "title": "Obadias",
@@ -308,7 +338,8 @@
         "Ob"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "jonah": {
       "title": "Jonas",
@@ -318,7 +349,8 @@
         "Jn"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "micah": {
       "title": "Miqueias",
@@ -328,7 +360,8 @@
         "Mq"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "nahum": {
       "title": "Naum",
@@ -338,7 +371,8 @@
         "Na"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "habakkuk": {
       "title": "Habacuque",
@@ -348,7 +382,8 @@
         "Hc"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "zephaniah": {
       "title": "Sofonias",
@@ -358,7 +393,8 @@
         "Sf"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "haggai": {
       "title": "Ageu",
@@ -368,7 +404,8 @@
         "Ag"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "zechariah": {
       "title": "Zacarias",
@@ -378,7 +415,8 @@
         "Zc"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "malachi": {
       "title": "Malaquias",
@@ -388,7 +426,8 @@
         "Ml"
       ],
       "group": "Profetas menores",
-      "symbol": "✦"
+      "symbol": "✦",
+      "tags": []
     },
     "matthew": {
       "title": "Mateus",
@@ -398,7 +437,8 @@
         "Mt"
       ],
       "group": "Evangelhos e Atos",
-      "symbol": "✝"
+      "symbol": "✝",
+      "tags": []
     },
     "mark": {
       "title": "Marcos",
@@ -408,7 +448,8 @@
         "Mc"
       ],
       "group": "Evangelhos e Atos",
-      "symbol": "✝"
+      "symbol": "✝",
+      "tags": []
     },
     "luke": {
       "title": "Lucas",
@@ -418,7 +459,8 @@
         "Lc"
       ],
       "group": "Evangelhos e Atos",
-      "symbol": "✝"
+      "symbol": "✝",
+      "tags": []
     },
     "john": {
       "title": "João",
@@ -428,7 +470,8 @@
         "Jo"
       ],
       "group": "Evangelhos e Atos",
-      "symbol": "✝"
+      "symbol": "✝",
+      "tags": []
     },
     "acts": {
       "title": "Atos",
@@ -438,7 +481,8 @@
         "At"
       ],
       "group": "Evangelhos e Atos",
-      "symbol": "✝"
+      "symbol": "✝",
+      "tags": []
     },
     "romans": {
       "title": "Romanos",
@@ -448,7 +492,8 @@
         "Rm"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "1-corinthians": {
       "title": "1 Coríntios",
@@ -458,7 +503,8 @@
         "1Co"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "2-corinthians": {
       "title": "2 Coríntios",
@@ -468,7 +514,8 @@
         "2Co"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "galatians": {
       "title": "Gálatas",
@@ -478,7 +525,8 @@
         "Gl"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "ephesians": {
       "title": "Efésios",
@@ -488,7 +536,8 @@
         "Ef"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "philippians": {
       "title": "Filipenses",
@@ -498,7 +547,8 @@
         "Fp"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "colossians": {
       "title": "Colossenses",
@@ -508,7 +558,8 @@
         "Cl"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "1-thessalonians": {
       "title": "1 Tessalonicenses",
@@ -518,7 +569,8 @@
         "1Ts"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "2-thessalonians": {
       "title": "2 Tessalonicenses",
@@ -528,7 +580,8 @@
         "2Ts"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "1-timothy": {
       "title": "1 Timóteo",
@@ -538,7 +591,8 @@
         "1Tm"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "2-timothy": {
       "title": "2 Timóteo",
@@ -548,7 +602,8 @@
         "2Tm"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "titus": {
       "title": "Tito",
@@ -558,7 +613,8 @@
         "Tt"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "philemon": {
       "title": "Filemom",
@@ -568,7 +624,8 @@
         "Fm"
       ],
       "group": "Cartas paulinas",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "hebrews": {
       "title": "Hebreus",
@@ -578,7 +635,8 @@
         "Hb"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "james": {
       "title": "Tiago",
@@ -588,7 +646,8 @@
         "Tg"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "1-peter": {
       "title": "1 Pedro",
@@ -598,7 +657,8 @@
         "1Pe"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "2-peter": {
       "title": "2 Pedro",
@@ -608,7 +668,8 @@
         "2Pe"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "1-john": {
       "title": "1 João",
@@ -618,7 +679,8 @@
         "1Jo"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "2-john": {
       "title": "2 João",
@@ -628,7 +690,8 @@
         "2Jo"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "3-john": {
       "title": "3 João",
@@ -638,7 +701,8 @@
         "3Jo"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "jude": {
       "title": "Judas",
@@ -648,7 +712,8 @@
         "Jd"
       ],
       "group": "Cartas gerais",
-      "symbol": "✉"
+      "symbol": "✉",
+      "tags": []
     },
     "revelation": {
       "title": "Apocalipse",
@@ -658,8 +723,307 @@
         "Ap"
       ],
       "group": "Apocalíptico",
-      "symbol": "☼"
+      "symbol": "☼",
+      "tags": []
+    },
+    "tobit": {
+      "title": "Tobias",
+      "aliases": [
+        "Tobias",
+        "Tobias",
+        "Tb"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "judith": {
+      "title": "Judite",
+      "aliases": [
+        "Judite",
+        "Judite",
+        "Jt"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "greek-esther": {
+      "title": "Ester Grego",
+      "aliases": [
+        "Ester Grego",
+        "Ester Grego",
+        "EtGr"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "wisdom": {
+      "title": "Sabedoria",
+      "aliases": [
+        "Sabedoria",
+        "Sabedoria",
+        "Sb"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "sirach": {
+      "title": "Eclesiástico",
+      "aliases": [
+        "Eclesiástico",
+        "Eclesiástico",
+        "Eclo"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "baruch": {
+      "title": "Baruque",
+      "aliases": [
+        "Baruque",
+        "Baruque",
+        "Br"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "1-maccabees": {
+      "title": "1 Macabeus",
+      "aliases": [
+        "1 Macabeus",
+        "1 Macabeus",
+        "1Mc"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "2-maccabees": {
+      "title": "2 Macabeus",
+      "aliases": [
+        "2 Macabeus",
+        "2 Macabeus",
+        "2Mc"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "1-esdras": {
+      "title": "1 Esdras",
+      "aliases": [
+        "1 Esdras",
+        "1 Esdras",
+        "1Es"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "prayer-of-manasseh": {
+      "title": "Oração de Manassés",
+      "aliases": [
+        "Oração de Manassés",
+        "Oração de Manassés",
+        "OrMan"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "psalm-151": {
+      "title": "Salmo 151",
+      "aliases": [
+        "Salmo 151",
+        "Salmo 151",
+        "Sl151"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "3-maccabees": {
+      "title": "3 Macabeus",
+      "aliases": [
+        "3 Macabeus",
+        "3 Macabeus",
+        "3Mc"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "2-esdras": {
+      "title": "2 Esdras",
+      "aliases": [
+        "2 Esdras",
+        "2 Esdras",
+        "2Es"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "4-maccabees": {
+      "title": "4 Macabeus",
+      "aliases": [
+        "4 Macabeus",
+        "4 Macabeus",
+        "4Mc"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "greek-daniel": {
+      "title": "Daniel Grego",
+      "aliases": [
+        "Daniel Grego",
+        "Daniel Grego",
+        "DnGr"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "additions-to-esther": {
+      "title": "Adições a Ester",
+      "aliases": [
+        "Adições a Ester",
+        "Adições a Ester",
+        "AdEt"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "song-of-three-youths": {
+      "title": "Cântico dos Três Jovens",
+      "aliases": [
+        "Cântico dos Três Jovens",
+        "Cântico dos Três Jovens",
+        "C3J"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "susanna": {
+      "title": "Susana",
+      "aliases": [
+        "Susana",
+        "Susana",
+        "Sus"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
+    },
+    "bel-and-the-dragon": {
+      "title": "Bel e o Dragão",
+      "aliases": [
+        "Bel e o Dragão",
+        "Bel e o Dragão",
+        "Bel"
+      ],
+      "group": "Deuterocanônicos e outros textos",
+      "symbol": "▤",
+      "tags": [
+        "Apócrifo",
+        "Não canônico"
+      ]
     }
+  },
+  "works": {
+    "work:gospel-thomas-coptic": "Evangelho de Tomé — texto copta",
+    "work:didache": "Didaqué",
+    "work:first-clement": "Primeira Carta de Clemente aos Coríntios",
+    "work:second-clement": "Segunda Carta de Clemente",
+    "work:polycarp-philippians": "Carta de Policarpo aos Filipenses",
+    "work:martyrdom-polycarp": "Martírio de Policarpo",
+    "work:epistle-barnabas": "Epístola de Barnabé",
+    "work:epistle-diognetus": "Epístola a Diogneto",
+    "work:apostles-creed": "Credo dos Apóstolos",
+    "work:athanasian-creed": "Credo Atanasiano",
+    "work:nicene-creed-325": "Credo de Niceia (325)",
+    "work:nicene-constantinopolitan-western": "Credo Niceno-Constantinopolitano — versão ocidental com filioque",
+    "work:chalcedonian-definition": "Definição de Calcedônia (451)",
+    "work:origen-commentary-john-books-1-2": "Orígenes — Comentário ao Evangelho de João, livros I e II",
+    "work:augustine-confessions": "Confissões de Santo Agostinho",
+    "work:aquinas-summa-prima-pars": "Suma Teológica — primeira parte",
+    "work:aquinas-summa-prima-secundae": "Suma Teológica — primeira seção da segunda parte",
+    "work:aquinas-summa-secunda-secundae": "Suma Teológica — segunda seção da segunda parte",
+    "work:aquinas-summa-tertia-pars": "Suma Teológica — terceira parte"
+  },
+  "editions": {
+    "coptic-scriptorium-thomas-cop-1": "Evangelho de Tomé — edição crítica copta SCRIPTORIUM",
+    "apostolic-fathers-pd-en-1": "Padres Apostólicos — edição em inglês",
+    "historic-creeds-pd-en-1": "Credos históricos e documentos conciliares — edição em inglês",
+    "ancient-john-reception-pd-en-1": "Recepção antiga de João — edição em inglês",
+    "augustine-confessions-pd-en-1": "Confissões de Santo Agostinho — edição em inglês",
+    "aquinas-summa-pd-en-1": "Suma Teológica de Tomás de Aquino — edição em inglês",
+    "king-james-version-2026-09-26": "King James (1769) — inglês",
+    "sblgnt-1.2": "SBL — Novo Testamento grego 1.2",
+    "wlc-oshb-2.2": "WLC/OSHB — texto hebraico com morfologia 2.2"
   },
   "topics": {
     "entity:work:gospel-of-john": "Evangelho segundo João",

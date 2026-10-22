@@ -33,11 +33,11 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             if (filter != "Bíblia") value = try { Result.success(withContext(Dispatchers.IO) {
             repository.primaryWorks().filter { it["chapters"].isNullOrEmpty() }.map { work ->
             AdditionalReading(work, "work", if (work.text("id") == "work:gospel-thomas-coptic") setOf("Não canônico", "Apócrifo") else setOf("Fontes antigas"))
-        } + repository.documents().mapNotNull { row ->
+        } + repository.ancientReadingSections().map { AdditionalReading(it, "section", setOf("Não canônico", "Apócrifo")) } + repository.documents().mapNotNull { row ->
             val name = normalizedReading(row.text("title"))
             val tags = buildSet {
-                if (listOf("hammadi", "gnosti", "apocrif", "naocanonic").any(name::contains)) add("Não canônico")
-                if (name.contains("apocrif")) add("Apócrifo")
+                if (listOf("hammadi", "gnosti", "apocrif", "apocryph", "pseudepig", "naocanonic").any(name::contains)) add("Não canônico")
+                if (listOf("apocrif", "apocryph", "pseudepig").any(name::contains)) add("Apócrifo")
                 if (listOf("esoter", "hermet").any(name::contains)) add("Esotérico")
             }
             if (tags.isEmpty()) null else AdditionalReading(row, "document", tags)
@@ -68,7 +68,8 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
                 item { FilterChip(group == null, { group = null }, label = { Text("Todas as seções") }) }
                 items(books.map { repository.navigation.group(it.text("book_id")) }.distinct()) { name -> FilterChip(group == name, { group = name }, label = { Text(name) }) }
             }
-            val visible = books.filter { filter in listOf("Todos", "Bíblia") && (group == null || repository.navigation.group(it.text("book_id")) == group) && normalizedReading(it.text("title")).contains(normalizedReading(query)) }
+            if (filter in listOf("Apócrifo", "Não canônico")) Text("Inclui deuterocanônicos; o cânon varia por tradição.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+            val visible = books.filter { repository.navigation.bookMatches(it.text("book_id"), filter) && (group == null || repository.navigation.group(it.text("book_id")) == group) && normalizedReading(it.text("title")).contains(normalizedReading(query)) }
             val additional = extras.filter { (filter == "Todos" || filter in it.tags) && normalizedReading(it.row.text("title")).contains(normalizedReading(query)) }
             LazyColumn(contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 visible.groupBy { repository.navigation.group(it.text("book_id")) }.forEach { (name, rows) ->
@@ -79,8 +80,9 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
                     Heading("Outros textos do acervo", "Textos não canônicos e fontes históricas permanecem distintos da edição bíblica. Os rótulos não definem o cânon de todas as tradições.")
                 }
                 items(additional, key = { "${it.kind}:${it.row.text("id")}" }) { extra ->
-                    BookTile(extra.row.text("title"), if (extra.kind == "document") "Volume privado · ${extra.row.number("pages")} páginas" else "${extra.row.text("unit_count")} unidades · fonte antiga", if ("Apócrifo" in extra.tags) "☼" else "▤") {
+                    BookTile(extra.row.text("title"), when (extra.kind) { "document" -> "Volume privado · ${extra.row.number("pages")} páginas"; "section" -> "Texto no volume instalado · p. ${extra.row.number("page_index") + 1}"; else -> "${extra.row.text("unit_count")} unidades · fonte antiga" }, if ("Apócrifo" in extra.tags) "☼" else "▤") {
                         if (extra.kind == "work") primary(extra.row)
+                        else if (extra.kind == "section") page(extra.row)
                         else page(extra.row + mapOf("document_id" to extra.row.text("id"), "source_title" to extra.row.text("title"), "page_index" to "0", "document_pages" to extra.row.text("pages")))
                     }
                 }

@@ -27,8 +27,9 @@ fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, req
 private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit, consumePassage: () -> Unit) {
     val context = LocalContext.current
     val preferences = remember { ReadingPreferences(context) }
-    val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = { decodePassage(it, editions) })
-    var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf(decodePassage(preferences.lastPassage(), editions)) }
+    fun restore(raw: String?) = decodePassage(raw, editions)?.let { it.copy(title = repository.navigation.bookTitle(it.bookId, it.title)) }
+    val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = ::restore)
+    var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf(restore(preferences.lastPassage())) }
     var editionId by rememberSaveable { mutableStateOf(passage?.edition?.id ?: editions.first().id) }
     val edition = editions.firstOrNull { it.id == editionId } ?: editions.first()
     var bookId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -83,7 +84,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
                 TextButton(onClick = { if (passage != null || bookId != null) rememberPage(); passage = null; bookId = null }, modifier = Modifier.weight(1f)) {
                     Column(Modifier.fillMaxWidth()) {
                         Text(if (passage != null || bookId != null) "← Voltar pra escolha" else "Escolher livro", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        Text(passage?.let { "${it.title} ${it.chapter} · ${edition.title}" } ?: "Livros instalados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(passage?.let { "${it.title} ${it.chapter} · ${repository.navigation.editionTitle(edition.id, edition.title)}" } ?: "Livros instalados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
 

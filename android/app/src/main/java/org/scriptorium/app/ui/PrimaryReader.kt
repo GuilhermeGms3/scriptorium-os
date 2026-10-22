@@ -21,7 +21,7 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
     var note by remember { mutableStateOf<String?>(null) }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TextButton(onClick = close) { Text("Voltar à biblioteca") }
-        Heading(work.text("title"), edition.title)
+        Heading(work.text("title"), repository.navigation.editionTitle(edition.id, edition.title))
         Load(edition.id, { repository.editionMetadata(edition) }) { metadata ->
             Text(metadata.text("language"), style = MaterialTheme.typography.labelSmall)
             Load(work.text("id") to offset, { repository.primaryUnits(edition, work.text("id"), offset) }) { units ->

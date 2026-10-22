@@ -1,5 +1,20 @@
 # Project Memory
 
+## Android — textos adicionais e títulos0.5.2 — 2026-10-22
+
+- Apócrifo antes excluía obras com capítulos: Judite/Macabeus/Daniel Grego já estavam na BPM
+  do pacote-base. Metadados agora85 livros (BL+BPM+KJV), tags de filtro e referências PT
+  em busca normal/semântica.19 obras estruturadas e seus cabeçalhos com rótulos PT.
+- Judas abre página real do PDF Nag Hammadi III, física313, espanhol; descoberta por FTS
+  mais cabeçalho explícito. Tomé continua copta; traduzir título não altera idioma-fonte.
+- Delta adiciona KJV registrada do desktop:15.654.404 bytes transferidos/147.034.112 novos
+  instalados;75 arquivos antigos reutilizados no emulador, sem outra cópia dos PDFs.
+  Gerador: scripts/mobile/add-corpus-editions.ts. Usar manifesto-base correspondente.
+- QA/limites: docs/qa/android-additional-texts-2026-10-22.md. Entrega desktop0.5.2 inclui
+  APK+delta+instalador. Instalado0.5.2/code10 e delta no SM-S906E;75 arquivos reutilizados/1 novo
+  confirmados no aparelho.53 testes JVM,12 TS,2 cenários nativos/2 dados reais aprovados;
+  typecheck/lint/build aprovados,22 avisos existentes de lint Android.
+
 ## Android — catálogo completo de leitura 0.5.1 — 2026-10-22
 
 - Causa da ausência de AT: o seletor consultava apenas a edição da última passagem,

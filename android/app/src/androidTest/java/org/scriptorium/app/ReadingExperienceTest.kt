@@ -12,6 +12,25 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class ReadingExperienceTest {
+    @Test fun additionalTextsAndPortugueseTitlesResolveToInstalledContent() {
+        val repo = repository()
+        val catalog = repo.readingBooks()
+        for (id in listOf("judith", "1-maccabees", "2-maccabees", "greek-daniel", "susanna", "bel-and-the-dragon")) {
+            val entry = catalog.first { it.row.text("book_id") == id }
+            assertTrue(repo.navigation.bookMatches(id, "Apócrifo"))
+            val row = entry.row
+            assertTrue(repo.verses(Passage(entry.edition, row.text("id"), id, row.text("title"), 1, row.text("scheme"))).isNotEmpty())
+        }
+        assertEquals("Judite", catalog.first { it.row.text("book_id") == "judith" }.row.text("title"))
+        assertTrue(repo.primaryWorks().first { it.text("id") == "work:gospel-thomas-coptic" }.text("title").startsWith("Evangelho de Tomé"))
+        assertTrue(repo.ancientReadingSections().any { it.text("title") == "Evangelho de Judas" && it.number("page_index") >= 0 })
+        val edition = repo.scriptureEditions().first()
+        assertTrue(repo.search("Deus", edition, LocalSearchScope.SCRIPTURE).all { hit ->
+            val passage = requireNotNull(hit.passage)
+            hit.title.startsWith(repo.navigation.bookTitle(passage.bookId, passage.title))
+        })
+        println("ADDITIONAL_TEXTS_QA six real chapters/Portuguese titles/Judas installed page passed")
+    }
     @Test fun academicFormationHasRealChaptersPassagesAndLibraryLinks() {
         val repository = repository()
         val formation = requireNotNull(repository.catalogItem("course:theology-formation"))

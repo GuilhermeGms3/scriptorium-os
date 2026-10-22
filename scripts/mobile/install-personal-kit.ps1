@@ -44,7 +44,11 @@ if ($alreadyInstalled -eq $description.id) {
 } else {
     Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mkdir', '-p', 'files/incoming')
     $target = "files/incoming/$($description.id)"
-    Write-Host "Transferindo o acervo completo ($($description.pdfCount) PDFs). Não é necessário importar livro por livro."
+    if ($manifest.baseId) {
+        Write-Host 'Transferindo somente o complemento. Livros e arquivos já instalados serão reutilizados.'
+    } else {
+        Write-Host "Transferindo o acervo completo ($($description.pdfCount) PDFs). Não é necessário importar livro por livro."
+    }
     # ADB sync transports binary files without Windows stdin encoding/EOF behavior.
     # Only the authorized shell can enter the temporary directory (mode 0700).
     $staging = (& $Adb -s $Serial shell mktemp -d /data/local/tmp/scriptorium-XXXXXXXX | Out-String).Trim()

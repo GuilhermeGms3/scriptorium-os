@@ -67,7 +67,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             val labels = store.current()?.manifest?.bookLabels.orEmpty()
             corpus(edition) {
                 it.rows("SELECT w.id,w.title,min(a.book_id) book_id,max(a.chapter) chapters,a.versification_scheme_id scheme FROM works w JOIN text_units t ON t.work_id=w.id JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? AND $preferredAddress GROUP BY w.id,a.versification_scheme_id ORDER BY w.sequence", listOf(edition.id))
-            }.map { row -> row + ("title" to (labels[row.text("book_id")] ?: row.text("title"))) }
+            }.map { row -> row + ("title" to navigation.bookTitle(row.text("book_id"), labels[row.text("book_id")] ?: row.text("title"))) }
         }
     }
     fun verses(passage: Passage): List<Row> = corpus(passage.edition) {
@@ -109,8 +109,8 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
                 JOIN text_units t ON t.id=f.text_unit_id JOIN works w ON w.id=t.work_id
                 JOIN text_addresses a ON a.text_unit_id=t.id WHERE text_units_fts MATCH ?
                 AND t.edition_id=? AND $preferredAddress ORDER BY bm25(text_units_fts) LIMIT 40""".trimIndent(), listOf(query, edition.id))
-        }.map { row -> SearchHit(row.text("display_address"), row.text("surface_text"),
-            Passage(edition, row.text("work_id"), row.text("book_id"), row.text("title"), row.number("chapter"), row.text("versification_scheme_id"), row["verse_start"]?.toIntOrNull(), row["verse_end"]?.toIntOrNull())) }
+        }.map { row -> SearchHit(navigation.reference(row.text("book_id"), row.text("title"), row.number("chapter"), row["verse_start"]?.toIntOrNull(), row["verse_end"]?.toIntOrNull()), row.text("surface_text"),
+            Passage(edition, row.text("work_id"), row.text("book_id"), navigation.bookTitle(row.text("book_id"), row.text("title")), row.number("chapter"), row.text("versification_scheme_id"), row["verse_start"]?.toIntOrNull(), row["verse_end"]?.toIntOrNull())) }
         val types = when (scope) {
             LocalSearchScope.EXEGESIS -> listOf("exegetical-note", "exegetical-commentary", "textual-observation", "source-commentary")
             LocalSearchScope.HERMENEUTICS -> listOf("methodological-guidance")
@@ -201,10 +201,19 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
     fun editionMetadata(edition: Edition): Row = corpus(edition) { it.rows("SELECT * FROM corpus_editions WHERE id=?", listOf(edition.id)).single() }
     fun primaryWorks(): List<Row> = editions().flatMap { edition -> corpus(edition) { db ->
         db.rows("SELECT w.id,w.title,count(t.id) unit_count,max(a.chapter) chapters FROM works w JOIN text_units t ON t.work_id=w.id LEFT JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? GROUP BY w.id ORDER BY w.sequence", listOf(edition.id))
-            .map { row -> row + mapOf("edition_id" to edition.id, "edition_title" to edition.title, "edition_path" to edition.path) }
+            .map { row -> row + mapOf("title" to navigation.workTitle(row.text("id"), row.text("title")), "edition_id" to edition.id, "edition_title" to edition.title, "edition_path" to edition.path) }
     } }
     fun primaryUnits(edition: Edition, workId: String, offset: Int = 0): List<Row> = corpus(edition) {
         it.rows("SELECT t.*,coalesce((SELECT display_address FROM text_addresses a WHERE a.text_unit_id=t.id ORDER BY a.id LIMIT 1),'') display_address FROM text_units t WHERE t.work_id=? AND t.edition_id=? ORDER BY t.sequence LIMIT 80 OFFSET ?", listOf(workId, edition.id, offset.coerceAtLeast(0).toString()))
+    }
+    /** A real heading in an installed volume, not a claim of a separate corpus edition. */
+    fun ancientReadingSections(): List<Row> = content { db ->
+        db.rows("""SELECT p.*,d.title source_title,d.pages document_pages,d.checksum FROM pages_fts f
+            JOIN pages p ON p.id=f.page_id JOIN documents d ON d.id=p.document_id
+            WHERE pages_fts MATCH ? AND (lower(trim(p.text)) LIKE 'el evangelio de judas%'
+            OR lower(trim(p.text)) LIKE 'evangelho de judas%' OR lower(trim(p.text)) LIKE 'gospel of judas%')
+            ORDER BY d.title,p.page_index LIMIT 5""".trimIndent(), listOf("\"evangelio de judas\" OR \"evangelho de judas\" OR \"gospel of judas\""))
+            .map { it + ("title" to "Evangelho de Judas") }
     }
     fun originalEditions(passage: Passage): List<Edition> = editions().filter { edition -> corpus(edition) {
         it.rows("SELECT e.id FROM corpus_editions e WHERE e.id=? AND e.language IN ('grc','he','hbo','arc') AND EXISTS(SELECT 1 FROM text_units t WHERE t.edition_id=e.id AND t.work_id=?)", listOf(edition.id, passage.workId)).isNotEmpty()
@@ -262,7 +271,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
                 val row = db.rows("SELECT t.surface_text,w.title FROM text_units t JOIN works w ON w.id=t.work_id WHERE t.id=? AND t.edition_id=?", listOf(hit.unitId, edition.id)).singleOrNull() ?: return@mapNotNull null
                 val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(row.text("surface_text").toByteArray()).joinToString("") { "%02x".format(it) }
                 require(checksum == hit.textChecksum) { "Índice semântico desatualizado para esta edição. Instale um pacote coerente." }
-                SearchHit("${hit.bookId} ${hit.chapter}:${hit.verse} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, row.text("title"), hit.chapter, hit.scheme, hit.verse))
+                SearchHit("${navigation.reference(hit.bookId, row.text("title"), hit.chapter, hit.verse)} · por sentido", row.text("surface_text"), Passage(edition, hit.workId, hit.bookId, navigation.bookTitle(hit.bookId, row.text("title")), hit.chapter, hit.scheme, hit.verse))
             } }
         }
     }

@@ -27,6 +27,12 @@ class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
     fun lesson(id: String): JSONObject? = labels.optJSONObject("lessons")?.optJSONObject(id.removePrefix("lesson:"))
     fun lessonSupport(id: String): JSONObject? = lesson(id)?.optString("supportGuide")?.let { labels.optJSONObject("studyAreas")?.optJSONObject(it) }
     fun book(id: String): JSONObject? = labels.optJSONObject("books")?.optJSONObject(id)
+    fun bookTitle(id: String, fallback: String): String = book(id)?.optString("title")?.takeIf(String::isNotBlank) ?: fallback
+    fun workTitle(id: String, fallback: String): String = labels.optJSONObject("works")?.optString(id)?.takeIf(String::isNotBlank) ?: bookTitle(id.removePrefix("work:"), fallback)
+    fun editionTitle(id: String, fallback: String): String = labels.optJSONObject("editions")?.optString(id)?.takeIf(String::isNotBlank) ?: fallback
+    fun bookMatches(id: String, filter: String): Boolean = filter in listOf("Todos", "Bíblia") || filter in book(id)?.strings("tags").orEmpty()
+    fun reference(bookId: String, fallback: String, chapter: Int, verse: Int?, end: Int? = null): String =
+        "${bookTitle(bookId, fallback)} $chapter" + (verse?.let { ":$it" + if (end != null && end != it) "–$end" else "" } ?: "")
     fun group(id: String): String = book(id)?.optString("group")?.takeIf(String::isNotBlank) ?: "Deuterocanônicos e outros textos"
     fun symbol(id: String): String = book(id)?.optString("symbol")?.takeIf(String::isNotBlank) ?: "▤"
     fun parse(value: String, books: List<Row>): RequestedReference? {

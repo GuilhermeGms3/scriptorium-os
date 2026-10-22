@@ -106,6 +106,26 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun apocryphaFilterOpensJudithAndJudasFromRealSources() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        fun filter(name: String) {
+            repeat(6) {
+                if (nodes().any { it.text?.toString() == name }) { click(name); return }
+                nodes().firstOrNull { node ->
+                    val bounds = Rect(); node.getBoundsInScreen(bounds)
+                    node.isScrollable && bounds.width() > bounds.height() && node.actionList.any { it.id == AccessibilityNodeInfo.ACTION_SCROLL_FORWARD }
+                }?.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+                SystemClock.sleep(400)
+            }
+            error("Filtro não encontrado: $name")
+        }
+        startAt("Gn1:1"); click("Leitura"); waitNode("Gênesis 1", false); back()
+        waitNode("Encontrar livro ou texto"); enter("Judite"); filter("Apócrifo")
+        waitNode("16 capítulos"); capture("apocrypha"); click("16 capítulos"); click("1"); waitNode("Judite 1", false)
+        back(); waitNode("Encontrar livro ou texto"); enter("Judas"); filter("Apócrifo")
+        waitNode("Evangelho de Judas"); click("Evangelho de Judas"); waitNode("EL EVANGELIO DE JUDAS", false)
+        println("APOCRYPHA_UI_QA filter/JudithPortuguese/JudasRealVolume passed")
+    }
     @Test fun booksShowOldTestamentAfterRestoringNewTestamentOnlyEdition() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val repo = repository()

@@ -10,14 +10,23 @@ import { TOPIC_PRIMERS, lessonForTopic } from "../../src/lib/content/study-lesso
 import { STUDY_GUIDES } from "../../src/lib/content/study-guides";
 import type { Book } from "../../src/lib/domain/scripture";
 import { THEOLOGY_FORMATION } from "./theology-formation";
+import mundial from "../../generated/corpora/biblia-portuguesa-mundial/2026-08-19/manifest.json";
+import kingJames from "../../generated/corpora/king-james-version/2026-09-26/manifest.json";
+import { MOBILE_WORK_LABELS, MOBILE_EDITION_LABELS } from "./reading-metadata";
 
 // Public editorial labels, lesson families and exact work links. No private books or databases.
-const groups = groupScriptureBooks(
-  Object.values(BIBLIA_LIVRE_BOOKS).map(([id]) => ({ id }) as Book),
-);
+const canonical = Object.values(BIBLIA_LIVRE_BOOKS);
+const canonicalIds = new Set<string>(canonical.map(([id]) => id));
+const entries = [
+  ...canonical,
+  ...[...mundial.books, ...kingJames.books].map(
+    (book) => [book.id, book.name, book.abbreviation] as const,
+  ),
+].filter(([id], index, all) => all.findIndex(([other]) => other === id) === index);
+const groups = groupScriptureBooks(entries.map(([id]) => ({ id }) as Book));
 const symbols = ["✧", "▤", "♫", "✦", "✦", "✝", "✉", "✉", "☼"];
 const books = Object.fromEntries(
-  Object.values(BIBLIA_LIVRE_BOOKS).map(([id, english, abbreviation]) => {
+  entries.map(([id, english, abbreviation]) => {
     const index = groups.findIndex((group) => group.books.some((book) => book.id === id));
     return [
       id,
@@ -26,6 +35,7 @@ const books = Object.fromEntries(
         aliases: [bookLabel(id), english, abbreviation],
         group: groups[index]?.label,
         symbol: symbols[index] ?? "▤",
+        tags: canonicalIds.has(id) ? [] : ["Apócrifo", "Não canônico"],
       },
     ];
   }),
@@ -86,6 +96,8 @@ writeFileSync(
   JSON.stringify(
     {
       books,
+      works: MOBILE_WORK_LABELS,
+      editions: MOBILE_EDITION_LABELS,
       topics: PORTUGUESE_KNOWLEDGE_LABELS,
       lessons,
       studyAreas,
