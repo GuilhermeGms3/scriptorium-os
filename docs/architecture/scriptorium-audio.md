@@ -1,5 +1,9 @@
 # Scriptorium Áudio — fundação funcional
 
+Incremento22/10/2026: [Música e Ambiente](audio-ambience.md) adiciona arquivos musicais pessoais,
+três modos e volumes independentes ao mesmo motor. Os resultados de21/10 abaixo são históricos;
+a entrega de ambientação e seus limites estão no documento próprio.
+
 ## Escopo entregue
 
 Fase 1 do pedido de 21/10/2026. A rota `/audio` e a entrada **Áudio** reutilizam o shell,

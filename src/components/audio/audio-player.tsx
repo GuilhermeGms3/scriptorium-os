@@ -3,6 +3,7 @@ import { Pause, Play, SkipBack, SkipForward, X, Headphones } from "lucide-react"
 import { Button } from "../ui/button";
 import { useAudio } from "./use-audio";
 import type { AudioSource } from "../../lib/audio/contracts";
+import { MusicTransport } from "./ambience-panel";
 
 export function AudioSourceLink({ source }: { source: AudioSource }) {
   return source.kind === "scripture" ? (
@@ -23,7 +24,7 @@ export function AudioSourceLink({ source }: { source: AudioSource }) {
 }
 export function AudioTransport({ compact = false }: { compact?: boolean }) {
   const { engine, state } = useAudio();
-  if (!state.item) return null;
+  if (!state.item || state.ambience.preferences.mode === "music") return null;
   const playing = state.status === "playing";
   return (
     <div className="flex flex-wrap items-center gap-2">
@@ -62,7 +63,15 @@ export function AudioTransport({ compact = false }: { compact?: boolean }) {
 }
 export function AudioMiniPlayer() {
   const { engine, state } = useAudio();
-  if (!state.item) return null;
+  const musicOnly = state.ambience.preferences.mode === "music" || !state.item;
+  const musicTrack = state.ambience.tracks.find(
+    (track) => track.id === state.ambience.preferences.selectedTrackId,
+  );
+  if (
+    !state.item &&
+    !(musicTrack && state.ambience.preferences.mode !== "voice" && state.ambience.status !== "idle")
+  )
+    return null;
   return (
     <section
       aria-label="Player de áudio"
@@ -75,27 +84,30 @@ export function AudioMiniPlayer() {
             to="/audio"
             className="block truncate text-sm font-medium underline-offset-4 hover:underline"
           >
-            {state.item.title}
+            {musicOnly ? (musicTrack?.title ?? "Música e Ambiente") : state.item?.title}
           </Link>
           <p className="truncate text-xs text-muted-foreground">
-            {state.voices.find((voice) => voice.id === state.settings.voiceId)?.name ??
-              "Escolha uma voz local"}{" "}
-            · Narração sintética
+            {musicOnly
+              ? "Somente música · arquivo pessoal local"
+              : `${state.voices.find((voice) => voice.id === state.settings.voiceId)?.name ?? "Escolha uma voz local"} · Narração sintética`}
           </p>
         </div>
-        <AudioTransport compact />
+        {musicOnly ? <MusicTransport /> : <AudioTransport compact />}
+        <Link to="/audio" hash="audio-ambience" className="text-xs underline underline-offset-4">
+          Ambiente
+        </Link>
         <Button
           variant="ghost"
           size="icon"
           aria-label="Fechar reprodução"
-          onClick={() => engine.close()}
+          onClick={() => engine.stopAll()}
         >
           <X className="size-4" />
         </Button>
       </div>
-      {state.error && (
+      {(state.error || state.ambience.error) && (
         <p role="alert" className="mx-auto mt-1 max-w-6xl text-xs text-destructive">
-          {state.error}{" "}
+          {state.error || state.ambience.error}{" "}
           <Link to="/audio" className="underline">
             Abrir opções
           </Link>

@@ -1,5 +1,23 @@
 # Project Memory
 
+## Música e Ambiente — primeira entrega web — 2026-10-22
+
+- Motor global de áudio coordena voz + canal musical: modos Voz/Misto/Música, volumes separados,
+  loop, pausa conjunta opcional, troca de trilha sem reiniciar fala, mini player e atalho Ambiente.
+- Importação pessoal: assinatura/codec/duração, SHA256,50MiB/arquivo,100 arquivos/500MiB,
+  cópia IndexedDB v1 (`scriptorium-local-audio`,tracks/files) com escrita/exclusão atômicas.
+  Metadados e limites validados; reimport não duplica, edição preserva hash. Nenhuma trilha fictícia.
+- Ajustes `scriptorium.ambience.v1`; sem autoplay ao restaurar. Músicas pertencem ao navegador/
+  origem, não a SQLite/acervo/Git/Docker/APK/backup. Interface explicita esse limite.
+- Ganho musical imediato onde suportado; voz nativa recebe volume só no próximo segmento,
+  sem cortar a fala. Sem exportação, ducking, fades, perfis ou favoritos (entregas seguintes).
+- 600 testes/90 arquivos no estado colaborativo passaram,15 novos de ambiente; typecheck,
+  lint focado e build. QA produção1440/390 com voz nativa/Gn1+WAV real, modos, navegação,
+  reload, idempotência, renomeação/exclusão e arquivo inválido; sem erros. No dev, relatórios
+  Android paralelos provocavam reload; QA final não depende de HMR. Acervo original preservado.
+- Android e scripts de formação estavam em edição paralela: preservar e não incluí-los no
+  commit de áudio. Documento: docs/architecture/audio-ambience.md. Ainda sem APK/Docker novos.
+
 ## Android — correções de uso 0.4.1 — 2026-10-21
 
 - Substitui decisões anteriores de Home junto à marca/duas colunas: Home centralizado,

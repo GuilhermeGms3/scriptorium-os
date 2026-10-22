@@ -5,8 +5,11 @@ import type {
   NarrationProvider,
   NarrationSettings,
 } from "./contracts";
+import { EMPTY_AMBIENCE, type SoundMode } from "./ambience-contracts";
+import type { AmbienceController } from "./ambience-controller";
 
 export const EMPTY_AUDIO_SNAPSHOT: AudioSnapshot = {
+  ambience: EMPTY_AMBIENCE,
   item: null,
   status: "idle",
   segmentIndex: 0,
@@ -25,11 +28,16 @@ export class AudioEngine {
   #listeners = new Set<() => void>();
   #token = 0;
   #lastCheckpoint = 0;
+  #voiceSuppressedByMode = false;
+  #musicPausedWithVoice = false;
   #unsubscribeVoices: (() => void) | undefined;
   constructor(
     private readonly provider: NarrationProvider | null,
     private readonly storage: AudioProgressStorage | null,
-  ) {}
+    readonly ambience: AmbienceController | null = null,
+  ) {
+    ambience?.onChange((state) => this.#patch({ ambience: state }));
+  }
   getSnapshot = () => this.#state;
   subscribe = (listener: () => void) => {
     this.#listeners.add(listener);
@@ -42,6 +50,7 @@ export class AudioEngine {
     this.#listeners.forEach((listener) => listener());
   }
   initialize() {
+    void this.ambience?.initialize();
     try {
       const saved = this.storage?.read();
       if (saved) this.#patch({ settings: saved.settings, history: saved.history });
@@ -59,6 +68,7 @@ export class AudioEngine {
     this.#token++;
     this.provider?.cancel();
     this.#unsubscribeVoices?.();
+    this.ambience?.dispose();
   }
   #save() {
     const { item, history, segmentIndex, offset, settings } = this.#state;
@@ -88,6 +98,7 @@ export class AudioEngine {
     }
   }
   load(item: AudioItem) {
+    this.#voiceSuppressedByMode = false;
     this.#token++;
     this.provider?.cancel();
     const previous = this.#state.history.find(
@@ -121,7 +132,18 @@ export class AudioEngine {
     this.#save();
   }
   play() {
+    if (this.#state.ambience.preferences.mode === "music") {
+      this.#patch({
+        error:
+          "O modo Somente música está ativo. Escolha Voz ou Voz + Música para ouvir a narração.",
+      });
+      return;
+    }
     if (!this.#state.item) return;
+    if (this.#musicPausedWithVoice && this.#state.ambience.preferences.mode === "mixed") {
+      this.#musicPausedWithVoice = false;
+      void this.ambience?.play();
+    }
     if (this.#state.status === "playing" || this.#state.status === "loading") return;
     if (this.#state.status === "paused") {
       this.provider?.resume();
@@ -205,6 +227,14 @@ export class AudioEngine {
     this.provider?.pause();
     this.#patch({ status: "paused" });
     this.#save();
+    if (
+      this.#state.ambience.preferences.pauseWithVoice &&
+      this.#state.ambience.preferences.mode === "mixed" &&
+      ["playing", "loading"].includes(this.#state.ambience.status)
+    ) {
+      this.#musicPausedWithVoice = true;
+      this.ambience?.pause();
+    }
   }
   seekSegment(index: number) {
     if (!this.#state.item || !Number.isInteger(index)) return;
@@ -231,6 +261,13 @@ export class AudioEngine {
       merged.volume > 1
     )
       return;
+    // Native speech has no reliable live gain. Apply voice-only volume at next segment,
+    // preserving the ongoing utterance instead of cutting/restarting it.
+    if (settings.voiceId === undefined && settings.rate === undefined) {
+      this.#patch({ settings: merged });
+      this.#save();
+      return;
+    }
     const playing = this.#state.status === "playing" || this.#state.status === "loading";
     const paused = this.#state.status === "paused";
     this.#token++;
@@ -256,5 +293,38 @@ export class AudioEngine {
     this.#token++;
     this.provider?.cancel();
     this.#patch({ item: null, status: "idle", error: null, offset: 0, segmentIndex: 0 });
+  }
+  setSoundMode(mode: SoundMode) {
+    if (mode === this.#state.ambience.preferences.mode) return;
+    this.#patch({ error: null });
+    if (mode === "music") {
+      this.#voiceSuppressedByMode =
+        this.#state.status === "playing" || this.#state.status === "loading";
+      if (this.#state.status === "loading") {
+        this.#token++;
+        this.provider?.cancel();
+        this.#patch({ status: "ready" });
+      } else this.pause();
+    }
+    this.ambience?.configure({ mode });
+    if (mode !== "mixed") this.#musicPausedWithVoice = false;
+    if (mode === "voice") this.ambience?.pause();
+    else if (this.#state.ambience.preferences.selectedTrackId) void this.ambience?.play();
+    if (mode !== "music" && this.#voiceSuppressedByMode) {
+      this.#voiceSuppressedByMode = false;
+      this.play();
+    }
+  }
+  async selectMusic(id: string) {
+    const playing =
+      this.#state.ambience.status === "playing" || this.#state.ambience.status === "loading";
+    this.ambience?.configure({ selectedTrackId: id });
+    if (playing && this.#state.ambience.preferences.mode !== "voice") await this.ambience?.play();
+  }
+  stopAll() {
+    this.#voiceSuppressedByMode = false;
+    this.#musicPausedWithVoice = false;
+    this.close();
+    this.ambience?.stop();
   }
 }

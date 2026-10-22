@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { TextAnchorSchema } from "../domain/text-identity";
+import type { AmbienceSnapshot } from "./ambience-contracts";
 
 export const AudioSourceSchema = z.discriminatedUnion("kind", [
   z.object({
@@ -82,6 +83,7 @@ export interface AudioProgress {
   updatedAt: string;
 }
 export interface AudioSnapshot {
+  ambience: AmbienceSnapshot;
   item: AudioItem | null;
   status: PlaybackStatus;
   segmentIndex: number;

@@ -9,6 +9,7 @@ import { createAudioItem, MAX_NARRATION_CHARACTERS } from "../lib/audio/preparat
 import { scriptureNarration } from "../lib/audio/scripture-narration";
 import { bookLabel } from "../lib/i18n";
 import type { AudioProgress } from "../lib/audio/contracts";
+import { AmbiencePanel } from "../components/audio/ambience-panel";
 
 export const Route = createFileRoute("/audio")({
   head: () => ({ meta: [{ title: "Scriptorium Áudio — ler e escutar" }] }),
@@ -281,6 +282,7 @@ function AudioPage() {
           )}
           {section === "studio" && (
             <section>
+              <AmbiencePanel />
               <h2 className="font-serif text-2xl">Vozes do seu dispositivo</h2>
               <p className="mt-3 text-sm text-muted-foreground">
                 Este primeiro estúdio usa somente vozes locais detectadas de verdade.
@@ -310,6 +312,10 @@ function AudioPage() {
           {section === "library" && (
             <section>
               <h2 className="font-serif text-2xl">Biblioteca de Áudio</h2>
+              <p className="mt-3 text-sm text-muted-foreground">
+                Suas músicas importadas estão em Música e Ambiente no player ao lado. No celular,
+                continue abaixo.
+              </p>
               <p className="mt-3 text-sm text-muted-foreground">
                 Ainda não há gravações ou episódios publicados. Nesta fase, a voz é sintetizada
                 durante a leitura: não existe arquivo para baixar ou exportar. Sermões, cursos e
@@ -420,7 +426,12 @@ function AudioPage() {
                 onChange={(event) => engine.configure({ volume: Number(event.target.value) })}
               />
             </label>
+            <p className="text-xs text-muted-foreground">
+              Na voz nativa, a alteração de volume vale no próximo segmento, sem cortar a fala
+              atual.
+            </p>
           </div>
+          {section !== "studio" && <AmbiencePanel compact />}
           <section className="mt-5 border-t border-border pt-4">
             <h3 className="text-sm font-medium">Fila desta sessão · {state.queue.length}</h3>
             {!state.queue.length && (
