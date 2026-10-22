@@ -122,7 +122,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
         <button
           type="button"
           onClick={() => selectWord(null)}
-          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11"
           aria-label={t("scripture.word.close")}
         >
           <X className="size-4" aria-hidden="true" /> Voltar à passagem

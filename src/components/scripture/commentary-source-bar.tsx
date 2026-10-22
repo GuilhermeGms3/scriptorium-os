@@ -58,7 +58,7 @@ export function CommentarySourceBar({
             aria-pressed={shown.length === sources.length}
             onClick={showAll}
             className={cn(
-              "min-h-8 shrink-0 rounded-full border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+              "min-h-8 shrink-0 rounded-full border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11",
               shown.length === sources.length
                 ? "border-primary bg-primary text-primary-foreground"
                 : "border-border text-foreground hover:bg-accent",
@@ -77,7 +77,7 @@ export function CommentarySourceBar({
               title={on ? `Ocultar ${source.title}` : `Mostrar ${source.title}`}
               onClick={() => toggle(source.id)}
               className={cn(
-                "min-h-8 shrink-0 rounded-full border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                "min-h-8 shrink-0 rounded-full border px-3 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11",
                 on
                   ? "border-primary/60 bg-primary/10 text-foreground"
                   : "border-dashed border-border text-muted-foreground line-through decoration-muted-foreground/60 hover:bg-accent",
@@ -93,7 +93,7 @@ export function CommentarySourceBar({
             <select
               value={domain}
               onChange={(event) => onDomainChange(event.target.value)}
-              className="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground"
+              className="h-8 rounded-md border border-input bg-background px-2 text-sm text-foreground pointer-coarse:min-h-11"
             >
               <option value="">Todas as áreas</option>
               {domains.map((value) => (

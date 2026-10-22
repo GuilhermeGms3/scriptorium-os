@@ -28,7 +28,7 @@ function SettingsPage() {
               key={mode}
               onClick={() => setTheme(mode)}
               aria-pressed={theme === mode}
-              className={`rounded-md border px-3 py-1.5 text-xs capitalize ${theme === mode ? "border-primary bg-accent" : "border-input"}`}
+              className={`rounded-md border px-3 py-1.5 text-xs capitalize pointer-coarse:min-h-11 ${theme === mode ? "border-primary bg-accent" : "border-input"}`}
             >
               {label}
             </button>

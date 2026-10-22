@@ -14,7 +14,7 @@ export function ReaderContextControls({
   const active = Boolean(value.tradition || value.kind !== "all");
   return (
     <details className="mt-2 text-sm">
-      <summary className="cursor-pointer">
+      <summary className="cursor-pointer pointer-coarse:py-3">
         Contexto de leitura{active ? " · filtro ativo" : " · tradição e tipo"}
       </summary>
       <div className="mt-2 flex flex-wrap items-center gap-3">

@@ -41,7 +41,7 @@ export function CommentaryDock({
             aria-label="Passagem dos comentários"
             value={selectedVerse}
             onChange={(event) => onSelectVerse(Number(event.target.value))}
-            className="h-8 max-w-40 border border-input bg-background px-2 text-sm"
+            className="h-8 max-w-40 border border-input bg-background px-2 text-sm pointer-coarse:min-h-11"
           >
             <option value={0}>Capítulo inteiro</option>
             {verses.map((verse) => (

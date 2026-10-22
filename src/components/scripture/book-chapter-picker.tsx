@@ -167,7 +167,7 @@ export function BookChapterPicker({ book, chapter }: { book: Book; chapter: numb
             <button
               type="button"
               onClick={() => setChosen(null)}
-              className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex h-8 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11"
             >
               <ArrowLeft className="size-4" aria-hidden="true" /> Todos os livros
             </button>

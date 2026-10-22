@@ -307,7 +307,12 @@ export function NotesWorkspace({
           className="flex shrink-0 items-start justify-between gap-3 border-b border-destructive/40 bg-destructive/10 p-3 text-sm"
         >
           <span>{error}</span>
-          <button type="button" aria-label="Fechar aviso" onClick={() => setError(undefined)}>
+          <button
+            type="button"
+            aria-label="Fechar aviso"
+            onClick={() => setError(undefined)}
+            className="-m-2 inline-flex min-h-11 min-w-11 items-center justify-center"
+          >
             <X className="size-4" />
           </button>
         </div>
@@ -360,7 +365,7 @@ export function NotesWorkspace({
                     type="button"
                     aria-label={`Fechar nota ${draft.title || "sem título"}`}
                     onClick={() => closeTab(draft.key)}
-                    className="p-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring"
+                    className="p-2 text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11 pointer-coarse:min-w-11"
                   >
                     <X className="size-3.5" />
                   </button>

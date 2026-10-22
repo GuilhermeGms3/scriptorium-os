@@ -119,7 +119,7 @@ function LinkCorrectionPanel({
             id={`${id}-book`}
             value={bookId}
             onChange={(event) => setBookId(event.target.value)}
-            className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs"
+            className="h-8 w-full rounded-md border border-input bg-background px-2 text-xs pointer-coarse:min-h-11"
           >
             {books.map((candidate) => (
               <option key={candidate.id} value={candidate.id}>
@@ -141,7 +141,7 @@ function LinkCorrectionPanel({
             required
             value={chapter}
             onChange={(event) => setChapter(event.target.value)}
-            className="h-8 text-xs"
+            className="h-8 text-xs pointer-coarse:min-h-11"
           />
         </div>
         <div className="space-y-1">
@@ -156,7 +156,7 @@ function LinkCorrectionPanel({
             required
             value={verse}
             onChange={(event) => setVerse(event.target.value)}
-            className="h-8 text-xs"
+            className="h-8 text-xs pointer-coarse:min-h-11"
           />
         </div>
         <div className="space-y-1">
@@ -170,7 +170,7 @@ function LinkCorrectionPanel({
             min={1}
             value={until}
             onChange={(event) => setUntil(event.target.value)}
-            className="h-8 text-xs"
+            className="h-8 text-xs pointer-coarse:min-h-11"
           />
         </div>
       </div>
@@ -180,14 +180,14 @@ function LinkCorrectionPanel({
         </p>
       )}
       <div className="mt-2.5 flex flex-wrap gap-2">
-        <Button type="submit" size="sm" className="h-8" disabled={busy}>
+        <Button type="submit" size="sm" className="h-8 pointer-coarse:min-h-11" disabled={busy}>
           Mover para cá
         </Button>
         <Button
           type="button"
           size="sm"
           variant="outline"
-          className="h-8"
+          className="h-8 pointer-coarse:min-h-11"
           disabled={busy}
           onClick={onReject}
         >
@@ -197,7 +197,7 @@ function LinkCorrectionPanel({
           type="button"
           size="sm"
           variant="ghost"
-          className="h-8"
+          className="h-8 pointer-coarse:min-h-11"
           disabled={busy}
           onClick={onCancel}
         >
@@ -424,7 +424,7 @@ export function PrivateLinkCard({
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 gap-1 px-2.5"
+              className="h-8 gap-1 px-2.5 pointer-coarse:min-h-11"
               disabled={busy}
               onClick={() =>
                 void act(() =>
@@ -438,7 +438,7 @@ export function PrivateLinkCard({
               type="button"
               size="sm"
               variant="outline"
-              className="h-8 gap-1 px-2.5"
+              className="h-8 gap-1 px-2.5 pointer-coarse:min-h-11"
               disabled={busy}
               onClick={() => setCorrecting(true)}
             >
@@ -658,7 +658,7 @@ export function PrivateVerseKnowledge({
                 title={title}
                 onClick={() => toggleSource(id)}
                 className={cn(
-                  "inline-flex min-h-8 items-center gap-1 rounded-full border px-3 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                  "inline-flex min-h-8 items-center gap-1 rounded-full border px-3 font-sans text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11",
                   openSources.has(id)
                     ? "border-primary bg-primary text-primary-foreground"
                     : "border-border bg-background text-foreground hover:bg-accent",
@@ -675,7 +675,7 @@ export function PrivateVerseKnowledge({
               onClick={() =>
                 setOpenSources(allOpen ? new Set() : new Set(sources.map(([id]) => id)))
               }
-              className="min-h-8 rounded-full px-2 font-sans text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-8 rounded-full px-2 font-sans text-sm text-muted-foreground underline-offset-4 hover:text-foreground hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11"
             >
               {allOpen ? "Fechar todos" : "Abrir todos"}
             </button>
@@ -702,7 +702,7 @@ export function PrivateVerseKnowledge({
           aria-controls={panelId}
           onClick={() => onOpenChange(!open)}
           className={cn(
-            "inline-flex min-h-8 items-center gap-1.5 rounded-full border bg-amber-500/5 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+            "inline-flex min-h-8 items-center gap-1.5 rounded-full border bg-amber-500/5 px-3 py-1 text-xs text-muted-foreground transition-colors hover:bg-amber-500/10 hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11",
             unconfirmed > 0 ? "border-dashed border-amber-500/70" : "border-amber-500/30",
           )}
         >

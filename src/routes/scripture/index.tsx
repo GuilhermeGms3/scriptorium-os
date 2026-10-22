@@ -75,7 +75,7 @@ function ScriptureIndex() {
                           key={c}
                           to="/scripture/$book/$chapter"
                           params={{ book: book.id, chapter: String(c) }}
-                          className="rounded-md border border-input px-1.5 py-1 text-center font-mono text-xs transition-colors hover:bg-accent"
+                          className="inline-flex items-center justify-center rounded-md border border-input px-1.5 py-1 text-center font-mono text-xs transition-colors hover:bg-accent pointer-coarse:min-h-11 pointer-coarse:text-sm"
                           aria-label={`${bookLabel(book.id, book.name)} ${c}`}
                         >
                           {c}
@@ -95,23 +95,25 @@ function ScriptureIndex() {
         <ul className="mt-2 flex flex-wrap gap-1.5">
           {books.map((b) => {
             const chapters = ScriptureKnowledgeEngine.availableChapters(b.id);
-            return chapters.length > 0 ? (
-              <Link
-                key={b.id}
-                to="/scripture/$book/$chapter"
-                params={{ book: b.id, chapter: String(chapters[0]) }}
-                className="rounded border border-border px-2 py-0.5 text-xs hover:bg-accent"
-              >
-                {bookLabel(b.id, b.name)}
-              </Link>
-            ) : (
-              <span
-                key={b.id}
-                className="rounded border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground"
-                title={t("scripture.notImported")}
-              >
-                {bookLabel(b.id, b.name)}
-              </span>
+            return (
+              <li key={b.id}>
+                {chapters.length > 0 ? (
+                  <Link
+                    to="/scripture/$book/$chapter"
+                    params={{ book: b.id, chapter: String(chapters[0]) }}
+                    className="inline-flex items-center rounded border border-border px-2 py-0.5 text-xs hover:bg-accent pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:text-sm"
+                  >
+                    {bookLabel(b.id, b.name)}
+                  </Link>
+                ) : (
+                  <span
+                    className="inline-flex items-center rounded border border-dashed border-border px-2 py-0.5 text-xs text-muted-foreground pointer-coarse:min-h-11 pointer-coarse:px-3 pointer-coarse:text-sm"
+                    title={t("scripture.notImported")}
+                  >
+                    {bookLabel(b.id, b.name)}
+                  </span>
+                )}
+              </li>
             );
           })}
         </ul>

@@ -802,7 +802,7 @@ function CoverageSummary({ coverage }: { coverage: readonly PassageCoverageEntry
           {coverage.map((entry) => (
             <li
               key={entry.area}
-              className="flex min-h-8 items-center justify-between gap-2 px-2.5 py-1 text-sm"
+              className="flex min-h-8 items-center justify-between gap-2 px-2.5 py-1 text-sm pointer-coarse:min-h-11"
             >
               <span>{COVERAGE_LABELS[entry.area]}</span>
               <span
