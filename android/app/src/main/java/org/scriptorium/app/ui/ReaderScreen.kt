@@ -83,7 +83,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
                 TextButton(onClick = { if (passage != null || bookId != null) rememberPage(); passage = null; bookId = null }, modifier = Modifier.weight(1f)) {
                     Column(Modifier.fillMaxWidth()) {
                         Text(if (passage != null || bookId != null) "← Voltar pra escolha" else "Escolher livro", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
-                        Text(passage?.let { "${it.title} ${it.chapter} · ${edition.title}" } ?: edition.title, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
+                        Text(passage?.let { "${it.title} ${it.chapter} · ${edition.title}" } ?: "Livros instalados", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary, maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
                     }
                 }
 

@@ -8,6 +8,22 @@ import java.io.File
 import java.time.LocalDate
 
 class ReadingNavigationTest {
+    @Test fun bookCatalogIncludesOldTestamentDespitePartialEditionBeingFirst() {
+        val greek = Edition("sbl", "Novo Testamento grego", "greek.sqlite3")
+        val portuguese = Edition("biblia-livre-n4-2025.1.0", "Bíblia em português", "pt.sqlite3")
+        fun book(id: String) = mapOf("id" to "work:$id", "book_id" to id)
+        val catalog = readingBookCatalog(listOf(greek to listOf(book("john")), portuguese to listOf(book("genesis"), book("psalms"), book("john"))))
+        assertEquals(listOf("genesis", "psalms", "john"), catalog.map { it.row.text("book_id") })
+        assertTrue(catalog.all { it.edition == portuguese })
+    }
+    @Test fun bookCatalogRetainsBooksAvailableOnlyInAnotherEdition() {
+        val first = Edition("partial", "Parcial", "a.sqlite3")
+        val other = Edition("other", "Outra", "b.sqlite3")
+        val row = mapOf("id" to "work:genesis", "book_id" to "genesis", "scheme" to "original")
+        val catalog = readingBookCatalog(listOf(first to emptyList(), other to listOf(row)))
+        assertEquals(ReadingBook(other, row), catalog.single())
+        assertTrue(readingBookCatalog(emptyList()).isEmpty())
+    }
     private val labels = JSONObject(File("../reading-labels.json").readText())
     private val navigation = ReadingNavigation(labels)
     private val books = listOf("john" to 21, "job" to 42, "jonah" to 4, "1-corinthians" to 16, "psalms" to 150, "genesis" to 50).map { (id, chapters) ->

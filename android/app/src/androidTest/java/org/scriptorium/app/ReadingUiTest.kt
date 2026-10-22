@@ -106,6 +106,24 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun booksShowOldTestamentAfterRestoringNewTestamentOnlyEdition() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val repo = repository()
+        val partial = repo.scriptureEditions().first { edition ->
+            val ids = repo.books(edition).map { it.text("book_id") }
+            "matthew" in ids && "genesis" !in ids
+        }
+        val context = instrumentation.targetContext
+        ReadingPreferences(context).savePassage(requireNotNull(repo.resolveReference("Mt1:1", partial)))
+        context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+        waitNode("Seu scriptorium"); click("Leitura"); waitNode("Mateus 1", false)
+        back(); waitNode("Escrituras e textos antigos"); click("Todos"); click("Todas as seções")
+        waitNode("Gênesis"); capture("catalog-old-testament")
+        click("Gênesis"); click("1"); waitNode("Gênesis 1", false)
+        assertEquals("genesis", decodePassage(ReadingPreferences(context).lastPassage(), repo.scriptureEditions())?.bookId)
+        assertEquals("biblia-livre-n4-2025.1.0", decodePassage(ReadingPreferences(context).lastPassage(), repo.scriptureEditions())?.edition?.id)
+        println("BOOK_CATALOG_QA restoredNT/all/allSections/genesis/correctEdition passed")
+    }
     @Test fun guideMapPersistsCompletedPointAndKeepsFuturePointsLocked() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val context = instrumentation.targetContext

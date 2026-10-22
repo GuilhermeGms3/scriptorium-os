@@ -10,6 +10,14 @@ gera um ZIP com APK, acervo e instalador USB automático, sem importação livro
 Não use o APK sozinho se deseja levar o acervo. Um APK de ~2 GB causou falha no sistema
 de recursos do emulador; por isso os livros vão juntos no kit, não dentro do APK.
 
+## Catálogo completo de leitura — 0.5.1
+
+- A seleção de livros reúne as edições instaladas, independentemente da última passagem.
+  Abrir uma edição só do Novo Testamento não oculta mais o Antigo em Todos/Todas as seções.
+- Cada livro conserva sua edição, obra e esquema reais; a Bíblia Livre em português tem
+  prioridade quando disponível. Edições originais continuam em Interlinear/Comparação.
+- Atualização somente do APK, sem migração ou reimportação de livros.
+
 ## Formação e percurso por pontos — 0.5.0
 
 - **Formação em Teologia** aparece em Estudos com 18 pontos graduais, 58 aulas e

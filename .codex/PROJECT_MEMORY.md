@@ -1,5 +1,16 @@
 # Project Memory
 
+## Android — catálogo completo de leitura 0.5.1 — 2026-10-22
+
+- Causa da ausência de AT: o seletor consultava apenas a edição da última passagem,
+  que podia ser SBL/TAGNT/NT. Todos e Todas as seções não tinham como sair dessa edição.
+- `readingBooks` combina catálogos instalados e mantém uma entrada por livro, priorizando
+  Bíblia Livre quando presente. Cada entrada conserva sua edição/obra/esquema para abrir.
+- Catálogo independente da leitura restaurada; sem migração, mudança de corpus ou exclusões.
+- Build/lint aprovados (0 erros/22 avisos),52 testes JVM e3 cenários nativos com acervo
+  real aprovados. Instalado0.5.1/code9 no SM-S906E via atualização, abertura confirmada.
+  Evidência: docs/qa/android-book-catalog-2026-10-22.md.
+
 ## Android — formação e estações de estudo 0.5.0 — 2026-10-22
 
 - Estudos mantém a árvore. Guias/aulas e percursos usam estações horizontais conectadas,

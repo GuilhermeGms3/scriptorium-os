@@ -11,6 +11,14 @@ fun normalizedReading(value: String): String = Normalizer.normalize(value.lowerc
 
 data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, val end: Int?)
 
+data class ReadingBook(val edition: Edition, val row: Row)
+
+/** The book catalogue is independent of the last passage's (possibly partial) edition. */
+fun readingBookCatalog(editions: List<Pair<Edition, List<Row>>>): List<ReadingBook> = editions
+    .sortedBy { if (it.first.id == "biblia-livre-n4-2025.1.0") 0 else 1 }
+    .flatMap { (edition, books) -> books.map { ReadingBook(edition, it) } }
+    .distinctBy { it.row.text("book_id") }
+
 /** Navigation only: actual chapter/verse availability is checked against the selected edition. */
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
     fun formation(id: String? = null): JSONObject? = labels.optJSONObject("formation")?.takeIf { id == null || it.optString("id") == id }?.let { JSONObject(it.toString()) }

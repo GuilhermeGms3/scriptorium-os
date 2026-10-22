@@ -27,7 +27,8 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
     var filter by rememberSaveable { mutableStateOf("Bíblia") }
     var group by rememberSaveable { mutableStateOf<String?>(null) }
     var query by rememberSaveable { mutableStateOf("") }
-    Load(edition, { repository.books(edition) }) { books ->
+    Load("reading-book-catalog", repository::readingBooks) { catalog ->
+        val books = catalog.map { it.row }
         val extraResult by produceState<Result<List<AdditionalReading>>?>(null, filter != "Bíblia") {
             if (filter != "Bíblia") value = try { Result.success(withContext(Dispatchers.IO) {
             repository.primaryWorks().filter { it["chapters"].isNullOrEmpty() }.map { work ->
@@ -44,14 +45,16 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             }) } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled } catch (failure: Exception) { Result.failure(failure) }
         }
         val extras = extraResult?.getOrNull().orEmpty()
-        val chosen = books.find { it.text("id") == bookId }
+        val selectedBook = catalog.find { it.row.text("id") == bookId }
+        val chosen = selectedBook?.row
+        val chosenEdition = selectedBook?.edition ?: edition
         if (chosen != null) {
             Column(Modifier.padding(horizontal = 16.dp)) {
                 TextButton(onClick = { chooseBook(null) }) { Text("← Livros") }
                 Heading(chosen.text("title"), "Escolha o capítulo para abrir a leitura.")
                 LazyVerticalGrid(GridCells.Adaptive(64.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
                     items((1..chosen.number("chapters")).toList()) { chapter ->
-                        OutlinedButton(onClick = { open(Passage(edition, chosen.text("id"), chosen.text("book_id"), chosen.text("title"), chapter, chosen.text("scheme"))) }, modifier = Modifier.padding(4.dp), contentPadding = PaddingValues(4.dp)) { Text(chapter.toString()) }
+                        OutlinedButton(onClick = { open(Passage(chosenEdition, chosen.text("id"), chosen.text("book_id"), chosen.text("title"), chapter, chosen.text("scheme"))) }, modifier = Modifier.padding(4.dp), contentPadding = PaddingValues(4.dp)) { Text(chapter.toString()) }
                     }
                 }
             }
