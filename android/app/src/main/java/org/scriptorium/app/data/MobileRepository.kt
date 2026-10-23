@@ -236,6 +236,9 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         }
     }
     fun editionMetadata(edition: Edition): Row = corpus(edition) { it.rows("SELECT * FROM corpus_editions WHERE id=?", listOf(edition.id)).single() }
+    fun editionAudioMetadata(edition: Edition): Row = corpus(edition) {
+        it.rows("SELECT e.*,c.rights_json,c.provenance_json FROM corpus_editions e JOIN corpora c ON c.id=e.corpus_id WHERE e.id=?", listOf(edition.id)).single()
+    }
     fun primaryWorks(): List<Row> = editions().flatMap { edition -> corpus(edition) { db ->
         db.rows("SELECT w.id,w.title,count(t.id) unit_count,max(a.chapter) chapters FROM works w JOIN text_units t ON t.work_id=w.id LEFT JOIN text_addresses a ON a.text_unit_id=t.id WHERE t.edition_id=? GROUP BY w.id ORDER BY w.sequence", listOf(edition.id))
             .map { row -> row + mapOf("title" to navigation.workTitle(row.text("id"), row.text("title")), "edition_id" to edition.id, "edition_title" to edition.title, "edition_path" to edition.path) }
