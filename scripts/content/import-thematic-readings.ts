@@ -6,6 +6,7 @@ import { z } from "zod";
 import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.server";
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
 import { importThematicReadings } from "../../src/lib/application/thematic-reading-service";
+import { reuseImportBackup } from "./reuse-import-backup";
 
 const [workspace, staging, mode] = process.argv.slice(2);
 if (!workspace || !staging || !["--runtime-stopped", "--verify", "--dry-run"].includes(mode ?? ""))
@@ -57,9 +58,12 @@ try {
     throw Error("Acervo com relacionamentos inválidos.");
   let backupPath: string | undefined;
   if (!verify && !dryRun) {
-    backupPath = `${path}.before-thematic-${Date.now()}`;
-    console.info("Criando backup consistente:", backupPath);
-    await backup(db, backupPath, { rate: 4096 });
+    backupPath = reuseImportBackup(path, process.argv);
+    if (!backupPath) {
+      backupPath = `${path}.before-thematic-${Date.now()}`;
+      console.info("Criando backup consistente:", backupPath);
+      await backup(db, backupPath, { rate: 4096 });
+    } else console.info("Snapshot anterior reutilizado; nenhuma cópia completa criada.");
   }
   const adapter: WorkspaceDatabase = {
     persistence: "installation",

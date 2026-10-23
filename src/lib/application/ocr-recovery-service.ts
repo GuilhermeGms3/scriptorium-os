@@ -11,6 +11,30 @@ export const OcrRecoveryPageSchema = z.object({
   result: OcrPageSchema,
 });
 
+/** A successful empty attempt is not unprocessed, nor does it count as recovered text. */
+export async function ocrRecoveryCoverage(documentId: string, db: WorkspaceDatabase) {
+  const row = (
+    await db.query(
+      `SELECT count(*) total,
+    sum(CASE WHEN p.text<>'' THEN 1 ELSE 0 END) with_text,
+    sum(CASE WHEN p.text<>'' OR (l.method='tesseract-tsv' AND l.revision LIKE '%;tsv-literal-v1') THEN 1 ELSE 0 END) covered
+    FROM private_document_pages p LEFT JOIN document_page_layouts l ON l.page_id=p.id
+    WHERE p.document_id=?`,
+      [documentId],
+    )
+  )[0];
+  const total = Number(row?.["total"] ?? 0),
+    withText = Number(row?.["with_text"] ?? 0);
+  const covered = Number(row?.["covered"] ?? 0);
+  return {
+    total,
+    withText,
+    covered,
+    emptyAttempts: covered - withText,
+    complete: total > 0 && covered === total,
+  };
+}
+
 /** Backfill empty pages only. Existing anchors, text and human revisions are never rewritten. */
 export async function importOcrRecoveryPage(
   raw: string,

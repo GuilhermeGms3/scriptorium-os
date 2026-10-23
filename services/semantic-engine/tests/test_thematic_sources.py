@@ -34,6 +34,42 @@ def test_no_headings_no_invented_sections() -> None:
     assert sections([Page(2, "A paragraph without a structural heading. " * 10)], profile()) == []
 
 
+def test_recovered_chapter_bibliography_does_not_hide_following_body() -> None:
+    recovered = profile("recovered")
+    result = sections(
+        [
+            Page(2, "CAPÍTULO 1\nJoão Batista\nBibliografia\n" + "Referência. " * 20),
+            Page(3, "Corpo explicativo do capítulo, após a bibliografia inicial. " * 10),
+        ],
+        recovered,
+    )
+    assert len(result) == 1
+    assert result[0]["context"]["locator"] == "CAPÍTULO 1 · João Batista"
+    assert result[0]["fragments"][0]["physicalPage"] == 3
+
+
+def test_recovered_augustine_book_and_chapter_are_distinct_from_editorial_introduction() -> None:
+    from app.thematic_sources import RECOVERED_PROFILES
+
+    recovered = RECOVERED_PROFILES[0]
+    result = sections(
+        [
+            Page(5, "CAPÍTULO 1\nIntrodução editorial\n" + "Não atribuir ao autor. " * 10),
+            Page(19, "LIVRO I\n"),
+            Page(
+                20, "CAPÍTULO 1\nFinalidade geral da obra\n" + "Leitura sintética para teste. " * 10
+            ),
+            Page(102, "LIVRO IV\n"),
+            Page(103, "CAPÍTULO 1\nRegra da exposição\n" + "Outro conteúdo de teste. " * 10),
+            Page(139, "CAPÍTULO 1\nSumário final\n" + "Índice, não corpo. " * 10),
+        ],
+        recovered,
+    )
+    assert len(result) == 2
+    assert result[0]["context"]["locator"].startswith("Livro I · CAPÍTULO 1")
+    assert result[1]["context"]["locator"].startswith("Livro IV · CAPÍTULO 1")
+
+
 def test_utf16_offsets_preserve_astral_characters() -> None:
     text = "😀\nCHAPTER I. CREATION\n" + "Body of a synthetic section. " * 10
     result = sections([Page(2, text)], profile("sections"))

@@ -2,6 +2,10 @@
 
 ## Objetivo e limites
 
+**Estado final23/10:** consulte [recuperação e publicação contextual](../content/ocr-contextual-recovery-2026-10-23.md).
+As1.540páginas foram processadas;1.536 têm texto e quatro são brancas. Os snapshots abaixo
+registram o início histórico da operação, não pendência atual do OCR.
+
 Recuperar documentos já instalados sem camada textual, mantendo os PDFs imutáveis e a
 identidade física das páginas. OCR não é interpretação, tradução nem revisão acadêmica.
 Não há LLM, envio de livros para nuvem, backend remoto ou segundo banco de conhecimento.
@@ -20,7 +24,7 @@ Os modelos tessdata_fast ficam fixados no commit `87416418657359cb625c412a48b6e1
 4. O OCR existente é reutilizado diretamente, sem exigir servidor HTTP ou modelos linguísticos.
 5. Cada página gera resultado JSON atômico com texto, hash, página e caixas normalizadas.
 6. Resultados válidos são reutilizados na retomada; originais/resultados divergentes são recusados.
-7. O importador TypeScript adquire o mesmo lock exclusivo de Vite/Docker, cria backup consistente
+7. O importador TypeScript adquire o mesmo lock exclusivo de Vite/Docker, reutiliza o recibo/backup existente
    e preenche somente páginas vazias e sem âncoras semânticas anteriores.
 8. Texto, layout e contagem são transacionais. Os triggers existentes atualizam o FTS.
 9. `--structure` aciona classificação e desmontagem determinística canônicas. Não publica
@@ -45,6 +49,20 @@ Com Python/venv do serviço e Poppler disponíveis, a partir da raiz:
 O PC precisa permanecer ligado. Desligamento/suspensão interrompe ou pausa o trabalho;
 resultados já salvos ficam preservados. Os logs têm timestamp, em
 `data/workspace/ocr-recovery-validated-20261023/`. Não execute outro worker no mesmo staging.
+
+`-Workers1..4` controla processos isolados; padrão4 no iniciador. O modo Python direto
+conserva padrão1. Cada processo conserva o gate do serviço, sem concorrência ilimitada.
+JSONs usam temporários únicos e retry de substituição Windows; o último progresso válido
+é preservado. Telemetria bloqueada não encerra o OCR nem confirma uma página ausente.
+
+Páginas vazias com tentativas válidas contam para conclusão da etapa OCR, mas não para
+`text_page_count`. `--structure` não reconstrói unidades que já tenham contextos associados;
+essa reconciliação fica explicitamente parcial, sem apagar interpretações ou revisões.
+
+Para publicar novos lotes contextuais/temáticos sem gerar outras cópias multi-GB, use
+`--reuse-backup <snapshot-anterior-do-workspace>`. A seleção é explícita e validada;
+não é rollback nem restauração automática desse snapshot. O operador mantém transações
+e logs por lote. Nesta instalação, não criar backups completos repetidos sem consultar o usuário.
 
 Para publicar resultados prontos ou retomar publicação bloqueada pelo app:
 

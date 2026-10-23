@@ -4,7 +4,7 @@ import { applyWorkspaceMigrations } from "../../../scripts/database/workspace-mi
 import type { WorkspaceDatabase, WorkspaceRow } from "../workspace-runtime/protocol";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { sha256Hex } from "../workspace-runtime/secure-context";
-import { importOcrRecoveryPage } from "./ocr-recovery-service";
+import { importOcrRecoveryPage, ocrRecoveryCoverage } from "./ocr-recovery-service";
 
 const opened: DatabaseSync[] = [];
 afterEach(() => {
@@ -147,4 +147,12 @@ it("records an empty OCR attempt without pretending the page has extracted text"
     native.prepare("SELECT text_page_count FROM private_documents").get()?.["text_page_count"],
   ).toBe(0);
   expect(await importOcrRecoveryPage(JSON.stringify(blank), db, "v1")).toBe("reused");
+  const document = native.prepare("SELECT id FROM private_documents LIMIT 1").get();
+  expect(await ocrRecoveryCoverage(String(document?.["id"]), db)).toEqual({
+    total: 1,
+    withText: 0,
+    covered: 1,
+    emptyAttempts: 1,
+    complete: true,
+  });
 });

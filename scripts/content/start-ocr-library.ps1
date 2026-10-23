@@ -1,6 +1,7 @@
 param(
     [string]$Workspace = 'data/workspace/workspace.sqlite3',
     [string]$Staging = 'data/workspace/ocr-recovery-validated-20261023',
+    [ValidateRange(1,4)][int]$Workers = 4,
     [switch]$Foreground,
     [switch]$Sample
 )
@@ -27,14 +28,14 @@ if (!$Foreground) {
     $outputLog = Join-Path $destination "worker-$stamp.log"
     $errorLog = Join-Path $destination "worker-$stamp.error.log"
     $shell = (Get-Process -Id $PID).Path
-    $arguments = @('-NoProfile','-File',('"{0}"' -f $PSCommandPath),'-Foreground','-Workspace',('"{0}"' -f $Workspace),'-Staging',('"{0}"' -f $Staging))
+    $arguments = @('-NoProfile','-File',('"{0}"' -f $PSCommandPath),'-Foreground','-Workspace',('"{0}"' -f $Workspace),'-Staging',('"{0}"' -f $Staging),'-Workers',$Workers)
     if ($Sample) { $arguments += '-Sample' }
     $worker = Start-Process -FilePath $shell -ArgumentList $arguments -WorkingDirectory $repository -WindowStyle Hidden -RedirectStandardOutput $outputLog -RedirectStandardError $errorLog -PassThru
     [pscustomobject]@{Pid=$worker.Id; OutputLog=$outputLog; ErrorLog=$errorLog}
     return
 }
 $python = Join-Path $repository 'services\semantic-engine\.venv\Scripts\python.exe'
-$ocrArguments = @('-m','app.ocr_library',$database,$destination)
+$ocrArguments = @('-m','app.ocr_library',$database,$destination,'--workers',$Workers)
 if ($Sample) { $ocrArguments += '--sample' }
 Push-Location (Join-Path $repository 'services/semantic-engine')
 try { & $python @ocrArguments; $ocrExit = $LASTEXITCODE } finally { Pop-Location }

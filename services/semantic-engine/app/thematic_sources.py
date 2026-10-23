@@ -294,6 +294,7 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
     role: Role = "section"
     paragraph = 0
     chapter = ""
+    book_context = ""
     for page in pages:
         if not profile.first_page <= page.number <= profile.last_page:
             continue
@@ -305,12 +306,34 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
             continue
         # A dotted contents page or a bibliography cannot inherit the previous chapter.
         prefix = re.sub(r"\s+", "", normalized(page.text[:130]))
-        if page.text.count("....") > 4 or any(
-            word in prefix for word in ("bibliografia", "bibliography", "indiceanalitico")
-        ):
+        bibliography = (
+            bool(
+                re.search(
+                    r"^\s*(?:bibliografia|bibliography|[íi]ndice anal[íi]tico)\b",
+                    page.text[:140],
+                    re.MULTILINE | re.IGNORECASE,
+                )
+            )
+            if profile.strategy == "recovered"
+            else any(word in prefix for word in ("bibliografia", "bibliography", "indiceanalitico"))
+        )
+        if page.text.count("....") > 4 or bibliography:
             locator = ""
+            if profile.strategy == "recovered" and page.text.count("....") <= 4:
+                header = HEADING.search(page.text[:120])
+                if header:
+                    locator = header.group().strip()
+                    following = page.text[header.end() :].lstrip("\n").splitlines()
+                    if following and 3 <= len(following[0].strip()) <= 100:
+                        locator += " · " + following[0].strip()
+                    role = "section"
             continue
         matches = [m for m in HEADING.finditer(page.text) if "..." not in m.group()]
+        augustine = profile.strategy == "recovered" and profile.checksum.startswith("2cb74")
+        if augustine:
+            matches += list(
+                re.finditer(r"^LIVRO\s*(?:IV|III|HI|II|I)[ \t]*$", page.text, re.MULTILINE)
+            )
         if profile.heading_pattern:
             matches += list(re.finditer(profile.heading_pattern, page.text, re.MULTILINE))
         if profile.strategy == "summa":
@@ -323,9 +346,21 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
                     matches.append(match)
         positions = sorted({0, len(page.text), *(match.start() for match in matches)})
         markers = {match.start(): match.group().strip() for match in matches}
+        if profile.strategy == "recovered":
+            for match in matches:
+                if re.fullmatch(r"CAP[IÍ]TULO\s+\d+", match.group().strip()):
+                    following = page.text[match.end() :].lstrip("\n").splitlines()
+                    if following and 3 <= len(following[0].strip()) <= 100:
+                        markers[match.start()] += " · " + following[0].strip()
         for start, end in pairwise(positions):
             heading = markers.get(start, "")
             if heading:
+                if augustine and re.fullmatch(r"LIVRO\s*(?:IV|III|HI|II|I)", heading):
+                    roman = re.sub(r"^LIVRO\s*", "", heading).replace("HI", "III")
+                    book_context = "Livro " + roman
+                    locator = book_context
+                    role = "section"
+                    continue
                 q = re.match(r"Quest[aã]o\s+(\d+)", heading)
                 if q:
                     number = int(q[1])
@@ -352,6 +387,13 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
                         chapter = heading
                         locator = heading
                     role = "section"
+            if (
+                augustine
+                and locator
+                and book_context
+                and not locator.startswith(book_context + " · ")
+            ):
+                locator = book_context + " · " + re.sub(r"^Livro [IV]+ · ", "", locator)
             if not locator:
                 continue
             text = page.text[start:end]
@@ -401,12 +443,74 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
     return result
 
 
-def build(workspace: Path, destination: Path) -> dict[str, object]:
+RECOVERED_PROFILES = (
+    Profile(
+        "2cb74a2188c2cd4e8696bd836616a15e68113bef4776ba57936345a110280503",
+        "Agostinho de Hipona",
+        "Patrística latina",
+        19,
+        ("hermeneutica-metodos", "exegese-recepcao"),
+        "hermeneutics",
+        "recovered",
+        137,
+    ),
+    Profile(
+        "0f77aeea4cd6975af4dac5e5008471c2a7fd48952be985c0b4f5b4ade1ebcadc",
+        "Uwe Wegner",
+        "Metodologia histórico-crítica; não representa toda tradição",
+        8,
+        ("exegese-recepcao", "hermeneutica-metodos"),
+        "exegesis",
+        "recovered",
+        129,
+        r"^(?:[1-9]\d?\.\s+[A-ZÁÉÍÓÚÂÊÔÃÕ][^\n]{5,100}|[A-ZÁÉÍÓÚÂÊÔÃÕ][A-ZÁÉÍÓÚÂÊÔÃÕ ,:-]{8,100})$",
+    ),
+    Profile(
+        "d32664a467dbf4f1b70c18420f55263c68e85d8395e4353b5643327128b18548",
+        "George Eldon Ladd",
+        "Teologia bíblica evangélica",
+        15,
+        ("teologia", "exegese-recepcao"),
+        "theology",
+        "recovered",
+        207,
+    ),
+    Profile(
+        "d799d5888b2a8f0b5eaba8c05fb590d2a40e885819d6dc9eaff25aacb9782d12",
+        "Vladimir Lossky",
+        "Ortodoxa",
+        7,
+        ("teologia", "historia-tradicoes"),
+        "theology",
+        "recovered",
+        180,
+        r"(?i:^(?:[IVXLCDM]{1,5}[.]?\s+)?(?:INTRODUCCI[ÓO]N|TEOLOG[ÍI]A Y M[ÍI]STICA|"
+        r"LAS TINIEBLAS DIVINAS|DIOS[-— ]TRINIDAD|ENERG[ÍI]AS INCREADAS|EL SER CREADO|"
+        r"IMAGEN Y SEMEJANZA|ECONOM[ÍI]A DEL HIJO|ECONOM[ÍI]A DEL ESP[ÍI]RITU SANTO|"
+        r"DOS ASPECTOS DE LA IGLESIA|V[ÍI]A DE LA UNI[ÓO]N|LA LUZ DIVINA|CONCLUSI[ÓO]N)"
+        r"[^\n]{0,100}$)",
+    ),
+    Profile(
+        "f1ee2d41a78f8ca221e4224c253b8b909809745f11bd6cf0b301d889c493bb15",
+        "Gerhard von Rad",
+        "Pesquisa histórico-crítica; trechos da edição instalada",
+        8,
+        ("teologia", "historia-tradicoes"),
+        "theology",
+        "recovered",
+        19,
+        r"^(?:OS PRIMEIROS TEMPOS|A PROFECIA PR[ÉE]-CL[ÁA]SSICA|"
+        r"ORIGEM DA HISTORIOGRAFIA)[^\n]{0,100}$",
+    ),
+)
+
+
+def build(workspace: Path, destination: Path, recovered_only: bool = False) -> dict[str, object]:
     destination.mkdir(parents=True, exist_ok=False)
     reports: list[dict[str, object]] = []
     files: list[dict[str, str]] = []
     with sqlite3.connect(workspace.resolve().as_uri() + "?mode=ro", uri=True) as db:
-        for profile in PROFILES:
+        for profile in RECOVERED_PROFILES if recovered_only else PROFILES:
             document = db.execute(
                 "SELECT id,title FROM private_documents WHERE checksum=?", (profile.checksum,)
             ).fetchone()
@@ -441,6 +545,8 @@ def build(workspace: Path, destination: Path) -> dict[str, object]:
                     "entries": len(entries),
                     "nulPagesQuarantined": sum("\x00" in page.text for page in pages),
                     "status": "staged" if entries else "no-validated-headings",
+                    "textPages": sum(bool(page.text.strip()) for page in pages),
+                    "physicalPages": len(pages),
                 }
             )
         blocked = [
@@ -469,8 +575,9 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("workspace", type=Path)
     parser.add_argument("destination", type=Path)
+    parser.add_argument("--recovered-only", action="store_true")
     args = parser.parse_args()
-    report = build(args.workspace, args.destination)
+    report = build(args.workspace, args.destination, args.recovered_only)
     print(
         json.dumps({"sources": report["sources"], "blocked": report["blocked"]}, ensure_ascii=False)
     )

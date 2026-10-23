@@ -5,10 +5,14 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.server";
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
-import { importOcrRecoveryPage } from "../../src/lib/application/ocr-recovery-service";
+import {
+  importOcrRecoveryPage,
+  ocrRecoveryCoverage,
+} from "../../src/lib/application/ocr-recovery-service";
 import { PrivateDocumentRepository } from "../../src/lib/repositories/private-document-repository";
 import { DocumentProcessingRepository } from "../../src/lib/repositories/document-processing-repository";
 import { DocumentKnowledgePipelineService } from "../../src/lib/application/document-knowledge-pipeline-service";
+import { DocumentKnowledgeRepository } from "../../src/lib/repositories/document-knowledge-repository";
 
 const [workspace, staging, mode] = process.argv.slice(2);
 if (!workspace || !staging || !["--runtime-stopped", "--verify"].includes(mode ?? ""))
@@ -150,23 +154,68 @@ try {
   for (const target of verify ? [] : manifest.targets) {
     const doc = await PrivateDocumentRepository.findByChecksum(target.checksum, adapter);
     if (!doc) continue;
+    const coverage = await ocrRecoveryCoverage(doc.id, adapter);
     await DocumentProcessingRepository.recordStep(
       doc.id,
       "ocr",
-      doc.textPageCount === doc.pageCount ? "complete" : "partial",
+      coverage.complete ? "complete" : "partial",
       {
-        completedUnits: doc.textPageCount,
+        completedUnits: coverage.covered,
         totalUnits: doc.pageCount,
         checkpoint: {
           staging: directory,
           method: "tesseract-tsv",
           modelRevision: manifest.modelRevision,
           requiresReview: true,
+          textPageCount: coverage.withText,
+          emptyAttempts: coverage.emptyAttempts,
+        },
+      },
+      adapter,
+    );
+    await DocumentProcessingRepository.recordStep(
+      doc.id,
+      "extraction",
+      coverage.complete ? "complete" : "partial",
+      {
+        completedUnits: coverage.covered,
+        totalUnits: coverage.total,
+        checkpoint: {
+          scope: "native-or-ocr-covered",
+          textPageCount: coverage.withText,
+          emptyAttempts: coverage.emptyAttempts,
+          originalPdfUnchanged: true,
         },
       },
       adapter,
     );
     if (process.argv.includes("--structure") && doc.textPageCount > 0) {
+      const protectedReading = db
+        .prepare(
+          `SELECT 1 FROM knowledge_proposals
+        WHERE document_id=? AND (json_type(payload_json,'$.contextualAnalysis')='object'
+        OR json_type(payload_json,'$.studyContext')='object') LIMIT 1`,
+        )
+        .get(doc.id);
+      if (protectedReading) {
+        console.info("Estrutura contextual preservada, sem reconstrução destrutiva:", doc.title);
+        const summary = await DocumentKnowledgeRepository.getSummary(doc.id, adapter);
+        if (summary?.status !== "ready")
+          await DocumentProcessingRepository.recordStep(
+            doc.id,
+            "structure",
+            "partial",
+            {
+              checkpoint: {
+                reason: "existing-contextual-reading-preserved",
+                reconciliationRequired: true,
+                textPageCount: doc.textPageCount,
+              },
+            },
+            adapter,
+          );
+        continue;
+      }
       console.info("Estruturando:", doc.title);
       const profile = await DocumentProcessingRepository.ensureProfile(doc, adapter);
       const result = await DocumentKnowledgePipelineService.analyzeDocument(

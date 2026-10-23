@@ -1,5 +1,26 @@
 # Project Memory
 
+## Desktop — OCR concluído e contextos publicados — 2026-10-23
+
+- Política do usuário: não gerar backups completos repetidos; reutilizar snapshot existente
+  explicitamente nos importadores. Não apagar backups/acervo sem autorização. Não mexer no
+  celular nem gerar outro kit/APK antes de terminar a etapa desktop.
+-6obras/1.540páginas processadas;1.536com texto. Agostinho142,Wegner129,VonRad21,Ladd207,
+  Lossky207; Keener830/834,quatro páginas brancas visualmente conferidas(2,812,826,828).
+- Publicados689recortes temáticos(232/166/12/101/178,nessa ordem sem Keener) e4.851relações
+  culturais Keener, com destinos nos27livros do NT. Não é revisão integral de todos os vínculos.
+- JSON atômico com retry/temporários únicos;4processos isolam gateTesseract. Importador
+  preserva estrutura contextual, não força reconstrução destrutiva de índices genéricos.
+- Lotes finais privados:recovered-thematic-20261023-v4 e keener-cultural-20261023-complete.
+ 14remissões retidas;3localizadores Agostinho corrigidos com histórico preservado.
+  Repetições0novas/689 e0novas/4.851;OCR0novas/1.540;FKs0. ReaderMt1:1/Wegner-guia reais.
+- Jerusalém:1.219textos/1.221páginas,sem aparato de notas identificado;não falha geral de
+  extração. Fonte completa/diagnóstico e limites:docs/content/ocr-contextual-recovery-2026-10-23.md.
+-618TS/133Python,typecheck,mypy18,Ruff,lint focado,build aprovados. Sem novo QA visual web
+  completo; amostras PDF revisadas. Dois índices genéricos preservados como parciais.
+- Telefone0.5.3 ainda tem snapshot anterior; próxima entrega pode ser patch de conteúdo,
+  reutilizando PDFs/corpora imutáveis. Esta rodada não gerou APK nem novo backup completo.
+
 ## Android — acervo atualizado0.5.3 — 2026-10-23
 
 - Pedido: kit completo para outra pessoa e atualização USB do aparelho autorizado, sem
@@ -21,7 +42,7 @@
 - Backup do banco pessoal Android anterior em Documents/Scriptorium Workspace Backups/
   android-antes-0.5.3-20261023; nunca incluído no kit para terceiros. Instalação sem wipe.
 
-## Desktop — recuperação OCR em execução — 2026-10-23
+## Histórico — início da recuperação OCR — 2026-10-23
 
 - Escopo: seis documentos sem texto (Agostinho/Doutrina Cristã, Keener, Wegner, von Rad,
   Ladd, Lossky),1540páginas físicas.168páginas reais já incorporadas com backup/FKs0;

@@ -9,6 +9,7 @@ import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-ru
 import { applyWorkspaceMigrations } from "../database/workspace-migrate";
 import { contextualImportSchema } from "./contextual-import-schema";
 import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.server";
+import { reuseImportBackup } from "./reuse-import-backup";
 
 // Offline operator command. Never run against a Linux bind mount while Docker is writing it.
 const [databasePath, batchPath, confirmation] = process.argv.slice(2);
@@ -91,9 +92,13 @@ try {
   const schema = contextualImportSchema(version);
   if (db.prepare("PRAGMA foreign_key_check").all().length)
     throw new Error("Workspace com violação de integridade. Importação recusada.");
-  const destination = `${path}.before-contextual-${batches[0]!.batchId}-${Date.now()}`;
-  console.info("Criando backup consistente antes da importação:", destination);
-  await backup(db, destination, { rate: 4096 });
+  const reusedBackup = reuseImportBackup(path, process.argv);
+  const destination =
+    reusedBackup ?? `${path}.before-contextual-${batches[0]!.batchId}-${Date.now()}`;
+  if (!reusedBackup) {
+    console.info("Criando backup consistente antes da importação:", destination);
+    await backup(db, destination, { rate: 4096 });
+  } else console.info("Snapshot anterior reutilizado; nenhuma cópia completa criada.");
   if (schema.migrate) applyWorkspaceMigrations(database);
   const adapter: WorkspaceDatabase = {
     persistence: "installation",

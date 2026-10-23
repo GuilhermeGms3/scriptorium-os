@@ -40,6 +40,44 @@ def test_language_comes_from_document_profile_and_atomic_receipt(tmp_path: Path)
     assert not (tmp_path / "page.tmp").exists()
 
 
+def test_atomic_replace_retries_windows_sharing_violation(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    target = tmp_path / "progress.json"
+    target.write_text('{"old":true}')
+    replace = Path.replace
+    attempts = 0
+
+    def locked_once(path: Path, destination: Path) -> Path:
+        nonlocal attempts
+        attempts += 1
+        if attempts < 3:
+            assert target.read_text() == '{"old":true}'
+            raise PermissionError("Windows sharing violation")
+        return replace(path, destination)
+
+    monkeypatch.setattr(Path, "replace", locked_once)
+    monkeypatch.setattr(ocr_library.time, "sleep", lambda _: None)
+    atomic_json(target, {"completed": 1})
+    assert attempts == 3
+    assert target.read_text() == '{"completed": 1}'
+    assert not list(tmp_path.glob("*.tmp"))
+
+
+def test_progress_lock_does_not_abort_page_recovery(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def denied(path: Path, destination: Path) -> Path:
+        raise PermissionError("Locked by another reader")
+
+    monkeypatch.setattr(Path, "replace", denied)
+    monkeypatch.setattr(ocr_library.time, "sleep", lambda _: None)
+    ocr_library.write_progress(tmp_path / "progress.json", {"completed": 2})
+    assert not list(tmp_path.glob("*.tmp"))
+    with pytest.raises(PermissionError):
+        atomic_json(tmp_path / "page.json", {"result": "must not silently disappear"})
+
+
 def test_real_ocr_parser_requests_orientation_and_returns_original_image_coordinates(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

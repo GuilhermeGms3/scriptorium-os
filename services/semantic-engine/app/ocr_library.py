@@ -11,6 +11,8 @@ import shutil
 import sqlite3
 import subprocess
 import tempfile
+import time
+from concurrent.futures import ProcessPoolExecutor, ThreadPoolExecutor
 from pathlib import Path
 from typing import Literal
 
@@ -39,12 +41,97 @@ def digest(path: Path) -> str:
 
 
 def atomic_json(path: Path, value: object) -> None:
-    temporary = path.with_suffix(".tmp")
-    with temporary.open("w", encoding="utf-8") as output:
+    # Windows readers/antivirus may briefly deny replacement. Never truncate the last receipt.
+    with tempfile.NamedTemporaryFile(
+        mode="w",
+        encoding="utf-8",
+        dir=path.parent,
+        prefix=path.name + ".",
+        suffix=".tmp",
+        delete=False,
+    ) as output:
+        temporary = Path(output.name)
         json.dump(value, output, ensure_ascii=False)
         output.flush()
         os.fsync(output.fileno())
-    temporary.replace(path)
+    try:
+        for attempt in range(12):
+            try:
+                temporary.replace(path)
+                return
+            except PermissionError:
+                if attempt == 11:
+                    raise
+                time.sleep(min(0.1 * (attempt + 1), 1))
+    finally:
+        temporary.unlink(missing_ok=True)
+
+
+def write_progress(path: Path, value: object) -> None:
+    try:
+        atomic_json(path, value)
+    except PermissionError:
+        # Per-page immutable receipts are the recovery authority, not this display snapshot.
+        print(json.dumps({"warning": "progress-replace-denied", "resumable": True}), flush=True)
+
+
+def stage_page(
+    target: Target, page: int, pdf: Path, poppler: str, destination: Path, sample: bool
+) -> tuple[bool, int]:
+    output = destination / f"{target.checksum}-{page:05d}.json"
+    if output.exists():
+        staged = json.loads(output.read_text(encoding="utf-8"))
+        if not str(staged["result"]["revision"]).endswith(";tsv-literal-v1"):
+            raise ValueError("Old OCR recipe; stage again in a new directory")
+        expected = page_result(target.checksum, page, OcrResponse.model_validate(staged["result"]))
+        if staged != expected:
+            raise ValueError("Staged page changed; refusing reuse")
+        return True, len(str(staged["result"]["text"]))
+    with tempfile.TemporaryDirectory(prefix="scriptorium-ocr-page-") as folder:
+        prefix = Path(folder) / "page"
+        subprocess.run(
+            [
+                poppler,
+                "-f",
+                str(page),
+                "-l",
+                str(page),
+                "-singlefile",
+                "-scale-to",
+                "3500",
+                "-gray",
+                "-png",
+                str(pdf),
+                str(prefix),
+            ],
+            capture_output=True,
+            check=True,
+            timeout=120,
+        )
+        image = prefix.with_suffix(".png")
+        response = OcrResponse.model_validate(
+            ocr(
+                OcrRequest(
+                    imageBase64=base64.b64encode(image.read_bytes()).decode("ascii"),
+                    language=target.language,
+                )
+            )
+        )
+        atomic_json(output, page_result(target.checksum, page, response))
+        if sample:
+            previews = destination / "previews"
+            previews.mkdir(exist_ok=True)
+            shutil.copyfile(image, previews / f"{target.checksum[:12]}-{page}.png")
+    return False, len(response.text)
+
+
+def stage_job(job: tuple[Target, int, Path, str, Path, bool]) -> tuple[int, bool, int, str | None]:
+    target, page, pdf, poppler, destination, sample = job
+    try:
+        was_reused, chars = stage_page(target, page, pdf, poppler, destination, sample)
+        return page, was_reused, chars, None
+    except Exception as error:
+        return page, False, 0, type(error).__name__
 
 
 def language(title: str) -> str:
@@ -74,7 +161,9 @@ def page_result(checksum: str, page: int, response: OcrResponse) -> dict[str, ob
     }
 
 
-def run(workspace: Path, destination: Path, sample: bool) -> None:
+def run(workspace: Path, destination: Path, sample: bool, workers: int = 1) -> None:
+    if not 1 <= workers <= 4:
+        raise ValueError("OCR workers must be between 1 and 4")
     poppler = shutil.which(os.environ.get("SCRIPTORIUM_PDFTOPPM", "pdftoppm"))
     tesseract = shutil.which(os.environ.get("SCRIPTORIUM_TESSERACT", "tesseract"))
     if not poppler or not tesseract:
@@ -107,7 +196,7 @@ def run(workspace: Path, destination: Path, sample: bool) -> None:
             errors: list[dict[str, object]] = []
             completed = 0
             reused = 0
-            for target in manifest.targets:
+            for target in sorted(manifest.targets, key=lambda item: item.pages):
                 pdf = workspace.parent / "documents" / f"{target.checksum}.pdf"
                 if pdf.resolve().parent != (workspace.parent / "documents").resolve():
                     raise ValueError("Original outside the canonical documents directory")
@@ -125,92 +214,45 @@ def run(workspace: Path, destination: Path, sample: bool) -> None:
                     (document[0],),
                 ).fetchall()
                 selected = {min(5, target.pages), min(20, target.pages), min(50, target.pages)}
-                for (index,) in pages:
-                    page = int(index) + 1
-                    if sample and page not in selected:
-                        continue
-                    output = destination / f"{target.checksum}-{page:05d}.json"
-                    if output.exists():
-                        staged = json.loads(output.read_text(encoding="utf-8"))
-                        if not str(staged["result"]["revision"]).endswith(";tsv-literal-v1"):
-                            raise ValueError("Old OCR recipe; stage again in a new directory")
-                        expected = page_result(
-                            target.checksum, page, OcrResponse.model_validate(staged["result"])
-                        )
-                        if staged != expected:
-                            raise ValueError("Staged page changed; refusing reuse")
-                        reused += 1
-                        continue
-                    try:
-                        with tempfile.TemporaryDirectory(prefix="scriptorium-ocr-page-") as folder:
-                            prefix = Path(folder) / "page"
-                            subprocess.run(
-                                [
-                                    poppler,
-                                    "-f",
-                                    str(page),
-                                    "-l",
-                                    str(page),
-                                    "-singlefile",
-                                    "-scale-to",
-                                    "3500",
-                                    "-gray",
-                                    "-png",
-                                    str(pdf),
-                                    str(prefix),
-                                ],
-                                capture_output=True,
-                                check=True,
-                                timeout=120,
+
+                pending = [
+                    int(index) + 1 for (index,) in pages if not sample or int(index) + 1 in selected
+                ]
+                # Each process retains the service's single-operation gate. Threads would
+                # collide with it and turn legitimate pages into HTTP429 exceptions.
+                pool = ProcessPoolExecutor if workers > 1 else ThreadPoolExecutor
+                with pool(max_workers=workers) as executor:
+                    jobs = [(target, page, pdf, poppler, destination, sample) for page in pending]
+                    for page, was_reused, chars, error_name in executor.map(stage_job, jobs):
+                        if error_name:
+                            errors.append(
+                                {"checksum": target.checksum, "page": page, "error": error_name}
                             )
-                            image = prefix.with_suffix(".png")
-                            response = OcrResponse.model_validate(
-                                ocr(
-                                    OcrRequest(
-                                        imageBase64=base64.b64encode(image.read_bytes()).decode(
-                                            "ascii"
-                                        ),
-                                        language=target.language,
-                                    )
-                                )
+                            print(json.dumps(errors[-1]), flush=True)
+                        elif was_reused:
+                            reused += 1
+                        else:
+                            completed += 1
+                            print(
+                                json.dumps(
+                                    {
+                                        "title": target.title,
+                                        "page": page,
+                                        "total": target.pages,
+                                        "characters": chars,
+                                    }
+                                ),
+                                flush=True,
                             )
-                            atomic_json(output, page_result(target.checksum, page, response))
-                            if sample:
-                                previews = destination / "previews"
-                                previews.mkdir(exist_ok=True)
-                                shutil.copyfile(
-                                    image, previews / f"{target.checksum[:12]}-{page}.png"
-                                )
-                        completed += 1
-                        print(
-                            json.dumps(
-                                {
-                                    "title": target.title,
-                                    "page": page,
-                                    "total": target.pages,
-                                    "characters": len(response.text),
-                                }
-                            ),
-                            flush=True,
-                        )
-                    except Exception as error:
-                        errors.append(
+                        write_progress(
+                            destination / "progress.json",
                             {
-                                "checksum": target.checksum,
-                                "page": page,
-                                "error": type(error).__name__,
-                            }
+                                "completed": completed,
+                                "reused": reused,
+                                "errors": errors,
+                                "sample": sample,
+                            },
                         )
-                        print(json.dumps(errors[-1]), flush=True)
-                    atomic_json(
-                        destination / "progress.json",
-                        {
-                            "completed": completed,
-                            "reused": reused,
-                            "errors": errors,
-                            "sample": sample,
-                        },
-                    )
             print(
                 json.dumps(
                     {
@@ -233,8 +275,9 @@ def main() -> None:
     parser.add_argument("workspace", type=Path)
     parser.add_argument("destination", type=Path)
     parser.add_argument("--sample", action="store_true")
+    parser.add_argument("--workers", type=int, default=1)
     args = parser.parse_args()
-    run(args.workspace, args.destination, args.sample)
+    run(args.workspace, args.destination, args.sample, args.workers)
 
 
 if __name__ == "__main__":

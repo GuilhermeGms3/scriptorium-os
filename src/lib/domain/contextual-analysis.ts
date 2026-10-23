@@ -12,6 +12,7 @@ export const ContextualAnalysisSchema = z.object({
         "catechism",
         "confession",
         "intertextual-commentary",
+        "cultural-commentary",
         "biblical-handbook",
         "methodological-study",
       ]),
