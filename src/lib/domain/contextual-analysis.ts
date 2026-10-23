@@ -13,6 +13,7 @@ export const ContextualAnalysisSchema = z.object({
         "confession",
         "intertextual-commentary",
         "biblical-handbook",
+        "methodological-study",
       ]),
       locator: z.string().min(1).max(300),
       sectionPath: z.array(z.string().min(1).max(300)).max(8),

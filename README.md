@@ -34,6 +34,11 @@ Os [espaços de estudo por tema](docs/architecture/study-topic-workspace.md) con
 leituras reais do acervo, percursos, notas e relações pessoais, com uma área opcional para a API
 do YouTube. As fontes são consultadas sob demanda, sem conteúdo fictício para preencher lacunas.
 
+A [incorporação documental por tema e verbete](docs/architecture/thematic-source-incorporation.md)
+publica recortes rastreáveis no workspace existente, sem confundir seção temática com comentário
+de versículo. O [balanço de 22/10/2026](docs/content/thematic-expansion-2026-10-22.md) distingue
+conteúdo incorporado, auditoria estrutural e frentes ainda pendentes.
+
 ## Desenvolvimento
 
 O [Scriptorium Áudio](docs/architecture/scriptorium-audio.md) permite ouvir capítulos,

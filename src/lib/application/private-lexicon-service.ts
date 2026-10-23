@@ -3,6 +3,8 @@ import { greekDictionaryEntries, normalizeHeadword } from "../domain/private-lex
 import { PRIVATE_LEXICAL_LOCATORS } from "../content/private-lexical-locators";
 import { sha256Hex } from "../workspace-runtime/secure-context";
 import type { WorkspaceDatabase } from "../workspace-runtime/protocol";
+import { getWorkspaceDatabase } from "../workspace-runtime/workspace-database";
+import { KnowledgeProposalPayloadSchema } from "../domain/document-knowledge";
 export const PRIVATE_LEXICON_SOURCES = [
   { checksum: "d061bc0742a1cfa93e6f8023b9e1e7857f430b32d8691f8f3974c9ee85433979", kind: "greek" },
   { checksum: "11e2250828241826b58cb819fd6fdd73ef0c2cbab317c2e81553755a25ec2994", kind: "hebrew" },
@@ -34,13 +36,57 @@ export async function privateLexicalReadings(
     PRIVATE_LEXICON_SOURCES.map(async (profile) => {
       const doc = await Documents.findByChecksum(profile.checksum, database);
       if (!doc) return [];
+      const indexed: PrivateLexicalReading[] = [];
+      const db = database ?? (await getWorkspaceDatabase());
+      for (const term of terms) {
+        const rows = await db.query(
+          `SELECT p.payload_json,s.page_index,s.start_offset,s.end_offset,u.text_checksum
+          FROM knowledge_proposals p JOIN semantic_unit_spans s ON s.unit_id=p.semantic_unit_id
+          JOIN semantic_units u ON u.id=p.semantic_unit_id
+          WHERE p.document_id=? AND p.proposal_kind='topic-assignment'
+          AND p.method='documentary-thematic:v1' AND p.review_status<>'rejected'
+          AND json_extract(p.payload_json,'$.studyContext.headword.normalized')=? LIMIT 4`,
+          [doc.id, normalizeHeadword(term)],
+        );
+        for (const row of rows) {
+          const payload = KnowledgeProposalPayloadSchema.safeParse(
+            JSON.parse(String(row["payload_json"])) as unknown,
+          );
+          if (
+            !payload.success ||
+            payload.data.kind !== "topic-assignment" ||
+            !payload.data.studyContext?.headword
+          )
+            continue;
+          const page = await Documents.getPage(doc.id, Number(row["page_index"]), database);
+          if (!page) continue;
+          const start = Number(row["start_offset"]),
+            end = Number(row["end_offset"]);
+          if (
+            end > page.text.length ||
+            (await sha256Hex(page.text.slice(start, end))) !== row["text_checksum"]
+          )
+            continue;
+          indexed.push({
+            documentId: doc.id,
+            title: doc.title,
+            page: page.pageIndex + 1,
+            lemma: payload.data.studyContext.headword.lemma,
+            text: page.text.slice(start, end),
+            identified: true,
+            start,
+            end,
+            qualification: payload.data.studyContext.limitations.join(" "),
+          });
+        }
+      }
       const hits = (
         await Promise.all(
           terms.map((term) => Documents.search(term, { documentId: doc.id, limit: 2 }, database)),
         )
       ).flat();
-      const seen = new Set<number>();
-      const result: PrivateLexicalReading[] = [];
+      const seen = new Set<number>(indexed.map((entry) => entry.page - 1));
+      const result: PrivateLexicalReading[] = [...indexed];
       for (const locator of PRIVATE_LEXICAL_LOCATORS) {
         if (
           locator.checksum !== profile.checksum ||

@@ -17,6 +17,8 @@ const Row = z.object({
   available: z.number(),
   proof_texts: z.number(),
   audited: z.number(),
+  thematic: z.number(),
+  lexical: z.number(),
 });
 export type LibraryUtilization = z.infer<typeof Row>;
 /** Counts are computed in SQLite. A visible link is not a reviewed interpretation. */
@@ -67,11 +69,18 @@ export async function libraryUtilization(
       (review_status='accepted' OR (review_status='machine-proposed' AND publication='machine-visible'))) available,
     sum(json_extract(payload_json,'$.referenceRole')='proof-text') proof_texts,
     sum(review_status='accepted' OR audit_status='confirmed') audited FROM matched GROUP BY document_id
-  ), units AS (SELECT document_id,count(*) n FROM semantic_units GROUP BY document_id)
+  ), units AS (SELECT document_id,count(*) n FROM semantic_units GROUP BY document_id),
+  thematic AS (SELECT document_id,
+    sum(json_type(payload_json,'$.studyContext.headword') IS NULL) n,
+    sum(json_type(payload_json,'$.studyContext.headword')='object') lexical FROM knowledge_proposals
+    WHERE proposal_kind='topic-assignment' AND review_status<>'rejected'
+    AND json_type(payload_json,'$.studyContext')='object' GROUP BY document_id)
   SELECT doc.id,doc.title,doc.checksum,doc.page_count pages,doc.text_page_count extracted,
     coalesce(units.n,0) structured,coalesce(c.linked,0) linked,coalesce(c.contexts,0) contexts,
-    coalesce(c.available,0) available,coalesce(c.proof_texts,0) proof_texts,coalesce(c.audited,0) audited
+    coalesce(c.available,0) available,coalesce(c.proof_texts,0) proof_texts,coalesce(c.audited,0) audited,
+    coalesce(thematic.n,0) thematic,coalesce(thematic.lexical,0) lexical
   FROM private_documents doc LEFT JOIN units ON units.document_id=doc.id LEFT JOIN counts c ON c.document_id=doc.id
+  LEFT JOIN thematic ON thematic.document_id=doc.id
   ${filter.documentId ? "WHERE doc.id=?" : ""} ORDER BY doc.title COLLATE NOCASE`,
     [...binds, ...(filter.documentId ? [filter.documentId] : [])],
   );

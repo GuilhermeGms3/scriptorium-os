@@ -2,6 +2,7 @@ import { z } from "zod";
 import { CLAIM_KINDS } from "./knowledge";
 import { ContextualAnalysisSchema } from "./contextual-analysis";
 import { NEGATIVE_REFERENCE_ZONES, SEMANTIC_DOMAINS } from "./semantic-content";
+import { ThematicContextSchema } from "./thematic-reading";
 
 /**
  * How a reference work, a primary source or a confession uses a verse, set from the document
@@ -146,6 +147,7 @@ export const KnowledgeProposalPayloadSchema = z.discriminatedUnion("kind", [
     kind: z.literal("topic-assignment"),
     domain: z.enum(SEMANTIC_DOMAINS),
     evidence: z.array(z.string().min(1)),
+    studyContext: ThematicContextSchema.optional(),
   }),
   z.object({
     kind: z.literal("bibliographic-reference"),

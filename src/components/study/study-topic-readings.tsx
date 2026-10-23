@@ -17,7 +17,7 @@ const ORIGINS = [
     id: "private-curated",
     label: "Leituras selecionadas",
     detail:
-      "Percurso temático com questão e página conferidas na edição instalada; não é conclusão doutrinária verificada.",
+      "Leituras da edição instalada, com página e trecho rastreáveis. Associações automáticas são identificadas em cada leitura; não equivalem a revisão teológica.",
   },
   {
     id: "catalog",

@@ -16,6 +16,7 @@ import { PrivateDocumentRepository } from "../repositories/private-document-repo
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
 import { StudyRepository } from "../repositories/study-repository";
 import { loadCuratedTopicReadings } from "./curated-topic-readings";
+import { thematicReadings } from "../repositories/thematic-reading-repository";
 
 export interface StudyTopic {
   id: string;
@@ -194,7 +195,26 @@ interface ReadingDependencies {
   evidence: (ids: string[]) => Promise<TopicReadings["evidence"]>;
 }
 const dependencies: ReadingDependencies = {
-  curated: loadCuratedTopicReadings,
+  curated: async (id) => {
+    const [selected, structured] = await Promise.allSettled([
+      loadCuratedTopicReadings(id),
+      thematicReadings(id),
+    ]);
+    return {
+      items: [
+        ...(selected.status === "fulfilled" ? selected.value.items : []),
+        ...(structured.status === "fulfilled" ? structured.value : []),
+      ],
+      warnings: [
+        ...(selected.status === "fulfilled"
+          ? selected.value.warnings
+          : ["Leituras selecionadas indisponíveis."]),
+        ...(structured.status === "rejected"
+          ? ["A estrutura temática do acervo não pôde ser consultada."]
+          : []),
+      ],
+    };
+  },
   works: () => PrimarySourceRepository.listWorks(),
   primary: (query, limit) => PrimarySourceRepository.search(query, limit),
   private: (query, options) => PrivateDocumentRepository.search(query, options),
@@ -279,11 +299,17 @@ export async function loadTopicReadings(
     results.some((result) => result.status === "rejected");
   return {
     items: (["private-curated", "catalog", "primary-search", "private-search"] as const).flatMap(
-      (origin) => [...items.values()].filter((item) => item.origin === origin).slice(0, 8),
+      (origin) =>
+        [...items.values()]
+          .filter((item) => item.origin === origin)
+          .slice(0, origin === "private-curated" ? 80 : 8),
     ),
     evidence:
       evidence[0]?.status === "fulfilled" ? evidence[0].value : { references: [], fragments: [] },
     warnings: [
+      ...([...items.values()].filter((item) => item.origin === "private-curated").length > 80
+        ? ["Mostrando as primeiras 80 leituras estruturadas. Consulte a obra para continuar."]
+        : []),
       ...(curated[0]?.status === "fulfilled"
         ? curated[0].value.warnings
         : ["Não foi possível conferir as leituras selecionadas do acervo."]),

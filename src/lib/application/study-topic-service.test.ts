@@ -198,4 +198,33 @@ describe("real study topic discovery", () => {
     expect(entity.terms).toEqual(["Trindade", "Trinity"]);
     expect(entity.guide?.id).toBe("trindade-cristologia");
   });
+  it("bounds thematic readings without silently hiding the remaining source sections", async () => {
+    const data = await loadTopicReadings(topic, undefined, {
+      works: async () => [],
+      primary: async () => [],
+      private: async () => [],
+      evidence: async () => ({ references: [], fragments: [] }),
+      curated: async () => ({
+        items: Array.from({ length: 81 }, (_, index) => ({
+          id: `synthetic:${index}`,
+          title: "Fonte sintética",
+          locator: `Seção ${index + 1}`,
+          excerpt: "",
+          origin: "private-curated" as const,
+          source: {
+            kind: "private-document" as const,
+            documentId: "synthetic",
+            page: index + 1,
+            title: "Fonte sintética",
+          },
+        })),
+        warnings: [],
+      }),
+    });
+    expect(data.items).toHaveLength(80);
+    expect(data.warnings).toContain(
+      "Mostrando as primeiras 80 leituras estruturadas. Consulte a obra para continuar.",
+    );
+    expect(data.items.at(-1)?.source).toMatchObject({ documentId: "synthetic", page: 80 });
+  });
 });

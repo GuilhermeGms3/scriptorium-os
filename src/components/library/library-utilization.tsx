@@ -40,7 +40,9 @@ export function LibraryUtilizationReport({
         “Disponível” conta ligações contextuais elegíveis, não versículos únicos nem cartões
         carregados simultaneamente. Citações confessionais não são comentários. “Auditado” exige
         confirmação individual ou de auditoria registrada; não significa verdade teológica. Filtros
-        de fonte e passagem podem ser aplicados abaixo.
+        de fonte e passagem podem ser aplicados abaixo. Leituras temáticas contam recortes
+        documentais para os estudos, não argumentos completos nem comentários de versículos. Essa
+        coluna se refere à obra inteira, mesmo com filtro bíblico.
       </p>
       {query.isPending && <p role="status">Consultando o índice local…</p>}
       {query.error && (
@@ -68,6 +70,8 @@ export function LibraryUtilizationReport({
                   "Unidades",
                   "Ligações",
                   "Contextos disponíveis",
+                  "Leituras temáticas (obra)",
+                  "Verbetes delimitados",
                   "Citações confessionais",
                   "Auditadas",
                 ].map((h) => (
@@ -105,6 +109,8 @@ export function LibraryUtilizationReport({
                     row.structured,
                     row.linked,
                     row.available,
+                    row.thematic,
+                    row.lexical,
                     row.proof_texts,
                     row.audited,
                   ].map((v, i) => (

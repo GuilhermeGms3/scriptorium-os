@@ -170,7 +170,8 @@ export const DocumentKnowledgePipelineService = {
     if (
       [...previous.values()].some(
         (proposal) =>
-          proposal.payload.kind === "passage-relation" && proposal.payload.contextualAnalysis,
+          (proposal.payload.kind === "passage-relation" && proposal.payload.contextualAnalysis) ||
+          (proposal.payload.kind === "topic-assignment" && proposal.payload.studyContext),
       )
     )
       throw new Error(

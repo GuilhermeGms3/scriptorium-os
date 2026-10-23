@@ -33,6 +33,11 @@ it("separates extraction, raw links, visible commentary, proof texts and audits 
       "accepted",
     );
     native.exec("INSERT INTO pipeline_decisions VALUES('visible','machine-visible','pending');");
+    native
+      .prepare(
+        "INSERT INTO knowledge_proposals VALUES('thematic','doc','topic-assignment',?,'machine-proposed')",
+      )
+      .run(JSON.stringify({ studyContext: { topicIds: ["study-guide:teologia"] } }));
     const db: WorkspaceDatabase = {
       persistence: "memory",
       query: async (sql, bind = []) => native.prepare(sql).all(...bind) as WorkspaceRow[],
@@ -54,6 +59,7 @@ it("separates extraction, raw links, visible commentary, proof texts and audits 
       available: 2,
       proof_texts: 1,
       audited: 1,
+      thematic: 1,
     });
     const filtered = await libraryUtilization(
       { bookId: "john", chapter: 1, verse: 1, scheme: "scheme-a" },
@@ -64,6 +70,7 @@ it("separates extraction, raw links, visible commentary, proof texts and audits 
       available: 1,
       proof_texts: 0,
       audited: 0,
+      thematic: 1,
     });
     expect(all.find((r) => r.id === "empty")?.structured).toBe(0);
   } finally {

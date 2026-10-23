@@ -1,5 +1,28 @@
 # Project Memory
 
+## Desktop — incorporação temática e lexical — 2026-10-22
+
+- Escopo ativo: aproveitar acervo existente nos estudos e no leitor; áudio e Android fora
+  desta entrega. Base canônica `data/workspace/workspace.sqlite3`, schema26 preservado.
+- Publicados29.216 recortes temáticos/13fontes,5.160 verbetes gregos PT e5 análises de
+  Reimer (At16/Ex20/Dt5), aditivos nas tabelas existentes. Não são34mil comentários bíblicos.
+- Contrato/operador: `docs/architecture/thematic-source-incorporation.md`. Contagens e
+  pendências: `docs/content/thematic-expansion-2026-10-22.md`.
+- Método `documentary-thematic:v1`, estado machine-proposed; questão/objeção/resposta
+  distinguidas. Estudos consulta relações reais; inspetor consulta verbetes por lema.
+- Stagings válidos privados: thematic-expansion-20261022-v3, greek-lexical-index-20261022,
+  methodological-exegesis-20261022-v2. Reimportação:0novas,29.216/5.160/5 reutilizadas.
+  Auditoria estrutural84amostras/14fontes,0FKs; não é revisão teológica integral.
+- Pendente: OCR6obras (Tesseract ausente), Salmos/crosswalk, exceções Beale/Crisóstomo,
+  léxicos hebraicos/DITAT/NDITAT integrais, Price/mapas e tratados NHC/DSS especializados.
+  Quarentena45páginas Institutas EN com NUL; originais intactos.
+- Validação final23/10:611testes TS/92arquivos e120Python aprovados; mypy16arquivos,
+  Ruff, typecheck, lint focado, Prettier e build aprovados. QA desktop/móvel confirmou
+  nova Suma/p117 → fonte → nota salva, relatório e Reimer em At16;0erros de console.
+  QA usa subconjunto real separado, não migra nem grava na base canônica.
+- Integrados por fast-forward6commits remotos até4073f2b, sem conflitos/force-push.
+  Docker indisponível; imagem e APK não atualizados. Relatório mantém pendências explícitas.
+
 ## Android — textos adicionais e títulos0.5.2 — 2026-10-22
 
 - Apócrifo antes excluía obras com capítulos: Judite/Macabeus/Daniel Grego já estavam na BPM
