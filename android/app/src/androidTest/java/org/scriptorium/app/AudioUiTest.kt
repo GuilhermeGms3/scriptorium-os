@@ -32,6 +32,11 @@ class AudioUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitText("Seu scriptorium")
         click("Menu"); click("Áudio"); waitText("Scriptorium Áudio")
+        assertFalse(tree(automation.rootInActiveWindow).any { it.text?.toString() == "Leitor" })
+        click("Reflexões"); waitText("Scriptorium Reflexões"); waitText("Título do episódio")
+        val editorialScreenshot = requireNotNull(automation.takeScreenshot())
+        try { java.io.File(context.getExternalFilesDir(null), "audio-061-reflections.png").outputStream().use { editorialScreenshot.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it) } }
+        finally { editorialScreenshot.recycle() }
         click("Voz"); waitText("Filtrar idioma da voz (pt, en, es…)")
         click("Ambiente"); waitText("Adicionar minha música"); waitText("Somente voz")
         val screenshot = requireNotNull(automation.takeScreenshot())

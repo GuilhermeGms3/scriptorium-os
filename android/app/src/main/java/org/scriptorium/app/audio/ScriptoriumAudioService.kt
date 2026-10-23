@@ -78,6 +78,12 @@ class ScriptoriumAudioService : MediaSessionService() {
                             "read" -> {
                                 require(generation?.isActive != true) { "Há uma leitura sendo preparada. Aguarde ou cancele." }
                                 val entry = NarrationEntry.parse(JSONObject(requireNotNull(args.getString("entry"))))
+                                if (entry.source.optString("kind") == "reflection") {
+                                    require(entry.source.optBoolean("reviewed")) { "Revise o roteiro antes de narrar." }
+                                    val track = entry.source.optString("musicTrack").takeIf { id -> library.tracks().any { it.id == id } }.orEmpty()
+                                    library.preferences.edit().putString("track", track).putFloat("musicVolume", entry.source.optDouble("musicVolume", 0.2).toFloat().coerceIn(0f, 1f)).apply()
+                                    switchMode(if (track.isBlank()) AudioMode.VOICE else AudioMode.MIX)
+                                }
                                 require(mode != AudioMode.MUSIC) { "Escolha Somente voz ou Voz + música para narrar." }
                                 generation = launch {
                                     try {

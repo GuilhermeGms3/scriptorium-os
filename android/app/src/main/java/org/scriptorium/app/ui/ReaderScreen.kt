@@ -54,7 +54,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             consumePassage()
         }
     }
-    SideEffect { panelAvailable(passage != null && primary == null) }
+    SideEffect { panelAvailable(passage != null && primary == null && page == null) }
     LaunchedEffect(requestPanel, passage) { if (requestPanel && passage != null) { panelOpen = true; consumePanel() } }
     val scope = rememberCoroutineScope()
     fun rememberPage() {
@@ -78,6 +78,11 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
         }
     }
     primary?.let { PrimaryReader(repository, personal, it) { primary = null }; return }
+    page?.let { selectedPage ->
+        LibraryScreen(repository, personal, StudyReading("reading:${selectedPage.text("id")}", selectedPage.text("source_title"), "Volume instalado", page = selectedPage))
+        BackHandler { page = null }
+        return
+    }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -115,6 +120,5 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
         explanations, { explanations = it }, category, document, { category = it }, { document = it }, { selected = it },
         ::openTool, { panelOpen = false })
     selected?.let { SourceDialog(repository, personal, it) { selected = null } }
-    page?.let { PageDialog(repository, it, personal) { page = null } }
     noteUnit?.let { NoteEditor(personal, null, it) { noteUnit = null } }
 }

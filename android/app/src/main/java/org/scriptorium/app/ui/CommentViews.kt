@@ -29,6 +29,7 @@ internal fun CommentPreview(comment: Row, personal: PersonalRepository, source: 
                 TextButton(onClick = { expanded = !expanded }, modifier = Modifier.semantics { contentDescription = "${if (expanded) "Recolher" else "Expandir"} comentário de ${comment.text("source_title")}" }) { Text(if (expanded) "Recolher ▴" else "Expandir ▾", style = MaterialTheme.typography.labelMedium) }
             }
             if (expanded) {
+                TranslationBlock(comment.text("body"), if (comment.text("mode") == "source-excerpt") comment.text("source_language") else "und", personal)
                 Text(readingParagraphs(comment.text("body")), Modifier.padding(end = 6.dp, bottom = 12.dp), fontSize = (appearance.size * 0.77f).coerceIn(14f, 18f).sp,
                     lineHeight = (appearance.size * 1.18f).coerceAtLeast(23f).sp, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 Text(listOf(comment.commentCategories().joinToString(" · "), if (comment.text("mode") == "source-excerpt") "Trecho da fonte" else "Síntese contextual assistida").joinToString(" · "),

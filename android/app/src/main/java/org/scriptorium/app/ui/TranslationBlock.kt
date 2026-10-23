@@ -13,16 +13,27 @@ import org.scriptorium.app.data.*
 @Composable
 fun TranslationBlock(text: String, language: String, personal: PersonalRepository) {
     if (text.isBlank()) return
-    val declared = language.lowercase().substringBefore('-')
+    val metadata = language.lowercase().substringBefore('-')
+    var identified by remember(text, language) { mutableStateOf<String?>(null) }
+    val unknown = metadata in listOf("und", "")
+    LaunchedEffect(text, language) {
+        if (unknown) identified = try { LocalTranslation.identify(text) }
+        catch (_: kotlinx.coroutines.TimeoutCancellationException) { "und" }
+        catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { "und" }
+    }
+    if (unknown && identified == null) return
+    val declared = if (unknown) identified.orEmpty() else metadata
     if (declared in listOf("pt", "por")) return
     if (declared !in listOf("en", "eng", "es", "spa", "und", "")) {
         Text("Tradução local disponível para inglês e espanhol; este texto está em outro idioma.", style = MaterialTheme.typography.labelSmall)
         return
     }
-    var source by remember(text, language) { mutableStateOf(when (declared) { "en", "eng" -> "en"; "es", "spa" -> "es"; else -> null }) }
+    var source by remember(text, declared) { mutableStateOf(when (declared) { "en", "eng" -> "en"; "es", "spa" -> "es"; else -> null }) }
     if (source == null) {
-        Text("Para traduzir, informe o idioma deste trecho:", style = MaterialTheme.typography.labelSmall)
-        Row { TextButton(onClick = { source = "en" }) { Text("Inglês") }; TextButton(onClick = { source = "es" }) { Text("Espanhol") } }
+        var choosing by remember(text) { mutableStateOf(false) }
+        TextButton(onClick = { choosing = !choosing }) { Text("Idioma não identificado · escolher para traduzir") }
+        if (choosing) Row { TextButton(onClick = { source = "en" }) { Text("Inglês") }; TextButton(onClick = { source = "es" }) { Text("Espanhol") } }
         return
     }
     var translated by remember(text, source) { mutableStateOf<String?>(null) }

@@ -1,15 +1,15 @@
 # Scriptorium Áudio Android — fase 1
 
 Implementação incremental da missão Áudio Multiplataforma e Reflexões, em23/10/2026.
-Android0.6.0/code12. Não substitui o motor web nem o armazenamento de livros/notas.
+Android0.6.1/code13. Não substitui o motor web nem o armazenamento de livros/notas.
 
 ## O que funciona
 
-- Menu → Áudio: Início, Leitor, Voz e Ambiente; mini player entre módulos.
+- Menu → Áudio: Início, Reflexões, Voz e Ambiente; mini player entre módulos. A fila fica no Início.
 - Escrituras: capítulo, intervalo ou unidade/versículo real da edição; fila para capítulos
   sucessivos, sem carregar a Bíblia inteira. Na ação de versículo, Ouvir ou Adicionar à fila.
 - Livros/páginas e etapas de aulas/guias: ouvir o texto ou selecionar um intervalo UTF-16.
-  A seleção não edita o original. Texto pessoal pode ser inserido no Leitor.
+  A seleção não edita o original. Texto pessoal pode ser escrito como roteiro em Reflexões.
 - Player: pausa/retomada, anterior/próximo segmento, velocidade0,5–2×, posição em segundos
   dentro do arquivo atual e retorno à origem bíblica. A timeline não é a duração total do capítulo.
 - Histórico de30leituras, até20favoritos preservados dentro desse limite, até20perfis de voz;
@@ -116,6 +116,24 @@ nem injetar URLs. Fila restaurada aceita somente arquivos canônicos dentro da p
 de áudio. Não há endpoint administrativo, serviço HTTP novo ou credencial dentro do APK.
 
 ## Missão completa: próximas fases, ainda não entregues
+
+### Incremento editorial local em0.6.1
+
+Reflexões Android possui autoria manual (tema/série, estilo editorial e roteiro), rascunho
+persistente, aprovação explícita antes de salvar/narrar, edição, remoção confirmada e retomada
+com o player existente. A música e seu volume são preservados por episódio; faixa removida
+resulta em somente voz. O estilo é metadado editorial, não uma capacidade expressiva do TTS.
+A duração apresentada é estimada por palavras; a timeline continua sendo a do segmento real.
+
+A coleção usa a chave `reflections` nas mesmas preferências, separada do histórico rotativo:
+até100episódios/4MiB de JSON. `projectId` estável permite substituir um roteiro editado sem
+duplicar o projeto; a identidade de áudio muda quando texto/parâmetros mudam. Não há migração
+de livros, novo banco ou backup pesado. Desinstalar/limpar dados elimina a coleção.
+
+Isso **não conclui as fases2–5**: faltam provedor neural, roteiro por LLM, verificação automática
+de citações, direção temporal por segmento, desktop, intercâmbio de projetos e mix/export.
+A marcação de revisão atual é uma declaração do usuário, não auditoria automática de fontes.
+Não foram configuradas credenciais nem feitas chamadas pagas.
 
 1. **Fase 2 — Provedor neural:** avaliar e integrar um provedor, backend autenticado, segredo
    fora de APK/frontend, consentimento por conteúdo, estimativa de consumo, limites, prévia,

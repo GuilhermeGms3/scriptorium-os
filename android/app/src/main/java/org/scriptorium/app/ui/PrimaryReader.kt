@@ -19,9 +19,29 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
     val edition = repository.editions().first { it.id == work.text("edition_id") }
     var offset by remember { mutableIntStateOf(0) }
     var note by remember { mutableStateOf<String?>(null) }
+    var translatedVolume by remember { mutableStateOf<StudyReading?>(null) }
+    translatedVolume?.let { reading ->
+        LibraryScreen(repository, personal, reading)
+        BackHandler { translatedVolume = null }
+        return
+    }
     Column(Modifier.fillMaxSize().padding(16.dp)) {
         TextButton(onClick = close) { Text("Voltar à biblioteca") }
         Heading(work.text("title"), repository.navigation.editionTitle(edition.id, edition.title))
+        if (work.text("id") == "work:gospel-thomas-coptic") {
+            Text("Esta edição é o original copta, não uma tradução portuguesa. O tradutor local não suporta copta. Os volumes abaixo são leituras alternativas do seu acervo; não há alinhamento automático entre seus parágrafos e o original.", style = MaterialTheme.typography.bodySmall)
+            Load("thomas-translated-sections", repository::translatedThomasSections) { sections ->
+                sections.forEach { section -> TextButton(onClick = {
+                    translatedVolume = StudyReading("thomas:${section.text("id")}", section.text("source_title"), "Tradução espanhola · use a tradução local para português", page = section)
+                }) { Text("Abrir Tomé em espanhol · ${section.text("source_title")} · p. ${section.number("page_index") + 1}") } }
+            }
+            Load("thomas-translated-volumes", { repository.documents().filter { normalizedReading(it.text("title")).let { title -> title.contains("hammadi") || title.contains("gnostic") } } }) { volumes ->
+                volumes.forEach { volume -> TextButton(onClick = {
+                    val page = volume + mapOf("document_id" to volume.text("id"), "source_title" to volume.text("title"), "page_index" to "0", "document_pages" to volume.text("pages"))
+                    translatedVolume = StudyReading("volume:${volume.text("id")}", volume.text("title"), "Consultar volume integral", page = page)
+                }) { Text("Ler ${volume.text("title")} · ${volume.text("language")}") } }
+            }
+        }
         Load(edition.id, { repository.editionMetadata(edition) }) { metadata ->
             Text(metadata.text("language"), style = MaterialTheme.typography.labelSmall)
             Load(work.text("id") to offset, { repository.primaryUnits(edition, work.text("id"), offset) }) { units ->

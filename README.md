@@ -49,8 +49,10 @@ O [Scriptorium Áudio](docs/architecture/scriptorium-audio.md) permite ouvir cap
 versículos/intervalos e texto pessoal com vozes locais reais do dispositivo. O mini player
 continua entre rotas; progresso e histórico são preferências locais, sem copiar o acervo.
 Esta fundação web não gera arquivos nem habilita provedores pagos. O
-[Áudio Android nativo](docs/architecture/audio-android.md), em0.6.0, implementa leitura local,
+[Áudio Android nativo](docs/architecture/audio-android.md), em0.6.1, implementa leitura local,
 MediaSession/segundo plano e ambientação sem substituir o motor web nem o acervo.
+Reflexões Android acrescenta autoria manual, revisão e coleção local; voz neural expressiva,
+roteiros por IA e produção cinematográfica multiplataforma ainda não estão implementados.
 O incremento [Música e Ambiente](docs/architecture/audio-ambience.md) permite importar uma trilha
 local e ouvir voz, voz com música ou somente música. Essas cópias pertencem ao navegador/origem,
 não ao backup do acervo ou à imagem Docker; não há exportação mixada nesta etapa.

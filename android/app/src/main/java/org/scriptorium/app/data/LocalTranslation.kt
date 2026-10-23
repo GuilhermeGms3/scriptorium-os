@@ -25,6 +25,13 @@ suspend fun <T> Task<T>.translationAwait(): T = suspendCancellableCoroutine { co
 }
 
 object LocalTranslation {
+    /** Bundled model: identification is local and does not require a first-use download. */
+    suspend fun identify(text: String): String = withContext(Dispatchers.Default) {
+        val identifier = com.google.mlkit.nl.languageid.LanguageIdentification.getClient(
+            com.google.mlkit.nl.languageid.LanguageIdentificationOptions.Builder().setConfidenceThreshold(0.65f).build())
+        try { withTimeout(10_000) { identifier.identifyLanguage(text.take(4000)).translationAwait() } }
+        finally { identifier.close() }
+    }
     private fun requiredModels(source: String) = (listOf("pt") + if (source == "en") emptyList() else listOf(source)).toSet()
     suspend fun installed(): Set<String> = withTimeout(15_000) {
         RemoteModelManager.getInstance().getDownloadedModels(TranslateRemoteModel::class.java).translationAwait().map { it.language }.toSet()

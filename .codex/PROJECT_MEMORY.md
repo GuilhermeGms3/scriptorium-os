@@ -1,5 +1,23 @@
 # Project Memory
 
+## Android0.6.1 — idiomas, catálogo e autoria editorial — 2026-10-23
+
+- Continuação da missão de Áudio: não declarar fases2–5 concluídas. Native TTS continua
+  alternativa literal, sem voz neural expressiva/roteiro LLM/produção cinematográfica.
+- Leitor removido da navegação de Áudio; fila mantida em Início. Reflexões possui roteiro
+  manual/revisão/rascunho, edição por projectId e coleção separada (100/4MiB), sem expulsão
+  pelo histórico de30leituras. Música/volume por episódio; player/serviço existentes.
+- Tradução em versos/comentários/fontes; Language ID17.0.6 local embarcado para trechos
+  sem idioma, oculta PT e permite escolha em caso indeterminado. Tradutor suporta en/es, não copta.
+- Volumes gnósticos no filtro Esotérico; abrem leitor integral. Tomé copta oferece consulta
+  do início espanhol real no volumeII, localizado por FTS+abertura, sem alinhamento inventado.
+- Cinza acromático e Marrom com containers quentes; Claro/Preto preservados.
+- Build/JVM66/0falhas/lint0erros46avisos; gate final nativo5testes/0falhas em29,105s,
+  incluindo reflexão narrada/música/revisão, identificação e tradução real en/es→pt.
+- Telefone ausente do ADB: atualização física não confirmada. Nenhum kit/backup pesado novo,
+  alteração no workspace, notas ou pacote de acervo. APK normal da saída Gradle, code13.
+- Fonte canônica e limites:docs/qa/android-reading-reflections-2026-10-23.md.
+
 ## Áudio Android0.6.0 — fase1 — 2026-10-23
 
 - Missão nova: Áudio Android + provedor neural + Reflexões desktop/Android. Esta entrega

@@ -32,8 +32,8 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
         val extraResult by produceState<Result<List<AdditionalReading>>?>(null, filter != "Bíblia") {
             if (filter != "Bíblia") value = try { Result.success(withContext(Dispatchers.IO) {
             repository.primaryWorks().filter { it["chapters"].isNullOrEmpty() }.map { work ->
-            AdditionalReading(work, "work", if (work.text("id") == "work:gospel-thomas-coptic") setOf("Não canônico", "Apócrifo") else setOf("Fontes antigas"))
-        } + repository.ancientReadingSections().map { AdditionalReading(it, "section", setOf("Não canônico", "Apócrifo")) } + repository.documents().mapNotNull { row ->
+            AdditionalReading(work, "work", if (work.text("id") == "work:gospel-thomas-coptic") setOf("Não canônico", "Apócrifo", "Esotérico") else setOf("Fontes antigas"))
+        } + repository.ancientReadingSections().map { AdditionalReading(it, "section", setOf("Não canônico", "Apócrifo", "Esotérico")) } + repository.documents().mapNotNull { row ->
             val name = normalizedReading(row.text("title"))
             val tags = buildSet {
                 if (listOf("hammadi", "gnosti", "apocrif", "apocryph", "pseudepig", "naocanonic").any(name::contains)) add("Não canônico")
@@ -71,6 +71,8 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             if (filter in listOf("Apócrifo", "Não canônico")) Text("Inclui deuterocanônicos; o cânon varia por tradição.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
             val visible = books.filter { repository.navigation.bookMatches(it.text("book_id"), filter) && (group == null || repository.navigation.group(it.text("book_id")) == group) && normalizedReading(it.text("title")).contains(normalizedReading(query)) }
             val additional = extras.filter { (filter == "Todos" || filter in it.tags) && normalizedReading(it.row.text("title")).contains(normalizedReading(query)) }
+            Text("$filter · ${visible.size} livros e ${additional.size} fontes instaladas", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.labelSmall)
+            if (filter in listOf("Não canônico", "Apócrifo", "Esotérico")) Text("Categorias sobrepostas, não coleções exclusivas: uma fonte pode ser apócrifa e gnóstica. O cânon depende da tradição.", Modifier.padding(horizontal = 16.dp), style = MaterialTheme.typography.bodySmall)
             LazyColumn(contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 visible.groupBy { repository.navigation.group(it.text("book_id")) }.forEach { (name, rows) ->
                     item { Text(name, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }

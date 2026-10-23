@@ -103,14 +103,16 @@ class ReadingExperienceTest {
     @Test fun localTranslationDownloadsAndTranslatesAnActualText() = runBlocking {
         assumeTrue(InstrumentationRegistry.getArguments().getString("translationQa") == "true")
         val context = InstrumentationRegistry.getInstrumentation().targetContext
-        LocalTranslation.prepare("en") { println("TRANSLATION_QA $it") }
-        assertTrue("pt" in LocalTranslation.installed())
         val file = File(context.cacheDir, "translation-qa-${System.nanoTime()}.sqlite3")
         try {
-            val output = LocalTranslation.translate(context, PersonalRepository(file), "The book is on the table.", "en") { println("TRANSLATION_QA $it") }
-            println("TRANSLATION_QA_RESULT $output")
-            assertTrue(output.lowercase().contains("livro"))
-            assertFalse(output.contains("The book"))
+            for ((source, original) in listOf("en" to "The book is on the table.", "es" to "El libro está sobre la mesa.")) {
+                LocalTranslation.prepare(source) { println("TRANSLATION_QA $source $it") }
+                assertTrue("pt" in LocalTranslation.installed())
+                val output = LocalTranslation.translate(context, PersonalRepository(file), original, source) { println("TRANSLATION_QA $source $it") }
+                println("TRANSLATION_QA_RESULT $source $output")
+                assertTrue(output.lowercase().contains("livro"))
+                assertFalse(output == original)
+            }
         } finally { file.delete() }
     }
 

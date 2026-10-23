@@ -30,8 +30,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
         val readerHeight = maxHeight
         Column(Modifier.fillMaxSize()) {
             Load(current.copy(verse = null, verseEnd = null), {
-                repository.verses(current) to (repository.books(current.edition).find { it.text("id") == current.workId }?.number("chapters") ?: current.chapter)
-            }) { (verses, lastChapter) ->
+                Triple(repository.verses(current), repository.books(current.edition).find { it.text("id") == current.workId }?.number("chapters") ?: current.chapter, repository.editionMetadata(current.edition).text("language"))
+            }) { (verses, lastChapter, language) ->
                 val comments by produceState<Result<Pair<List<Row>, Map<String, List<Row>>>>?>(null, current.edition.id, current.workId, current.chapter) {
                     value = try { Result.success(withContext(Dispatchers.IO) { repository.comments(current) to repository.chapterTargets(current) }) }
                     catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
@@ -87,7 +87,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                                     modifier = Modifier.combinedClickable(onClick = { activeVerse = verseNumber; visible(verse) }, onLongClickLabel = "Ações do versículo $verseNumber", onLongClick = { actions = true; hint = false; preferences.verseActionsHint = false })) {
                                     Row(Modifier.fillMaxWidth().padding(vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                                         // The number is the visible way to the verse's actions; holding the text also works.
-                                        Surface(color = Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small,
+                                        Surface(color = if (appearance.theme == ReadingTheme.GRAY) MaterialTheme.colorScheme.primaryContainer else Color(0xFF725033), contentColor = Color.White, shape = MaterialTheme.shapes.small,
                                             modifier = Modifier.clickable(onClickLabel = "Anotar, favoritar ou copiar o versículo $verseNumber") { actions = true; hint = false; preferences.verseActionsHint = false }) {
                                             Box(Modifier.widthIn(min = 32.dp, max = 48.dp).heightIn(min = 32.dp).padding(horizontal = 4.dp, vertical = 3.dp), contentAlignment = androidx.compose.ui.Alignment.Center) {
                                                 Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
@@ -95,7 +95,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                                         }
                                         Column(Modifier.weight(1f)) {
                                             Text(verse.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface)
-                                            Load(current.edition.id, { repository.editionMetadata(current.edition).text("language") }) { language -> TranslationBlock(verse.text("surface_text"), language, personal) }
+                                            TranslationBlock(verse.text("surface_text"), language, personal)
                                         }
                                     }
                                 }

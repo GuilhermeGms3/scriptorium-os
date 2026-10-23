@@ -65,7 +65,7 @@ fun AudioScreen(repository: MobileRepository, openPassage: (Passage) -> Unit) {
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Heading("Scriptorium Áudio", "Leitura literal e música pessoal. Offline, sem enviar seu texto a provedores.")
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(listOf("Início", "Voz", "Ambiente")) { label -> FilterChip(section == label, { section = label }, label = { Text(label) }) } }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(listOf("Início", "Reflexões", "Voz", "Ambiente")) { label -> FilterChip(section == label, { section = label }, label = { Text(label) }) } }
         if (!state.connected) Text("Conectando ao serviço de áudio…")
         (failure ?: state.message)?.let { message -> Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Text(message, Modifier.weight(1f), color = MaterialTheme.colorScheme.secondary)
@@ -94,10 +94,11 @@ fun AudioScreen(repository: MobileRepository, openPassage: (Passage) -> Unit) {
             }
         }
         when (section) {
+            "Reflexões" -> ReflectionStudio(audio)
             "Início" -> {
                 Heading("Suas leituras", "Retomar exige tocar em Ouvir; nunca começamos automaticamente.")
                 val entries = remember(revision) { runCatching { audio.library.entries() }.getOrElse { failure = "Histórico indisponível. Seus livros e notas não foram alterados."; emptyList() } }
-                if (entries.isEmpty()) Text("Nenhuma leitura preparada. Abra um capítulo em Escrituras ou use Texto pessoal no Leitor.")
+                if (entries.isEmpty()) Text("Nenhuma leitura preparada. Abra um capítulo em Escrituras ou escreva seu roteiro em Reflexões.")
                 entries.sortedByDescending { audio.library.isFavorite(it.id) }.forEach { entry ->
                     OutlinedCard(Modifier.fillMaxWidth()) { Column(Modifier.padding(14.dp)) {
                         Text((if (audio.library.isFavorite(entry.id)) "★ " else "") + entry.title, style = MaterialTheme.typography.titleMedium)
@@ -105,21 +106,11 @@ fun AudioScreen(repository: MobileRepository, openPassage: (Passage) -> Unit) {
                         Row { TextButton(onClick = { audio.read(entry, resume = true) }, enabled = !state.busy) { Text("Continuar ouvindo") }; TextButton(onClick = { audio.read(entry, enqueue = true) }, enabled = !state.busy) { Text("À fila") } }
                     } }
                 }
-                Text("Reflexões e voz neural expressiva são as próximas fases; ainda não há episódios produzidos neste módulo.", style = MaterialTheme.typography.bodySmall)
-            }
-            "Leitor" -> {
-                var title by rememberSaveable { mutableStateOf("Texto pessoal") }
-                var text by rememberSaveable { mutableStateOf("") }
-                OutlinedTextField(title, { title = it.take(300) }, label = { Text("Título da leitura") }, modifier = Modifier.fillMaxWidth())
-                OutlinedTextField(text, { text = it.take(30000) }, label = { Text("Texto pessoal para ouvir") }, modifier = Modifier.fillMaxWidth().heightIn(min = 180.dp), supportingText = { Text("${text.length}/30.000 · salvo localmente no histórico de áudio") })
-                Row {
-                    Button(enabled = !state.busy && text.isNotBlank() && title.isNotBlank(), onClick = { audio.read(NarrationEntry.create(title, text, "pt-BR", JSONObject().put("kind", "personal"))) }) { Text("Ouvir") }
-                    TextButton(enabled = !state.busy && text.isNotBlank() && title.isNotBlank(), onClick = { audio.read(NarrationEntry.create(title, text, "pt-BR", JSONObject().put("kind", "personal")), enqueue = true) }) { Text("Adicionar à fila") }
-                }
                 Heading("Fila", "Capítulos adicionados em sequência continuam tocando ao sair da tela.")
                 if (state.queue.isEmpty()) Text("A fila está vazia.")
                 state.queue.forEachIndexed { index, titleInQueue -> TextButton(onClick = { audio.controller?.seekToDefaultPosition(index) }) { Text("${index + 1}. $titleInQueue") } }
                 TextButton(onClick = { audio.command("clearQueue") }) { Text("Limpar fila e parar") }
+                Text("Em Reflexões você pode escrever, revisar e salvar roteiros. Voz neural expressiva e geração por IA ainda não estão configuradas.", style = MaterialTheme.typography.bodySmall)
             }
             "Voz" -> {
                 val voices = remember(revision) { runCatching { AudioLibrary.objects(prefs.getString("voices", "[]")!!) }.getOrDefault(emptyList()) }

@@ -41,6 +41,7 @@ class AudioPlaybackTest {
         wav.writeBytes(bytes.array())
         val track = library.importTrack(Uri.fromFile(wav))
         var controller: MediaController? = null
+        var reflectionId: String? = null
         try {
             assertEquals(track.id, library.importTrack(Uri.fromFile(wav)).id)
             library.renameTrack(track.id, "Sinal temporário de QA", "Teste técnico")
@@ -117,6 +118,18 @@ class AudioPlaybackTest {
             val unsupported = NarrationEntry.create("Idioma inexistente", "Texto de teste.", "zz", JSONObject().put("kind", "personal"))
             assertNotEquals(SessionResult.RESULT_SUCCESS, command("read", Bundle().apply { putString("entry", unsupported.json().toString()) }).resultCode)
             assertFalse(library.preferences.getBoolean("busy", true))
+            val source = JSONObject().put("kind", "reflection").put("projectId", "qa-${System.nanoTime()}").put("reviewed", false).put("musicTrack", track.id).put("musicVolume", 0.08)
+            val unreviewed = NarrationEntry.create("Reflexão QA", "Há um tempo para ouvir e um tempo para aprender.", "pt-BR", source)
+            assertNotEquals(SessionResult.RESULT_SUCCESS, command("read", Bundle().apply { putString("entry", unreviewed.json().toString()) }).resultCode)
+            val reflection = NarrationEntry.create(unreviewed.title, unreviewed.text, unreviewed.language, JSONObject(source.toString()).put("reviewed", true))
+            reflectionId = reflection.id
+            assertEquals(SessionResult.RESULT_SUCCESS, command("read", Bundle().apply { putString("entry", reflection.json().toString()) }).resultCode)
+            withTimeout(5000) { while (!withContext(Dispatchers.Main) { player.isPlaying }) delay(100) }
+            assertEquals("MIX", library.preferences.getString("mode", ""))
+            assertEquals(0.08f, library.preferences.getFloat("musicVolume", 0f), 0.001f)
+            assertTrue(command("status").extras.getBoolean("musicPlaying"))
+            assertTrue(library.entries().any { it.id == reflection.id })
+            assertEquals(SessionResult.RESULT_SUCCESS, command("close").resultCode)
         } finally {
             controller?.let { player ->
                 val cleanup = withContext(Dispatchers.Main) {
@@ -129,6 +142,7 @@ class AudioPlaybackTest {
                 withContext(Dispatchers.Main) { player.release() }
             }
             library.preferences.edit().putString("mode", previous["mode"]).putString("track", previous["track"]).apply()
+            reflectionId?.let { id -> if (library.entries().any { it.id == id }) library.removeReflection(id) }
             library.removeTrack(track.id); wav.delete()
         }
     }

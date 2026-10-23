@@ -19,10 +19,26 @@ class AudioLibrary(private val context: Context) {
         return File(musicDirectory, id)
     }
     fun tracks(): List<AudioTrack> = objects(preferences.getString("tracks", "[]")!!).map(AudioTrack::parse)
-    fun entries(): List<NarrationEntry> = objects(preferences.getString("entries", "[]")!!).map(NarrationEntry::parse)
+    fun entries(): List<NarrationEntry> = (objects(preferences.getString("reflections", "[]")!!) + objects(preferences.getString("entries", "[]")!!)).map(NarrationEntry::parse).distinctBy { it.id }
     fun saveEntry(entry: NarrationEntry) = synchronized(lock) {
-        val items = (listOf(entry) + entries().filter { it.id != entry.id }).sortedByDescending { isFavorite(it.id) }.take(30)
+        if (entry.source.optString("kind") == "reflection") {
+            val projectId = entry.source.optString("projectId").ifBlank { entry.id }
+            val reflections = objects(preferences.getString("reflections", "[]")!!).map(NarrationEntry::parse)
+            val items = listOf(entry) + reflections.filter { it.source.optString("projectId").ifBlank { it.id } != projectId }
+            require(items.size <= 100) { "Limite de 100 reflexões. Remova um episódio antes de criar outro." }
+            val raw = JSONArray(items.map { it.json() }).toString()
+            require(raw.toByteArray().size <= 4 * 1024 * 1024) { "Coleção limitada a 4 MiB de roteiros. Remova um episódio antes de salvar." }
+            preferences.edit().putString("reflections", raw).apply()
+            return@synchronized
+        }
+        val items = (listOf(entry) + entries().filter { it.id != entry.id && it.source.optString("kind") != "reflection" }).sortedByDescending { isFavorite(it.id) }.take(30)
         preferences.edit().putString("entries", JSONArray(items.map { it.json() }).toString()).apply()
+    }
+    fun removeReflection(id: String) = synchronized(lock) {
+        require(entries().any { it.id == id && it.source.optString("kind") == "reflection" }) { "Reflexão não encontrada na coleção." }
+        val remaining = entries().filter { it.id != id }
+        preferences.edit().putString("reflections", JSONArray(remaining.filter { it.source.optString("kind") == "reflection" }.map { it.json() }).toString())
+            .putString("entries", JSONArray(remaining.filter { it.source.optString("kind") != "reflection" }.map { it.json() }).toString()).apply()
     }
     fun favorite(id: String) {
         val current = preferences.getStringSet("favorites", emptySet()).orEmpty().toMutableSet()

@@ -254,6 +254,16 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             OR lower(trim(p.text)) LIKE 'evangelho de judas%' OR lower(trim(p.text)) LIKE 'gospel of judas%')
             ORDER BY d.title,p.page_index LIMIT 5""".trimIndent(), listOf("\"evangelio de judas\" OR \"evangelho de judas\" OR \"gospel of judas\""))
             .map { it + ("title" to "Evangelho de Judas") }
+    } + translatedThomasSections()
+    /** Locate the actual Spanish opening, not a bibliography mention or an invented alignment. */
+    fun translatedThomasSections(): List<Row> = content { db ->
+        db.rows("""SELECT p.*,d.title source_title,d.pages document_pages,d.checksum FROM pages_fts f
+            JOIN pages p ON p.id=f.page_id JOIN documents d ON d.id=p.document_id
+            WHERE pages_fts MATCH ? AND lower(d.title) LIKE '%hammadi%'
+            AND lower(p.text) LIKE '%estos son los dichos secretos%'
+            ORDER BY d.title,p.page_index LIMIT 8""".trimIndent(), listOf("\"evangelio de tomás\""))
+            .filter { normalizedReading(it.text("text").lineSequence().firstOrNull().orEmpty()) == "evangeliodetomas" }
+            .map { it + ("title" to "Evangelho de Tomé · tradução espanhola no volume") }
     }
     fun originalEditions(passage: Passage): List<Edition> = editions().filter { edition -> corpus(edition) {
         it.rows("SELECT e.id FROM corpus_editions e WHERE e.id=? AND e.language IN ('grc','he','hbo','arc') AND EXISTS(SELECT 1 FROM text_units t WHERE t.edition_id=e.id AND t.work_id=?)", listOf(edition.id, passage.workId)).isNotEmpty()

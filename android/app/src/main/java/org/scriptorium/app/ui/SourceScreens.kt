@@ -44,7 +44,7 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
             if (details == null) LinearProgressIndicator(Modifier.fillMaxWidth())
             details?.exceptionOrNull()?.let { Text("Não foi possível carregar as páginas desta fonte.", color = MaterialTheme.colorScheme.error) }
             if (details?.isSuccess == true && evidence.isEmpty()) Text("Sem página de origem disponível neste pacote.", style = MaterialTheme.typography.bodySmall)
-            if (comment.text("mode") == "source-excerpt") TranslationBlock(comment.text("body"), comment.text("source_language"), personal)
+            TranslationBlock(comment.text("body"), if (comment.text("mode") == "source-excerpt") comment.text("source_language") else "und", personal)
             SelectionContainer { Text(readingParagraphs(comment.text("body")), style = MaterialTheme.typography.bodyLarge,
                 fontFamily = androidx.compose.ui.text.font.FontFamily.Serif, fontSize = (appearance.size * 0.8f).coerceIn(16f, 19f).sp,
                 lineHeight = (appearance.size * 1.2f).coerceIn(24f, 29f).sp, letterSpacing = 0.sp) }
