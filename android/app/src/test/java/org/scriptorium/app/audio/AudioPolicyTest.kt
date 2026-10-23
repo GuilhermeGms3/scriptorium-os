@@ -5,6 +5,17 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class AudioPolicyTest {
+    @Test fun samsungIsoThreeLanguageCodesMatchInstalledPortugueseAndSpanish() {
+        assertEquals("pt", narrationLanguageCode("por-x-lvariant-f00"))
+        assertEquals("es", narrationLanguageCode("spa-default"))
+        assertEquals("pt-BR", voiceLanguageTag(java.util.Locale.forLanguageTag("por-x-lvariant-f00"), "pt-BR-SMTf00"))
+        assertEquals("es-MX", voiceLanguageTag(java.util.Locale.forLanguageTag("spa-x-lvariant-f00"), "es-MX-SMTf00"))
+    }
+    @Test fun languageAliasesDoNotEquateDifferentOrAncientLanguages() {
+        assertNotEquals(narrationLanguageCode("es"), narrationLanguageCode("pt"))
+        assertNotEquals(narrationLanguageCode("grc"), narrationLanguageCode("el"))
+        assertEquals("en-US", voiceLanguageTag(java.util.Locale.US, "en-us-x-local"))
+    }
     @Test fun segmentsKeepLiteralUnicodeAndParagraphs() {
         val text = ("No princípio. λόγος אֱלֹהִים 🌱\n\nUm tempo para ouvir. ").repeat(60)
         val segments = narrationSegments(text)

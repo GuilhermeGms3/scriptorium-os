@@ -2,6 +2,26 @@ package org.scriptorium.app.audio
 
 import java.security.MessageDigest
 import org.json.JSONObject
+import java.util.Locale
+
+/** Samsung may expose ISO-639-2 (por/spa); Google commonly uses ISO-639-1 (pt/es). */
+private val isoLanguageAliases: Map<String, String> by lazy {
+    Locale.getISOLanguages().mapNotNull { language ->
+        runCatching { Locale.forLanguageTag(language).isO3Language to language }.getOrNull()
+    }.toMap()
+}
+fun narrationLanguageCode(tag: String): String {
+    val code = tag.replace('_', '-').substringBefore('-').lowercase(Locale.ROOT)
+    return isoLanguageAliases[code] ?: code
+}
+fun voiceLanguageTag(locale: Locale, voiceName: String): String {
+    val language = narrationLanguageCode(locale.language)
+    val namedLocale = Regex("^([A-Za-z]{2,3})[-_]([A-Za-z]{2})(?:[-_]|$)").find(voiceName)
+        ?.takeIf { narrationLanguageCode(it.groupValues[1]) == language }
+    val region = locale.country.takeIf { it.matches(Regex("[A-Za-z]{2}")) }
+        ?: namedLocale?.groupValues?.get(2)
+    return language + (region?.uppercase(Locale.ROOT)?.let { "-$it" } ?: "")
+}
 
 enum class AudioMode(val label: String) { VOICE("Somente voz"), MIX("Voz + música"), MUSIC("Somente música") }
 

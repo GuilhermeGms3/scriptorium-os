@@ -6,7 +6,8 @@ Fase1 do [Áudio Android](../architecture/audio-android.md). JDK21, AGP9.2.1, Ko
 SDK36, Gradle9.4.1 e Media3 1.9.4. Nenhum upgrade geral de ferramentas/frameworks.
 Emulador Pixel_8 existente, sem janela, com pacote de teste de14.169.346bytes e Bíblia Livre
 real. Não recebeu PDFs privados nem notas do usuário. O aparelho físico deixou de aparecer
-no ADB durante a execução; reconexão foi solicitada. Não afirmar instalação física0.6.0.
+no ADB na primeira etapa; após reconexão, a instalação e o QA físico foram executados
+na seção complementar abaixo.
 
 ## Comandos e resultados
 
@@ -62,14 +63,16 @@ Nenhuma voz ausente é substituída silenciosamente por outro idioma ou um prove
 
 APK0.6.0/code12 gerado em `android/app/build/outputs/apk/debug/app-debug.apk`, assinatura
 debug conferida por `apksigner verify --print-certs`. SHA-256:
-`37261a047d5686221144359cee3bb2e8455ad50ce91ec7b434d5a3e76287cc14`.
+`0c58348e0ef122425398cfe1d42b8cc0d3ffa18b8d0d1453e29cd0ef00927787`
+(build corrigida para códigos de idioma Samsung).
 Esse APK não contém os PDFs e atualiza o código sem substituir o pacote de acervo.
 
 ## Limitações reais
 
 - Sem avaliação humana da naturalidade/inteligibilidade ou medição acústica de ganho.
-- Sem aparelho físico reconectado, Bluetooth/fones reais, chamada telefônica real, OEMs
-  diferentes ou tela bloqueada com PIN. Tela desligada do emulador não prova todos esses casos.
+- Sem Bluetooth/fones reais, chamada telefônica real, outros OEMs ou tela bloqueada com PIN.
+  Tela desligada do emulador não prova esses casos; o QA físico complementar não bloqueou
+  a tela nem mudou configurações de rede/voz do usuário.
 - Importação pelo código real e navegação até SAF verificadas; não foi percorrida manualmente
   a escolha de cada formato em provedores de arquivos diferentes. Codec testado positivamente:WAV.
 - Cancelamento/timeouts implementados; não há teste de interrupção de longa síntese por morte
@@ -91,3 +94,26 @@ Esse APK não contém os PDFs e atualiza o código sem substituir o pacote de ac
 
 Próxima fase: provedor neural real, autenticado/configurado, com consentimento e orçamento
 explícitos antes de envio; depois, roteiro aprovado e projetos Reflexões multiplataforma.
+
+## Complemento — Samsung físico, após reconexão
+
+- APK0.6.0/code12 instalado por `adb install -r`, sem desinstalar nem reenviar conteúdo.
+- Primeira rodada física: UI passou, reprodução falhou ao comparar `por` com `pt`.
+  O catálogo real contém `pt-BR-SMTf00`, mas o Samsung expõe locale `por-x-lvariant-f00`;
+  espanhol aparece como `spa`. Não faltavam dados de voz, e não foi instalado outro idioma.
+- Corrigida normalização ISO-639-2/ISO-639-1 por catálogo de Locale, com região preservada
+  quando disponível no identificador da voz. Grego antigo `grc` não é equiparado a `el`.
+- Dois testes JVM de regressão adicionados; total atual **66 testes JVM/0falhas**.
+  `assembleDebug`, `assembleDebugAndroidTest` e `lintDebug` repetidos:aprovados,
+  lint0erros/42avisos. Não mudou nenhuma dependência ou configuração do sistema.
+- `am instrument -w -e audioQa true -e audioUiQa true -e class
+org.scriptorium.app.AudioPlaybackTest,org.scriptorium.app.AudioUiTest
+org.scriptorium.app.test/androidx.test.runner.AndroidJUnitRunner` no Samsung:
+  **2 testes passaram em17,046s**, com voz local real e WAV técnico temporário.
+- Confirmados música + narração, segundo plano, foco transitório, comando de mídia,
+  velocidade, pausa, modo musical, cache/retomada, erro de idioma e navegação nativa.
+  `screenOffQa` não foi enviado ao aparelho: não bloquear a tela do usuário durante esse QA.
+- Nove tabelas pessoais idênticas por contagem/hash antes/depois; FKs0. Notas, grupos,
+  pastas, relações, progresso, marcações, fontes salvas e traduções preservados.
+  Só fingerprints foram gravados no PC; nenhum novo backup de banco ou acervo.
+- Reinício preservou acervo ativo `4c8bad60…aa2f4`; aplicativo0.6.0 reaberto ao finalizar.

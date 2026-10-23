@@ -13,8 +13,12 @@
 -64JVM/48TS-áudio/typecheck/buildAndroid aprovados;lint0erros/42avisos. Dois cenários
   instrumentados reais passaram no Pixel_8; síntese de trecho novo sem rede também passou.
   Foco transitório, botão de mídia, segundo plano/tela desligada, cache e UI nativa conferidos.
-- CelularRQCT5004BAZ se desconectou: NÃO recebeu APK0.6.0 nem QA físico de áudio. Seu
-  acervo4c8bad60…aa2f4 anterior permanece a última instalação física confirmada.
+- Após reconexão,APK0.6.0/code12 instalado no Samsung sem reenviar acervo. Primeiro QA
+  revelou localeISO3 Samsung por/spa; normalizado por Locale para pt/es, com região e
+  distinção grc/el preservadas.66JVM/0falhas,build/lint repetidos aprovados.
+-2testes físicos ÁudioPlayback/AudioUi passaram em17,046s; sem screenOffQa/PIN/Bluetooth.
+ 9tabelas pessoais idênticas antes/depois,FKs0; acervo4c8bad60…aa2f4 preservado ao reiniciar.
+  Nenhum backup completo novo nem troca/download de voz do sistema. App reaberto ao final.
 - Voz neural expressiva/roteiros/Reflexões/mix/export ainda pendentes, sem credenciais ou
   chamadas pagas. Exigem próximo incremento real e validação; não considerar missão concluída.
 - QA/limites/comandos:docs/qa/android-audio-2026-10-23.md. APK em saída Gradle normal;

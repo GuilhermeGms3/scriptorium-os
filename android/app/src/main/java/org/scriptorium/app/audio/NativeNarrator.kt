@@ -32,12 +32,12 @@ class NativeNarrator(private val context: Context, private val library: AudioLib
     suspend fun voices(): List<LocalNarratorVoice> {
         withTimeout(15000) { ready.await() }
         return engine.voices.orEmpty().filter { !it.isNetworkConnectionRequired }.sortedBy { it.name }
-            .map { LocalNarratorVoice(it.name, "${it.locale.displayName} · ${it.name}", it.locale.toLanguageTag()) }
+            .map { LocalNarratorVoice(it.name, "${it.locale.displayName} · ${it.name}", voiceLanguageTag(it.locale, it.name)) }
     }
     suspend fun render(text: String, language: String, selected: String): List<File> {
         val available = voices()
-        val voice = available.firstOrNull { it.id == selected && it.language.substringBefore('-') == language.substringBefore('-') }
-            ?: if (selected.isEmpty()) available.firstOrNull { it.language == language } ?: available.firstOrNull { it.language.substringBefore('-') == language.substringBefore('-') } else null
+        val voice = available.firstOrNull { it.id == selected && narrationLanguageCode(it.language) == narrationLanguageCode(language) }
+            ?: if (selected.isEmpty()) available.firstOrNull { it.language == language } ?: available.firstOrNull { narrationLanguageCode(it.language) == narrationLanguageCode(language) } else null
         requireNotNull(voice) { "Nenhuma voz local compatível com $language. Instale esse idioma ou escolha outra voz." }
         engine.voice = engine.voices.single { it.name == voice.id }
         engine.setSpeechRate(1f)

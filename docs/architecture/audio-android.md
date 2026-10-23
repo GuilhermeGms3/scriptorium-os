@@ -15,6 +15,8 @@ Android0.6.0/code12. Não substitui o motor web nem o armazenamento de livros/no
 - Histórico de30leituras, até20favoritos preservados dentro desse limite, até20perfis de voz;
   fila e posição persistidas. Nenhum autoplay após reiniciar o serviço/aplicativo.
 - Vozes locais reais, filtráveis por idioma; prévia real, erro recuperável se idioma ausente.
+  Códigos ISO-639-2 do Samsung (`por`, `spa`) são comparados aos equivalentes `pt`/`es`,
+  sem equiparar idiomas diferentes ou trocar grego antigo por grego moderno.
 - Importação SAF, cópia privada, hash/deduplicação, nome/categoria, remoção confirmada,
   volume musical independente, repetição e três modos: Voz, Voz + Música, Música.
 - Arquivos preparados continuam tocando fora da Activity via serviço de mídia. Comandos
