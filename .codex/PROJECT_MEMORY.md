@@ -1,6 +1,6 @@
 # Project Memory
 
-## Android — patch OCR preparado, instalação pendente — 2026-10-23
+## Android — patch OCR ativado e verificado — 2026-10-23
 
 - A pedido do usuário, resultado desktop exportado com base exata f2efca3e…b7299;
   novo ID4c8bad60…aa2f4, compatível com APK0.5.3 existente, sem reconstrução.
@@ -9,13 +9,12 @@
 - 57PDFs/11edições,47.707páginas/47.441com texto,50.934comentários elegíveis,
   35.065recortes/verbetes. Novos4.851Keener/689temáticos conferidos,27livros NT.
 - 13testes do exportador/kit passaram;hashes/CRC/SQLite/FKs/seed vazio aprovados.
-- ADB sem aparelho: NÃO instalado nem validado fisicamente. Próximo passo é conectar,
-  conferir base, aplicar patch sem wipe e verificar notas/ID/consultas nativas.
-- Depois:USB autorizado/base exata;272MB entregues/hash correto,APK principal preservado.
-  Tela bloqueada impede ativação:aguarda desbloqueio/Scriptorium aberto. Fingerprints das
- 9tabelas pessoais em Temp/mobile-ocr-personal-fingerprints.json,sem cópia de notas/banco.
-  Helper Temp/mobile-ocr-device-qa.py after compara e exige novoID.58JVM/lint aprovados;
-  novo teste instrumentado compilado/instalado,mas execução física pendente.
+- USB autorizado/base exata;272MB entregues/hash correto,APK principal preservado.
+  Após desbloqueio,novoID ativo inclusive após reinício;entrada removida automaticamente.
+- 3testes instrumentados DocumentaryContentTest com documentaryQa/ocrQa passaram em16,644s;
+  totais Keener/recortes e consultas nativas confirmados.58JVM/lint aprovados na preparação.
+- 9tabelas pessoais idênticas por contagem/hash antes/depois,FKs0. Sem backup novo de banco
+  nem livros. Tela inicial conferida após reinício; não QA visual completo de todos os módulos.
 - Relatório:docs/qa/android-ocr-patch-2026-10-23.md. Não confundir patch com kit inicial.
 
 ## Desktop — OCR concluído e contextos publicados — 2026-10-23

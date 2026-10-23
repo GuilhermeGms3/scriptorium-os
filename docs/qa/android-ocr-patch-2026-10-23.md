@@ -33,7 +33,7 @@ O APK 0.5.3 consome as mesmas tabelas aditivas; não houve mudança de schema ou
 - Consulta SQL equivalente ao consumidor Android encontra Keener em Mateus 1:1.
   Isto verifica seleção dos dados, não execução de Kotlin nem renderização no aparelho.
 
-## Pendente no aparelho
+## Verificação no aparelho
 
 ### Segunda etapa — USB conectado
 
@@ -48,13 +48,21 @@ na classe `DocumentaryContentTest`: requer `documentaryQa=true` e `ocrQa=true`.
 Confere totais,27livros do Keener,830páginas com texto e consulta do repositório nativo.
 `assembleDebugAndroidTest`, `testDebugUnitTest` e `lintDebug` aprovados:
 58testes JVM/0falhas, lint0erros/23avisos existentes. APK de testes instalado por cima.
-Ainda NÃO executado esse QA físico: tela bloqueada, geração anterior continua ativa.
-Foi solicitado ao usuário desbloquear e manter o Scriptorium aberto.
+Após o desbloqueio autorizado, a conferência terminou e o ID4c8bad60…aa2f4 ficou ativo.
+`am instrument -w -e documentaryQa true -e ocrQa true -e class
+org.scriptorium.app.DocumentaryContentTest
+org.scriptorium.app.test/androidx.test.runner.AndroidJUnitRunner`:
+**3 testes passaram em16,644s** no aparelho físico. Totais do novo snapshot e consultas
+nativas do leitor/estudos/léxico aprovados. Keener:4.851relações/27livros/830páginas com texto.
 
-`adb devices` não encontrou aparelho conectado durante esta entrega. Portanto, NÃO foram
-executadas instalação, ativação, comparação de notas/progresso ou QA visual físico desta
-geração. Não afirmar que o telefone já recebeu o conteúdo. Ao reconectar: conferir a base,
-instalar sem wipe, verificar ID ativo, consultas nativas e preservação dos dados pessoais.
+Comparação antes/depois: nove tabelas pessoais idênticas por contagem/hash dos registros
+ordenados (grupos,notas,pastas,associações,links,progresso,marcações,fontes salvas,traduções).
+FKs pessoais0. O marcador interno da importação não faz parte dessa comparação.
+Não foram salvos textos pessoais nem cópia adicional do banco para realizar a comparação.
+
+Reinício do aplicativo preservou o ID novo; entrada de transferência removida automaticamente.
+Tela inicial renderizada após reinício, retomada disponível. Não é QA visual integral de todas
+as telas. Recibo privado em `Desktop/Scriptorium-Atualizacao-OCR-20261023/device-qa.json`.
 
 Não foi criado backup novo no PC/celular. O APK principal não foi recompilado/reinstalado;
 a segunda etapa recompilou apenas os testes instrumentados. As associações automáticas
