@@ -24,13 +24,20 @@
   ao aparelho autorizado, com SHA validado, e instalou APK por `adb install -r`.
 - Backup privado do banco pessoal anterior criado fora do kit antes da instalação.
 
-## Pendente na primeira conferência
+## Confirmação no aparelho físico após desbloqueio
 
-O aparelho estava bloqueado após a transferência. Não declarar o novo acervo ativo
-até seu ID coincidir com o manifesto. `DocumentaryContentTest`, opt-in
-`documentaryQa=true`, verifica consultas reais de estudos e léxico após a ativação;
-não foi executado enquanto a geração anterior permanecia ativa. QA visual também
-depende de desbloqueio. Nenhum teste privado foi substituído por resultado simulado.
+- Acervo ativo coincide com o manifesto `f2efca3e…b7299`, inclusive após fechar/reabrir.
+  Arquivo de entrada removido automaticamente após ativação; APK0.5.3/code11 confirmado.
+- `am instrument -w -e documentaryQa true -e class
+  org.scriptorium.app.DocumentaryContentTest
+  org.scriptorium.app.test/androidx.test.runner.AndroidJUnitRunner`:
+  **2testes passaram em15,812s** no aparelho físico. Conferem57PDFs/11edições,
+  FKs, recortes documentais, seed vazio, leituras reais da Trindade e verbete λόγος.
+- Comparação com backup anterior:conteúdo idêntico em grupos, notas, pastas,
+  associações, links, progresso, marcações, fontes salvas e cache de tradução;
+  FKs do banco pessoal0. O marcador interno de importação não integra essa comparação.
+- QA visual da tela inicial após reiniciar:renderização e retomada da passagem
+  preservadas. Não é uma auditoria visual completa de todas as telas/traduções.
 
 OCR ainda parcial e busca semântica/tradução mantêm as limitações documentadas.
 Não houve mudança de schema no workspace do PC, wipe do aparelho ou publicação dos PDFs.

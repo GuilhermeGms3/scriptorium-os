@@ -9,10 +9,13 @@
 - Exportação `--complete --without-personal`:57PDFs/47.707páginas,46.265com texto,
   46.083comentários elegíveis (igual consulta canônica),29.216recortes/5.160verbetes,11edições.
   FKs0/quick_checkok; seed pessoal vazio para destinatário. Não é OCR nem revisão integral.
-- Exportação em LOCALAPPDATA/Temp/scriptorium-export-atualizado-20261023; kit em preparação
+- Exportação em LOCALAPPDATA/Temp/scriptorium-export-atualizado-20261023; kit concluído
   no Desktop/Scriptorium-Android-0.5.3-completo-20261023. ZIP2.001.373.184bytes,
  76arquivos SHA/CRC verificados. APK instalado por cima e pacote USB transferido;
-  aparelho bloqueado na conferência inicial, ativação/QA físico ainda pendentes.
+  após desbloqueio, ID f2efca3e…b7299 ativo confirmado inclusive após reinício.
+-2testes instrumentados DocumentaryContentTest passaram no aparelho físico;
+  leituras da Trindade/léxico λόγος consultados.9tabelas pessoais idênticas ao backup,
+  FKs0; tela inicial/retomada preservadas. Sem auditoria visual integral de todos os módulos.
 -58testes JVM/13exportação,typecheck,ESLint,Prettier,assembleDebug/AndroidTest aprovados;
   lint Android0erros/23avisos. QA e limitações:docs/qa/android-acervo-2026-10-23.md.
 - Backup do banco pessoal Android anterior em Documents/Scriptorium Workspace Backups/
