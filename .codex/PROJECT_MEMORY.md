@@ -1,5 +1,18 @@
 # Project Memory
 
+## Android — patch OCR preparado, instalação pendente — 2026-10-23
+
+- A pedido do usuário, resultado desktop exportado com base exata f2efca3e…b7299;
+  novo ID4c8bad60…aa2f4, compatível com APK0.5.3 existente, sem reconstrução.
+- Desktop/Scriptorium-Atualizacao-OCR-20261023: pacote272.325.844bytes;
+  somente content.sqlite3 mudou,75arquivos/PDFs reutilizados. Sem novo backup completo.
+- 57PDFs/11edições,47.707páginas/47.441com texto,50.934comentários elegíveis,
+  35.065recortes/verbetes. Novos4.851Keener/689temáticos conferidos,27livros NT.
+- 13testes do exportador/kit passaram;hashes/CRC/SQLite/FKs/seed vazio aprovados.
+- ADB sem aparelho: NÃO instalado nem validado fisicamente. Próximo passo é conectar,
+  conferir base, aplicar patch sem wipe e verificar notas/ID/consultas nativas.
+- Relatório:docs/qa/android-ocr-patch-2026-10-23.md. Não confundir patch com kit inicial.
+
 ## Desktop — OCR concluído e contextos publicados — 2026-10-23
 
 - Política do usuário: não gerar backups completos repetidos; reutilizar snapshot existente
