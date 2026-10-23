@@ -54,7 +54,7 @@ export const ptBR = {
   "navigation.workspace": "Pesquisa pessoal",
   "navigation.home": "Início",
   "navigation.scripture": "Escrituras",
-  "navigation.study": "Estudo",
+  "navigation.study": "Estudos",
   "navigation.library": "Biblioteca",
   "navigation.knowledge": "Conhecimento",
   "navigation.search": "Busca",
@@ -65,13 +65,13 @@ export const ptBR = {
   "shell.searchCommand": "Buscar ou executar comando…",
   "shell.openSearch": "Abrir busca e comandos",
   "shell.toggleTheme": "Alternar modo de cor",
-  "shell.toggleInspector": "Alternar inspetor",
-  "shell.resizeInspector": "Redimensionar inspetor",
-  "shell.inspector": "Inspetor",
+  "shell.toggleInspector": "Mostrar ou ocultar o painel de estudo",
+  "shell.resizeInspector": "Redimensionar o painel de estudo",
+  "shell.inspector": "Painel de estudo",
   "shell.noPassage": "Nenhuma passagem aberta",
   "shell.selected": "selecionado",
-  "shell.localWorkspace": "Ambiente local",
-  "shell.offlineDemo": "Corpora instalados disponíveis offline",
+  "shell.localWorkspace": "Guardado neste computador",
+  "shell.offlineDemo": "Funciona sem internet",
   "shell.productDescriptor": "sistema aberto de conhecimento bíblico",
 
   "home.metaTitle": "Scriptorium — Sistema Aberto de Conhecimento Bíblico",
@@ -126,8 +126,6 @@ export const ptBR = {
   "command.openKnowledge": "Abrir Conhecimento",
   "command.newStudy": "Novo estudo",
   "command.untitledStudy": "Estudo sem título",
-  "command.lightMode": "Mudar para modo claro",
-  "command.darkMode": "Mudar para modo escuro",
   "command.openSettings": "Abrir Configurações",
   "command.openStudy": "Abrir Ambiente de Estudo",
 
@@ -255,9 +253,9 @@ export const ptBR = {
   "scripture.studyThroughLenses": "Estude {passage} por lentes distintas",
   "scripture.structureOnly": "somente estrutura",
   "scripture.sourcedContent": "conteúdo com fonte",
-  "scripture.analysisPendingTitle": "Análises de {passage} ainda não importadas",
+  "scripture.analysisPendingTitle": "Sem análises editoriais adicionais para {passage}",
   "scripture.analysisPendingDescription":
-    "Esta área não contém explicações automáticas nem textos de preenchimento. Exegese, hermenêutica, história, filosofia e outras leituras só aparecerão quando houver registros vinculados a fontes e à passagem.",
+    "Os comentários do seu acervo, quando disponíveis, aparecem junto aos versículos e no panorama do capítulo. Esta seção reúne análises editoriais adicionais vinculadas a fontes; sua ausência não significa que não existam comentários nos seus livros.",
   "scripture.analysisPlannedLenses":
     "Ver tipos de análise que o sistema está preparado para receber",
   "scripture.lensesDisclaimer":

@@ -47,6 +47,14 @@ function isH3SwallowedErrorBody(body: string): boolean {
 export default {
   async fetch(request: Request, env: unknown, ctx: unknown) {
     try {
+      if (new URL(request.url).pathname.startsWith("/api/workspace/")) {
+        const root =
+          typeof process !== "undefined" ? process.env["SCRIPTORIUM_WORKSPACE_DIR"] : undefined;
+        if (!root) return new Response("Modo de instalação desativado", { status: 404 });
+        const { handleInstallationRequest } =
+          await import("./lib/workspace-runtime/installation-workspace.server");
+        return await handleInstallationRequest(root, request);
+      }
       const handler = await getServerEntry();
       const response = await handler.fetch(request, env, ctx);
       return await normalizeCatastrophicSsrResponse(response);

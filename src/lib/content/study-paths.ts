@@ -9,12 +9,14 @@ export interface StudyPath {
   title: string;
   description: string;
   coverage: "installed" | "partial";
+  branch: "Bíblia e interpretação" | "Teologia" | "História e tradições" | "Literatura e fontes";
   resources: readonly StudyPathResource[];
 }
 
 export const STUDY_PATHS: readonly StudyPath[] = [
   {
     id: "exegese-recepcao",
+    branch: "Bíblia e interpretação",
     title: "Exegese e história da recepção",
     description:
       "Compare o texto bíblico com uma leitura patrística extensa, sem confundir recepção antiga com sentido lexical automático.",
@@ -25,6 +27,7 @@ export const STUDY_PATHS: readonly StudyPath[] = [
   },
   {
     id: "patristica",
+    branch: "História e tradições",
     title: "Patrística e cristianismo antigo",
     description:
       "Fontes primárias para comunidade, ética, martírio, formação doutrinária e autobiografia espiritual.",
@@ -37,6 +40,7 @@ export const STUDY_PATHS: readonly StudyPath[] = [
   },
   {
     id: "trindade-cristologia",
+    branch: "Teologia",
     title: "Trindade e cristologia",
     description:
       "Coloque documentos conciliares em diálogo com a organização escolástica das questões teológicas.",
@@ -50,6 +54,7 @@ export const STUDY_PATHS: readonly StudyPath[] = [
   },
   {
     id: "etica-soteriologia",
+    branch: "Teologia",
     title: "Ética, virtudes e soteriologia",
     description:
       "Investigue atos humanos, hábitos, lei, graça, virtudes e vícios nas duas seções da Segunda Parte da Suma.",
@@ -61,6 +66,7 @@ export const STUDY_PATHS: readonly StudyPath[] = [
   },
   {
     id: "gnosticismo",
+    branch: "Literatura e fontes",
     title: "Nag Hammadi e cristianismos antigos",
     description:
       "Comece pelo testemunho copta de Tomé e use o catálogo dos 13 códices para controlar o que ainda não possui texto licenciado.",
@@ -69,6 +75,7 @@ export const STUDY_PATHS: readonly StudyPath[] = [
   },
   {
     id: "eclesiologia-liturgia",
+    branch: "História e tradições",
     title: "Eclesiologia e práticas comunitárias",
     description:
       "Batismo, eucaristia, ministério, disciplina e identidade eclesial em documentos dos primeiros séculos.",
@@ -78,5 +85,50 @@ export const STUDY_PATHS: readonly StudyPath[] = [
       { workId: "work:epistle-diognetus", label: "Epístola a Diogneto" },
       { workId: "work:polycarp-philippians", label: "Policarpo aos Filipenses" },
     ],
+  },
+  {
+    id: "escatologia",
+    branch: "Teologia",
+    title: "Escatologia",
+    description:
+      "Morte, ressurreição, juízo, esperança e leituras apocalípticas. A trilha está pronta, mas ainda carece de uma coleção especializada instalada.",
+    coverage: "partial",
+    resources: [],
+  },
+  {
+    id: "pneumatologia",
+    branch: "Teologia",
+    title: "Pneumatologia",
+    description:
+      "Pessoa e obra do Espírito, dons, santificação e experiência comunitária, com separação entre texto, doutrina e tradição.",
+    coverage: "partial",
+    resources: [],
+  },
+  {
+    id: "hamartiologia-justificacao",
+    branch: "Teologia",
+    title: "Hamartiologia e justificação",
+    description:
+      "Pecado, culpa, graça e justificação organizados como problemas distintos e comparáveis entre tradições.",
+    coverage: "partial",
+    resources: [],
+  },
+  {
+    id: "sacramentos-santificacao",
+    branch: "Teologia",
+    title: "Sacramentos e santificação",
+    description:
+      "Práticas, doutrinas e desenvolvimento histórico sem reduzir posições confessionais a uma única resposta.",
+    coverage: "partial",
+    resources: [],
+  },
+  {
+    id: "hermeneutica-metodos",
+    branch: "Bíblia e interpretação",
+    title: "Hermenêutica e métodos",
+    description:
+      "Aprenda a distinguir observação textual, exegese, aplicação, método histórico e pressupostos interpretativos.",
+    coverage: "partial",
+    resources: [],
   },
 ] as const;

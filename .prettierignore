@@ -6,3 +6,20 @@ pnpm-lock.yaml
 package-lock.json
 bun.lock
 routeTree.gen.ts
+
+# Data, not code: many files are hashed into fingerprints or pinned by SHA-256 in source-lock,
+# so reformatting them would break builds. Generated JSON is written by the scripts themselves.
+generated/
+corpora/
+content/
+public/corpus-packages/
+public/knowledge/
+livros/
+data/
+android/
+services/semantic-engine/.venv/
+**/*.egg-info/
+**/.pytest_cache/
+# Rules file read by the translator and copied into the Android app; its SHA-256 is part of the
+# translation revision, so reformatting it would invalidate cached translations.
+services/semantic-engine/app/theological-glossary.json

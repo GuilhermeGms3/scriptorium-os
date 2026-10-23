@@ -1,5 +1,6 @@
 import type { BibliographicSource } from "../../lib/domain/bibliography";
 import { cn } from "../../lib/utils";
+import { sourceTypeLabel } from "../../lib/i18n";
 
 export function ResourceRow({
   source,
@@ -23,14 +24,14 @@ export function ResourceRow({
       )}
     >
       <span className="min-w-0">
-        <span className="block truncate text-[13px] font-medium">{source.title}</span>
-        <span className="block truncate font-mono text-[11px] text-muted-foreground">
+        <span className="block truncate text-sm font-medium">{source.title}</span>
+        <span className="block truncate font-mono text-xs text-muted-foreground">
           {[authorNames.join(", "), source.publicationYear].filter(Boolean).join(" · ") ||
             "Sem atribuição"}
         </span>
       </span>
-      <span className="rounded border border-border px-1 py-px font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-        {source.sourceType.replaceAll("-", " ")}
+      <span className="rounded border border-border px-1 py-px meta-label tracking-wider text-muted-foreground">
+        {sourceTypeLabel(source.sourceType)}
       </span>
     </button>
   );

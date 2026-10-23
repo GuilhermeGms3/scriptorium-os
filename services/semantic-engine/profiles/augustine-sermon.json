@@ -1,0 +1,13 @@
+{
+  "id": "augustine-sermon-v1",
+  "checksum": "09d25f967aa41c6c19c396636c63db008d70fdbc5e86d7a4f20c5f45ce985f90",
+  "kind": "patristic-exposition",
+  "strategy": "book-exposition",
+  "firstPage": 20,
+  "lastPage": 181,
+  "headingPattern": "^(?:LIVRO [12]|\\d{1,3})$",
+  "bodyHeight": 13.5,
+  "extraHeights": [27],
+  "bookId": "matthew",
+  "authorLabel": "Agostinho de Hipona"
+}

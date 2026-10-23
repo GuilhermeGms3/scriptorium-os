@@ -42,6 +42,18 @@
     "editionStatus": "draft-in-active-revision",
     "redistributionStatus": "redistributable"
   },
+  "eBibleKingJamesVersion": {
+    "revision": "2026-09-26",
+    "url": "https://ebible.org/Scriptures/eng-kjv_usfm.zip",
+    "details": "https://ebible.org/details.php?id=eng-kjv",
+    "sha256": "67561758cf58d9e767e89226a99171dba722579157d3894767c2f27538bcb38e",
+    "sizeBytes": 2771083,
+    "works": 80,
+    "license": "Public Domain",
+    "attribution": "King James Version (1769), eBible.org e Crosswire Bible Society.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
   "copticScriptoriumThomas": {
     "revision": "3ac067f1709a0012daf39ea8da2fac79980176a5",
     "url": "https://raw.githubusercontent.com/CopticScriptorium/corpora/3ac067f1709a0012daf39ea8da2fac79980176a5/thomas-gospel/thomas.gospel_TEI/thomas_gospel.xml",

@@ -15,9 +15,11 @@ import {
 } from "react";
 import type { PassageRef, TokenOccurrence } from "../domain/scripture";
 import type { Note, NoteLink, Study } from "../domain/study";
+import type { ReaderContextFilter } from "../domain/reader-context-filter";
 import { StudyRepository } from "../repositories/study-repository";
 
-export type ThemeMode = "light" | "dark" | "system";
+import { parseTheme, resolveTheme, type ThemeMode, type ResolvedTheme } from "./theme";
+export type { ThemeMode } from "./theme";
 
 export interface ReadingPreferences {
   fontSize: number; // rem
@@ -33,12 +35,13 @@ export interface WordSelection {
 export interface PassageContext {
   ref: PassageRef;
   label: string;
+  contextFilter?: ReaderContextFilter;
 }
 
 interface WorkbenchState {
   theme: ThemeMode;
   setTheme: (t: ThemeMode) => void;
-  resolvedTheme: "light" | "dark";
+  resolvedTheme: ResolvedTheme;
 
   paletteOpen: boolean;
   setPaletteOpen: (open: boolean) => void;
@@ -65,7 +68,9 @@ interface WorkbenchState {
     item: Parameters<typeof StudyRepository.addStudyItem>[1],
   ) => Promise<void>;
   refreshUserData: () => Promise<void>;
-  workspacePersistence: "loading" | "opfs" | "memory" | "unavailable";
+  workspacePersistence: "loading" | "opfs" | "memory" | "unavailable" | "installation";
+  /** Why the workspace is unavailable, e.g. the collection is open in another process. */
+  workspaceError?: string;
 }
 
 const WorkbenchContext = createContext<WorkbenchState | null>(null);
@@ -76,13 +81,14 @@ const PREFS_KEY = "scriptorium.reading-prefs.v1";
 export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [theme, setThemeState] = useState<ThemeMode>(() => {
     if (typeof window === "undefined") return "system";
-    return (window.localStorage.getItem(THEME_KEY) as ThemeMode) || "system";
+    return parseTheme(window.localStorage.getItem(THEME_KEY));
   });
-  const [resolvedTheme, setResolvedTheme] = useState<"light" | "dark">("light");
+  const [resolvedTheme, setResolvedTheme] = useState<ResolvedTheme>("light");
 
   const [paletteOpen, setPaletteOpen] = useState(false);
   const [wordSelection, setWordSelection] = useState<WordSelection | null>(null);
-  const [inspectorOpen, setInspectorOpen] = useState(true);
+  // Closed until the reader selects a verse or a word: the text comes first.
+  const [inspectorOpen, setInspectorOpen] = useState(false);
   const [passageContext, setPassageContextState] = useState<PassageContext | null>(null);
 
   const [readingPrefs, setReadingPrefsState] = useState<ReadingPreferences>(() => {
@@ -102,6 +108,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   const [studies, setStudies] = useState<Study[]>([]);
   const [workspacePersistence, setWorkspacePersistence] =
     useState<WorkbenchState["workspacePersistence"]>("loading");
+  const [workspaceError, setWorkspaceError] = useState<string>();
 
   const refreshUserData = useCallback(async () => {
     await StudyRepository.refresh();
@@ -121,8 +128,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
         const database = await getWorkspaceDatabase();
         if (active) setWorkspacePersistence(database.persistence);
       })
-      .catch(() => {
-        if (active) setWorkspacePersistence("unavailable");
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setWorkspacePersistence("unavailable");
+        setWorkspaceError(cause instanceof Error ? cause.message : String(cause));
       });
     return () => {
       active = false;
@@ -133,9 +142,10 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const mq = window.matchMedia("(prefers-color-scheme: dark)");
     const apply = () => {
-      const dark = theme === "dark" || (theme === "system" && mq.matches);
-      setResolvedTheme(dark ? "dark" : "light");
-      document.documentElement.classList.toggle("dark", dark);
+      const resolved = resolveTheme(theme, mq.matches);
+      setResolvedTheme(resolved);
+      document.documentElement.dataset["theme"] = resolved;
+      document.documentElement.classList.toggle("dark", resolved !== "light");
     };
     apply();
     mq.addEventListener("change", apply);
@@ -232,6 +242,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addToStudy,
       refreshUserData,
       workspacePersistence,
+      ...(workspaceError ? { workspaceError } : {}),
     }),
     [
       theme,
@@ -252,6 +263,7 @@ export function WorkbenchProvider({ children }: { children: ReactNode }) {
       addToStudy,
       refreshUserData,
       workspacePersistence,
+      workspaceError,
     ],
   );
 

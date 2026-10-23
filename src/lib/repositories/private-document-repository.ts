@@ -46,6 +46,13 @@ function mapDocument(row: WorkspaceRow): PrivateDocument {
   });
 }
 
+/**
+ * Page columns without the pdf.js layout kept in quality_json: it holds every text item of the page,
+ * nothing on screen reads it, and it was being copied on every page read and analysis batch.
+ */
+const PAGE_COLUMNS =
+  "id,document_id,page_index,page_label,text,character_count,extraction_method,json_remove(quality_json,'$.layout') AS quality_json";
+
 function mapPage(row: WorkspaceRow): PrivateDocumentPage {
   return PrivateDocumentPageSchema.parse({
     id: text(row, "id"),
@@ -75,6 +82,32 @@ function ftsQuery(value: string): string | null {
 }
 
 export const PrivateDocumentRepository = {
+  async listDocuments(
+    options: { query?: string; limit?: number; offset?: number } = {},
+    database?: WorkspaceDatabase,
+  ): Promise<PrivateDocument[]> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const normalizedQuery = options.query?.normalize("NFC").trim();
+    const limit = Math.min(Math.max(Math.trunc(options.limit ?? 200), 1), 1_000);
+    const offset = Math.max(Math.trunc(options.offset ?? 0), 0);
+    const rows = normalizedQuery
+      ? await db.query(
+          `SELECT * FROM private_documents
+           WHERE title LIKE ? ESCAPE '\\' COLLATE NOCASE
+           ORDER BY imported_at DESC,id LIMIT ? OFFSET ?`,
+          [
+            `%${normalizedQuery.replaceAll("\\", "\\\\").replaceAll("%", "\\%").replaceAll("_", "\\_")}%`,
+            limit,
+            offset,
+          ],
+        )
+      : await db.query(
+          "SELECT * FROM private_documents ORDER BY imported_at DESC,id LIMIT ? OFFSET ?",
+          [limit, offset],
+        );
+    return rows.map(mapDocument);
+  },
+
   async findByChecksum(
     checksum: string,
     database?: WorkspaceDatabase,
@@ -84,10 +117,66 @@ export const PrivateDocumentRepository = {
     return row ? mapDocument(row) : null;
   },
 
+  /** Several documents by id in one query per 400 ids; missing ids are simply absent. */
+  async getDocuments(
+    ids: readonly string[],
+    database?: WorkspaceDatabase,
+  ): Promise<Map<string, PrivateDocument>> {
+    const result = new Map<string, PrivateDocument>();
+    if (!ids.length) return result;
+    const db = database ?? (await getWorkspaceDatabase());
+    const unique = [...new Set(ids)];
+    for (let offset = 0; offset < unique.length; offset += 400) {
+      const batch = unique.slice(offset, offset + 400);
+      for (const row of await db.query(
+        `SELECT * FROM private_documents WHERE id IN (${batch.map(() => "?").join(",")})`,
+        batch,
+      )) {
+        const document = mapDocument(row);
+        result.set(document.id, document);
+      }
+    }
+    return result;
+  },
+
   async getDocument(id: string, database?: WorkspaceDatabase): Promise<PrivateDocument | null> {
     const db = database ?? (await getWorkspaceDatabase());
     const row = (await db.query("SELECT * FROM private_documents WHERE id=?", [id]))[0];
     return row ? mapDocument(row) : null;
+  },
+
+  async updateTitle(
+    id: string,
+    title: string,
+    database?: WorkspaceDatabase,
+  ): Promise<PrivateDocument> {
+    const normalized = title.normalize("NFC").replace(/\s+/g, " ").trim();
+    if (normalized.length < 2) throw new Error("O título do documento é inválido.");
+    const db = database ?? (await getWorkspaceDatabase());
+    const document = await this.getDocument(id, db);
+    if (!document) throw new Error("Documento privado não encontrado.");
+    await db.transaction([
+      {
+        sql: "UPDATE private_documents SET title=? WHERE id=?",
+        bind: [normalized, id],
+      },
+      {
+        sql: "UPDATE bibliographic_sources SET title=?,normalized_title=?,updated_at=? WHERE id=?",
+        bind: [
+          normalized,
+          normalizedTitle(normalized),
+          new Date().toISOString(),
+          document.sourceId,
+        ],
+      },
+      {
+        sql: "UPDATE workspace_fts SET title=? WHERE entity_kind='source' AND entity_id=?",
+        bind: [normalized, document.sourceId],
+      },
+    ]);
+    const updated = await this.getDocument(id, db);
+    if (!updated) throw new Error("O título atualizado não pôde ser confirmado.");
+    return updated;
   },
 
   async getDocumentForSource(
@@ -109,10 +198,10 @@ export const PrivateDocumentRepository = {
     if (!Number.isInteger(pageIndex) || pageIndex < 0) return null;
     const db = database ?? (await getWorkspaceDatabase());
     const row = (
-      await db.query("SELECT * FROM private_document_pages WHERE document_id=? AND page_index=?", [
-        documentId,
-        pageIndex,
-      ])
+      await db.query(
+        `SELECT ${PAGE_COLUMNS} FROM private_document_pages WHERE document_id=? AND page_index=?`,
+        [documentId, pageIndex],
+      )
     )[0];
     return row ? mapPage(row) : null;
   },
@@ -127,7 +216,7 @@ export const PrivateDocumentRepository = {
     const db = database ?? (await getWorkspaceDatabase());
     return (
       await db.query(
-        `SELECT * FROM private_document_pages
+        `SELECT ${PAGE_COLUMNS} FROM private_document_pages
          WHERE document_id=? ORDER BY page_index LIMIT ? OFFSET ?`,
         [documentId, limit, offset],
       )
@@ -176,7 +265,70 @@ export const PrivateDocumentRepository = {
     const parsed = ExtractedPrivateDocumentSchema.parse(input);
     const db = database ?? (await getWorkspaceDatabase());
     const existing = await this.findByChecksum(parsed.checksum, db);
-    if (existing) return { document: existing, duplicate: true };
+    if (existing) {
+      const existingPages = await db.query(
+        "SELECT count(*) count,coalesce(sum(character_count),0) characters FROM private_document_pages WHERE document_id=?",
+        [existing.id],
+      );
+      const pageCount = Number(existingPages[0]?.["count"] ?? 0);
+      const characterCount = Number(existingPages[0]?.["characters"] ?? 0);
+      if (pageCount < parsed.pageCount || characterCount === 0) {
+        const statements: Parameters<WorkspaceDatabase["transaction"]>[0] = [
+          {
+            sql: "UPDATE source_assets SET storage_reference=?,size_bytes=?,original_name=?,imported_at=? WHERE id=?",
+            bind: [
+              storageReference,
+              parsed.sizeBytes,
+              parsed.originalName,
+              new Date().toISOString(),
+              existing.assetId,
+            ],
+          },
+          {
+            sql: `UPDATE private_documents SET title=?,language=?,page_count=?,text_page_count=?,
+                  size_bytes=?,extraction_method=? WHERE id=?`,
+            bind: [
+              parsed.title,
+              parsed.language,
+              parsed.pageCount,
+              parsed.textPageCount,
+              parsed.sizeBytes,
+              parsed.extractionMethod,
+              existing.id,
+            ],
+          },
+        ];
+        for (const page of parsed.pages)
+          statements.push({
+            sql: `INSERT INTO private_document_pages(
+                    id,document_id,page_index,page_label,text,character_count,extraction_method,quality_json
+                  ) VALUES(?,?,?,?,?,?,?,?)
+                  ON CONFLICT(id) DO UPDATE SET
+                    page_label=excluded.page_label,text=excluded.text,
+                    character_count=excluded.character_count,
+                    extraction_method=excluded.extraction_method,quality_json=excluded.quality_json`,
+            bind: [
+              `${existing.id}:page:${page.pageIndex + 1}`,
+              existing.id,
+              page.pageIndex,
+              page.pageLabel,
+              page.text,
+              page.text.length,
+              page.text ? "pdf-text-layer" : "empty",
+              JSON.stringify({
+                hasText: Boolean(page.text),
+                itemCount: page.itemCount,
+                ...(page.layout ? { coordinateSpace: "pdf-points", layout: page.layout } : {}),
+              }),
+            ],
+          });
+        await db.transaction(statements);
+        const restored = await this.getDocument(existing.id, db);
+        if (!restored) throw new Error("O documento restaurado não pôde ser confirmado.");
+        return { document: restored, duplicate: false };
+      }
+      return { document: existing, duplicate: true };
+    }
 
     const documentId = `private-document:${parsed.checksum}`;
     const sourceId = `source:private-document:${parsed.checksum}`;
@@ -264,7 +416,11 @@ export const PrivateDocumentRepository = {
           page.text,
           page.text.length,
           page.text ? "pdf-text-layer" : "empty",
-          JSON.stringify({ hasText: Boolean(page.text), itemCount: page.itemCount }),
+          JSON.stringify({
+            hasText: Boolean(page.text),
+            itemCount: page.itemCount,
+            ...(page.layout ? { coordinateSpace: "pdf-points", layout: page.layout } : {}),
+          }),
         ],
       });
     }
