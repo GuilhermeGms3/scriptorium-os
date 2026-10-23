@@ -38,7 +38,7 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             val tags = buildSet {
                 if (listOf("hammadi", "gnosti", "apocrif", "apocryph", "pseudepig", "naocanonic").any(name::contains)) add("Não canônico")
                 if (listOf("apocrif", "apocryph", "pseudepig").any(name::contains)) add("Apócrifo")
-                if (listOf("esoter", "hermet").any(name::contains)) add("Esotérico")
+                if (listOf("esoter", "hermet", "hammadi", "gnosti").any(name::contains)) add("Esotérico")
             }
             if (tags.isEmpty()) null else AdditionalReading(row, "document", tags)
         }

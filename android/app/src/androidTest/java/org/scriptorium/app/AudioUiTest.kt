@@ -32,7 +32,6 @@ class AudioUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitText("Seu scriptorium")
         click("Menu"); click("Áudio"); waitText("Scriptorium Áudio")
-        click("Leitor"); waitText("Texto pessoal para ouvir"); waitText("Adicionar à fila")
         click("Voz"); waitText("Filtrar idioma da voz (pt, en, es…)")
         click("Ambiente"); waitText("Adicionar minha música"); waitText("Somente voz")
         val screenshot = requireNotNull(automation.takeScreenshot())

@@ -93,7 +93,10 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                                                 Text(if (lastVerse > verseNumber) "$verseNumber–$lastVerse" else "$verseNumber", style = MaterialTheme.typography.labelLarge)
                                             }
                                         }
-                                        Text(verse.text("surface_text"), Modifier.weight(1f), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface)
+                                        Column(Modifier.weight(1f)) {
+                                            Text(verse.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, color = MaterialTheme.colorScheme.onSurface)
+                                            Load(current.edition.id, { repository.editionMetadata(current.edition).text("language") }) { language -> TranslationBlock(verse.text("surface_text"), language, personal) }
+                                        }
                                     }
                                 }
                             }

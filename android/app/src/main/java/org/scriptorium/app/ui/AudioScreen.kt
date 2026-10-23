@@ -65,7 +65,7 @@ fun AudioScreen(repository: MobileRepository, openPassage: (Passage) -> Unit) {
     }
     Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
         Heading("Scriptorium Áudio", "Leitura literal e música pessoal. Offline, sem enviar seu texto a provedores.")
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(listOf("Início", "Leitor", "Voz", "Ambiente")) { label -> FilterChip(section == label, { section = label }, label = { Text(label) }) } }
+        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) { items(listOf("Início", "Voz", "Ambiente")) { label -> FilterChip(section == label, { section = label }, label = { Text(label) }) } }
         if (!state.connected) Text("Conectando ao serviço de áudio…")
         (failure ?: state.message)?.let { message -> Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
             Text(message, Modifier.weight(1f), color = MaterialTheme.colorScheme.secondary)
