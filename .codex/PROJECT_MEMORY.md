@@ -11,6 +11,11 @@
 - 13testes do exportador/kit passaram;hashes/CRC/SQLite/FKs/seed vazio aprovados.
 - ADB sem aparelho: NÃO instalado nem validado fisicamente. Próximo passo é conectar,
   conferir base, aplicar patch sem wipe e verificar notas/ID/consultas nativas.
+- Depois:USB autorizado/base exata;272MB entregues/hash correto,APK principal preservado.
+  Tela bloqueada impede ativação:aguarda desbloqueio/Scriptorium aberto. Fingerprints das
+ 9tabelas pessoais em Temp/mobile-ocr-personal-fingerprints.json,sem cópia de notas/banco.
+  Helper Temp/mobile-ocr-device-qa.py after compara e exige novoID.58JVM/lint aprovados;
+  novo teste instrumentado compilado/instalado,mas execução física pendente.
 - Relatório:docs/qa/android-ocr-patch-2026-10-23.md. Não confundir patch com kit inicial.
 
 ## Desktop — OCR concluído e contextos publicados — 2026-10-23

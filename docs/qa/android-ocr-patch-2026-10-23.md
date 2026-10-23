@@ -35,12 +35,28 @@ O APK 0.5.3 consome as mesmas tabelas aditivas; não houve mudança de schema ou
 
 ## Pendente no aparelho
 
+### Segunda etapa — USB conectado
+
+O aparelho autorizado foi reconhecido com APK0.5.3/code11, base exata e15GB livres.
+Patch transferido por USB:272.325.844bytes; SHA-256 no telefone igual ao pacote.
+Entrada entregue ao aplicativo sem reinstalar o APK principal nem copiar PDFs.
+Fingerprints (contagem e hash, sem texto das notas) de nove tabelas pessoais foram
+capturados em memória para comparação posterior; não foi criado backup do banco.
+
+Adicionado teste instrumentado opt-in `recoveredOcrPatchFeedsNativeReaderAndStudies`
+na classe `DocumentaryContentTest`: requer `documentaryQa=true` e `ocrQa=true`.
+Confere totais,27livros do Keener,830páginas com texto e consulta do repositório nativo.
+`assembleDebugAndroidTest`, `testDebugUnitTest` e `lintDebug` aprovados:
+58testes JVM/0falhas, lint0erros/23avisos existentes. APK de testes instalado por cima.
+Ainda NÃO executado esse QA físico: tela bloqueada, geração anterior continua ativa.
+Foi solicitado ao usuário desbloquear e manter o Scriptorium aberto.
+
 `adb devices` não encontrou aparelho conectado durante esta entrega. Portanto, NÃO foram
 executadas instalação, ativação, comparação de notas/progresso ou QA visual físico desta
 geração. Não afirmar que o telefone já recebeu o conteúdo. Ao reconectar: conferir a base,
 instalar sem wipe, verificar ID ativo, consultas nativas e preservação dos dados pessoais.
 
-Não foi criado backup novo no PC/celular nem alterada a instalação anterior. APK/build/lint
-Android não foram repetidos: nenhum código Android mudou. As associações automáticas
+Não foi criado backup novo no PC/celular. O APK principal não foi recompilado/reinstalado;
+a segunda etapa recompilou apenas os testes instrumentados. As associações automáticas
 continuam propostas, não revisão humana integral. Jerusalém permanece sem aparato de
 comentários identificado; o patch não inventa notas ausentes.
