@@ -49,6 +49,21 @@ index_generation = 0
 EMBEDDING_RECIPE = "chunk-mean-1800-v1"
 
 
+def tesseract_binary() -> str | None:
+    explicit = os.getenv("SCRIPTORIUM_TESSERACT")
+    if explicit:
+        return shutil.which(explicit)
+    discovered = shutil.which("tesseract")
+    if discovered:
+        return discovered
+    local = os.getenv("LOCALAPPDATA")
+    if os.name == "nt" and local:
+        portable = Path(local) / "Scriptorium/tools/ocr-5.4.0/tesseract/tesseract.exe"
+        if portable.is_file():
+            return str(portable)
+    return None
+
+
 class NoRedirect(HTTPRedirectHandler):
     def redirect_request(
         self, req: Request, fp: object, code: int, msg: str, headers: object, newurl: str
@@ -144,7 +159,7 @@ def info() -> dict[str, object]:
     return {
         "version": "3",
         "models": models,
-        "ocrAvailable": bool(shutil.which(os.getenv("SCRIPTORIUM_TESSERACT", "tesseract"))),
+        "ocrAvailable": bool(tesseract_binary()),
         "retrieval": "fts5+global-embedding+rrf",
         "automaticInferencePublication": False,
     }
@@ -536,7 +551,7 @@ def link(request: LinkRequest) -> dict[str, object]:
 
 @router.post("/ocr", response_model=OcrResponse)
 def ocr(request: OcrRequest) -> dict[str, object]:
-    binary = shutil.which(os.getenv("SCRIPTORIUM_TESSERACT", "tesseract"))
+    binary = tesseract_binary()
     if not binary:
         raise HTTPException(503, "Instale Tesseract e os idiomas por/eng para OCR local.")
     if not gate.acquire(blocking=False):
@@ -555,12 +570,16 @@ def ocr(request: OcrRequest) -> dict[str, object]:
             path = Path(folder) / "page.png"
             path.write_bytes(image)
             process = subprocess.run(
-                [binary, str(path), "stdout", "-l", request.language, "tsv"],
+                [binary, str(path), "stdout", "-l", request.language, "--psm", "1", "tsv"],
                 capture_output=True,
                 timeout=120,
                 check=True,
             )
-        rows = csv.DictReader(io.StringIO(process.stdout.decode("utf-8")), delimiter="\t")
+        # Tesseract TSV does not CSV-escape quotation marks. Default CSV quoting can
+        # swallow following records into one "text" field and leak raw TSV into the book.
+        rows = csv.DictReader(
+            io.StringIO(process.stdout.decode("utf-8")), delimiter="\t", quoting=csv.QUOTE_NONE
+        )
         lines: dict[tuple[str, str, str], list[dict[str, str]]] = {}
         for row in rows:
             if row["level"] == "5" and row["text"].strip():
@@ -596,7 +615,7 @@ def ocr(request: OcrRequest) -> dict[str, object]:
                 [binary, "--version"], capture_output=True, timeout=5, check=True
             )
             .stdout.decode()
-            .splitlines()[0],
+            .splitlines()[0] + ";psm=1;tsv-literal-v1",
         }
     except Exception as error:
         raise HTTPException(

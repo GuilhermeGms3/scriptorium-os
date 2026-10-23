@@ -41,6 +41,10 @@ conteúdo incorporado, auditoria estrutural e frentes ainda pendentes.
 
 ## Desenvolvimento
 
+A [recuperação OCR em fila](docs/architecture/offline-ocr-recovery.md) processa os PDFs já
+instalados sem texto, com retomada por página, backup e publicação no workspace existente.
+Texto recuperado não equivale a comentário bíblico contextualizado ou revisado.
+
 O [Scriptorium Áudio](docs/architecture/scriptorium-audio.md) permite ouvir capítulos,
 versículos/intervalos e texto pessoal com vozes locais reais do dispositivo. O mini player
 continua entre rotas; progresso e histórico são preferências locais, sem copiar o acervo.

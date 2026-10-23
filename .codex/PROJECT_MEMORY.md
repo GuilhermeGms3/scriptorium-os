@@ -1,5 +1,27 @@
 # Project Memory
 
+## Desktop — recuperação OCR em execução — 2026-10-23
+
+- Escopo: seis documentos sem texto (Agostinho/Doutrina Cristã, Keener, Wegner, von Rad,
+  Ladd, Lossky),1540páginas físicas.168páginas reais já incorporadas com backup/FKs0;
+  restante em worker independente, não declarar completo sem consultar banco/recibo.
+- Staging válido `data/workspace/ocr-recovery-validated-20261023`, logs worker-* e progress.json.
+  Worker lê SQLite/PDFs; ao terminar, importador obtém lock e estrutura sem LLM.
+  Se lock do app bloquear publicação, resultados ficam prontos; não roubar o lock.
+- Tesseract5.4 portátil em LOCALAPPDATA/Scriptorium/tools/ocr-5.4.0; por/spa/eng/grc/heb+OSD.
+  Setup verifica hashes, extrai sem executar instaladores nem alterar PATH/registro.
+- Corrigidos parserTSV (aspas não escapadas, QUOTE_NONE), orientaçãoPSM1 e retomada
+  tupla/lista JSON. Receita `;tsv-literal-v1`; resultados anteriores são recusados.
+- Originais intocados; schema26 mantido; não substitui texto/âncoras existentes.
+  Jerusalém continua sem aparato identificado nas amostras; hash da pasta é o mesmo.
+  Institutas45páginas NUL permanecem em quarentena, fora deste backfill de páginas vazias.
+- Operação/limites: `docs/architecture/offline-ocr-recovery.md`. Não confundir OCR com
+  interpretação/publicação contextual. Validar e registrar estado da fila ao retomar.
+- Snapshot:Agostinho142/142páginas,315unidades; Keener13/834; demais3por obra;359unidades
+  totais iniciais. Agostinho recuperado textualmente, não integralmente contextualizado.
+ 616testes TS/124Python,
+  mypy17arquivos,Ruff,typecheck,lint focado,build aprovados. FTS real e retomada verificados.
+
 ## Desktop — incorporação temática e lexical — 2026-10-22
 
 - Escopo ativo: aproveitar acervo existente nos estudos e no leitor; áudio e Android fora

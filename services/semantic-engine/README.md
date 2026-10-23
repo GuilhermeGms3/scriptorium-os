@@ -73,6 +73,11 @@ Contrato completo e limites: [arquitetura](../../docs/architecture/local-knowled
 
 Instale Tesseract com os idiomas `por`, `eng` e, para PDFs espanhóis, `spa`.
 Use `SCRIPTORIUM_TESSERACT` para indicar o executável quando não estiver no PATH.
+No Windows, o serviço também reconhece o pacote portátil preparado por
+`scripts/content/setup-ocr-tools.ps1`, sem alterar o PATH global. A receita atual utiliza
+orientação OSD e TSV com aspas literais; conserve os modelos e `configs/tsv` juntos.
+Para recuperar os documentos sem texto fora do navegador, consulte
+[recuperação OCR local](../../docs/architecture/offline-ocr-recovery.md).
 Não é preciso instalar llama.cpp se já utilizar LM Studio com API local compatível.
 
 Antes de iniciar `npm run semantic:dev`, configure, por exemplo:
