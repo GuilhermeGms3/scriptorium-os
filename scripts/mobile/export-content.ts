@@ -71,6 +71,7 @@ CREATE VIRTUAL TABLE pages_fts USING fts5(page_id UNINDEXED,text,tokenize='unico
 export function projectWorkspace(
   source: DatabaseSync,
   output: DatabaseSync,
+  includePersonal = true,
 ): { documents: number; comments: number; pages: number } {
   output.exec(mobileSchema);
   const doc = output.prepare("INSERT INTO documents VALUES(?,?,?,?,?,?,?,?)");
@@ -174,7 +175,9 @@ export function projectWorkspace(
     }
     if (output.prepare("PRAGMA foreign_key_check").get())
       throw new Error("Projeção contém referências órfãs.");
-    projectReadingExtras(source, output);
+    projectReadingExtras(source, output, includePersonal);
+    if (output.prepare("PRAGMA foreign_key_check").get())
+      throw new Error("Projeção documental contém referências órfãs.");
     output.exec("COMMIT");
     source.exec("COMMIT");
     return counts;
@@ -231,6 +234,7 @@ export function exportMobile(options: {
   root: string;
   output: string;
   workspace?: string;
+  includePersonal?: boolean;
   editions: string[];
   includePdfs?: boolean;
   semanticDirectory?: string;
@@ -268,7 +272,7 @@ export function exportMobile(options: {
     if (options.workspace) {
       const source = new DatabaseSync(resolve(options.workspace), { readOnly: true });
       try {
-        counts = projectWorkspace(source, content);
+        counts = projectWorkspace(source, content, options.includePersonal);
         if (options.includePdfs)
           for (const row of source
             .prepare("SELECT checksum FROM private_documents ORDER BY checksum")
@@ -392,6 +396,7 @@ if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1]
     ...(value("--workspace") ? { workspace: value("--workspace")! } : {}),
     ...(value("--base") ? { base: value("--base")! } : {}),
     includePdfs: args.includes("--complete") || args.includes("--include-pdfs"),
+    includePersonal: !args.includes("--without-personal"),
     ...(value("--semantic") ? { semanticDirectory: value("--semantic")! } : {}),
   });
   console.log(

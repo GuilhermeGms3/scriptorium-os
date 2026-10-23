@@ -1,4 +1,5 @@
 import type { DatabaseSync } from "node:sqlite";
+import { projectDocumentaryReadings } from "./documentary-readings";
 import { STUDY_GUIDES, guideIdForNode } from "../../src/lib/content/study-guides";
 import { STUDY_MAP_NODES, STUDY_MAP_EDGES } from "../../src/lib/content/study-learning-map";
 import {
@@ -73,8 +74,13 @@ const PERSONAL_TABLES = [
 function hasTable(source: DatabaseSync, table: string): boolean {
   return !!source.prepare("SELECT 1 FROM sqlite_master WHERE type='table' AND name=?").get(table);
 }
-export function projectReadingExtras(source: DatabaseSync, output: DatabaseSync): void {
+export function projectReadingExtras(
+  source: DatabaseSync,
+  output: DatabaseSync,
+  includePersonal = true,
+): void {
   writeReadingCatalog(output);
+  projectDocumentaryReadings(source, output);
   if (hasTable(source, "document_nodes")) {
     const insert = output.prepare("INSERT INTO document_outline VALUES(?,?,?,?,?,?,?,?)");
     for (const row of source
@@ -145,7 +151,7 @@ export function projectReadingExtras(source: DatabaseSync, output: DatabaseSync)
     }
   }
   const personal: Record<string, unknown> = {};
-  for (const table of PERSONAL_TABLES)
+  for (const table of includePersonal ? PERSONAL_TABLES : [])
     if (hasTable(source, table)) {
       // Identifier comes exclusively from the constant allowlist above.
       personal[table] = source.prepare(`SELECT * FROM ${table}`).all();

@@ -1,5 +1,20 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Acervo atualizado — 0.5.3
+
+- Pacotes completos novos incluem recortes documentais temáticos e verbetes delimitados do
+  desktop. Estudos consulta a associação explícita do tema, preservando questão, objeção e
+  resposta; a leitura abre a página de origem com o intervalo destacado. O léxico oferece
+  também o verbete português identificado, com fonte/página e acesso ao original.
+- As tabelas opcionais `documentary_readings` e `documentary_topics` são projeções aditivas
+  no pacote de consumo v2; não alteram o workspace canônico nem o banco pessoal Android.
+  Pacotes anteriores continuam legíveis, apenas sem esses novos resultados.
+- Para entregar a outra pessoa sem copiar notas, grupos e progresso do PC, acrescente
+  `--without-personal` ao `mobile:export`. Isso não exclui PDFs nem comentários e não apaga
+  dados pessoais existentes no telefone. Respeite os direitos das obras ao repassar o kit.
+- Snapshot de23/10:57PDFs/47.707páginas,46.083comentários elegíveis,29.216recortes temáticos,
+  5.160verbetes e11edições. OCR segue parcial; recortes automáticos não são revisão teológica.
+
 Aplicativo **Kotlin + Jetpack Compose**, sem WebView, para consumir offline o acervo preparado
 no PC. Há entrega privada com aplicativo e todos os PDFs no mesmo kit; **não é ainda paridade integral com o desktop**.
 O desktop, o pipeline Python e o workspace original não são substituídos.

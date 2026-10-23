@@ -23,6 +23,23 @@ e filtros são metadados do APK e não traduzem os textos originais.
 
 ### Gerar o kit completo
 
+Atualização0.5.3: a projeção inclui `documentary_readings` (evidência por página/offset,
+papel argumentativo, lema normalizado e contexto original) e `documentary_topics`
+(associações N:M indexadas). São tabelas opcionais aditivas do conteúdo v2, sem migrar
+o banco pessoal ou a base editorial. Aplicativos antigos ignoram essas tabelas; o novo
+aplicativo detecta sua ausência em pacotes anteriores. Voltar ao APK anterior não exige
+conversão dos livros, mas deixa de apresentar essas leituras.
+
+Associações documentais automáticas não recebem aprovação editorial na exportação.
+Rejeições e decisões revoked/withheld/exception são excluídas. Comentários mantêm sua
+política anterior de publicação. Estudos busca o ID explícito do tema e limita resultados
+equilibrando fontes; léxico compara o lema normalizado, nunca a raiz por aproximação.
+Todos os offsets são UTF-16, como no desktop, e a UI Kotlin recorta o texto nessa convenção.
+
+Para um destinatário diferente, use `--without-personal` no exportador: o seed pessoal
+fica vazio, sem remover PDFs, comentários ou traduções preparadas. O banco pessoal já
+existente no aparelho nunca é apagado. O kit continua privado e sujeito aos direitos das obras.
+
 No PC, com Node 22, Python via `uv`, JDK 21 e Android SDK 36:
 
 ```powershell

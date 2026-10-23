@@ -166,6 +166,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         }
     }
     fun lessonReadings(id: String, title: String): List<StudyReading> {
+        val documentary = documentaryReadings(id)
         val assigned = navigation.lesson(id)?.objects("works").orEmpty()
         val works = if (assigned.isEmpty()) emptyList() else primaryWorks()
         val linked = assigned.mapNotNull { resource -> works.find { it.text("id") == resource.optString("workId") }?.let { work ->
@@ -174,7 +175,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         val terms = title.split(Regex("[^\\p{L}\\p{N}]+" )).filter { it.length > 3 && normalizedReading(it) !in setOf("sobre", "entre", "para", "como", "estudo", "historia") }.take(3)
         val query = ftsQuery(terms.joinToString(" "))
         val found = readingPages(query, "Encontrado no acervo")
-        if (linked.isNotEmpty() || found.isNotEmpty()) return (linked + found).distinctBy { it.id }
+        if (documentary.isNotEmpty() || linked.isNotEmpty() || found.isNotEmpty()) return (documentary + linked + found).distinctBy { it.id }
         val area = navigation.lessonSupport(id) ?: return emptyList()
         val supportWorks = if (works.isNotEmpty()) works else primaryWorks()
         val support = area.objects("works").mapNotNull { resource -> supportWorks.find { it.text("id") == resource.optString("workId") }?.let { work ->
@@ -192,6 +193,37 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
                 snippet(pages_fts,1,'','', ' … ',28) excerpt FROM pages_fts f JOIN pages p ON p.id=f.page_id
                 JOIN documents d ON d.id=p.document_id WHERE pages_fts MATCH ? ORDER BY bm25(pages_fts) LIMIT 12""".trimIndent(), listOf(query))
         }.map { page -> StudyReading("page:${page.text("id")}", page.text("source_title"), "$label · p. ${page.number("page_index") + 1}", page = page) }
+    }
+
+    private fun documentaryReadings(topicId: String): List<StudyReading> = content { db ->
+        if (db.rows("SELECT 1 FROM sqlite_master WHERE name='documentary_readings'").isEmpty()) emptyList()
+        else db.rows("""WITH selected AS (SELECT r.*,p.page_index,d.title source_title,d.checksum,d.pages document_pages,
+            row_number() OVER (PARTITION BY r.document_id ORDER BY CASE r.role WHEN 'response' THEN 0 WHEN 'section' THEN 0 ELSE 1 END,p.page_index,r.id) source_order
+            FROM documentary_readings r JOIN documentary_topics t ON t.reading_id=r.id AND t.ordinal=r.ordinal
+            JOIN pages p ON p.id=r.page_id JOIN documents d ON d.id=r.document_id
+            WHERE t.topic_id=? AND r.ordinal=0 AND r.headword IS NULL)
+            SELECT * FROM selected ORDER BY source_order,source_title,page_index,id LIMIT 60""".trimIndent(), listOf(topicId)).map { row ->
+            val context = JSONObject(row.text("payload_json"))
+            StudyReading("documentary:${row.text("id")}", row.text("source_title"),
+                "${context.optString("locator")} · ${documentaryRole(row.text("role"))} · p. ${row.number("page_index") + 1}. Associação documental automática, não revisão teológica.",
+                page = row + ("id" to row.text("page_id")))
+        }
+    }
+
+    fun privateLexicalEntries(token: Row): List<Row> {
+        val lemma = normalizeDocumentaryHeadword(token.text("lemma_text"))
+        if (lemma.isBlank()) return emptyList()
+        return content { db ->
+            if (db.rows("SELECT 1 FROM sqlite_master WHERE name='documentary_readings'").isEmpty()) emptyList()
+            else db.rows("""SELECT r.*,p.text page_text,p.page_index,d.title source_title,d.checksum,d.pages document_pages
+                FROM documentary_readings r JOIN pages p ON p.id=r.page_id JOIN documents d ON d.id=r.document_id
+                WHERE r.headword=? ORDER BY r.id,r.ordinal LIMIT 8""".trimIndent(), listOf(lemma)).map { row ->
+                val body = row.text("page_text")
+                val start = row.number("start_offset"); val end = row.number("end_offset")
+                require(start >= 0 && end > start && end <= body.length) { "Verbete com evidência inválida." }
+                row + ("excerpt" to body.substring(start, end))
+            }
+        }
     }
 
     fun outline(documentId: String): List<Row> = content { it.rows("SELECT * FROM document_outline WHERE document_id=? ORDER BY ordinal", listOf(documentId)) }

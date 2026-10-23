@@ -16,6 +16,7 @@ import org.scriptorium.app.data.*
 @Composable
 fun WordInspector(repository: MobileRepository, personal: PersonalRepository, edition: Edition, token: Row, close: () -> Unit) {
     var tab by remember { mutableStateOf("Léxico") }
+    var privatePage by remember { mutableStateOf<Row?>(null) }
     AlertDialog(onDismissRequest = close, title = { Column { Text(token.text("surface_form"), fontSize = 28.sp); Text(token.text("transliteration"), style = MaterialTheme.typography.labelSmall) } }, confirmButton = { TextButton(onClick = close) { Text("Fechar") } }, text = {
         Column(Modifier.heightIn(max = 600.dp)) {
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
@@ -24,6 +25,19 @@ fun WordInspector(repository: MobileRepository, personal: PersonalRepository, ed
             when (tab) {
                 "Léxico" -> Load(edition.id to token.text("id"), { repository.lexicalEntries(edition, token).map { it to repository.lexicalSenses(edition, it.text("id")) } }) { entries ->
                     LazyColumn {
+                        item {
+                            Load(token.text("id"), { repository.privateLexicalEntries(token) }) { readings ->
+                                readings.forEach { reading ->
+                                    Column(Modifier.padding(vertical = 12.dp)) {
+                                        Text("Léxico em português", style = MaterialTheme.typography.titleMedium)
+                                        Text(reading.text("excerpt"), Modifier.padding(vertical = 8.dp))
+                                        Text("${reading.text("source_title")} · p. ${reading.number("page_index") + 1}", style = MaterialTheme.typography.labelSmall)
+                                        TextButton(onClick = { privatePage = reading }) { Text("Abrir fonte e página") }
+                                        Text("Verbete delimitado automaticamente na edição; confira a fonte. Não é definição revisada individualmente.", style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
+                        }
                         if (entries.isEmpty()) item { Text("Não há verbete correspondente aos identificadores fornecidos por esta edição. Não se infere um significado apenas da raiz.") }
                         items(entries, key = { it.first.text("id") }) { (entry, senses) ->
                             Column(Modifier.padding(vertical = 12.dp)) {
@@ -61,6 +75,7 @@ fun WordInspector(repository: MobileRepository, personal: PersonalRepository, ed
             }
         }
     })
+    privatePage?.let { PageDialog(repository, it, personal) { privatePage = null } }
 }
 
 @Composable

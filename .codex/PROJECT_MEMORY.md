@@ -1,5 +1,23 @@
 # Project Memory
 
+## Android — acervo atualizado0.5.3 — 2026-10-23
+
+- Pedido: kit completo para outra pessoa e atualização USB do aparelho autorizado, sem
+  desinstalar.0.5.3/code11 acrescenta consumo dos recortes temáticos e verbetes do desktop;
+  não apenas cópia dos PDFs. Projeções opcionais documentary_readings/documentary_topics,
+  estudos por tema explícito, léxico PT por lema normalizado e fonte/página/offset preservados.
+- Exportação `--complete --without-personal`:57PDFs/47.707páginas,46.265com texto,
+  46.083comentários elegíveis (igual consulta canônica),29.216recortes/5.160verbetes,11edições.
+  FKs0/quick_checkok; seed pessoal vazio para destinatário. Não é OCR nem revisão integral.
+- Exportação em LOCALAPPDATA/Temp/scriptorium-export-atualizado-20261023; kit em preparação
+  no Desktop/Scriptorium-Android-0.5.3-completo-20261023. ZIP2.001.373.184bytes,
+ 76arquivos SHA/CRC verificados. APK instalado por cima e pacote USB transferido;
+  aparelho bloqueado na conferência inicial, ativação/QA físico ainda pendentes.
+-58testes JVM/13exportação,typecheck,ESLint,Prettier,assembleDebug/AndroidTest aprovados;
+  lint Android0erros/23avisos. QA e limitações:docs/qa/android-acervo-2026-10-23.md.
+- Backup do banco pessoal Android anterior em Documents/Scriptorium Workspace Backups/
+  android-antes-0.5.3-20261023; nunca incluído no kit para terceiros. Instalação sem wipe.
+
 ## Desktop — recuperação OCR em execução — 2026-10-23
 
 - Escopo: seis documentos sem texto (Agostinho/Doutrina Cristã, Keener, Wegner, von Rad,

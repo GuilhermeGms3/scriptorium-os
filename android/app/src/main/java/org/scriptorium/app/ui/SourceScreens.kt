@@ -150,7 +150,18 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
                 else Column(Modifier.verticalScroll(rememberScrollState())) {
                     TextButton(onClick = { selected = page }) { Text("Abrir página e original") }
                     TranslationBlock(page.text("text"), page.text("language"), personal)
-                    SelectionContainer { Text(page.text("text").ifBlank { "Página sem texto extraído. Consulte o PDF original, se incluído." }, fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
+                    val full = page.text("text").ifBlank { "Página sem texto extraído. Consulte o PDF original, se incluído." }
+                    val target = requested?.page?.takeIf { it.number("page_index") == pageIndex && it.text("document_id") == current.text("id") }
+                    val start = target?.number("start_offset") ?: 0
+                    val end = target?.number("end_offset") ?: 0
+                    val highlight = MaterialTheme.colorScheme.primaryContainer
+                    SelectionContainer { Text(buildAnnotatedString {
+                        if (start >= 0 && end > start && end <= full.length) {
+                            append(full.substring(0, start))
+                            withStyle(SpanStyle(background = highlight)) { append(full.substring(start, end)) }
+                            append(full.substring(end))
+                        } else append(full)
+                    }, fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                 }
             }
         }

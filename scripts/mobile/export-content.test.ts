@@ -118,6 +118,77 @@ it("exports only publishable contextual comments, preserving source IDs, scheme,
     output.close();
   }
 });
+it("exports documentary readings and lexical spans without approving them or leaking personal studies", () => {
+  const { source, output } = fixture();
+  source.exec(
+    "CREATE TABLE studies(id TEXT,title TEXT); INSERT INTO studies VALUES('private','Não compartilhar');",
+  );
+  const insert = source.prepare(
+    "INSERT INTO knowledge_proposals VALUES(?,'DEMO:doc','DEMO:unit','topic-assignment',?,'documentary-thematic:v1',?)",
+  );
+  const context = {
+    topicIds: ["study-guide:teologia"],
+    locator: "Questão 1, artigo 1",
+    sectionPath: ["Doutrina sagrada"],
+    role: "response",
+    author: "DEMO autor",
+    tradition: "DEMO tradição",
+    rationale: "Associação documental explícita preservada para teste.",
+    limitations: ["Delimitação automática, não revisão teológica."],
+  };
+  for (const [id, status, headword] of [
+    ["theme", "machine-proposed", undefined],
+    [
+      "lexical",
+      "machine-proposed",
+      { lemma: "λόγος", normalized: "λογος", language: "grc", extent: "page-local" },
+    ],
+    ["rejected-theme", "rejected", undefined],
+    ["withheld-theme", "machine-proposed", undefined],
+  ] as const) {
+    insert.run(
+      id,
+      JSON.stringify({
+        kind: "topic-assignment",
+        domain: "theology",
+        evidence: [],
+        studyContext: { ...context, ...(headword ? { role: "entry", headword } : {}) },
+      }),
+      status,
+    );
+  }
+  source.exec("INSERT INTO pipeline_decisions VALUES('withheld-theme','withheld');");
+  try {
+    projectWorkspace(source, output, false);
+    expect(
+      output
+        .prepare("SELECT id FROM documentary_readings ORDER BY id")
+        .all()
+        .map((r) => r["id"]),
+    ).toEqual(["lexical", "theme"]);
+    expect(
+      output.prepare("SELECT headword FROM documentary_readings WHERE id='lexical'").get()?.[
+        "headword"
+      ],
+    ).toBe("λογος");
+    expect(
+      output
+        .prepare("SELECT count(*) n FROM documentary_topics WHERE topic_id=?")
+        .get("study-guide:teologia")?.["n"],
+    ).toBe(2);
+    expect(
+      JSON.parse(
+        String(output.prepare("SELECT payload_json FROM personal_seed").get()?.["payload_json"]),
+      ),
+    ).toEqual({});
+    expect(source.prepare("SELECT count(*) n FROM studies").get()?.["n"]).toBe(1);
+    expect(output.prepare("PRAGMA foreign_key_check").all()).toEqual([]);
+  } finally {
+    source.close();
+    output.close();
+  }
+});
+
 it("writes manifest-first archives and omits unchanged files from patches", () => {
   const { root, source, output } = fixture();
   try {
