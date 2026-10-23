@@ -29,8 +29,10 @@ class MainActivity : ComponentActivity() {
                 enableEdgeToEdge(statusBarStyle = bars, navigationBarStyle = bars)
                 onDispose { }
             }
-            CompositionLocalProvider(org.scriptorium.app.ui.LocalReadingAppearance provides appearance) {
-                MaterialTheme(colorScheme = org.scriptorium.app.ui.readingColors(appearance.theme)) { ScriptoriumApp(viewModel()) }
+            val model: AppModel = viewModel()
+            CompositionLocalProvider(org.scriptorium.app.ui.LocalReadingAppearance provides appearance,
+                org.scriptorium.app.ui.LocalAudioClient provides model.audio) {
+                MaterialTheme(colorScheme = org.scriptorium.app.ui.readingColors(appearance.theme)) { ScriptoriumApp(model) }
             }
         }
     }

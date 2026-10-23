@@ -93,6 +93,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             val current = passage
             if (current == null) ReadingBookPicker(repository, edition, bookId, { rememberPage(); bookId = it }, ::open, { primary = it }, { page = it })
             else {
+                ScriptureAudioActions(repository, current.copy(verse = visibleVerse))
                 PrimaryTabRow(selectedTabIndex = listOf("Leitura", "Interlinear", "Comparação").indexOf(mode).coerceAtLeast(0)) {
                     listOf("Leitura", "Interlinear", "Comparação").forEach { label ->
                         Tab(selected = mode == label, onClick = { mode = label; panelOpen = false }, text = { Text(label, style = MaterialTheme.typography.labelMedium) })

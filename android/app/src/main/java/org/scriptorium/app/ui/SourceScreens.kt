@@ -150,6 +150,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
                 else Column(Modifier.verticalScroll(rememberScrollState())) {
                     TextButton(onClick = { selected = page }) { Text("Abrir página e original") }
                     TranslationBlock(page.text("text"), page.text("language"), personal)
+                    AudioTextActions("${current.text("title")} · p. ${pageIndex + 1}", page.text("text"), page.text("language"), org.json.JSONObject().put("kind", "document").put("documentId", current.text("id")).put("pageId", page.text("id")).put("pageIndex", pageIndex).put("checksum", page.text("checksum")))
                     val full = page.text("text").ifBlank { "Página sem texto extraído. Consulte o PDF original, se incluído." }
                     val target = requested?.page?.takeIf { it.number("page_index") == pageIndex && it.text("document_id") == current.text("id") }
                     val start = target?.number("start_offset") ?: 0
@@ -191,6 +192,7 @@ fun PageDialog(repository: MobileRepository, page: Row, personal: PersonalReposi
                 val end = if (index == page.number("page_index")) page.number("end_offset").coerceIn(start, full.length) else 0
                 val highlight = MaterialTheme.colorScheme.primaryContainer
                 if (personal != null && loaded != null) TranslationBlock(full, loaded.text("language"), personal)
+                if (loaded != null) AudioTextActions("${page.text("source_title")} · p. ${index + 1}", full, loaded.text("language"), org.json.JSONObject().put("kind", "document").put("documentId", loaded.text("document_id")).put("pageId", loaded.text("id")).put("pageIndex", index).put("checksum", loaded.text("checksum")))
                 SelectionContainer { Text(buildAnnotatedString {
                     append(full.substring(0, start))
                     withStyle(SpanStyle(background = highlight)) { append(full.substring(start, end)) }

@@ -71,11 +71,14 @@ fun ScriptoriumApp(model: AppModel) {
             }
         },
         bottomBar = {
-            if (state.ready && !state.busy) NavigationBar {
+            if (state.ready && !state.busy) Column {
+              AudioMiniPlayer { navigate("Áudio") }
+              NavigationBar {
                 listOf("Leitura" to "א", "Biblioteca" to "▤", "Estudos" to "◇", "Notas" to "✎", "Busca" to "⌕").forEach { (route, symbol) ->
                     NavigationBarItem(selected = destination == route, onClick = { navigate(route) },
                         icon = { Text(symbol) }, label = { Text(route, style = MaterialTheme.typography.labelSmall) })
                 }
+              }
             }
         },
     ) { padding ->
@@ -112,6 +115,7 @@ fun ScriptoriumApp(model: AppModel) {
                     "Estudos" -> StudyScreen(model.repository, model.personal, requestedGuide, { requestedPassage = it; navigate("Leitura") }, { requestedLibrary = it; navigate("Biblioteca") })
                     "Mapa" -> KnowledgeScreen(model.repository, model.personal)
                     "Notas" -> NotesScreen(model.personal)
+                    "Áudio" -> AudioScreen(model.repository) { requestedPassage = it; navigate("Leitura") }
                     "Busca" -> SearchScreen(model.repository, model.personal) { requestedPassage = it; navigate("Leitura") }
                     "Rastro" -> TraceScreen(model.repository, model.personal)
                     "Ajustes e backup" -> PersonalSettings(model.personal)
@@ -124,7 +128,7 @@ fun ScriptoriumApp(model: AppModel) {
         Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 8.dp) {
             Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Seu scriptorium", style = MaterialTheme.typography.titleLarge)
-                listOf("Início" to "Aparência e leitura", "Mapa" to "Rastro", "Pacotes" to "Ajustes e backup").forEach { pair ->
+                listOf("Início" to "Aparência e leitura", "Áudio" to "Mapa", "Rastro" to "Pacotes", "Notas" to "Ajustes e backup").forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         listOf(pair.first, pair.second).forEach { route ->
                             OutlinedCard(onClick = { menu = false; navigate(route) }, modifier = Modifier.weight(1f).heightIn(min = 88.dp)) {

@@ -1,5 +1,17 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Áudio nativo — 0.6.0
+
+Menu → **Áudio** abre Leitor, Voz e Música/Ambiente. Escrituras, páginas e etapas de estudo
+oferecem leitura local e fila; o mini player acompanha a navegação. Media3 mantém a sessão
+em segundo plano, com transportes do Android e posição real por segmento. Importe música
+pelo seletor do sistema; a cópia privada tem volumes independentes e repetição.
+
+Atualização somente do APK, sem reimportar PDFs nem substituir notas. Os arquivos de áudio,
+perfis e histórico pertencem ao dispositivo e não entram automaticamente no backup de notas.
+É a primeira fase: **não inclui ainda voz neural expressiva, gerador de roteiro ou Reflexões**.
+Consulte [arquitetura, limites e próximas fases](../docs/architecture/audio-android.md).
+
 ## Acervo atualizado — 0.5.3
 
 - Pacotes completos novos incluem recortes documentais temáticos e verbetes delimitados do

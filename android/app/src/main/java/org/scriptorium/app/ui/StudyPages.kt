@@ -63,6 +63,7 @@ internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: Mob
                         }
                         StudyPageKind.GUIDE_MODULE -> page.content?.let { module ->
                             StudyParagraphs(listOf(module.getString("explanation")))
+                            AudioTextActions(page.title, module.getString("explanation"), "pt-BR", JSONObject().put("kind", "study").put("guideId", guideId).put("moduleId", page.id))
                             if (module.strings("questions").isNotEmpty()) {
                                 Text("PARA INVESTIGAR", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                                 module.strings("questions").forEach { Text(it, Modifier.padding(vertical = 10.dp), style = MaterialTheme.typography.titleMedium) }
@@ -125,6 +126,7 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
                             selected < chapters.size -> {
                                 Heading(chapters[selected].getString("title"))
                                 StudyParagraphs(chapters[selected].strings("paragraphs"))
+                                AudioTextActions(chapters[selected].getString("title"), chapters[selected].strings("paragraphs").joinToString("\n\n"), "pt-BR", JSONObject().put("kind", "study").put("lessonId", id).put("chapterId", chapters[selected].getString("id")))
                                 StudyReadings(id, lesson.getString("title"), repository, openLibrary)
                             }
                             selected == chapters.size -> { Heading("Leituras do acervo"); StudyReadings(id, lesson.getString("title"), repository, openLibrary) }

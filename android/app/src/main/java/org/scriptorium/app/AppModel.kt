@@ -16,6 +16,8 @@ import java.io.File
 
 data class AppState(val ready: Boolean = false, val busy: Boolean = false, val message: String? = null, val revision: Int = 0)
 class AppModel(application: Application) : AndroidViewModel(application) {
+    val audio by lazy { org.scriptorium.app.audio.AudioClient(application) }
+    override fun onCleared() { audio.close(); super.onCleared() }
     private val pointer = AtomicFile(File(application.filesDir, "active-content"))
     val store = ContentPackageStore(File(application.filesDir, "content"),
         readPointer = { if (pointer.baseFile.exists()) pointer.openRead().use { it.readBytes().toString(Charsets.UTF_8) } else null },

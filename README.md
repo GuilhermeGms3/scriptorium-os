@@ -48,7 +48,9 @@ Texto recuperado não equivale a comentário bíblico contextualizado ou revisad
 O [Scriptorium Áudio](docs/architecture/scriptorium-audio.md) permite ouvir capítulos,
 versículos/intervalos e texto pessoal com vozes locais reais do dispositivo. O mini player
 continua entre rotas; progresso e histórico são preferências locais, sem copiar o acervo.
-Esta fundação web não gera arquivos nem habilita provedores pagos ou narração Android.
+Esta fundação web não gera arquivos nem habilita provedores pagos. O
+[Áudio Android nativo](docs/architecture/audio-android.md), em0.6.0, implementa leitura local,
+MediaSession/segundo plano e ambientação sem substituir o motor web nem o acervo.
 O incremento [Música e Ambiente](docs/architecture/audio-ambience.md) permite importar uma trilha
 local e ouvir voz, voz com música ou somente música. Essas cópias pertencem ao navegador/origem,
 não ao backup do acervo ou à imagem Docker; não há exportação mixada nesta etapa.

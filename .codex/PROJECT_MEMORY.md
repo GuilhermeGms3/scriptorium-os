@@ -1,5 +1,25 @@
 # Project Memory
 
+## Áudio Android0.6.0 — fase1 — 2026-10-23
+
+- Missão nova: Áudio Android + provedor neural + Reflexões desktop/Android. Esta entrega
+  implementa fase1, não fingir fases2–5 prontas. Fonte canônica:docs/architecture/audio-android.md.
+- Media3 1.9.4/MediaSessionService único, TTS local→WAV e player principal + canal musical
+  interno sem foco próprio. Nada de WebView/serviços concorrentes. AndroidversionCode12.
+- MenuÁudio/mini player, Escrituras/intervalos/fila, páginas/seleção e etapas de estudo,
+  histórico/favoritos/perfis, cache e progresso; SAF/hash/quotas para música com três modos.
+- Sem migration/acesso ao workspace canônico, reimportação de PDFs ou backup completo novo.
+  Áudio/histórico em files/audio e SharedPreferences, não no backup de notas/patch de acervo.
+-64JVM/48TS-áudio/typecheck/buildAndroid aprovados;lint0erros/42avisos. Dois cenários
+  instrumentados reais passaram no Pixel_8; síntese de trecho novo sem rede também passou.
+  Foco transitório, botão de mídia, segundo plano/tela desligada, cache e UI nativa conferidos.
+- CelularRQCT5004BAZ se desconectou: NÃO recebeu APK0.6.0 nem QA físico de áudio. Seu
+  acervo4c8bad60…aa2f4 anterior permanece a última instalação física confirmada.
+- Voz neural expressiva/roteiros/Reflexões/mix/export ainda pendentes, sem credenciais ou
+  chamadas pagas. Exigem próximo incremento real e validação; não considerar missão concluída.
+- QA/limites/comandos:docs/qa/android-audio-2026-10-23.md. APK em saída Gradle normal;
+  não gerar outro kit de2GB apenas para atualizar código.
+
 ## Android — patch OCR ativado e verificado — 2026-10-23
 
 - A pedido do usuário, resultado desktop exportado com base exata f2efca3e…b7299;

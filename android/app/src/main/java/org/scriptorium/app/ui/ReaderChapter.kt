@@ -25,6 +25,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                   category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit, preferences: ReadingPreferences, open: (Passage) -> Unit,
                   source: (Row) -> Unit, note: (String) -> Unit, bookmark: (Row) -> Unit, original: () -> Unit, visible: (Row) -> Unit) {
     val appearance = LocalReadingAppearance.current
+    val audio = LocalAudioClient.current
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val readerHeight = maxHeight
         Column(Modifier.fillMaxSize()) {
@@ -99,6 +100,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                             if (actions) AlertDialog(onDismissRequest = { actions = false }, title = { Text("${current.title} ${current.chapter}:$verseNumber") }, confirmButton = { TextButton(onClick = { actions = false }) { Text("Fechar") } }, text = {
                                 val context = androidx.compose.ui.platform.LocalContext.current
                                 Column {
+                                    TextButton(onClick = { actions = false; audio.scripture(repository, current, verseNumber, lastVerse, false) }) { Text("Ouvir versículo") }
+                                    TextButton(onClick = { actions = false; audio.scripture(repository, current, verseNumber, lastVerse, true) }) { Text("Adicionar à fila de áudio") }
                                     TextButton(onClick = { actions = false; note(verse.text("id")) }) { Text("Anotar") }
                                     TextButton(onClick = { actions = false; bookmark(verse) }) { Text("Favoritar") }
                                     TextButton(onClick = { actions = false; activeVerse = verseNumber; visible(verse); original() }) { Text("Interlinear") }
