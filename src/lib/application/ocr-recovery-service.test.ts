@@ -4,9 +4,24 @@ import { applyWorkspaceMigrations } from "../../../scripts/database/workspace-mi
 import type { WorkspaceDatabase, WorkspaceRow } from "../workspace-runtime/protocol";
 import { PrivateDocumentRepository } from "../repositories/private-document-repository";
 import { sha256Hex } from "../workspace-runtime/secure-context";
-import { importOcrRecoveryPage, ocrRecoveryCoverage } from "./ocr-recovery-service";
+import {
+  importOcrRecoveryPage,
+  ocrRecoveryCoverage,
+  assessOcrRecoveryText,
+  quarantineOcrRecoveryPage,
+} from "./ocr-recovery-service";
 
 const opened: DatabaseSync[] = [];
+it("holds short or speckle-like OCR for review, without treating it as verified text", () => {
+  expect(assessOcrRecoveryText("")).toBe("empty");
+  expect(assessOcrRecoveryText(". . . a * ee . “ -\n".repeat(50))).toBe("review-required");
+  expect(assessOcrRecoveryText("Texto curto que pode ser legítimo.")).toBe("review-required");
+  expect(
+    assessOcrRecoveryText(
+      "Este parágrafo possui texto legível de uma página completa. ".repeat(30),
+    ),
+  ).toBe("ready");
+});
 afterEach(() => {
   for (const db of opened.splice(0)) db.close();
 });
@@ -155,4 +170,52 @@ it("records an empty OCR attempt without pretending the page has extracted text"
     emptyAttempts: 1,
     complete: true,
   });
+});
+
+it("quarantines only a matching receipted OCR page, preserves the receipt and is idempotent", async () => {
+  const { native, db, payload } = await fixture();
+  const raw = JSON.stringify(payload);
+  await importOcrRecoveryPage(raw, db, "v1");
+  await quarantineOcrRecoveryPage(raw, db);
+  await quarantineOcrRecoveryPage(raw, db);
+  expect(native.prepare("SELECT text FROM private_document_pages").get()?.["text"]).toBe("");
+  expect(
+    String(
+      native.prepare("SELECT quality_json FROM private_document_pages").get()?.["quality_json"],
+    ),
+  ).toContain("quarantinedOcrReceipt");
+  expect(
+    native.prepare("SELECT text_page_count FROM private_documents").get()?.["text_page_count"],
+  ).toBe(0);
+  const document = native.prepare("SELECT id FROM private_documents").get();
+  expect((await ocrRecoveryCoverage(String(document?.["id"]), db)).complete).toBe(false);
+});
+
+it("preserves OCR text already used as semantic evidence", async () => {
+  const { native, db, document, payload } = await fixture();
+  const raw = JSON.stringify(payload);
+  await importOcrRecoveryPage(raw, db, "v1");
+  native
+    .prepare(
+      "INSERT INTO semantic_units(id,document_id,unit_kind,ordinal,text_checksum,language,method) VALUES('protected',?,'paragraph',0,?,'pt','fixture')",
+    )
+    .run(document.id, "b".repeat(64));
+  native.exec(
+    "INSERT INTO semantic_unit_spans(unit_id,page_id,page_index,start_offset,end_offset,ordinal) SELECT 'protected',id,0,0,1,0 FROM private_document_pages",
+  );
+  await expect(quarantineOcrRecoveryPage(raw, db)).rejects.toThrow("protegida");
+  expect(native.prepare("SELECT text FROM private_document_pages").get()?.["text"]).toBe(
+    payload.result.text,
+  );
+});
+
+it("refuses OCR quarantine if the stored page was edited or the receipt changed", async () => {
+  const { native, db, payload } = await fixture();
+  const raw = JSON.stringify(payload);
+  await importOcrRecoveryPage(raw, db, "v1");
+  native.prepare("UPDATE private_document_pages SET text=?").run("Texto corrigido pelo usuário.");
+  await expect(quarantineOcrRecoveryPage(raw, db)).rejects.toThrow("recibo");
+  expect(native.prepare("SELECT text FROM private_document_pages").get()?.["text"]).toBe(
+    "Texto corrigido pelo usuário.",
+  );
 });

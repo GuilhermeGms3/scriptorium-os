@@ -1,5 +1,21 @@
 # Project Memory
 
+## Contextualização desktop — 2026-10-24
+
+- Inventário confirmado:57documentos/47.707páginas/47.441com texto. Sem novo backup completo.
+- Fila persistente `contextual-library-queue`:5publicados/33com contexto anterior/19bloqueados;
+  coordena Python e importadores canônicos, não outro banco. Primeiro lote terminou.
+- Publicados2.184recortes:Confissões435(com DeMagistro separado),Enciclopédia710,
+  Oxford793(p26–868),NagII246(p11–278,títulos espaçados). AgostinhoCCELJoão/1João:
+  144trechos iniciais/123seções/11exceções,25capítulos com algum contexto, não cobertura total.
+- CidadeDeDeus117tentativas OCR:87vazias/30ruído inicialmente importado e depois
+  quarentenado por recibo, sem âncoras;705/822com texto preservadas. Novo gate conservador.
+- Jerusalém1219/1221extraídas, aparato não identificado; não tratar Escritura como comentário.
+- Python140,mypy18arquivos,Ruff;TS572/90arquivos quick,typecheck,lint,build aprovados.
+- Idempotência e consumidores reais Reader/estudos conferidos;FK0,hashes pessoais iguais.
+  Sem QA visual navegador nem novo pacote móvel. Relatório/limites:
+  docs/content/contextual-library-expansion-2026-10-24.md.
+
 ## Android0.6.1 — idiomas, catálogo e autoria editorial — 2026-10-23
 
 - Continuação da missão de Áudio: não declarar fases2–5 concluídas. Native TTS continua

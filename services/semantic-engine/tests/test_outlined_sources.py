@@ -5,7 +5,7 @@ import pytest
 
 from app.commentary_extractor import Book, ChapterLimit, Page, Snapshot, Span
 from app.commentary_structured import Layout, LayoutPage, LayoutSpan
-from app.outlined_sources import Heading, Profile, Segment, extract, targets
+from app.outlined_sources import Heading, Profile, Segment, extract, targets, tractate_targets
 
 
 def fixture() -> tuple[Snapshot, Layout]:
@@ -49,6 +49,48 @@ def test_explicit_homily_lemma_preserves_disjoint_verses() -> None:
     assert [p["verseStart"] for p in result] == [1, 3]
     assert targets("Matthew I. 26.", "matthew", snapshot, True) == []
     assert targets("Homily XX.", "matthew", snapshot, True) == []
+
+
+def test_john_tractate_uses_primary_chapter_not_ordinal_and_bounds_are_strict() -> None:
+    snapshot, _ = fixture()
+    snapshot.books.append(
+        Book(
+            id="john",
+            aliases=["João", "John"],
+            verseLimits=[
+                ChapterLimit(chapter=1, lastVerse=51),
+                ChapterLimit(chapter=2, lastVerse=25),
+                ChapterLimit(chapter=3, lastVerse=36),
+                ChapterLimit(chapter=6, lastVerse=71),
+            ],
+        )
+    )
+    assert tractate_targets("Tractate LX.", "john", snapshot) == []
+    assert tractate_targets("Chapter VI. 60–72.", "john", snapshot) == []
+    result = tractate_targets("Chapter II. 23–25; III. 1–5.", "john", snapshot)
+    assert [(r["chapter"], r["verseStart"], r["verseEnd"]) for r in result] == [
+        (2, 23, 25),
+        (3, 1, 5),
+    ]
+    assert [r["verseStart"] for r in tractate_targets("Chapter I. 32, 33.", "john", snapshot)] == [
+        32,
+        33,
+    ]
+
+
+def test_tractate_outline_must_agree_with_the_actual_page() -> None:
+    snapshot, layout = fixture()
+    snapshot.books.append(
+        Book(id="john", aliases=["John"], verseLimits=[ChapterLimit(chapter=1, lastVerse=51)])
+    )
+    profile = Profile(
+        checksum=snapshot.checksum,
+        strategy="john-tractates",
+        author="Synthetic",
+        segments=[Segment(first=1, last=1, books=["john"])],
+        opening_excerpt_only=True,
+    )
+    assert not extract(snapshot, layout, [Heading(page=1, title="Chapter I. 1–5.")], profile).notes
 
 
 def test_corrupted_intertextual_heading_is_not_repaired_by_guessing() -> None:

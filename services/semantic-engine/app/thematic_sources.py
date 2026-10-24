@@ -220,6 +220,55 @@ PROFILES = (
     ),
 )
 
+# Newly calibrated editions. Their output remains documentary, never verse commentary.
+ADDITIONAL_PROFILES = (
+    Profile(
+        "26e7477dd8e304a91005ec45b4033e0938dcb23b3f554b4f5a47345f7fc6e6c9",
+        "Agostinho de Hipona",
+        "Patrística latina",
+        1,
+        ("patristica", "teologia"),
+        "patristics",
+        "confessions",
+        197,
+    ),
+    Profile(
+        "885a12227acbb6e755084b6d09945d4b59b172e3ca8c1e39b8191b28e6c8c5f7",
+        "Autores e organizadores da edição instalada",
+        "Posições da edição, não consenso universal",
+        23,
+        ("teologia",),
+        "theology",
+        "sections",
+        744,
+        r"^(?:DOUTRINA D[AE] [^\n]+|GEOGRAFIA BÍBLICA|ESCATOLO?GIA[^\n]*|"
+        r"SÍNTESE DO [^\n]+|A INSPIRAÇÃO DAS ESCRITURAS|OS IDIOMAS ORIGINAIS DA BÍBLIA|"
+        r"MANUSCRITOS|TRADUÇÕES DA BÍBLIA)[ \t]*$",
+    ),
+    Profile(
+        "d52a56ca811f8e9667d8f6e7f95ad61c2b1e808c6f4e5bba06883bb912777368",
+        "Autores dos capítulos; J. W. Rogerson e Judith M. Lieu (organização)",
+        "Pesquisa acadêmica; posições dos respectivos autores",
+        26,
+        ("exegese-recepcao", "hermeneutica-metodos"),
+        "exegesis",
+        "oxford",
+        868,
+    ),
+    Profile(
+        "518ff717f956b9e3c7e02caa8afb230cd2db1c787d71a9c4c21567597dca57a6",
+        "Autores antigos e editores da coleção",
+        "Cristianismos antigos; tradução e introduções",
+        11,
+        ("gnosticismo", "literatura-fontes"),
+        "religious-currents",
+        "nag-tractates",
+        278,
+        r"^(?:EVANGELIO DE [A-ZÁÉÍÓÚÑ ]+|DIÁLOGO DEL SALVADOR|"
+        r"SABIDURÍA DE JESUCRISTO|LIBRO DE TOMÁS[^\n]*)[ \t]*$",
+    ),
+)
+
 # Only headings assign specific subjects. Body-word occurrences are not thematic evidence.
 SUBJECTS = (
     (
@@ -306,6 +355,23 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
             continue
         # A dotted contents page or a bibliography cannot inherit the previous chapter.
         prefix = re.sub(r"\s+", "", normalized(page.text[:130]))
+        oxford_header = (
+            re.match(r"^c h a p t e r ([\d ]+)\s*\n", page.text)
+            if profile.strategy == "oxford"
+            else None
+        )
+        if oxford_header:
+            title_lines = []
+            for line in page.text[oxford_header.end() :].splitlines():
+                cleaned = re.sub(r"\.{3,}.*", "", line).strip()
+                if not cleaned:
+                    continue
+                if not cleaned.isupper():
+                    break
+                title_lines.append(cleaned)
+            locator = "Capítulo " + oxford_header[1].replace(" ", "")
+            locator += " · " + " / ".join(title_lines)
+            role = "section"
         bibliography = (
             bool(
                 re.search(
@@ -317,7 +383,20 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
             if profile.strategy == "recovered"
             else any(word in prefix for word in ("bibliografia", "bibliography", "indiceanalitico"))
         )
-        if page.text.count("....") > 4 or bibliography:
+        if profile.strategy == "oxford":
+            bibliography = bool(
+                re.search(
+                    r"^(?:references(?: and suggested reading)?|bibliography|further reading)\b",
+                    page.text[:400],
+                    re.MULTILINE | re.IGNORECASE,
+                )
+            )
+        contents = (
+            sum(bool(re.search(r"\.{3,}\s*\d+", line)) for line in page.text.splitlines()) > 4
+            if profile.strategy == "oxford"
+            else page.text.count("....") > 4
+        )
+        if contents or bibliography:
             locator = ""
             if profile.strategy == "recovered" and page.text.count("....") <= 4:
                 header = HEADING.search(page.text[:120])
@@ -328,7 +407,36 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
                         locator += " · " + following[0].strip()
                     role = "section"
             continue
-        matches = [m for m in HEADING.finditer(page.text) if "..." not in m.group()]
+        matches = (
+            []
+            if profile.strategy == "oxford"
+            else [m for m in HEADING.finditer(page.text) if "..." not in m.group()]
+        )
+        if profile.strategy == "confessions":
+            matches += list(
+                re.finditer(
+                    r"^(?:LIVRO [A-ZÉÊÁÍÓÚ \-]+|DE[ \t]+MAGISTRO)$", page.text, re.MULTILINE
+                )
+            )
+        if profile.strategy == "nag-tractates":
+            names = {
+                "evangeliodefelipe",
+                "evangeliodetomas",
+                "evangeliodelosegipcios",
+                "dialogodelsalvador",
+                "sabiduriadejesucristo",
+                "lahijadepedro",
+                "hechosdepedroylosdoceapostoles",
+                "cartadepedroafelipe",
+                "oraciondepablo",
+                "librodetomaselatleta",
+                "apocrifodesantiago",
+            }
+            matches = [
+                m
+                for m in re.finditer(r"^[^\n]+$", page.text, re.MULTILINE)
+                if m.start() < 400 and re.sub(r"[^a-z]", "", normalized(m.group())) in names
+            ]
         augustine = profile.strategy == "recovered" and profile.checksum.startswith("2cb74")
         if augustine:
             matches += list(
@@ -346,6 +454,12 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
                     matches.append(match)
         positions = sorted({0, len(page.text), *(match.start() for match in matches)})
         markers = {match.start(): match.group().strip() for match in matches}
+        if profile.strategy == "confessions":
+            for match in matches:
+                if match.group().startswith("CAPÍTULO"):
+                    following = page.text[match.end() :].lstrip("\n").splitlines()
+                    if following and 3 <= len(following[0].strip()) <= 100:
+                        markers[match.start()] += " · " + following[0].strip()
         if profile.strategy == "recovered":
             for match in matches:
                 if re.fullmatch(r"CAP[IÍ]TULO\s+\d+", match.group().strip()):
@@ -355,6 +469,14 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
         for start, end in pairwise(positions):
             heading = markers.get(start, "")
             if heading:
+                if profile.strategy == "confessions" and (
+                    heading.startswith("LIVRO ") or heading.startswith("DE ")
+                ):
+                    book_context = (
+                        "De Magistro (O Mestre)" if heading.startswith("DE ") else heading
+                    )
+                    locator = ""
+                    continue
                 if augustine and re.fullmatch(r"LIVRO\s*(?:IV|III|HI|II|I)", heading):
                     roman = re.sub(r"^LIVRO\s*", "", heading).replace("HI", "III")
                     book_context = "Livro " + roman
@@ -388,7 +510,7 @@ def sections(pages: list[Page], profile: Profile) -> list[Entry]:
                         locator = heading
                     role = "section"
             if (
-                augustine
+                (augustine or profile.strategy == "confessions")
                 and locator
                 and book_context
                 and not locator.startswith(book_context + " · ")
@@ -505,12 +627,27 @@ RECOVERED_PROFILES = (
 )
 
 
-def build(workspace: Path, destination: Path, recovered_only: bool = False) -> dict[str, object]:
+def build(
+    workspace: Path,
+    destination: Path,
+    recovered_only: bool = False,
+    checksums: tuple[str, ...] = (),
+    additional_only: bool = False,
+) -> dict[str, object]:
+    profiles: tuple[Profile, ...] = (
+        RECOVERED_PROFILES
+        if recovered_only
+        else (ADDITIONAL_PROFILES if additional_only else PROFILES)
+    )
+    if checksums:
+        if set(checksums) - {profile.checksum for profile in profiles}:
+            raise ValueError("No calibrated profile for the requested edition")
+        profiles = tuple(profile for profile in profiles if profile.checksum in checksums)
     destination.mkdir(parents=True, exist_ok=False)
     reports: list[dict[str, object]] = []
     files: list[dict[str, str]] = []
     with sqlite3.connect(workspace.resolve().as_uri() + "?mode=ro", uri=True) as db:
-        for profile in RECOVERED_PROFILES if recovered_only else PROFILES:
+        for profile in profiles:
             document = db.execute(
                 "SELECT id,title FROM private_documents WHERE checksum=?", (profile.checksum,)
             ).fetchone()
@@ -576,8 +713,16 @@ def main() -> None:
     parser.add_argument("workspace", type=Path)
     parser.add_argument("destination", type=Path)
     parser.add_argument("--recovered-only", action="store_true")
+    parser.add_argument("--additional-only", action="store_true")
+    parser.add_argument("--checksums", default="")
     args = parser.parse_args()
-    report = build(args.workspace, args.destination, args.recovered_only)
+    report = build(
+        args.workspace,
+        args.destination,
+        args.recovered_only,
+        tuple(filter(None, args.checksums.split(","))),
+        args.additional_only,
+    )
     print(
         json.dumps({"sources": report["sources"], "blocked": report["blocked"]}, ensure_ascii=False)
     )

@@ -29,7 +29,7 @@ class Segment(BaseModel):
 class Profile(BaseModel):
     model_config = ConfigDict(extra="forbid")
     checksum: str = Field(pattern=r"^[a-f0-9]{64}$")
-    strategy: Literal["homilies", "intertextual", "handbook"]
+    strategy: Literal["homilies", "intertextual", "handbook", "john-tractates"]
     author: str
     segments: list[Segment]
     maps: dict[int, str] = Field(default_factory=dict)
@@ -128,6 +128,33 @@ def targets(title: str, book: str, snapshot: Snapshot, homily: bool) -> list[dic
             }
         )
     return result
+
+
+def tractate_targets(title: str, book: str, snapshot: Snapshot) -> list[dict[str, object]]:
+    """Edition headings, not tractate ordinals or references inside the exposition."""
+    text = re.sub(r"\s+", "", title).replace("–", "-").replace("—", "-").rstrip(".")
+    prefix = "Chapter" if book == "john" else "1John" if book == "1-john" else ""
+    if not prefix or not text.startswith(prefix):
+        return []
+    text = text[len(prefix) :]
+    result: list[dict[str, object]] = []
+    for part in re.split(r";|,and", text):
+        match = re.fullmatch(r"([IVX]+)\.(\d+(?:[-,]\d+)*)(?:-([IVX]+)\.(\d+))?", part)
+        if not match:
+            return []
+        alias = next(b.aliases[-1] for b in snapshot.books if b.id == book)
+        raw = f"{alias} {roman(match[1])}:{match[2]}"
+        if match[3]:
+            raw += f"-{roman(match[3])}:{match[4]}"
+        resolved = targets(raw, book, snapshot, False)
+        if not resolved:
+            return []
+        result.extend(resolved)
+    return result
+
+
+def compact_heading(text: str) -> str:
+    return re.sub(r"\s+", "", text).replace("–", "-").replace("—", "-").rstrip(".")
 
 
 def heading_offset(heading: Heading, snapshot: Snapshot, layout: Layout) -> int | None:
@@ -229,9 +256,18 @@ def extract(
                     for book in segment.books
                 ]
             else:
-                destinations = targets(
-                    heading.title, segment.books[0], snapshot, profile.strategy == "homilies"
+                destinations = (
+                    tractate_targets(heading.title, segment.books[0], snapshot)
+                    if profile.strategy == "john-tractates"
+                    else targets(
+                        heading.title, segment.books[0], snapshot, profile.strategy == "homilies"
+                    )
                 )
+                if profile.strategy == "john-tractates":
+                    if compact_heading(heading.title) not in compact_heading(
+                        snapshot.pages[heading.page - 1].text[:1300]
+                    ):
+                        destinations = []
             if not destinations:
                 result.exceptions.append(
                     {
@@ -251,7 +287,7 @@ def extract(
                 if end <= start:
                     continue
                 # Homily footnotes and running folios are not Chrysostom's main exposition.
-                if profile.strategy == "homilies":
+                if profile.strategy in {"homilies", "john-tractates"}:
                     body_lines = [
                         s.y
                         for s in layout.pages[number - 1].spans
@@ -395,7 +431,7 @@ def emit(
                 else ["historical-context"]
                 if handbook
                 else ["patristics", "exegesis"]
-                if profile.strategy == "homilies"
+                if profile.strategy in {"homilies", "john-tractates"}
                 else ["exegesis", "hermeneutics"],
                 "analysis": {
                     "title": f"{snapshot.title} · {locator}"[:200],
@@ -407,7 +443,7 @@ def emit(
                         "kind": "biblical-handbook"
                         if handbook
                         else "patristic-exposition"
-                        if profile.strategy == "homilies"
+                        if profile.strategy in {"homilies", "john-tractates"}
                         else "intertextual-commentary",
                         "locator": locator[:300],
                         "sectionPath": [locator[:300]],

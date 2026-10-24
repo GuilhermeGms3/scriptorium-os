@@ -1,0 +1,12 @@
+{
+  "checksum": "d439b9b2c3cc7dc0ff128765b1fe65395611c943d51241ddaa5149380a0d4642",
+  "strategy": "john-tractates",
+  "author": "Agostinho de Hipona; edição inglesa organizada por Philip Schaff",
+  "quarantine_unaligned_pages": true,
+  "opening_excerpt_only": true,
+  "minimum_inline_height": 8,
+  "segments": [
+    { "first": 14, "last": 785, "books": ["john"] },
+    { "first": 791, "last": 909, "books": ["1-john"] }
+  ]
+}

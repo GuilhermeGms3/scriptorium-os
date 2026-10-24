@@ -34,6 +34,7 @@
     "library:status": "tsx scripts/content/process-library-queue.ts status",
     "library:retry": "tsx scripts/content/process-library-queue.ts retry",
     "library:pause": "tsx scripts/content/process-library-queue.ts pause",
+    "library:contextualize": "tsx scripts/content/contextual-library-queue.ts",
     "content:fetch:theology": "tsx scripts/content/fetch-theological-sources.ts",
     "db:migrate": "npm run corpus:index",
     "benchmark:corpus": "tsx scripts/database/benchmark-corpus-runtime.ts",

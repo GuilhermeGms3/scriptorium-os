@@ -11,6 +11,75 @@ export const OcrRecoveryPageSchema = z.object({
   result: OcrPageSchema,
 });
 
+/** Conservative page-level publication gate, not a claim that short text is invalid. */
+export function assessOcrRecoveryText(text: string): "empty" | "review-required" | "ready" {
+  if (!text.trim()) return "empty";
+  const letters = text.match(/\p{L}/gu)?.length ?? 0;
+  const visible = text.replace(/\s/gu, "").length;
+  return text.trim().length < 600 || letters / Math.max(1, visible) < 0.65
+    ? "review-required"
+    : "ready";
+}
+
+/** Explicit correction of a receipted OCR-only page; never rewrites original/anchored text. */
+export async function quarantineOcrRecoveryPage(raw: string, db: WorkspaceDatabase): Promise<void> {
+  const page = OcrRecoveryPageSchema.parse(JSON.parse(raw) as unknown);
+  if (assessOcrRecoveryText(page.result.text) !== "review-required")
+    throw Error("Página não exige esta quarentena.");
+  const receipt = await sha256Hex(raw);
+  const stored = (
+    await db.query(
+      `SELECT p.id,p.document_id,p.text,p.quality_json FROM private_document_pages p
+    JOIN private_documents d ON d.id=p.document_id WHERE d.checksum=? AND p.page_index=?`,
+      [page.sourceChecksum, page.physicalPage - 1],
+    )
+  )[0];
+  if (!stored) throw Error("Página não instalada.");
+  const quality = JSON.parse(String(stored["quality_json"])) as Record<string, unknown>;
+  if (stored["text"] === "" && quality["quarantinedOcrReceipt"] === receipt) return;
+  if (
+    stored["text"] !== page.result.text ||
+    quality["ocrReceipt"] !== receipt ||
+    (await db.query("SELECT 1 FROM semantic_unit_spans WHERE page_id=? LIMIT 1", [stored["id"]!]))
+      .length
+  )
+    throw Error("Quarentena recusada: recibo divergente ou evidência anterior protegida.");
+  const quarantinedQuality = JSON.stringify({
+    hasText: false,
+    machineExtracted: true,
+    quarantinedOcrReceipt: receipt,
+    requiresReview: true,
+  });
+  await db.transaction([
+    {
+      sql: `UPDATE private_document_pages SET text='',character_count=0,quality_json=?
+        WHERE id=? AND text=? AND quality_json=?
+        AND NOT EXISTS(SELECT 1 FROM semantic_unit_spans WHERE page_id=?)`,
+      bind: [
+        quarantinedQuality,
+        stored["id"]!,
+        page.result.text,
+        String(stored["quality_json"]),
+        stored["id"]!,
+      ],
+    },
+    {
+      sql: `UPDATE document_page_layouts SET revision=revision||';quality-review-required'
+        WHERE page_id=? AND EXISTS(SELECT 1 FROM private_document_pages WHERE id=? AND quality_json=?)`,
+      bind: [stored["id"]!, stored["id"]!, quarantinedQuality],
+    },
+    {
+      sql: "UPDATE private_documents SET text_page_count=(SELECT count(*) FROM private_document_pages WHERE document_id=? AND text<>'') WHERE id=?",
+      bind: [stored["document_id"]!, stored["document_id"]!],
+    },
+  ]);
+  const written = (
+    await db.query("SELECT quality_json FROM private_document_pages WHERE id=?", [stored["id"]!])
+  )[0];
+  if (written?.["quality_json"] !== quarantinedQuality)
+    throw Error("Página mudou durante a quarentena; versão concorrente preservada.");
+}
+
 /** A successful empty attempt is not unprocessed, nor does it count as recovered text. */
 export async function ocrRecoveryCoverage(documentId: string, db: WorkspaceDatabase) {
   const row = (

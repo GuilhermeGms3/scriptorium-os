@@ -8,11 +8,15 @@ import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-ru
 import {
   importOcrRecoveryPage,
   ocrRecoveryCoverage,
+  assessOcrRecoveryText,
+  OcrRecoveryPageSchema,
+  quarantineOcrRecoveryPage,
 } from "../../src/lib/application/ocr-recovery-service";
 import { PrivateDocumentRepository } from "../../src/lib/repositories/private-document-repository";
 import { DocumentProcessingRepository } from "../../src/lib/repositories/document-processing-repository";
 import { DocumentKnowledgePipelineService } from "../../src/lib/application/document-knowledge-pipeline-service";
 import { DocumentKnowledgeRepository } from "../../src/lib/repositories/document-knowledge-repository";
+import { reuseImportBackup } from "./reuse-import-backup";
 
 const [workspace, staging, mode] = process.argv.slice(2);
 if (!workspace || !staging || !["--runtime-stopped", "--verify"].includes(mode ?? ""))
@@ -68,10 +72,14 @@ try {
     : undefined;
   if (existing && (existing.workspace !== path || !existsSync(existing.backupPath)))
     throw Error("Recibo de outro workspace ou backup ausente.");
-  const backupPath = existing?.backupPath ?? `${path}.before-ocr-${Date.now()}`;
+  const reusedBackup = !verify ? reuseImportBackup(path, process.argv) : undefined;
+  const backupPath = existing?.backupPath ?? reusedBackup ?? `${path}.before-ocr-${Date.now()}`;
   if (!existing && !verify) {
-    console.info("Backup consistente:", backupPath);
-    await backup(db, backupPath, { rate: 4096 });
+    if (reusedBackup) console.info("Snapshot anterior reutilizado; nenhuma cópia completa criada.");
+    else {
+      console.info("Backup consistente:", backupPath);
+      await backup(db, backupPath, { rate: 4096 });
+    }
     writeFileSync(
       receiptPath,
       JSON.stringify({ workspace: path, backupPath, imported: 0, reused: 0 }),
@@ -117,7 +125,30 @@ try {
   let imported = 0,
     reused = 0;
   let pending = 0;
+  let quarantined = 0;
   for (const file of files) {
+    const raw = readFileSync(join(directory, file), "utf8");
+    const candidate = OcrRecoveryPageSchema.parse(JSON.parse(raw) as unknown);
+    if (assessOcrRecoveryText(candidate.result.text) === "review-required") {
+      const stored = db
+        .prepare(
+          `SELECT p.text,p.quality_json FROM private_document_pages p JOIN private_documents d ON d.id=p.document_id WHERE d.checksum=? AND p.page_index=?`,
+        )
+        .get(candidate.sourceChecksum, candidate.physicalPage - 1);
+      const quality = stored
+        ? (JSON.parse(String(stored["quality_json"])) as Record<string, unknown>)
+        : {};
+      if (!verify && process.argv.includes("--quarantine-suspicious") && stored?.["text"] !== "")
+        await quarantineOcrRecoveryPage(raw, adapter);
+      if (
+        stored?.["text"] === "" ||
+        quality["requiresReview"] === true ||
+        process.argv.includes("--quarantine-suspicious")
+      ) {
+        quarantined++;
+        continue;
+      }
+    }
     if (verify) {
       const stored = db
         .prepare(
@@ -130,11 +161,7 @@ try {
         continue;
       }
     }
-    const result = await importOcrRecoveryPage(
-      readFileSync(join(directory, file), "utf8"),
-      adapter,
-      manifest.modelRevision,
-    );
+    const result = await importOcrRecoveryPage(raw, adapter, manifest.modelRevision);
     if (result === "imported") imported++;
     else reused++;
     if (!verify)
@@ -271,6 +298,7 @@ try {
       imported,
       reused,
       pending,
+      quarantined,
       backupPath: existing?.backupPath ?? (verify ? undefined : backupPath),
       documents: manifest.targets.length,
     }),

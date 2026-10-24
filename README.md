@@ -39,6 +39,10 @@ publica recortes rastreáveis no workspace existente, sem confundir seção tem�
 de versículo. O [balanço de 22/10/2026](docs/content/thematic-expansion-2026-10-22.md) distingue
 conteúdo incorporado, auditoria estrutural e frentes ainda pendentes.
 
+A [fila contextual de 24/10/2026](docs/content/contextual-library-expansion-2026-10-24.md)
+reutiliza os extratores e importadores canônicos, com retomada, staging e bloqueios por
+tipo documental. O relatório distingue os novos recortes, comentários e tentativas OCR.
+
 ## Desenvolvimento
 
 A [recuperação OCR em fila](docs/architecture/offline-ocr-recovery.md) processa os PDFs já
