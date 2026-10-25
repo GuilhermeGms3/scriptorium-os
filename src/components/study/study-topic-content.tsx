@@ -4,6 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import type { StudyTopic } from "../../lib/application/study-topic-service";
 import { Button } from "../ui/button";
+import { StudyTopicDeepening } from "./study-topic-deepening";
 
 export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
   const [index, setIndex] = useState(0);
@@ -106,6 +107,13 @@ export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
         {current.paragraphs.map((paragraph, position) => (
           <p key={`${current.id}:${position}`}>{paragraph}</p>
         ))}
+        {current.deepening && (
+          <StudyTopicDeepening
+            key={current.id}
+            content={current.deepening}
+            passages={current.passages ?? []}
+          />
+        )}
         <details className="topic-lesson-bibliography">
           <summary>
             Sobre este texto e referências {references.length > 0 ? `(${references.length})` : ""}

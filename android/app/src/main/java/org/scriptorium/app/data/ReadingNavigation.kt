@@ -1,6 +1,7 @@
 package org.scriptorium.app.data
 
 import org.json.JSONObject
+import org.json.JSONArray
 import org.scriptorium.app.content.Edition
 import java.text.Normalizer
 import java.time.LocalDate
@@ -21,6 +22,16 @@ fun readingBookCatalog(editions: List<Pair<Edition, List<Row>>>): List<ReadingBo
 
 /** Navigation only: actual chapter/verse availability is checked against the selected edition. */
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
+    fun editorialLesson(id: String): JSONObject? {
+        if (!id.startsWith("lesson:")) return null
+        val content = labels.optJSONObject("studyContent") ?: return null
+        val lesson = content.optJSONObject("lessons")?.optJSONObject(id.removePrefix("lesson:")) ?: return null
+        val chapters = content.optJSONObject("chapters") ?: return null
+        val resolved = lesson.strings("chapterIds").map { key -> chapters.optJSONObject(key) ?: return null }
+        return JSONObject().put("title", lesson.getString("title")).put("chapters", JSONArray(resolved.map { JSONObject(it.toString()) }))
+    }
+    fun editorialCourse(id: String): JSONObject? = labels.optJSONObject("studyContent")?.optJSONObject("courses")?.optJSONObject(id)?.let { JSONObject(it.toString()) }
+    fun lessonReferences(): List<JSONObject> = labels.optJSONObject("studyContent")?.objects("references").orEmpty()
     fun discovery(): JSONObject? = labels.optJSONObject("discovery")?.let { JSONObject(it.toString()) }
     fun formation(id: String? = null): JSONObject? = labels.optJSONObject("formation")?.takeIf { id == null || it.optString("id") == id }?.let { JSONObject(it.toString()) }
     fun topic(id: String, fallback: String): String = labels.optJSONObject("topics")?.optString(id)?.takeIf(String::isNotBlank)

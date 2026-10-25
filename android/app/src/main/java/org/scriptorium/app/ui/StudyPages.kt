@@ -70,7 +70,7 @@ internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: Mob
                             }
                             module.objects("passages").forEach { passage -> PassageButton(repository, passage.getString("book"), passage.getInt("chapter"), passage.getString("label"), open = open) }
                         }
-                        StudyPageKind.CHAPTER -> StudyParagraphs(page.content?.strings("paragraphs").orEmpty())
+                        StudyPageKind.CHAPTER -> StudyChapter(page.content, repository, open)
                         StudyPageKind.SOURCES -> StudyReadings("study-guide:${guide.getString("id")}", guide.getString("title"), repository, openLibrary)
                         StudyPageKind.NOTEBOOK -> {
                             Text("Reúna suas observações e referências em uma nota vinculada a este tema.", style = MaterialTheme.typography.bodyLarge)
@@ -101,7 +101,7 @@ internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: Mob
 }
 
 @Composable
-internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRepository, personal: PersonalRepository, openLibrary: (StudyReading?) -> Unit) {
+internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRepository, personal: PersonalRepository, openLibrary: (StudyReading?) -> Unit, openPassage: (Passage) -> Unit) {
     val chapters = lesson.objects("chapters")
     val pageIds = chapters.map { it.getString("id") } + listOf("library", "synthesis")
     val titles = chapters.mapIndexed { index, chapter -> if (index == 0) "Início · ${chapter.getString("title")}" else chapter.getString("title") } + listOf("Leituras do acervo", "Minha síntese")
@@ -125,7 +125,7 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
                         when {
                             selected < chapters.size -> {
                                 Heading(chapters[selected].getString("title"))
-                                StudyParagraphs(chapters[selected].strings("paragraphs"))
+                                StudyChapter(chapters[selected], repository, openPassage)
                                 AudioTextActions(chapters[selected].getString("title"), chapters[selected].strings("paragraphs").joinToString("\n\n"), "pt-BR", JSONObject().put("kind", "study").put("lessonId", id).put("chapterId", chapters[selected].getString("id")))
                                 StudyReadings(id, lesson.getString("title"), repository, openLibrary)
                             }

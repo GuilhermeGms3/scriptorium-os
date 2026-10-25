@@ -2,8 +2,34 @@ import { describe, expect, it } from "vitest";
 import { PORTUGUESE_KNOWLEDGE_LABELS } from "../knowledge-presentation";
 import { STUDY_GUIDES } from "../study-guides";
 import { lessonForTopic, LESSON_REFERENCES, TOPIC_PRIMERS } from "./catalog";
+import { TOPIC_DEEPENING } from "./deepening";
+import { DEEPENING_PASSAGES } from "./deepening-passages";
+import { BIBLIA_LIVRE_BOOKS } from "../../corpus-config/biblia-livre";
 
 describe("Conteúdo educacional dos temas", () => {
+  it("liga os casos bíblicos a livros reais e intervalos explícitos", () => {
+    const books = new Set(Object.values(BIBLIA_LIVRE_BOOKS).map((book) => book[0]));
+    for (const [id, passages] of Object.entries(DEEPENING_PASSAGES)) {
+      expect(TOPIC_PRIMERS[id], id).toBeDefined();
+      for (const passage of passages) {
+        expect(books.has(passage.ref.bookId), passage.label).toBe(true);
+        expect(passage.ref.chapter).toBeGreaterThan(0);
+        expect(passage.ref.verseStart).toBeGreaterThan(0);
+        expect(passage.ref.verseEnd).toBeGreaterThanOrEqual(passage.ref.verseStart!);
+      }
+    }
+  });
+  it("aprofunda cada entidade com análise, caso e síntese específicos", () => {
+    expect(Object.keys(TOPIC_DEEPENING).sort()).toEqual(Object.keys(TOPIC_PRIMERS).sort());
+    for (const [id, title] of Object.entries(PORTUGUESE_KNOWLEDGE_LABELS)) {
+      const deeper = lessonForTopic({ id, title })!.chapters[0]!.deepening!;
+      expect(deeper, id).toBeDefined();
+      expect(deeper.analysis).not.toBe(deeper.caseStudy);
+      expect(deeper.caseStudy).not.toBe(deeper.reflection);
+    }
+    expect(TOPIC_DEEPENING["doctrine:trinity"]).not.toEqual(TOPIC_DEEPENING["doctrine:incarnation"]);
+    expect(TOPIC_DEEPENING["method:textual-criticism"]).not.toEqual(TOPIC_DEEPENING["method:source-criticism"]);
+  });
   it("inclui os sete concílios sem substituir a abertura temática e distingue história medieval", () => {
     const history = lessonForTopic({
       id: "study-guide:historia-tradicoes",

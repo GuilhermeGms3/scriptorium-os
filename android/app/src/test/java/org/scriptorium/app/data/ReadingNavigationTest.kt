@@ -8,6 +8,20 @@ import java.io.File
 import java.time.LocalDate
 
 class ReadingNavigationTest {
+    @Test fun updatedLessonsOverlayOldCorpusWithoutLosingChapterIdentityOrLeakingMutableObjects() {
+        val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
+        val topic = metadata.editorialLesson("lesson:doctrine:trinity")!!
+        val first = topic.objects("chapters").first()
+        assertEquals("overview:doctrine:trinity", first.getString("id"))
+        assertTrue(first.getJSONObject("deepening").getString("caseStudy").contains("Mateus"))
+        first.put("title", "alterado")
+        assertEquals("Trindade", metadata.editorialLesson("lesson:doctrine:trinity")!!.objects("chapters").first().getString("title"))
+        assertEquals(listOf("interpretation", "context", "parable", "reception"), metadata.editorialLesson("lesson:study-guide:biblia-interpretacao")!!.objects("chapters").map { it.getString("id") })
+        assertNotNull(metadata.editorialCourse("course:genesis-1"))
+        assertNull(metadata.editorialLesson("lesson:user:new"))
+        assertNull(ReadingNavigation().editorialLesson("lesson:doctrine:trinity"))
+        assertTrue(metadata.lessonReferences().isNotEmpty())
+    }
     @Test fun discoveryIsAvailableWithoutReimportingCorpusAndReturnsIndependentSnapshots() {
         val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
         val course = requireNotNull(metadata.discovery())

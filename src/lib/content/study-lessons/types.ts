@@ -1,3 +1,6 @@
+import type { DeepStudy } from "./deepening-types";
+import type { LessonPassage } from "./deepening-passages";
+
 export interface LessonReference {
   id: string;
   title: string;
@@ -9,6 +12,8 @@ export interface LessonChapter {
   title: string;
   paragraphs: readonly string[];
   references: readonly string[];
+  deepening?: DeepStudy;
+  passages?: readonly LessonPassage[];
 }
 export interface TopicPrimer {
   family: string;

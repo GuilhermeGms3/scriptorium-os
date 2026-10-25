@@ -194,7 +194,7 @@ private fun StudyCheck(label: String, checked: Boolean, enabled: Boolean, change
 }
 
 @Composable
-private fun StudyReferences(references: List<JSONObject>) {
+internal fun StudyReferences(references: List<JSONObject>) {
     val context = LocalContext.current
     var error by remember { mutableStateOf(false) }
     var expanded by remember(references.map { it.optString("id") }) { mutableStateOf(false) }

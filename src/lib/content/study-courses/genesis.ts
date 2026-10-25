@@ -3,6 +3,7 @@ import { GENESIS_ORIENTATION, GENESIS_TEXT } from "./genesis-orientation";
 import { GENESIS_LANGUAGE } from "./genesis-language";
 import { GENESIS_CONTEXT } from "./genesis-context";
 import { GENESIS_INTERPRETATIONS, GENESIS_SYNTHESIS } from "./genesis-interpretations";
+import { GENESIS_DEEPENING } from "./genesis-deepening";
 
 export const GENESIS_COURSE: StudyCourse = {
   id: "genesis-1",
@@ -27,7 +28,15 @@ export const GENESIS_COURSE: StudyCourse = {
     GENESIS_CONTEXT,
     GENESIS_INTERPRETATIONS,
     GENESIS_SYNTHESIS,
-  ],
+  ].map((module) => ({ ...module, lessons: module.lessons.map((lesson, index) => index > 0 ? lesson : {
+    ...lesson,
+    sections: lesson.sections.map((section, sectionIndex, sections) => {
+      const first = sections.findIndex((item) => item.kind === section.kind) === sectionIndex;
+      const deeper = GENESIS_DEEPENING[module.id];
+      const extra = first && (section.kind === "concept" ? deeper?.analysis : section.kind === "example" ? deeper?.caseStudy : section.kind === "discussion" ? deeper?.reflection : undefined);
+      return { ...section, paragraphs: extra ? [...section.paragraphs, extra] : section.paragraphs };
+    }),
+  }) })),
   references: [
     {
       id: "net",

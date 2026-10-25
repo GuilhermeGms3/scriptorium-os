@@ -30,7 +30,7 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
                 lessonId != null -> {
                     TextButton(onClick = ::returnHome) { Text("Voltar às aulas") }
                     Load(lessonId, { repository.catalogItem(requireNotNull(lessonId)) }) { lesson ->
-                        if (lesson != null) LessonSequence(requireNotNull(lessonId).removePrefix("lesson:"), lesson, repository, personal, openLibrary)
+                        if (lesson != null) LessonSequence(requireNotNull(lessonId).removePrefix("lesson:"), lesson, repository, personal, openLibrary, openPassage)
                     }
                 }
                 currentCourse != null -> Load(currentCourse, { repository.catalogItem(currentCourse) }) { json ->

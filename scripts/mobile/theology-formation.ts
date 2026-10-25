@@ -2,6 +2,33 @@ import { FORMATION_CHAPTERS } from "./formation-content";
 import { STUDY_GUIDES } from "../../src/lib/content/study-guides";
 import { lessonForTopic, LESSON_REFERENCES } from "../../src/lib/content/study-lessons/catalog";
 import type { StudyCourse, CourseModule } from "../../src/lib/domain/study-course";
+import type { DeepStudy } from "../../src/lib/content/study-lessons/deepening-types";
+import { FORMATION_DEEPENING } from "./formation-deepening";
+
+function deeperSections(content: DeepStudy | undefined, references: readonly string[]) {
+  return content
+    ? [
+        {
+          kind: "concept" as const,
+          title: "Aprofundar o argumento",
+          paragraphs: [content.analysis],
+          references,
+        },
+        {
+          kind: "example" as const,
+          title: "Um caso para examinar",
+          paragraphs: [content.caseStudy],
+          references,
+        },
+        {
+          kind: "discussion" as const,
+          title: "Construir e revisar a síntese",
+          paragraphs: [content.reflection],
+          references,
+        },
+      ]
+    : [];
+}
 
 interface FormationPlan {
   id: string;
@@ -337,26 +364,34 @@ const modules = FORMATION_PLAN.map(
               paragraphs: chapter.paragraphs,
               references: chapter.references,
             },
+            ...deeperSections(
+              chapter.deepening ??
+                FORMATION_DEEPENING[chapter.id as keyof typeof FORMATION_DEEPENING],
+              chapter.references,
+            ),
           ],
         })),
         {
           id: `${plan.id}:practice`,
           title: "Aplicação do método",
-          sections: (practical.length
-            ? practical
-            : [
-                {
-                  title: "Do conteúdo à investigação",
-                  explanation: plan.objective,
-                  questions: [plan.task],
-                },
-              ]
-          ).map((item) => ({
-            kind: "discussion" as const,
-            title: item.title,
-            paragraphs: [item.explanation, ...item.questions],
-            references: [],
-          })),
+          sections: [
+            ...(practical.length
+              ? practical
+              : [
+                  {
+                    title: "Do conteúdo à investigação",
+                    explanation: plan.objective,
+                    questions: [plan.task],
+                  },
+                ]
+            ).map((item) => ({
+              kind: "discussion" as const,
+              title: item.title,
+              paragraphs: [item.explanation, ...item.questions],
+              references: [],
+            })),
+            ...(plan.id === "synthesis" ? deeperSections(FORMATION_DEEPENING.synthesis, []) : []),
+          ],
         },
       ],
       passages: passages.map((item, index) => ({

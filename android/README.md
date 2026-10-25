@@ -1,5 +1,19 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Conteúdo aprofundado de Estudos — 0.6.4
+
+O APK entrega a ampliação das 95 entidades e dos 16 guias: Análise, Caso de leitura
+com vínculos bíblicos quando pertinentes e Minha síntese, mostrando um contexto
+por vez. A formação geral de 18 módulos, Conhecer para amar e Gênesis também foram
+ampliados. A árvore, a trilha e os identificadores de progresso foram preservados.
+
+O conteúdo editorial novo tem prioridade sobre as aulas antigas do pacote instalado.
+**Basta atualizar o APK**, sem reimportar livros ou apagar progresso. O catálogo de
+capítulos é deduplicado no asset; as fontes privadas continuam nos serviços existentes.
+Não inclui nova curadoria de vídeos nem revisão acadêmica humana de cada parágrafo.
+[Escopo e fontes](../docs/content/study-deepening-2026-10-25.md) ·
+[Validação](../docs/qa/android-study-depth-2026-10-25.md).
+
 ## Conhecer para amar e árvore progressiva — 0.6.3
 
 Estudos conserva a árvore visual e destaca uma próxima descoberta. O primeiro

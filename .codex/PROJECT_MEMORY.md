@@ -1,5 +1,23 @@
 # Project Memory
 
+## Android0.6.4/web — aprofundamento de Estudos — 2026-10-25
+
+-95entidades/16guias,111aulas/130capítulos,97aprofundamentos distintos (13.470palavras)
+  com análise/caso/síntese;aliases equivalentes e competências compartilhadas explícitos.
+  Conhecerparaamar4424palavras/30seções;formação18módulos/200seções;Gênesis6módulos ampliados.
+- IDs/requisitos anteriores preservados;fixture público study-progress-baseline.json
+  confere módulos/aulas/leituras/quantidade de capítulos. Sem schema/deps novas.
+- Registro editorial deduplicado no reading-labels sobrepõe aulas antigas do pacote
+  Android e Gênesis;sem reimportar acervo/PDFs. Casos pertinentes têm links bíblicos.
+- Um contexto por vez no Android/web;árvore/trilha preservadas. Formação/Conhecerparaamar
+  ainda nativos;web consome temas/guias/Gênesis. Sem revisão acadêmica humana/curadoria vídeo nova.
+- TS579/92arquivos,typecheck/ESLint/buildweb/buildAndroid aprovados;JVM71/0falhas;
+  lint0erros49avisos;asset do APK idêntico ao editorial gerado.
+  Web1440/390px sem overflow/erros;3cenários nativos verificados (2+1reteste),acervo real.
+  QA descreve ANRSystemUI e correção de rolagem no teste;telefone ausente.
+- Fontes/escopo:docs/content/study-deepening-2026-10-25.md;
+  evidências:docs/qa/android-study-depth-2026-10-25.md.
+
 ## Android0.6.3 — Conhecer para amar — 2026-10-25
 
 - Primeiro percurso de descoberta:6módulos/30seções/3.001palavras editoriais originais,

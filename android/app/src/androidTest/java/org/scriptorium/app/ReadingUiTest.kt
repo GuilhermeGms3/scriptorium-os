@@ -107,6 +107,30 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun deeperLessonsReachOldInstalledCatalogWithContextSwitchesAndBibleLinks() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val repo = repository()
+        val lessons = repo.catalog("lesson")
+        assertEquals(111, lessons.size)
+        lessons.forEach { row ->
+            val chapters = repo.catalogItem(row.text("id"))!!.objects("chapters")
+            assertTrue(row.text("id"), chapters.isNotEmpty() && chapters.all { it.has("deepening") })
+        }
+        val lesson = repo.catalogItem("lesson:doctrine:trinity")!!
+        val deeper = lesson.objects("chapters").first().getJSONObject("deepening")
+        startAt("Gn1:1"); click("Estudos"); reveal("Explorar outros estudos"); click("Explorar outros estudos")
+        reveal("Aulas temáticas · 111 ▾"); click("Aulas temáticas · 111 ▾"); reveal("Encontrar aula"); enter("Trindade")
+        reveal("Abrir aula →"); click("Abrir aula →")
+        reveal(deeper.getString("analysis")); waitNode(deeper.getString("analysis"))
+        click("Caso de leitura"); waitNode(deeper.getString("caseStudy")); capture("depth-case")
+        reveal("Mateus 28:16–20"); click("Mateus 28:16–20"); waitNode("Painel")
+        val target = decodePassage(ReadingPreferences(context).lastPassage(), repo.scriptureEditions())
+        assertEquals("matthew", target?.bookId); assertEquals(28, target?.chapter); assertEquals(16, target?.verse)
+        back(); back(); reveal("Minha síntese"); click("Minha síntese"); waitNode(deeper.getString("reflection"))
+        capture("depth-synthesis")
+        println("DEPTH_QA 111overlaidLessons/analysisCaseSynthesis/realBibleLink/preservedChapterIds passed")
+    }
     @Test fun discoveryUnlocksConceptsAndPersistsAcademicProgressWithRealReadings() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val context = instrumentation.targetContext

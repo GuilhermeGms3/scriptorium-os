@@ -1,5 +1,6 @@
 import type { CourseModule, StudyCourse } from "../../domain/study-course";
 import { section as s, lesson as l, reading as r, criteria } from "./helpers";
+import { KNOWING_GOD_DEEPENING } from "./knowing-god-deepening";
 
 // Original introductory exposition. References identify primary texts, not quotations
 // or claims of academic review. Private sources are resolved separately on the device.
@@ -156,8 +157,17 @@ export const KNOWING_GOD_COURSE = {
   description: "Uma primeira investigação sobre o Deus cristão: da pergunta pessoal ao testemunho de Israel, à identidade de Jesus, à cruz, à ressurreição e à vida. Conteúdo editorial introdutório com fontes identificadas, sem pressupor adesão religiosa ou substituir formação acadêmica.",
   prerequisites: ["Nenhum conhecimento prévio de teologia. Disponibilidade para ler, perguntar e registrar observações."],
   outcomes: ["Ler unidades bíblicas em contexto.", "Distinguir texto, interpretação e aplicação.", "Construir uma síntese com fontes e uma próxima pergunta."],
-  modules,
+  modules: modules.map((module) => ({ ...module, lessons: module.lessons.map((lesson) => ({ ...lesson,
+    sections: lesson.sections.map((section) => {
+      const deeper = KNOWING_GOD_DEEPENING[module.id];
+      const extra = section.kind === "concept" ? deeper?.analysis : section.kind === "example" ? deeper?.caseStudy : section.kind === "discussion" ? deeper?.reflection : undefined;
+      return { ...section, paragraphs: extra ? [...section.paragraphs, extra] : section.paragraphs,
+        references: module.id === "buscar" && section.kind === "concept" ? [...section.references, "aquinas-knowledge"] : module.id === "viver" && section.kind === "concept" ? [...section.references, "aquinas-charity"] : section.references };
+    }),
+  })) })),
   references: [
+    { id: "aquinas-knowledge", title: "Tomás de Aquino — Suma Teológica I, q. 12", url: "https://www.newadvent.org/summa/1012.htm", perspective: "Fonte escolástica cristã latina; conhecimento humano de Deus. Tradução inglesa histórica." },
+    { id: "aquinas-charity", title: "Tomás de Aquino — Suma Teológica II–II, q. 25", url: "https://www.newadvent.org/summa/3025.htm", perspective: "Fonte escolástica cristã latina; amor a Deus e ao próximo. Tradução inglesa histórica." },
     { id: "aquinas-love", title: "Tomás de Aquino — Suma Teológica, I–II, q. 27, a. 2", url: "https://www.newadvent.org/summa/2027.htm#article2", perspective: "Fonte escolástica cristã latina; tradução inglesa histórica. Exposição editorial em português, sem citação traduzida literal." },
     { id: "augustine-search", title: "Agostinho — Confissões, livro I, capítulo 1", url: "https://www.newadvent.org/fathers/110101.htm", perspective: "Oração autobiográfica cristã antiga; tradução inglesa histórica. Comparar com a edição instalada quando disponível." },
     { id: "athanasius-incarnation", title: "Atanásio — Sobre a encarnação, §§ 1–3", url: "https://www.newadvent.org/fathers/2802.htm", perspective: "Tratado apologético cristão antigo; tradução inglesa histórica. Perspectiva do autor identificada, sem equivalência a consenso inter-religioso." },

@@ -19,6 +19,7 @@ import { STUDY_GUIDES } from "../../src/lib/content/study-guides";
 import type { Book } from "../../src/lib/domain/scripture";
 import { THEOLOGY_FORMATION } from "./theology-formation";
 import { KNOWING_GOD_COURSE } from "../../src/lib/content/study-courses/knowing-god";
+import { buildStudyEditorial } from "./study-editorial";
 import mundial from "../../generated/corpora/biblia-portuguesa-mundial/2026-08-19/manifest.json";
 import kingJames from "../../generated/corpora/king-james-version/2026-09-26/manifest.json";
 import { MOBILE_WORK_LABELS, MOBILE_EDITION_LABELS } from "./reading-metadata";
@@ -112,6 +113,7 @@ writeFileSync(
       studyAreas,
       formation: THEOLOGY_FORMATION,
       discovery: { ...KNOWING_GOD_COURSE, id: `course:${KNOWING_GOD_COURSE.id}` },
+      studyContent: buildStudyEditorial(),
       // The site's names for codes the Android screens show (Teologia, proposições).
       vocabulary: {
         claimKinds: Object.fromEntries(CLAIM_KINDS.map((kind) => [kind, claimKindLabel(kind)])),

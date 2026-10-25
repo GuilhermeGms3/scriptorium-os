@@ -6,7 +6,7 @@ Estudos Android preserva a árvore visual e passa a oferecer uma próxima descob
 com a trilha horizontal e os outros estudos recolhidos. Não altera a árvore web,
 Escrituras, Biblioteca, Rastro, Áudio ou suas formas independentes de acesso.
 
-O percurso introdutório tem seis módulos, 30 seções e cerca de 3.000 palavras de
+O percurso introdutório tem seis módulos, 30 seções e 4.424 palavras de
 exposição original em português: busca, Deus de Israel, Jesus, cruz, ressurreição
 e vida cristã. Cada módulo distingue introdução, conceito, exemplo de observação,
 discussão e conclusão, seguido por leituras e síntese. Não representa formação

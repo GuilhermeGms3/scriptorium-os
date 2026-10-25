@@ -190,3 +190,12 @@ os escritores parados. A prévia isolada continua útil para o QA sem alterar os
 - O acervo original foi consultado somente em leitura; o QA de escrita usou um workspace OPFS
   isolado. Lock Linux e journal de backup preexistentes foram preservados. O Docker indisponível
   impediu validar o fluxo completo da instalação com seus livros privados no navegador.
+
+## Ampliação editorial de 25/10/2026
+
+As 95 entidades e os 16 guias também oferecem análise, caso e síntese específicos.
+O aprofundamento é separado da abertura, com um contexto visível por vez. O mesmo
+catálogo atualizado chega ao Android pelo APK, sobrepondo as aulas editoriais do
+pacote antigo sem reimportar livros nem alterar IDs de progresso. A formação geral
+e os cursos Conhecer para amar e Gênesis foram ampliados. Ver
+[escopo, fontes e limites](../content/study-deepening-2026-10-25.md).

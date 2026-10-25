@@ -842,6 +842,33 @@
   line-height: 1.8;
   color: var(--muted-foreground);
 }
+.topic-deepening {
+  margin: 2rem 0;
+  border-top: 1px solid var(--border);
+  padding-top: 1.25rem;
+}
+.topic-deepening-choices {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  margin: 0.75rem 0 1rem;
+}
+.topic-deepening-text {
+  border-left: 2px solid var(--secondary);
+  background: var(--muted);
+  padding: clamp(1rem, 3vw, 1.5rem);
+}
+.topic-deepening-text h3 {
+  color: var(--primary);
+  font-family: var(--font-sans);
+  font-size: 0.95rem;
+  margin-bottom: 0.9rem;
+}
+.topic-deepening-text p {
+  color: var(--foreground);
+  font-size: 1.04rem;
+  line-height: 1.95;
+}
 .topic-lesson-bibliography summary,
 .topic-lesson-acervo > summary {
   cursor: pointer;
