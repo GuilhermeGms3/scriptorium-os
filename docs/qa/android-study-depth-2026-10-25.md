@@ -61,8 +61,18 @@ Screenshots Android de caso e síntese e screenshots web foram inspecionados.
 - Curadoria audiovisual e reprocessamento documental não fazem parte da mudança.
 - Formação geral e Conhecer para amar continuam com consumidores Android; temas,
   guias e Gênesis também usam o conteúdo ampliado no web.
-- Sem instalação física confirmada: o celular não apareceu no USB nesta rodada.
+- Na rodada de QA, o celular estava ausente; a instalação posterior está registrada abaixo.
 - Sem alteração de schema, nova cópia integral de banco, PDF ou acervo.
 
 O asset editorial contido no APK foi comparado byte a byte com o JSON gerado e
 validado no projeto: idêntico. Não é necessário exportar outro pacote de acervo.
+
+## Instalação física posterior — 25/10/2026
+
+A pedido do usuário, APK0.6.4/code16 instalado sobre0.6.2/code14 no Samsung
+SM-S906E por `adb install -r`, com retorno Success. `dumpsys package` confirmou
+versão0.6.4/code16. A abertura da MainActivity retornou Status ok, COLD,1368ms.
+O identificador de acervo permaneceu idêntico antes/depois:
+`4c8bad603f43da83e4e232109ba78b6fe4212400e9da47d2a7d92b0ffb8aa2f4`.
+Não houve desinstalação, limpeza de dados ou reimportação do pacote. Não foram
+executados cenários que alteram progresso de QA no telefone pessoal.

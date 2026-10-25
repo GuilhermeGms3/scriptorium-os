@@ -14,7 +14,10 @@
 - TS579/92arquivos,typecheck/ESLint/buildweb/buildAndroid aprovados;JVM71/0falhas;
   lint0erros49avisos;asset do APK idêntico ao editorial gerado.
   Web1440/390px sem overflow/erros;3cenários nativos verificados (2+1reteste),acervo real.
-  QA descreve ANRSystemUI e correção de rolagem no teste;telefone ausente.
+  QA descreve ANRSystemUI e correção de rolagem no teste;telefone ausente no QA inicial.
+- Instalação física posterior autorizada:SamsungSM-S906E,install-r Success,0.6.4/code16
+  confirmados;aberturaCOLD1368ms/statusok;mesmo acervo4c8bad60…aa2f4 antes/depois.
+  Sem desinstalação/limpeza/reimportação ou cenários de QA que escrevem progresso.
 - Fontes/escopo:docs/content/study-deepening-2026-10-25.md;
   evidências:docs/qa/android-study-depth-2026-10-25.md.
 
