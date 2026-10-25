@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowLeft, BookOpen, Check, Lock, NotebookPen } from "lucide-react";
+import { ArrowLeft, BookOpen, Check, NotebookPen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
@@ -24,6 +24,7 @@ import {
 import { StudyNotebook } from "./study-notebook";
 import { StudyTopicVideos } from "./study-topic-videos";
 import { CoursePassageReading } from "./course-passages";
+import { StudyFoundation } from "./study-foundation";
 import {
   CourseExternalReferences,
   CourseLibraryInventory,
@@ -281,7 +282,7 @@ function CourseModuleWorkspace({
                 {done ? (
                   <Check aria-label="Concluído" />
                 ) : !unlocked ? (
-                  <Lock aria-label="Bloqueado" />
+                  <span aria-label="Não liberado">{index + 1}</span>
                 ) : (
                   String(index + 1).padStart(2, "0")
                 )}
@@ -373,6 +374,7 @@ function CourseModuleWorkspace({
                 )}
               </section>
             ))}
+            <StudyFoundation records={module.foundation ?? []} />
             <label className="course-check">
               <input
                 type="checkbox"
@@ -463,6 +465,7 @@ function CourseModuleWorkspace({
             links={links}
             {...(group ? { studyId: group.id } : {})}
           />
+          <StudyFoundation records={module.foundation ?? []} />
           <CourseExternalReferences course={course} module={module} />
           <CourseLibraryInventory />
         </TabsContent>

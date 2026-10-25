@@ -5,6 +5,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import org.scriptorium.app.data.*
@@ -15,6 +16,7 @@ import kotlinx.coroutines.withContext
 
 @Composable
 fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requestedGuide: String? = null, openPassage: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit = {}) {
+    val homeState = rememberSaveableStateHolder()
     var guide by rememberSaveable(requestedGuide) { mutableStateOf(requestedGuide) }
     var course by rememberSaveable { mutableStateOf<String?>(null) }
     var lessonId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -28,7 +30,7 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
             val currentGuide = guide
             when {
                 lessonId != null -> {
-                    TextButton(onClick = ::returnHome) { Text("Voltar às aulas") }
+                    TextButton(onClick = ::returnHome) { Text("Voltar aos temas") }
                     Load(lessonId, { repository.catalogItem(requireNotNull(lessonId)) }) { lesson ->
                         if (lesson != null) LessonSequence(requireNotNull(lessonId).removePrefix("lesson:"), lesson, repository, personal, openLibrary, openPassage)
                     }
@@ -38,8 +40,8 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
                     else { Text("Percurso não disponível neste acervo."); TextButton(onClick = ::returnHome) { Text("Voltar à árvore") } }
                 }
                 currentGuide != null && !state.guideUnlocked(currentGuide) -> {
-                    Heading("Um passo antes deste conceito", "Conclua o percurso anterior na árvore para liberar este guia.")
-                    state.discovery?.let { discovery -> Button(onClick = { guide = null; courseModule = -1; course = discovery.getString("id") }) { Text("Continuar minha descoberta") } }
+                    Heading("Pré-requisito pendente", "Conclua o percurso anterior na árvore para liberar este guia.")
+                    state.discovery?.let { discovery -> Button(onClick = { guide = null; courseModule = -1; course = discovery.getString("id") }) { Text("Continuar percurso") } }
                     TextButton(onClick = ::returnHome) { Text("Voltar à árvore") }
                 }
                 currentGuide != null -> {
@@ -49,7 +51,7 @@ fun StudyScreen(repository: MobileRepository, personal: PersonalRepository, requ
                         else Text("Guia não disponível neste acervo.")
                     }
                 }
-                else -> StudyHome(state, repository, { guide = it }, { id, index -> courseModule = index; course = id }, { lessonId = it })
+                else -> homeState.SaveableStateProvider("study-home") { StudyHome(state, repository, { guide = it }, { id, index -> courseModule = index; course = id }, { lessonId = it }) }
             }
         }
     }

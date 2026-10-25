@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, BookOpen } from "lucide-react";
 import type { StudyTopic } from "../../lib/application/study-topic-service";
 import { Button } from "../ui/button";
 import { StudyTopicDeepening } from "./study-topic-deepening";
+import { StudyFoundation } from "./study-foundation";
 
 export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
   const [index, setIndex] = useState(0);
@@ -114,33 +115,36 @@ export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
             passages={current.passages ?? []}
           />
         )}
-        <details className="topic-lesson-bibliography">
-          <summary>
-            Sobre este texto e referências {references.length > 0 ? `(${references.length})` : ""}
-          </summary>
-          <p>
-            Texto explicativo original do Scriptorium, separado das citações dos seus livros. As
-            referências permitem aprofundar e comparar perspectivas; fontes confessionais
-            representam a tradição indicada. Não é transcrição nem revisão acadêmica do material.
-          </p>
-          {references.length === 0 ? (
+        <StudyFoundation records={current.foundation ?? []} />
+        {!current.foundation?.length && (
+          <details className="topic-lesson-bibliography">
+            <summary>
+              Sobre este texto e referências {references.length > 0 ? `(${references.length})` : ""}
+            </summary>
             <p>
-              Exemplo de leitura de Marcos 4, especialmente os versículos 1–20. O texto bíblico pode
-              ser consultado nas Escrituras.
+              Texto explicativo original do Scriptorium, separado das citações dos seus livros. As
+              referências permitem aprofundar e comparar perspectivas; fontes confessionais
+              representam a tradição indicada. Não é transcrição nem revisão acadêmica do material.
             </p>
-          ) : (
-            <ul>
-              {references.map((reference) => (
-                <li key={reference.id}>
-                  <a href={reference.url} target="_blank" rel="noreferrer">
-                    {reference.title} ↗
-                  </a>
-                  <small>{reference.perspective}</small>
-                </li>
-              ))}
-            </ul>
-          )}
-        </details>
+            {references.length === 0 ? (
+              <p>
+                Exemplo de leitura de Marcos 4, especialmente os versículos 1–20. O texto bíblico
+                pode ser consultado nas Escrituras.
+              </p>
+            ) : (
+              <ul>
+                {references.map((reference) => (
+                  <li key={reference.id}>
+                    <a href={reference.url} target="_blank" rel="noreferrer">
+                      {reference.title} ↗
+                    </a>
+                    <small>{reference.perspective}</small>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </details>
+        )}
       </article>
       <div className="topic-pager">
         <Button variant="ghost" disabled={selected === 0} onClick={() => turnPage(selected - 1)}>

@@ -7,6 +7,7 @@ import { TEACHING_CHAPTERS } from "./teachings";
 import { chapter, type LessonChapter, type StudyLesson } from "./types";
 import { TOPIC_DEEPENING, chapterDeepening } from "./deepening";
 import { DEEPENING_PASSAGES } from "./deepening-passages";
+import { chapterFoundation } from "./foundations-metadata";
 import {
   COUNCIL_STUDY_CHAPTERS,
   CONFESSIONAL_STUDY_CHAPTERS,
@@ -90,9 +91,16 @@ export function lessonForTopic(topic: { id: string; title: string }): StudyLesso
   return {
     title: topic.title,
     chapters: [...new Map(chapters.map((item) => [item.id, item])).values()].map((item) => {
-      const deepening = item.id === `overview:${topic.id}` ? TOPIC_DEEPENING[topic.id] : chapterDeepening(item.id);
-      const passages = item.id === `overview:${topic.id}` ? DEEPENING_PASSAGES[topic.id] : undefined;
-      return { ...item, ...(deepening ? { deepening } : {}), ...(passages ? { passages } : {}) };
+      const deepening =
+        item.id === `overview:${topic.id}` ? TOPIC_DEEPENING[topic.id] : chapterDeepening(item.id);
+      const passages =
+        item.id === `overview:${topic.id}` ? DEEPENING_PASSAGES[topic.id] : undefined;
+      return {
+        ...item,
+        foundation: chapterFoundation(item.id.replace(/^overview:/, ""), item.references),
+        ...(deepening ? { deepening } : {}),
+        ...(passages ? { passages } : {}),
+      };
     }),
   };
 }

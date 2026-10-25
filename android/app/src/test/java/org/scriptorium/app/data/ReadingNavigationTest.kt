@@ -28,7 +28,7 @@ class ReadingNavigationTest {
         assertEquals("course:conhecer-para-amar", course.getString("id"))
         assertEquals(6, course.objects("modules").size)
         course.put("title", "alterado")
-        assertEquals("Conhecer para amar", metadata.discovery()!!.getString("title"))
+        assertEquals("Conhecimento de Deus — fé e razão", metadata.discovery()!!.getString("title"))
         assertNull(ReadingNavigation().discovery())
         val first = metadata.discovery()!!.objects("modules").first()
         assertTrue(CoursePolicy.issues(first, JSONObject()).isNotEmpty())
@@ -67,6 +67,23 @@ class ReadingNavigationTest {
     }
     private val labels = JSONObject(File("../reading-labels.json").readText())
     private val navigation = ReadingNavigation(labels)
+    @Test fun editorialTreeAndFoundationsReplaceOldPackagePresentationWithoutChangingProgressKeys() {
+        val tree = requireNotNull(navigation.studyTree())
+        val nodes = tree.objects("nodes").associateBy { it.getString("id") }
+        assertEquals(16, nodes.size)
+        tree.objects("edges").forEach { edge ->
+            assertTrue(nodes.getValue(edge.getString("to")).getInt("x") > nodes.getValue(edge.getString("from")).getInt("x"))
+        }
+        val course = requireNotNull(navigation.discovery())
+        assertEquals("course:conhecer-para-amar", course.getString("id"))
+        assertEquals("Conhecimento de Deus — fé e razão", course.getString("title"))
+        course.objects("modules").forEach { assertTrue(it.objects("foundation").isNotEmpty()) }
+        val foundation = course.objects("modules").first().objects("foundation").first()
+        assertEquals("Filosofia", foundation.getString("area"))
+        assertTrue(foundation.objects("sources").all { it.has("locator") && it.has("limit") })
+        tree.put("nodes", org.json.JSONArray())
+        assertEquals(16, navigation.studyTree()!!.objects("nodes").size)
+    }
     private val books = listOf("john" to 21, "job" to 42, "jonah" to 4, "1-corinthians" to 16, "psalms" to 150, "genesis" to 50).map { (id, chapters) ->
         mapOf("id" to "work:$id", "book_id" to id, "title" to navigation.book(id)?.getString("title"), "chapters" to "$chapters", "scheme" to "scriptorium-bcv-1")
     }

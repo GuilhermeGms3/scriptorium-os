@@ -20,27 +20,41 @@ private val familyLabels = linkedMapOf("reading" to "Leitura e método", "theolo
 internal fun ThematicLessons(lessons: List<Row>, repository: MobileRepository, choose: (String) -> Unit) {
     var query by rememberSaveable { mutableStateOf("") }
     var family by rememberSaveable { mutableStateOf<String?>(null) }
-    val present = lessons.mapNotNull { repository.navigation.lesson(it.text("id"))?.optString("family") }.toSet()
-    val filtered = lessons.filter { it.text("title").contains(query, true) && (family == null || repository.navigation.lesson(it.text("id"))?.optString("family") == family) }
+    val topics = lessons.filter { repository.navigation.lesson(it.text("id"))?.optString("family") != "guides" }
+    fun group(row: Row): String = when {
+        row.text("id").startsWith("lesson:tradition:") -> "traditions"
+        row.text("id").startsWith("lesson:entity:council:") -> "councils"
+        else -> repository.navigation.lesson(row.text("id"))?.optString("family") ?: "history"
+    }
+    val labels = familyLabels + mapOf("traditions" to "Tradições cristãs", "councils" to "Concílios")
+    val groups = topics.groupBy(::group)
+    val filtered = topics.filter { it.text("title").contains(query, true) && (family == null || group(it) == family) }
     Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        Text("Escolha uma aula na trilha. Dentro dela: início, desenvolvimento, leituras do acervo e sua síntese.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
-        OutlinedTextField(query, { query = it.take(200) }, label = { Text("Encontrar aula") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            item { FilterChip(family == null, { family = null }, label = { Text("Todas") }) }
-            items(familyLabels.filterKeys { it in present }.entries.toList(), key = { it.key }) { entry -> FilterChip(family == entry.key, { family = entry.key }, label = { Text(entry.value) }) }
-        }
-        if (filtered.isEmpty()) Text("Nenhuma aula corresponde à pesquisa.")
-        LazyRow(horizontalArrangement = Arrangement.spacedBy(12.dp), contentPadding = PaddingValues(vertical = 8.dp)) {
-            itemsIndexed(filtered, key = { _, row -> row.text("id") }) { index, row ->
-                val metadata = repository.navigation.lesson(row.text("id"))
-                Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, border = BorderStroke(1.dp, MaterialTheme.colorScheme.secondary.copy(alpha = 0.4f)), shape = MaterialTheme.shapes.small,
-                    modifier = Modifier.width(276.dp).heightIn(min = 188.dp).revealSection(index).clickable { choose(row.text("id")) }) {
-                    Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Text("AULA ${(index + 1).toString().padStart(2, '0')} · ${familyLabels[metadata?.optString("family")] ?: "Estudo temático"}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-                        Text(row.text("title"), style = MaterialTheme.typography.titleLarge)
-                        Text("${metadata?.optInt("chapters") ?: 0} etapas de conteúdo", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        Text("Início → desenvolvimento → síntese", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-                        Text("Abrir aula →", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+        OutlinedTextField(query, { query = it.take(200) }, label = { Text("Buscar tema") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
+        if (family == null && query.isBlank()) {
+            Text("Áreas de estudo", style = MaterialTheme.typography.titleLarge)
+            groups.entries.toList().chunked(2).forEach { pair ->
+                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    pair.forEach { (key, entries) ->
+                        OutlinedCard(onClick = { family = key }, modifier = Modifier.weight(1f).heightIn(min = 96.dp)) {
+                            Column(Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(labels[key] ?: "Estudos", style = MaterialTheme.typography.titleMedium)
+                                Text("${entries.size} temas", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                            }
+                        }
+                    }
+                    if (pair.size == 1) Spacer(Modifier.weight(1f))
+                }
+            }
+        } else {
+            TextButton(onClick = { family = null; query = "" }) { Text("Voltar às áreas") }
+            Text(family?.let { labels[it] } ?: "Resultados", style = MaterialTheme.typography.titleLarge)
+            if (filtered.isEmpty()) Text("Nenhum tema corresponde à pesquisa.")
+            filtered.forEach { row ->
+                OutlinedCard(onClick = { choose(row.text("id")) }, modifier = Modifier.fillMaxWidth()) {
+                    Row(Modifier.padding(16.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Text(row.text("title"), Modifier.weight(1f), style = MaterialTheme.typography.titleMedium)
+                        Text("→", color = MaterialTheme.colorScheme.secondary)
                     }
                 }
             }

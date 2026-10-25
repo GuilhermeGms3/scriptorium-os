@@ -1,5 +1,6 @@
 import type { DeepStudy } from "./deepening-types";
 import type { LessonPassage } from "./deepening-passages";
+import type { StudyFoundation } from "../../domain/study-foundation";
 
 export interface LessonReference {
   id: string;
@@ -8,6 +9,7 @@ export interface LessonReference {
   perspective: string;
 }
 export interface LessonChapter {
+  foundation?: readonly StudyFoundation[];
   id: string;
   title: string;
   paragraphs: readonly string[];

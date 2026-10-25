@@ -75,8 +75,10 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
         }
         BackHandler { if (!saving) save { if (showMap) close() else if (pageIndex > 0) stage = pageIndex - 1 else showMap = true } }
         Column(Modifier.fillMaxSize()) {
-            TextButton(enabled = !saving, onClick = { save(then = close) }) { Text("Voltar aos percursos") }
-            Text(course.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+            if (showMap) {
+                TextButton(enabled = !saving, onClick = { save(then = close) }) { Text("Voltar aos estudos") }
+                Text(course.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+            }
             if (showMap) LazyColumn(Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { Text("Conclua um ponto para liberar o seguinte. Os anteriores ficam disponíveis para revisão.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant) }
                 item {
@@ -101,11 +103,10 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                     }
                 }
             } else {
-            TextButton(enabled = !saving, onClick = { save { showMap = true } }) { Text("← Ver percurso · ponto ${moduleIndex + 1} de ${modules.size}") }
+            TextButton(enabled = !saving, onClick = { save { showMap = true } }) { Text("← Percurso · módulo ${moduleIndex + 1} de ${modules.size}") }
             LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { StudyRail(pages.map { it.title }, pageIndex, "Etapas do módulo", enabled = { !saving }, compact = true, choose = ::choosePage) }
                 item(key = "$moduleId:${page.id}") { Column {
-                    if (page.lessonTitle != null) Text(page.lessonTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                     Heading(page.title)
                     when (page.kind) {
                         StudyPageKind.OBJECTIVES -> {
@@ -114,11 +115,11 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             }
                             StudyParagraphs(listOf(current.getString("description")))
                             current.strings("objectives").forEach { Text("• $it", Modifier.padding(bottom = 12.dp)) }
-                            Text("As etapas organizam sua leitura. A conclusão exige confirmar as aulas, as passagens e a atividade; o próximo módulo é liberado ao concluir este.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         }
                         StudyPageKind.LESSON_SECTION -> page.content?.let { section ->
                             StudySection(section)
-                            StudyReferences(course.objects("references").filter { it.optString("id") in section.strings("references") })
+                            if (current.objects("foundation").isNotEmpty()) StudyFoundation(current.objects("foundation"))
+                            else StudyReferences(course.objects("references").filter { it.optString("id") in section.strings("references") })
                             if (page.lastInLesson && page.lessonId != null) StudyCheck("Li esta aula", page.lessonId in work.strings("lessons"), !saving) { toggle("lessons", page.lessonId) }
                         }
                         StudyPageKind.READINGS -> {

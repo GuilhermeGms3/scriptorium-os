@@ -1,5 +1,28 @@
 # Project Memory
 
+## Estudos Android0.6.5/web — fundamentação e árvore — 2026-10-25
+
+- Home de Estudos em Árvore/Percursos/Temas; catálogo temático por áreas/busca.
+  Título público Conhecimento de Deus — fé e razão; IDs/revisão/requisitos preservados.
+- Árvore horizontal compartilhada em study-skill-tree.ts e asset studyTree; pontos
+  dourados/cinzas sem cadeados, seletor textual, pré-requisitos pela conclusão real.
+  GSAP3.15 carregado ao entrar na tela web; Compose nativo; movimento reduzido respeitado.
+- Fundamentação dos seis módulos: afirmação/domínio/natureza/fonte/localizador/
+  perspectiva/alcance/alternativas. Nos demais capítulos, bibliografia temática
+  explícita; não atribuição frase a frase nem revisão acadêmica humana.
+- Web consome introdução/Formação18/Gênesis/guias com StudyCourseRepository e gate
+  de pré-requisito existente. Progresso web e Android continuam independentes.
+- Sem migração/PDF/pacote novo. Asset editorial sobrepõe mapa/aulas/cursos antigos;
+  títulos de cursos também atualizados no catálogo de pacotes antigos.
+- TS583/93arquivos, typecheck/ESLint/buildweb aprovados. Playwright isolado
+  1440/390px: árvore/temas/percurso/fontes/gate/movimento reduzido, sem overflow/erros.
+- Fontes e QA: docs/architecture/knowing-god-discovery.md;
+  docs/qa/study-foundations-tree-2026-10-25.md. Consultar QA para resultado Android.
+- Android final:72JVM/0falhas, assembleDebug/AndroidTest/lint aprovados(0erros49avisos).
+  Temas e Formação passaram; descoberta retestada98,684s com fundamentação,
+  passagem real, recusa de trabalho incompleto, A→B e retomada. Um lint intermediário
+  preso foi encerrado e reexecutado sem desativar regras. USB físico ausente.
+
 ## Android0.6.4/web — aprofundamento de Estudos — 2026-10-25
 
 -95entidades/16guias,111aulas/130capítulos,97aprofundamentos distintos (13.470palavras)

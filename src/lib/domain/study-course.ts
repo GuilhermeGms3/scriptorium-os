@@ -1,5 +1,6 @@
 import { z } from "zod";
 import type { PassageRef } from "./scripture";
+import type { StudyFoundation } from "./study-foundation";
 
 export interface CourseReference {
   id: string;
@@ -25,6 +26,7 @@ export interface CoursePassage {
   ref: PassageRef;
 }
 export interface CourseModule {
+  foundation?: readonly StudyFoundation[];
   id: string;
   title: string;
   description: string;

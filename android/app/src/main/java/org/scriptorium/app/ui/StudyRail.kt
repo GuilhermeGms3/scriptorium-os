@@ -13,6 +13,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.semantics.*
@@ -24,6 +26,7 @@ import androidx.compose.ui.text.style.TextOverflow
 fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int) -> Boolean = { true }, completed: (Int) -> Boolean = { false }, compact: Boolean = false, choose: (Int) -> Unit) {
     val list = rememberLazyListState()
     val motion = LocalReadingAppearance.current.motion
+    val gold = if (MaterialTheme.colorScheme.surface.luminance() > 0.5f) Color(0xFF94711D) else Color(0xFFD6B85A)
     LaunchedEffect(selected) {
         if (titles.isNotEmpty()) {
             val index = (selected - 1).coerceAtLeast(0)
@@ -37,7 +40,7 @@ fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int)
                 val available = enabled(index)
                 val done = completed(index)
                 val current = selected == index
-                val accent = when { done -> MaterialTheme.colorScheme.secondary; current -> MaterialTheme.colorScheme.primary; available -> MaterialTheme.colorScheme.onSurfaceVariant; else -> MaterialTheme.colorScheme.outline }
+                val accent = if (available || done) gold else Color(0xFF858E96)
                 val surface = MaterialTheme.colorScheme.surfaceContainerHigh
                 val level = if (compact) 30.dp else if (index % 2 == 0) 46.dp else 74.dp
                 Box(Modifier.width(if (compact) 140.dp else 164.dp).height(if (compact) 112.dp else 174.dp)
@@ -66,7 +69,7 @@ fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int)
                         drawCircle(accent.copy(alpha = if (available) 1f else 0.5f), radius, Offset(x, y), style = Stroke(if (current) 2.5.dp.toPx() else 1.5.dp.toPx()))
                     }
                     Box(Modifier.align(Alignment.TopCenter).offset(y = level - 21.dp).size(42.dp), contentAlignment = Alignment.Center) {
-                        Text(if (done) "✓" else if (!available) "🔒" else (index + 1).toString().padStart(2, '0'), color = accent, style = MaterialTheme.typography.titleMedium)
+                        Text(if (done) "✓" else (index + 1).toString().padStart(2, '0'), color = accent, style = MaterialTheme.typography.titleMedium)
                     }
                     Text(title, Modifier.align(Alignment.BottomCenter).fillMaxWidth().height(if (compact) 40.dp else 48.dp).padding(horizontal = 8.dp),
                         style = MaterialTheme.typography.labelMedium, textAlign = androidx.compose.ui.text.style.TextAlign.Center,

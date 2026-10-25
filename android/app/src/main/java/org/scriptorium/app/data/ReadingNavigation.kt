@@ -22,6 +22,7 @@ fun readingBookCatalog(editions: List<Pair<Edition, List<Row>>>): List<ReadingBo
 
 /** Navigation only: actual chapter/verse availability is checked against the selected edition. */
 class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
+    fun studyTree(): JSONObject? = labels.optJSONObject("studyTree")?.let { JSONObject(it.toString()) }
     fun editorialLesson(id: String): JSONObject? {
         if (!id.startsWith("lesson:")) return null
         val content = labels.optJSONObject("studyContent") ?: return null

@@ -1,4 +1,35 @@
-# Conhecer para amar — primeiro percurso Android
+# Conhecimento de Deus — fé e razão
+
+## Atualização de apresentação e fundamentação — 25/10/2026
+
+O título público passou a ser **Conhecimento de Deus — fé e razão**. O ID
+`conhecer-para-amar`, a revisão e os identificadores de módulos, aulas e leituras
+continuam iguais para conservar o progresso existente.
+
+Estudos passa a separar **Árvore**, **Percursos** e **Temas**, no Android e na web.
+Disponibilidade é indicada por dourado; pré-requisitos pendentes ficam cinzas,
+sem ícones de cadeado. O catálogo temático inicia por áreas ou busca; os percursos
+acadêmicos ficam em uma área própria. A animação de expansão usa GSAP 3.15 na web,
+carregado apenas quando a superfície entra na tela, com limpeza ao desmontar.
+No Android o desenho usa Compose e respeita a configuração de movimento.
+Na web, `prefers-reduced-motion` desativa a animação.
+
+Os seis módulos iniciais incluem fundamentação explícita: afirmação, domínio,
+natureza da base, fonte, localizador, perspectiva, alcance e alternativas.
+Uma referência arqueológica contextual sobre Pilatos não é apresentada como
+prova de uma doutrina de salvação. As demais aulas identificam a bibliografia
+como **temática**: não há revisão humana frase a frase nem atribuição automática
+de toda a exposição editorial a cada autor citado. Fontes externas exigem rede;
+o texto da fundamentação está disponível offline no Android.
+
+A web agora também consome o percurso introdutório, os dezoito módulos de
+Formação em Teologia e os guias por área, além de Gênesis. Os guias são adaptados
+ao `StudyCourseRepository` existente e pedidos diretos verificam os pré-requisitos.
+Nenhuma tabela ou migração foi acrescentada. Android e web mantêm seus próprios
+registros locais de progresso; não foi implementada sincronização entre dispositivos.
+
+Os parágrafos seguintes registram o recorte da implementação inicial. As mudanças
+descritas nesta atualização substituem as limitações antigas de apresentação e web.
 
 ## Recorte
 

@@ -36,5 +36,6 @@ internal fun StudyChapter(chapter: JSONObject?, repository: MobileRepository, op
             PassageButton(repository, ref.getString("bookId"), ref.getInt("chapter"), passage.getString("label"), ref.optInt("verseStart").takeIf { it > 0 }, ref.optInt("verseEnd").takeIf { it > 0 }, openPassage)
         }
     }
-    StudyReferences(repository.navigation.lessonReferences().filter { it.optString("id") in chapter.strings("references") })
+    if (chapter.objects("foundation").isNotEmpty()) StudyFoundation(chapter.objects("foundation"))
+    else StudyReferences(repository.navigation.lessonReferences().filter { it.optString("id") in chapter.strings("references") })
 }

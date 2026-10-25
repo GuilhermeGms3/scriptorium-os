@@ -15,7 +15,9 @@ import {
 } from "../../src/lib/content/knowledge-presentation";
 import { groupScriptureBooks } from "../../src/lib/content/scripture-navigation";
 import { TOPIC_PRIMERS, lessonForTopic } from "../../src/lib/content/study-lessons/catalog";
-import { STUDY_GUIDES } from "../../src/lib/content/study-guides";
+import { STUDY_GUIDES, guideIdForNode } from "../../src/lib/content/study-guides";
+import { STUDY_SKILL_NODES } from "../../src/lib/content/study-skill-tree";
+import { STUDY_MAP_EDGES } from "../../src/lib/content/study-learning-map";
 import type { Book } from "../../src/lib/domain/scripture";
 import { THEOLOGY_FORMATION } from "./theology-formation";
 import { KNOWING_GOD_COURSE } from "../../src/lib/content/study-courses/knowing-god";
@@ -114,6 +116,10 @@ writeFileSync(
       formation: THEOLOGY_FORMATION,
       discovery: { ...KNOWING_GOD_COURSE, id: `course:${KNOWING_GOD_COURSE.id}` },
       studyContent: buildStudyEditorial(),
+      studyTree: {
+        nodes: STUDY_SKILL_NODES.map((node) => ({ ...node, guideId: guideIdForNode(node) })),
+        edges: STUDY_MAP_EDGES,
+      },
       // The site's names for codes the Android screens show (Teologia, proposições).
       vocabulary: {
         claimKinds: Object.fromEntries(CLAIM_KINDS.map((kind) => [kind, claimKindLabel(kind)])),

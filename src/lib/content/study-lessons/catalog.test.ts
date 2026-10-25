@@ -8,7 +8,7 @@ import { BIBLIA_LIVRE_BOOKS } from "../../corpus-config/biblia-livre";
 
 describe("Conteúdo educacional dos temas", () => {
   it("liga os casos bíblicos a livros reais e intervalos explícitos", () => {
-    const books = new Set(Object.values(BIBLIA_LIVRE_BOOKS).map((book) => book[0]));
+    const books = new Set<string>(Object.values(BIBLIA_LIVRE_BOOKS).map((book) => book[0]));
     for (const [id, passages] of Object.entries(DEEPENING_PASSAGES)) {
       expect(TOPIC_PRIMERS[id], id).toBeDefined();
       for (const passage of passages) {
@@ -27,8 +27,12 @@ describe("Conteúdo educacional dos temas", () => {
       expect(deeper.analysis).not.toBe(deeper.caseStudy);
       expect(deeper.caseStudy).not.toBe(deeper.reflection);
     }
-    expect(TOPIC_DEEPENING["doctrine:trinity"]).not.toEqual(TOPIC_DEEPENING["doctrine:incarnation"]);
-    expect(TOPIC_DEEPENING["method:textual-criticism"]).not.toEqual(TOPIC_DEEPENING["method:source-criticism"]);
+    expect(TOPIC_DEEPENING["doctrine:trinity"]).not.toEqual(
+      TOPIC_DEEPENING["doctrine:incarnation"],
+    );
+    expect(TOPIC_DEEPENING["method:textual-criticism"]).not.toEqual(
+      TOPIC_DEEPENING["method:source-criticism"],
+    );
   });
   it("inclui os sete concílios sem substituir a abertura temática e distingue história medieval", () => {
     const history = lessonForTopic({

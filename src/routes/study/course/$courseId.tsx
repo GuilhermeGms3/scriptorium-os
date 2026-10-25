@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { AcademicCourseWorkspace } from "../../../components/study/academic-course-workspace";
+import { StudyCourseGate } from "../../../components/study/study-course-gate";
 
 export const Route = createFileRoute("/study/course/$courseId")({
   component: CoursePage,
@@ -13,10 +14,22 @@ function CoursePage() {
   const search = Route.useSearch();
   const query = useQuery({
     queryKey: ["academic-course", courseId],
-    queryFn: async () =>
-      courseId === "genesis-1"
-        ? (await import("../../../lib/content/study-courses/genesis")).GENESIS_COURSE
-        : null,
+    queryFn: async () => {
+      if (courseId === "genesis-1")
+        return (await import("../../../lib/content/study-courses/genesis")).GENESIS_COURSE;
+      if (courseId === "theology-formation")
+        return {
+          ...(await import("../../../../scripts/mobile/theology-formation")).THEOLOGY_FORMATION,
+          id: "theology-formation",
+        };
+      if (courseId === "conhecer-para-amar")
+        return (await import("../../../lib/content/study-courses/knowing-god")).KNOWING_GOD_COURSE;
+      if (courseId.startsWith("guia-"))
+        return (await import("../../../lib/content/study-courses/guide-course")).guideCourse(
+          courseId.slice(5),
+        );
+      return null;
+    },
     staleTime: Infinity,
   });
   if (query.isPending)
@@ -33,11 +46,13 @@ function CoursePage() {
       </p>
     );
   return query.data ? (
-    <AcademicCourseWorkspace
-      key={`${courseId}:${search.module ?? ""}`}
-      course={query.data}
-      {...(search.module ? { initialModule: search.module } : {})}
-    />
+    <StudyCourseGate course={query.data}>
+      <AcademicCourseWorkspace
+        key={`${courseId}:${search.module ?? ""}`}
+        course={query.data}
+        {...(search.module ? { initialModule: search.module } : {})}
+      />
+    </StudyCourseGate>
   ) : (
     <div className="p-8">
       <h1>Percurso não encontrado</h1>

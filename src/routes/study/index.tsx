@@ -72,9 +72,7 @@ function StudyIndex() {
         <header className="border-b border-border bg-background px-5 py-4 md:px-7">
           <PageHeader
             className="border-b-0 pb-0"
-            eyebrow="Formação e investigação"
-            title="Árvore de estudos"
-            description="Percorra campos conectados, reúna fontes e desenvolva suas próprias investigações. Cada tema abre seu próprio guia, com roteiro e fontes do acervo — sem progresso inventado."
+            title="Estudos"
             actions={
               <div
                 className="flex flex-wrap border border-input bg-card p-0.5"
@@ -89,7 +87,7 @@ function StudyIndex() {
                     view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
                   }`}
                 >
-                  <RouteIcon className="size-3.5" /> Jornada
+                  <RouteIcon className="size-3.5" /> Formação
                 </button>
                 <button
                   type="button"
@@ -106,13 +104,6 @@ function StudyIndex() {
               </div>
             }
           />
-          <Link
-            to="/study/course/$courseId"
-            params={{ courseId: "genesis-1" }}
-            className="mt-3 inline-flex text-sm text-primary hover:underline"
-          >
-            Percurso acadêmico: Gênesis 1 — texto, contexto e interpretações →
-          </Link>
         </header>
       )}
 
