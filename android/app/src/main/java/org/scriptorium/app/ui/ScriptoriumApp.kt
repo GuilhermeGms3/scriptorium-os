@@ -33,6 +33,8 @@ fun ScriptoriumApp(model: AppModel) {
     var requestPanel by remember { mutableStateOf(false) }
     val motion = LocalReadingAppearance.current.motion
     var requestedPassage by remember { mutableStateOf<Passage?>(null) }
+    var readingEntry by rememberSaveable { mutableIntStateOf(0) }
+    var libraryEntry by rememberSaveable { mutableIntStateOf(0) }
     val screenState = rememberSaveableStateHolder()
     val context = LocalContext.current
     val preferences = remember { ReadingPreferences(context) }
@@ -75,7 +77,11 @@ fun ScriptoriumApp(model: AppModel) {
               AudioMiniPlayer { navigate("Áudio") }
               NavigationBar {
                 listOf("Leitura" to "א", "Biblioteca" to "▤", "Estudos" to "◇", "Notas" to "✎", "Busca" to "⌕").forEach { (route, symbol) ->
-                    NavigationBarItem(selected = destination == route, onClick = { navigate(route) },
+                    NavigationBarItem(selected = destination == route, onClick = {
+                        if (route == "Leitura") { requestedPassage = null; readerHasPassage = false; readingEntry++ }
+                        if (route == "Biblioteca") { requestedLibrary = null; libraryEntry++ }
+                        navigate(route)
+                    },
                         icon = { Text(symbol) }, label = { Text(route, style = MaterialTheme.typography.labelSmall) })
                 }
               }
@@ -109,9 +115,9 @@ fun ScriptoriumApp(model: AppModel) {
                 (fadeIn(tween(if (motion) 440 else 0)) + slideInVertically(tween(if (motion) 440 else 0)) { if (motion) it / 28 else 0 }).togetherWith(fadeOut(tween(if (motion) 140 else 0)))
             }, label = "Abrir módulo") { route -> screenState.SaveableStateProvider(route) {
                 when (route) {
-                    "Leitura" -> ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it }, { requestedPassage = null })
+                    "Leitura" -> key(readingEntry) { ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it }, { requestedPassage = null }) }
                     "Início" -> TodayScreen(model.repository, open = { requestedPassage = it; navigate("Leitura") }, openGuide = { requestedGuide = it; navigate("Estudos") })
-                    "Biblioteca" -> LibraryScreen(model.repository, model.personal, requestedLibrary)
+                    "Biblioteca" -> key(libraryEntry) { LibraryScreen(model.repository, model.personal, requestedLibrary) }
                     "Estudos" -> StudyScreen(model.repository, model.personal, requestedGuide, { requestedPassage = it; navigate("Leitura") }, { requestedLibrary = it; navigate("Biblioteca") })
                     "Mapa" -> KnowledgeScreen(model.repository, model.personal)
                     "Notas" -> NotesScreen(model.personal)

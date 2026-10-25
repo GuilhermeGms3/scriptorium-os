@@ -1,5 +1,21 @@
 # Project Memory
 
+## Android0.6.2 — livros e catálogos leves — 2026-10-25
+
+- Biblioteca: capas reais240px com cache JPEG atômico por checksum; metadados antes de abrir.
+  Novo BookReader: PDF à largura/pan/zoom1–4×, uma página por vez; Texto ajustado com
+  fonte/tamanho. Cabeçalho/rodapé compactos; índice/anotação/áudio/tradução em Leitura.
+- Página por livro salva em ReadingPreferences; não no backup de notas. Original/offsets
+  preservados; OCR/colunas complexas não reconstruídos. Sem acervo/migration/dependências novas.
+- Confirmado pelo usuário: também aba Leitura/Escrituras deve entrar em catálogo leve.
+  Sem capítulo automático; Continuar leitura explícito. Entradas novas por abas limpam
+  pedidos antigos; links de Busca/Estudos/Início/Áudio mantêm abertura direta.
+- Build/JVM66/lint0erros48avisos;7cenários nativos cobertos com acervo real/offline,
+  PDF/capa/cache/refluxo/fontes/retomada/catálogo/links/comentários. QA explica reteste
+  de asserção e ANR inicial do sistema do emulador. docs/qa/android-library-reader-2026-10-25.md.
+- APK de atualização0.6.2/code14 na Área de Trabalho; instalado no SM-S906E por `install -r`,
+  versão/abertura confirmadas e mesmo ID do acervo antes/depois, sem reimportação.
+
 ## Contextualização desktop — 2026-10-24
 
 - Inventário confirmado:57documentos/47.707páginas/47.441com texto. Sem novo backup completo.

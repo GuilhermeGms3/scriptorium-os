@@ -13,6 +13,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
@@ -76,18 +79,29 @@ fun SourceDialog(repository: MobileRepository, personal: PersonalRepository, com
 
 @Composable
 fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, requested: StudyReading? = null) {
-    val appearance = LocalReadingAppearance.current
+    val context = LocalContext.current
+    val preferences = remember(context) { ReadingPreferences(context) }
+    val focus = LocalFocusManager.current
+    val keyboard = LocalSoftwareKeyboardController.current
     var document by remember(requested?.id) { mutableStateOf<Row?>(requested?.page?.let { page -> mapOf("id" to page.text("document_id"), "title" to page.text("source_title"), "pages" to page.text("document_pages"), "checksum" to page.text("checksum")) }) }
     var pageIndex by rememberSaveable(requested?.id) { mutableIntStateOf(requested?.page?.number("page_index") ?: 0) }
-    var selected by remember { mutableStateOf<Row?>(null) }
     var collection by rememberSaveable { mutableStateOf("Meus livros") }
     var filter by rememberSaveable { mutableStateOf("") }
     var primary by remember(requested?.id) { mutableStateOf(requested?.work) }
     val current = document
+    fun openBook(row: Row) {
+        focus.clearFocus(); keyboard?.hide()
+        pageIndex = preferences.bookPage(row.text("id")).coerceAtMost((row.number("pages") - 1).coerceAtLeast(0))
+        document = row
+    }
     BackHandler(document != null) { document = null }
     primary?.let { PrimaryReader(repository, personal, it) { primary = null }; return }
+    if (current != null) {
+        BookReader(repository, personal, current, pageIndex, { pageIndex = it }, requested?.page) { document = null }
+        return
+    }
     Column(Modifier.fillMaxSize().padding(horizontal = 16.dp)) {
-        Heading(current?.text("title") ?: "Biblioteca", if (current == null) "Livros do pacote instalado. Texto extraído e PDF original são identificados separadamente." else "Biblioteca · página ${pageIndex + 1} de ${current.number("pages")}")
+        Heading("Biblioteca", "Escolha uma capa para abrir o leitor.")
         if (current == null) {
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                 items(listOf("Meus livros", "Fontes primárias", "Nag Hammadi", "Referências")) { name -> FilterChip(collection == name, { collection = name }, label = { Text(name) }) }
@@ -101,7 +115,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
             if (collection == "Nag Hammadi") {
                 Load("nag-hammadi", { repository.catalogItem("nag-hammadi") to repository.documents().filter { it.text("title").contains("hammadi", true) || it.text("title").contains("gnósti", true) } }) { (catalog, volumes) -> LazyColumn {
                     item { Text("Volumes integrais privados", Modifier.padding(vertical = 16.dp)) }
-                    items(volumes) { volume -> TextButton(onClick = { document = volume; pageIndex = 0 }) { Text(volume.text("title")) } }
+                    items(volumes) { volume -> TextButton(onClick = { openBook(volume) }) { Text(volume.text("title")) } }
                     item { Text(catalog?.optString("rightsNote").orEmpty(), style = MaterialTheme.typography.bodySmall) }
                     items(catalog?.objects("texts").orEmpty().filter { it.toString().contains(filter, true) }) { entry ->
                         Text(entry.optString("portugueseTitle", entry.optString("title", entry.optString("id"))), Modifier.padding(vertical = 10.dp))
@@ -119,55 +133,14 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
             LazyColumn {
                 if (documents.isEmpty()) item { Text("Nenhum livro privado neste pacote. Exporte com --workspace no PC para incluir o acervo.") }
                 itemsIndexed(documents.filter { it.text("title").contains(filter, true) }, key = { _, it -> it.text("id") }) { index, item ->
-                    Row(Modifier.fillMaxWidth().revealSection(index).clickable { document = item; pageIndex = 0 }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(Modifier.width(82.dp)) { PdfPagePreview(repository, item + mapOf("page_index" to "0", "source_title" to item.text("title")), 120.dp) }
+                    Row(Modifier.fillMaxWidth().revealSection(index).clickable { openBook(item) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                        Box(Modifier.width(76.dp).height(112.dp)) { BookCover(repository, item) }
                         Column(Modifier.weight(1f)) { Text(item.text("title")); Text("${item.number("pages")} páginas · ${item.text("language")}", style = MaterialTheme.typography.labelSmall) }
                     }
                 }
             }
-        } else {
-            TextButton(onClick = { document = null }) { Text("Voltar à estante") }
-            var showOutline by remember(current.text("id")) { mutableStateOf(false) }
-            TextButton(onClick = { showOutline = !showOutline }) { Text("Índice extraído") }
-            if (showOutline) Load(current.text("id"), { repository.outline(current.text("id")) }) { outline ->
-                LazyColumn(Modifier.heightIn(max = 220.dp)) {
-                    if (outline.isEmpty()) item { Text("Nenhum índice estruturado exportado para este livro.") }
-                    items(outline) { node -> TextButton(onClick = { pageIndex = node.number("page_start"); showOutline = false }) { Text("${node.text("title")} · p. ${node.number("page_start") + 1}") } }
-                }
-            }
-            Row(horizontalArrangement = Arrangement.SpaceBetween, modifier = Modifier.fillMaxWidth()) {
-                TextButton(enabled = pageIndex > 0, onClick = { pageIndex-- }) { Text("Anterior") }
-                Text("${pageIndex + 1}/${current.number("pages")}", modifier = Modifier.padding(top = 14.dp))
-                TextButton(enabled = pageIndex + 1 < current.number("pages"), onClick = { pageIndex++ }) { Text("Próxima") }
-            }
-            var jump by remember(current.text("id")) { mutableStateOf("") }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedTextField(jump, { jump = it.filter(Char::isDigit).take(5) }, label = { Text("Página física") }, modifier = Modifier.weight(1f), singleLine = true)
-                TextButton(enabled = (jump.toIntOrNull() ?: 0) in 1..current.number("pages"), onClick = { pageIndex = jump.toInt() - 1; jump = "" }) { Text("Ir") }
-            }
-            Load(current.text("id") to pageIndex, { repository.page(current.text("id"), pageIndex) }) { page ->
-                if (page == null) Text("Esta página não tem texto exportado.")
-                else Column(Modifier.verticalScroll(rememberScrollState())) {
-                    TextButton(onClick = { selected = page }) { Text("Abrir página e original") }
-                    TranslationBlock(page.text("text"), page.text("language"), personal)
-                    AudioTextActions("${current.text("title")} · p. ${pageIndex + 1}", page.text("text"), page.text("language"), org.json.JSONObject().put("kind", "document").put("documentId", current.text("id")).put("pageId", page.text("id")).put("pageIndex", pageIndex).put("checksum", page.text("checksum")))
-                    val full = page.text("text").ifBlank { "Página sem texto extraído. Consulte o PDF original, se incluído." }
-                    val target = requested?.page?.takeIf { it.number("page_index") == pageIndex && it.text("document_id") == current.text("id") }
-                    val start = target?.number("start_offset") ?: 0
-                    val end = target?.number("end_offset") ?: 0
-                    val highlight = MaterialTheme.colorScheme.primaryContainer
-                    SelectionContainer { Text(buildAnnotatedString {
-                        if (start >= 0 && end > start && end <= full.length) {
-                            append(full.substring(0, start))
-                            withStyle(SpanStyle(background = highlight)) { append(full.substring(start, end)) }
-                            append(full.substring(end))
-                        } else append(full)
-                    }, fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
-                }
-            }
         }
     }
-    selected?.let { PageDialog(repository, it, personal) { selected = null } }
 }
 
 @Composable

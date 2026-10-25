@@ -99,12 +99,68 @@ class ReadingUiTest {
         return MobileRepository(ContentPackageStore(File(context.filesDir, "content"), { pointer.openRead().use { it.readBytes().decodeToString() } }, { error("QA somente leitura") }, Sqlite::validate),
             ReadingNavigation(JSONObject(context.assets.open("reading-labels.json").bufferedReader().use { it.readText() })))
     }
+    private fun openSavedReading() { click("Leitura"); click("Continuar leitura") }
     private fun startAt(reference: String) {
         val context = instrumentation.targetContext
         val repository = repository()
         ReadingPreferences(context).savePassage(requireNotNull(repository.resolveReference(reference, repository.scriptureEditions().first())))
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
+    }
+    @Test fun readingTabShowsCatalogUntilBookOrResumeIsChosen() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val repo = repository()
+        val passage = requireNotNull(repo.resolveReference("Gn12:2", repo.scriptureEditions().first()))
+        val body = repo.verses(passage).first { it.number("verse_start") == 2 }.text("surface_text")
+        startAt("Gn12:2"); click("Leitura"); waitNode("Escrituras e textos antigos")
+        assertFalse(nodes().any { it.text?.toString() == "Painel" || label(it).contains("Ações do versículo") })
+        assertFalse(nodes().any { it.text?.toString() == body })
+        capture("scripture-catalog")
+        click("Continuar leitura"); waitNode(body)
+        click("Home"); click("Leitura"); waitNode("Escrituras e textos antigos")
+        assertFalse(nodes().any { it.text?.toString() == "Painel" })
+        click("Gênesis"); waitNode("Escolha o capítulo", false); click("1")
+        waitNode("Gênesis 1", false)
+        println("READING_CATALOG_QA metadataOnly/explicitResume/reenterCatalog/chapterSelection passed")
+    }
+    @Test fun libraryOpensDedicatedBookReaderWithCachedCoverAndResumesPage() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val repo = repository()
+        val document = repo.documents().first { it.number("pages") > 5 && repo.pdf(it.text("checksum")) != null && !repo.page(it.text("id"), 2)?.text("text").isNullOrBlank() }
+        val context = instrumentation.targetContext
+        val preferences = ReadingPreferences(context)
+        val originalAppearance = preferences.appearance
+        preferences.saveBookPage(document.text("id"), 0)
+        try {
+            startAt("Gn1:1"); click("Biblioteca"); waitNode("Filtrar títulos"); enter(document.text("title"))
+            val details = "${document.number("pages")} páginas · ${document.text("language") }"
+            waitNode("Capa de ${document.text("title")}")
+            assertFalse(nodes().any { label(it).contains("Página física 1 do PDF original") })
+            val cover = File(context.cacheDir, "library-covers-v1/${document.text("checksum")}.jpg")
+            assertTrue(cover.isFile)
+            val coverTime = cover.lastModified()
+            capture("library-shelf")
+            click(details); waitNode("Página física 1 do PDF original")
+            val bounds = Rect(); waitNode("Página física 1 do PDF original").getBoundsInScreen(bounds)
+            assertTrue("O livro deve ocupar a maior parte da tela", bounds.height() > context.resources.displayMetrics.heightPixels * 0.4)
+            click("Ampliar página"); waitNode("150%"); capture("book-pdf")
+            click("1 / ${document.number("pages")}"); waitNode("Ir à página"); enter("3"); click("Abrir página")
+            waitNode("Página física 3 do PDF original")
+            click("Opções de leitura do livro"); click("Texto ajustado"); waitNode("TEXTO AJUSTADO · PÁGINA 3")
+            val expected = readingParagraphs(requireNotNull(repo.page(document.text("id"), 2)).text("text"))
+            waitNode(expected); capture("book-reflow")
+            click("Opções de leitura do livro"); click("A+")
+            assertEquals(originalAppearance.size + 1, preferences.appearance.size)
+            back(); waitNode("TEXTO AJUSTADO · PÁGINA 3")
+            click("← Anterior"); waitNode("TEXTO AJUSTADO · PÁGINA 2"); back()
+            waitNode("Filtrar títulos")
+            assertEquals(1, preferences.bookPage(document.text("id")))
+            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            waitNode("Seu scriptorium"); click("Biblioteca"); waitNode("Filtrar títulos"); enter(document.text("title"))
+            waitNode("Capa de ${document.text("title")}"); assertEquals(coverTime, cover.lastModified())
+            click(details); waitNode("Página física 2 do PDF original")
+            println("BOOK_READER_UI_QA coverOnly/cache/pdfZoom/reflow/font/jump/resume passed")
+        } finally { preferences.appearance = originalAppearance }
     }
     @Test fun apocryphaFilterOpensJudithAndJudasFromRealSources() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
@@ -119,11 +175,12 @@ class ReadingUiTest {
             }
             error("Filtro não encontrado: $name")
         }
-        startAt("Gn1:1"); click("Leitura"); waitNode("Gênesis 1", false); back()
+        startAt("Gn1:1"); openSavedReading(); waitNode("Gênesis 1", false); back()
         waitNode("Encontrar livro ou texto"); enter("Judite"); filter("Apócrifo")
         waitNode("16 capítulos"); capture("apocrypha"); click("16 capítulos"); click("1"); waitNode("Judite 1", false)
         back(); waitNode("Encontrar livro ou texto"); enter("Judas"); filter("Apócrifo")
-        waitNode("Evangelho de Judas"); click("Evangelho de Judas"); waitNode("EL EVANGELIO DE JUDAS", false)
+        waitNode("Evangelho de Judas"); click("Evangelho de Judas")
+        click("Opções de leitura do livro"); click("Texto ajustado"); waitNode("EL EVANGELIO DE JUDAS", false)
         println("APOCRYPHA_UI_QA filter/JudithPortuguese/JudasRealVolume passed")
     }
     @Test fun booksShowOldTestamentAfterRestoringNewTestamentOnlyEdition() {
@@ -136,7 +193,7 @@ class ReadingUiTest {
         val context = instrumentation.targetContext
         ReadingPreferences(context).savePassage(requireNotNull(repo.resolveReference("Mt1:1", partial)))
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-        waitNode("Seu scriptorium"); click("Leitura"); waitNode("Mateus 1", false)
+        waitNode("Seu scriptorium"); openSavedReading(); waitNode("Mateus 1", false)
         back(); waitNode("Escrituras e textos antigos"); click("Todos"); click("Todas as seções")
         waitNode("Gênesis"); capture("catalog-old-testament")
         click("Gênesis"); click("1"); waitNode("Gênesis 1", false)
@@ -220,7 +277,7 @@ class ReadingUiTest {
         val original = preferences.appearance
         try {
             preferences.appearance = ReadingAppearance(dockedComments = true, motion = false)
-            startAt("Gn1:1"); click("Leitura"); waitNode("Gênesis 1", false)
+            startAt("Gn1:1"); openSavedReading(); waitNode("Gênesis 1", false)
             val homeBounds = Rect(); waitNode("Home").getBoundsInScreen(homeBounds)
             assertTrue(kotlin.math.abs(homeBounds.centerX() - instrumentation.targetContext.resources.displayMetrics.widthPixels / 2) < 10)
             click("Busca"); enter("maldição"); click("Pesquisar")
@@ -263,7 +320,7 @@ class ReadingUiTest {
         val original = preferences.appearance
         try {
             preferences.appearance = ReadingAppearance(dockedComments = true, motion = false)
-            startAt("Gn12:2"); click("Leitura"); waitNode("Gênesis 12:2")
+            startAt("Gn12:2"); openSavedReading(); waitNode("Gênesis 12:2")
             val passage = requireNotNull(repository().resolveReference("Gn12:2", repository().scriptureEditions().first()))
             val verse = repository().verses(passage).first { it.number("verse_start") == 2 }
             val bounds = Rect(); waitNode(verse.text("surface_text")).getBoundsInScreen(bounds)
@@ -286,7 +343,7 @@ class ReadingUiTest {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         startAt("Gn1:1")
         assertFalse(nodes().any { it.text?.toString() == "Painel" })
-        click("Leitura")
+        openSavedReading()
         waitNode("Gênesis 1", false)
         assertFalse(nodes().any { label(it).contains("Ir para") })
         val badge = Rect(); waitNode("1").getBoundsInScreen(badge)
@@ -336,7 +393,7 @@ class ReadingUiTest {
         val original = preferences.appearance
         try {
             preferences.appearance = ReadingAppearance()
-            startAt("Sl119:105"); click("Leitura"); waitNode("105")
+            startAt("Sl119:105"); openSavedReading(); waitNode("105")
             click("Menu"); click("Aparência e leitura")
             waitNode("Fonte de leitura"); click("Sem serifa"); click("Aumentar letra")
             reveal("Cinza"); click("Cinza")
@@ -350,7 +407,7 @@ class ReadingUiTest {
             assertEquals(1, nodes().count { it.text?.toString()?.startsWith("Filtrar") == true })
             val context = instrumentation.targetContext
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            waitNode("Seu scriptorium"); click("Leitura"); waitNode("Recolher painel ▾")
+            waitNode("Seu scriptorium"); openSavedReading(); waitNode("Recolher painel ▾")
             assertEquals(ReadingTheme.GRAY, ReadingPreferences(context).appearance.theme)
             click("Home")
             println("APPEARANCE_UI_QA font/size/theme/dock/reopen105 passed")

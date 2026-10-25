@@ -1,5 +1,22 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Leitor de livros e entrada leve — 0.6.2
+
+- Biblioteca abre a estante, com capa real de primeira página em miniatura de240px,
+  cache local e metadados. Não consulta o texto das páginas antes de abrir o livro.
+- Tocar no livro abre um leitor dedicado: PDF original ajustado à largura, movimento
+  por toque e zoom; ou Texto ajustado, com recomposição visual de linhas e fonte/tamanho
+  configuráveis. O original e os offsets de citações permanecem intactos.
+- Cabeçalho compacto, troca de página no rodapé, salto por página física e retomada
+  da última página por livro. Índice, anotação, áudio e tradução ficam em Leitura.
+- A aba Leitura/Escrituras abre o catálogo, sem restaurar o capítulo automaticamente.
+  Continuar leitura retoma por escolha explícita. Busca, estudos e links diretos continuam
+  abrindo a passagem indicada. Livros bíblicos mantêm emblemas leves, sem capas inventadas.
+- Atualização somente do APK, sem reimportar acervo ou criar outra cópia dos PDFs.
+  Progresso de livro é preferência deste aparelho; capas podem ser regeneradas se o cache
+  do Android for limpo. Texto ajustado não corrige OCR nem reconstitui colunas complexas:
+  nesses casos, use o PDF original. [Escopo e QA](../docs/qa/android-library-reader-2026-10-25.md).
+
 ## Áudio nativo — 0.6.1
 
 Menu → **Áudio** abre Início, Reflexões, Voz e Música/Ambiente. Escrituras, páginas e etapas de estudo

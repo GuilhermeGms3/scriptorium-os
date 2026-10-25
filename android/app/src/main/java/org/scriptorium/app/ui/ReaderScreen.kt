@@ -29,7 +29,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     val preferences = remember { ReadingPreferences(context) }
     fun restore(raw: String?) = decodePassage(raw, editions)?.let { it.copy(title = repository.navigation.bookTitle(it.bookId, it.title)) }
     val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = ::restore)
-    var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf(restore(preferences.lastPassage())) }
+    var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf<Passage?>(null) }
     var editionId by rememberSaveable { mutableStateOf(passage?.edition?.id ?: editions.first().id) }
     val edition = editions.firstOrNull { it.id == editionId } ?: editions.first()
     var bookId by rememberSaveable { mutableStateOf<String?>(null) }
@@ -85,7 +85,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     }
     Box(Modifier.fillMaxSize()) {
         Column(Modifier.fillMaxSize()) {
-            Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
+            if (passage != null || bookId != null) Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp), horizontalArrangement = Arrangement.SpaceBetween) {
                 TextButton(onClick = { if (passage != null || bookId != null) rememberPage(); passage = null; bookId = null }, modifier = Modifier.weight(1f)) {
                     Column(Modifier.fillMaxWidth()) {
                         Text(if (passage != null || bookId != null) "← Voltar pra escolha" else "Escolher livro", maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis)
@@ -96,6 +96,14 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             }
             feedback?.let { Text(it, Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.labelSmall) }
             val current = passage
+            if (current == null && bookId == null) restore(preferences.lastPassage())?.let { last ->
+                OutlinedButton(onClick = { open(last) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                    Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Text("Continuar leitura", style = MaterialTheme.typography.labelLarge)
+                        Text("${last.title} ${last.chapter}${last.verse?.let { ":$it" }.orEmpty()}", Modifier.weight(1f).padding(start = 8.dp), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.End, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+                    }
+                }
+            }
             if (current == null) ReadingBookPicker(repository, edition, bookId, { rememberPage(); bookId = it }, ::open, { primary = it }, { page = it })
             else {
                 ScriptureAudioActions(repository, current.copy(verse = visibleVerse))
