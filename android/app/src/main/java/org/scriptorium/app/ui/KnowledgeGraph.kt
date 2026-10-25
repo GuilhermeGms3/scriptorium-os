@@ -22,7 +22,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlin.math.hypot
 
-data class GraphNode(val id: String, val label: String, val x: Float, val y: Float, val color: Color = Color(0xFFBCA16A))
+data class GraphNode(val id: String, val label: String, val x: Float, val y: Float, val color: Color = Color(0xFFBCA16A), val learningState: String? = null)
 data class GraphEdge(val from: String, val to: String, val label: String = "")
 
 @Composable
@@ -73,10 +73,11 @@ fun KnowledgeGraph(nodes: List<GraphNode>, edges: List<GraphEdge>, selected: Str
                 }
                 nodes.forEach { node ->
                     val center = Offset(node.x, node.y)
-                    drawCircle(node.color.copy(alpha = if (selected == node.id) 1f else 0.8f), if (selected == node.id) 28f else 19f, center)
+                    drawCircle(node.color.copy(alpha = if (node.learningState == "Bloqueado") 0.22f else if (selected == node.id) 1f else 0.8f), if (selected == node.id) 28f else 19f, center)
                     if (named(node)) {
                         // Long names wrap on two centred lines instead of running into the next point's name.
-                        val layout = measurer.measure(node.label, TextStyle(color = textColor, fontSize = 15.sp, textAlign = TextAlign.Center), constraints = Constraints(maxWidth = 280))
+                        val display = node.label + when (node.learningState) { "Bloqueado" -> " · 🔒"; "Concluído" -> " · ✓"; else -> "" }
+                        val layout = measurer.measure(display, TextStyle(color = textColor, fontSize = 15.sp, textAlign = TextAlign.Center), constraints = Constraints(maxWidth = 280))
                         drawText(layout, topLeft = Offset(node.x - layout.size.width / 2f, node.y + 30f))
                     }
                 }
@@ -84,7 +85,7 @@ fun KnowledgeGraph(nodes: List<GraphNode>, edges: List<GraphEdge>, selected: Str
         }
         // Accessible alternatives to spatial tapping and labels that may be small before zooming.
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(nodes, key = { it.id }) { node -> FilterChip(selected = selected == node.id, onClick = { onSelect(node.id) }, label = { Text(node.label) }) }
+            items(nodes, key = { it.id }) { node -> FilterChip(selected = selected == node.id, onClick = { onSelect(node.id) }, label = { Text(node.label + (node.learningState?.let { " · $it" } ?: "")) }) }
         }
     }
 }

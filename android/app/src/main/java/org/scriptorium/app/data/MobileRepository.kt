@@ -153,11 +153,11 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         else db.rows("SELECT payload_json FROM personal_seed WHERE id='desktop-personal-v1'").firstOrNull()?.get("payload_json")
     }
     fun catalog(kind: String): List<Row> = (content { it.rows("SELECT id,kind,title FROM reading_catalog WHERE kind=? ORDER BY title", listOf(kind)) } +
-        if (kind == "course") navigation.formation()?.let { listOf(mapOf("id" to it.getString("id"), "kind" to "course", "title" to it.getString("title"))) }.orEmpty() else emptyList())
+        if (kind == "course") listOfNotNull(navigation.formation(), navigation.discovery()).map { mapOf("id" to it.getString("id"), "kind" to "course", "title" to it.getString("title")) } else emptyList())
         .distinctBy { it.text("id") }
         .map { row -> row + ("title" to navigation.topic(row.text("id").removePrefix("lesson:"), row.text("title"))) }
         .sortedBy { it.text("title") }
-    fun catalogItem(id: String): JSONObject? = (navigation.formation(id)
+    fun catalogItem(id: String): JSONObject? = (navigation.discovery()?.takeIf { it.getString("id") == id } ?: navigation.formation(id)
         ?: content { it.rows("SELECT payload_json FROM reading_catalog WHERE id=?", listOf(id)).firstOrNull()?.get("payload_json")?.let(::JSONObject) })?.also { json ->
         if (id.startsWith("lesson:")) {
             val title = navigation.topic(id.removePrefix("lesson:"), json.optString("title"))

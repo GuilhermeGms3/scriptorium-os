@@ -22,14 +22,15 @@ import org.json.JSONObject
 import org.scriptorium.app.data.*
 
 @Composable
-internal fun CourseScreen(course: JSONObject, repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit = {}, close: () -> Unit) {
+internal fun CourseScreen(course: JSONObject, repository: MobileRepository, personal: PersonalRepository, open: (Passage) -> Unit, openLibrary: (StudyReading?) -> Unit = {}, initialModule: Int = -1, close: () -> Unit) {
     val modules = course.objects("modules")
     if (modules.isEmpty()) { Text("Este percurso não tem módulos disponíveis."); TextButton(onClick = close) { Text("Voltar aos percursos") }; return }
-    var selected by rememberSaveable(course.getString("id")) { mutableIntStateOf(-1) }
+    var selected by rememberSaveable(course.getString("id"), initialModule) { mutableIntStateOf(initialModule) }
     var stage by rememberSaveable(selected) { mutableIntStateOf(0) }
     var message by remember { mutableStateOf<String?>(null) }
     var showMap by rememberSaveable(course.getString("id")) { mutableStateOf(true) }
     var saving by remember { mutableStateOf(false) }
+    var noteSource by remember { mutableStateOf<String?>(null) }
     val scope = rememberCoroutineScope()
     Load(course.getString("id"), { personal.progress(course.getString("id"), course.getInt("revision")) }) { loadedProgress ->
         var progress by remember(course.getString("id")) { mutableStateOf(loadedProgress) }
@@ -55,7 +56,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
             scope.launch {
                 try {
                     progress = withContext(Dispatchers.IO) {
-                        personal.saveProgress(course.getString("id"), course.getInt("revision"), moduleId, snapshot, complete || (wasCompleted && issues.isEmpty()))
+                        personal.saveProgress(course.getString("id"), course.getInt("revision"), moduleId, snapshot, complete || wasCompleted)
                         personal.progress(course.getString("id"), course.getInt("revision"))
                     }
                     if (complete) { stage = 0; selected = (moduleIndex + 1).coerceAtMost(modules.lastIndex); showMap = true }
@@ -91,7 +92,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             Text("PONTO ${moduleIndex + 1} · ${current.optString("phase", "Percurso acadêmico")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                             Text(current.getString("title"), style = MaterialTheme.typography.headlineSmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif)
                             Text(current.getString("description"), style = MaterialTheme.typography.bodyMedium)
-                            Text("${current.objects("lessons").size} aulas · ${current.objects("passages").size} leituras bíblicas · atividade de síntese", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
+                            Text("${current.objects("lessons").size} ${if (current.objects("lessons").size == 1) "aula" else "aulas"} · ${current.objects("passages").size} leituras bíblicas · atividade de síntese", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.secondary)
                             message?.let { Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary) }
                             Button(enabled = !saving, onClick = { showMap = false }) { Text("Estudar este ponto") }
                             Text("${progress.count { !it["completed_at"].isNullOrBlank() }} de ${modules.size} pontos concluídos", style = MaterialTheme.typography.labelMedium)
@@ -116,7 +117,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             Text("As etapas organizam sua leitura. A conclusão exige confirmar as aulas, as passagens e a atividade; o próximo módulo é liberado ao concluir este.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         }
                         StudyPageKind.LESSON_SECTION -> page.content?.let { section ->
-                            StudyParagraphs(section.strings("paragraphs"))
+                            StudySection(section)
                             StudyReferences(course.objects("references").filter { it.optString("id") in section.strings("references") })
                             if (page.lastInLesson && page.lessonId != null) StudyCheck("Li esta aula", page.lessonId in work.strings("lessons"), !saving) { toggle("lessons", page.lessonId) }
                         }
@@ -126,7 +127,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             }
                             current.objects("passages").forEach { passage ->
                                 val ref = passage.getJSONObject("ref")
-                                PassageButton(repository, ref.getString("bookId"), ref.getInt("chapter"), passage.getString("label")) { target -> save { open(target) } }
+                                PassageButton(repository, ref.getString("bookId"), ref.getInt("chapter"), passage.getString("label"), ref.optInt("verseStart").takeIf { it > 0 }, ref.optInt("verseEnd").takeIf { it > 0 }) { target -> save { open(target) } }
                                 Text(passage.getString("purpose"), style = MaterialTheme.typography.bodyMedium)
                                 StudyCheck("Li e observei: ${passage.getString("label")}", passage.getString("id") in work.strings("readings"), !saving) { toggle("readings", passage.getString("id")) }
                                 HorizontalDivider(Modifier.padding(vertical = 12.dp))
@@ -141,6 +142,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                         }
                         StudyPageKind.ACTIVITY -> {
                             StudyParagraphs(listOf(current.getJSONObject("activity").getString("prompt")))
+                            OutlinedButton(onClick = { noteSource = "study-course:${course.getString("id").removePrefix("course:")}:module:$moduleId" }) { Text("Abrir meu caderno") }
                             OutlinedTextField(work.optString("response"), { work = JSONObject(work.toString()).put("response", it.take(30000)) },
                                 enabled = !saving, label = { Text("Sua resposta, com fontes") }, modifier = Modifier.fillMaxWidth().heightIn(min = 200.dp))
                             Text("A resposta é salva ao trocar de etapa ou usar Salvar rascunho.", Modifier.padding(top = 8.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
@@ -168,6 +170,19 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
             }
         }
     }
+    noteSource?.let { source -> NoteEditor(personal, null, source) { noteSource = null } }
+}
+
+@Composable
+private fun StudySection(section: JSONObject) {
+    val kind = section.optString("kind")
+    val label = when (kind) { "introduction" -> "A PERGUNTA"; "concept" -> "PARA COMPREENDER"; "example" -> "OBSERVAR NO TEXTO"; "discussion" -> "PARA INVESTIGAR"; "conclusion" -> "O QUE LEVAR DESTA ETAPA"; else -> "LEITURA" }
+    Text(label, Modifier.padding(bottom = 14.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+    if (kind == "example" || kind == "conclusion") {
+        Surface(color = if (kind == "example") MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.tertiaryContainer, shape = MaterialTheme.shapes.medium) {
+            Column(Modifier.padding(18.dp)) { StudyParagraphs(section.strings("paragraphs")) }
+        }
+    } else StudyParagraphs(section.strings("paragraphs"))
 }
 
 @Composable
@@ -180,13 +195,18 @@ private fun StudyCheck(label: String, checked: Boolean, enabled: Boolean, change
 
 @Composable
 private fun StudyReferences(references: List<JSONObject>) {
+    val context = LocalContext.current
+    var error by remember { mutableStateOf(false) }
     var expanded by remember(references.map { it.optString("id") }) { mutableStateOf(false) }
     if (references.isNotEmpty()) {
         TextButton(onClick = { expanded = !expanded }) { Text("Referências · ${references.size} ${if (expanded) "▴" else "▾"}") }
         if (expanded) references.forEach { reference ->
             Text(reference.optString("title"), style = MaterialTheme.typography.bodyMedium)
             Text(listOf(reference.optString("author"), reference.optString("perspective")).filter { it.isNotBlank() }.joinToString(" · "), Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+            val url = safeExternalUrl(reference.optString("url"))
+            if (url != null) TextButton(onClick = { error = runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url))) }.isFailure }) { Text("Consultar fonte original ↗") }
         }
+        if (error) Text("Não foi possível abrir a fonte. Tente com um navegador disponível.", color = MaterialTheme.colorScheme.error)
     }
 }
 

@@ -107,6 +107,64 @@ class ReadingUiTest {
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
         waitNode("Seu scriptorium")
     }
+    @Test fun discoveryUnlocksConceptsAndPersistsAcademicProgressWithRealReadings() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val repo = repository()
+        val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
+        val course = requireNotNull(repo.navigation.discovery())
+        val modules = course.objects("modules")
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance(motion = false)
+            // Dedicated QA emulator only; reset this new course and the old origin guide.
+            Sqlite.open(File(context.filesDir, "personal.sqlite3"), false).use { db ->
+                db.rows("DELETE FROM course_progress WHERE course_id IN (?,?)", listOf(course.getString("id"), "guide:teologia"))
+            }
+            startAt("Gn1:1"); click("Estudos")
+            waitNode("Conhecer para amar")
+            assertFalse(nodes().any { it.text?.toString() == "Guias de estudo" })
+            click("Bíblia e interpretação · Bloqueado")
+            reveal("Este conceito será liberado"); waitNode("Este conceito será liberado")
+            capture("discovery-home")
+            reveal("Começar minha descoberta"); click("Começar minha descoberta")
+            waitNode("Módulos · 1 de 6")
+            assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
+            click("Estudar este ponto")
+            val pages = StudySequence.module(modules.first())
+            repeat(pages.size - 1) { click("Próxima etapa") }
+            reveal("Concluir módulo"); click("Concluir módulo"); waitNode("Confirme a aula:", false)
+            assertFalse(personal.progress(course.getString("id"), 1).any { !it["completed_at"].isNullOrBlank() })
+            repeat(pages.size - 1) { click("Anterior") }
+            pages.forEachIndexed { index, page ->
+                if (page.kind == StudyPageKind.LESSON_SECTION && page.lastInLesson) { reveal("Li esta aula"); click("Li esta aula") }
+                if (page.kind == StudyPageKind.READINGS) {
+                    reveal("João 1:35–39"); click("João 1:35–39"); waitNode("Painel")
+                    val saved = decodePassage(preferences.lastPassage(), repo.scriptureEditions())
+                    assertEquals("john", saved?.bookId); assertEquals(35, saved?.verse)
+                    // The reader deliberately saves only the current verse as the resume point.
+                    back(); back()
+                    reveal("Li e observei: João 1:35–39"); click("Li e observei: João 1:35–39")
+                    val readings = repo.lessonReadings("study-guide:teologia", "conhecimento de Deus")
+                    assertTrue("Há fontes reais no acervo", readings.isNotEmpty())
+                }
+                if (page.kind == StudyPageKind.ACTIVITY) {
+                    reveal("Sua resposta, com fontes"); enter("Minha pergunta é como o convite de João 1:35–39 transforma curiosidade em aproximação. O relato apresenta uma conversa; ainda preciso investigar como conhecimento e confiança se relacionam.")
+                }
+                if (index < pages.lastIndex) click("Próxima etapa")
+            }
+            modules.first().getJSONObject("activity").strings("criteria").forEach { reveal(it); click(it) }
+            reveal("Concluir módulo"); click("Concluir módulo"); waitNode("Módulos · 2 de 6")
+            capture("discovery-unlocked")
+            startAt("Gn1:1"); click("Estudos"); reveal("Continuar minha descoberta"); click("Continuar minha descoberta"); waitNode("Módulos · 2 de 6")
+            // Other five completions seed only the tree-state check; they are not UI study evidence.
+            modules.drop(1).forEach { personal.saveProgress(course.getString("id"), 1, it.getString("id"), "{}", true) }
+            startAt("Gn1:1"); click("Estudos"); waitNode("Bíblia e interpretação · Disponível")
+            click("Bíblia e interpretação · Disponível"); waitNode("Etapas de leitura", false)
+            println("DISCOVERY_QA lockedConcept/incompleteRefused/readingsRange/librarySources/completeA/unlockB/restart/treePrerequisite passed")
+        } finally { preferences.appearance = appearance }
+    }
     @Test fun readingTabShowsCatalogUntilBookOrResumeIsChosen() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val repo = repository()
@@ -209,7 +267,8 @@ class ReadingUiTest {
         val lesson = repository().catalogItem("lesson:study-guide:biblia-interpretacao")
         val pages = StudySequence.guide(guide, lesson)
         pages.forEach { personal.saveProgress("guide:biblia-interpretacao", 1, it.id, "{}", false) }
-        startAt("Gn1:1"); click("Estudos"); reveal("Guias de estudo"); click("Bíblia e interpretação")
+        repository().navigation.discovery()?.let { course -> course.objects("modules").forEach { personal.saveProgress(course.getString("id"), 1, it.getString("id"), "{}", true) } }
+        startAt("Gn1:1"); click("Estudos"); click("Bíblia e interpretação · Disponível")
         waitNode("Etapas de leitura · 1", false)
         assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
         capture("guide-map")
@@ -217,7 +276,7 @@ class ReadingUiTest {
         waitNode("Etapas de leitura · 2", false)
         assertTrue(personal.progress("guide:biblia-interpretacao", 1).any { it.text("module_id") == "introduction" && !it["completed_at"].isNullOrBlank() })
         context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-        waitNode("Seu scriptorium"); click("Estudos"); reveal("Guias de estudo"); click("Bíblia e interpretação")
+        waitNode("Seu scriptorium"); click("Estudos"); click("Bíblia e interpretação · Disponível")
         waitNode("Etapas de leitura · 2", false)
         println("GUIDE_MAP_UI_QA islands/lockedFuture/advanceAtoB/persistReload passed")
     }
@@ -235,7 +294,7 @@ class ReadingUiTest {
             // Isolated QA course state only; never run on the user's phone.
             val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
             modules.forEach { personal.saveProgress(formation.getString("id"), 1, it.getString("id"), "{}", false) }
-            startAt("Gn1:1"); click("Estudos"); click("Abrir percurso →")
+            startAt("Gn1:1"); click("Estudos"); reveal("Explorar outros estudos"); click("Explorar outros estudos"); reveal("Formação em Teologia"); click("Formação em Teologia")
             waitNode("Módulos · 1 de 18")
             assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
             capture("formation-map")
@@ -266,7 +325,7 @@ class ReadingUiTest {
             assertEquals(1, personal.progress(formation.getString("id"), 1).count { !it["completed_at"].isNullOrBlank() })
             click("Estudar este ponto"); waitNode("Etapas do módulo · 1", false)
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            waitNode("Seu scriptorium"); click("Estudos"); click("Abrir percurso →"); waitNode("Módulos · 2 de 18")
+            waitNode("Seu scriptorium"); click("Estudos"); reveal("Explorar outros estudos"); click("Explorar outros estudos"); reveal("Formação em Teologia"); click("Formação em Teologia"); waitNode("Módulos · 2 de 18")
             println("FORMATION_UI_QA islands/lockedB/refusesIncomplete/completesA/unlocksB/reload passed")
         } finally { preferences.appearance = appearance }
     }
@@ -415,7 +474,7 @@ class ReadingUiTest {
     }
     @Test fun thematicLessonLinksRealBookAndRecordsReadStage() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
-        startAt("Gn1:1"); click("Estudos")
+        startAt("Gn1:1"); click("Estudos"); reveal("Explorar outros estudos"); click("Explorar outros estudos")
         reveal("Aulas temáticas · 111 ▾"); click("Aulas temáticas · 111 ▾")
         reveal("Encontrar aula"); enter("Trindade")
         reveal("Abrir aula →"); click("Abrir aula →")

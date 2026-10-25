@@ -8,6 +8,20 @@ import java.io.File
 import java.time.LocalDate
 
 class ReadingNavigationTest {
+    @Test fun discoveryIsAvailableWithoutReimportingCorpusAndReturnsIndependentSnapshots() {
+        val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
+        val course = requireNotNull(metadata.discovery())
+        assertEquals("course:conhecer-para-amar", course.getString("id"))
+        assertEquals(6, course.objects("modules").size)
+        course.put("title", "alterado")
+        assertEquals("Conhecer para amar", metadata.discovery()!!.getString("title"))
+        assertNull(ReadingNavigation().discovery())
+        val first = metadata.discovery()!!.objects("modules").first()
+        assertTrue(CoursePolicy.issues(first, JSONObject()).isNotEmpty())
+        val passage = first.objects("passages").single().getJSONObject("ref")
+        assertEquals(35, passage.getInt("verseStart"))
+        assertEquals(39, passage.getInt("verseEnd"))
+    }
     @Test fun additionalScripturesAndReferencesHavePortugueseLabelsAndFilters() {
         val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
         assertEquals("Judite", metadata.bookTitle("judith", "Judith"))

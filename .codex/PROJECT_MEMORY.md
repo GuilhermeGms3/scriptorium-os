@@ -1,5 +1,22 @@
 # Project Memory
 
+## Android0.6.3 — Conhecer para amar — 2026-10-25
+
+- Primeiro percurso de descoberta:6módulos/30seções/3.001palavras editoriais originais,
+  10leituras bíblicas por referência, fontes externas identificadas e acervo real/caderno.
+  Currículo em src/lib/content/study-courses/knowing-god.ts, asset via mobile:labels.
+- Árvore nativa preservada; percurso libera origem, guias concluídos liberam filhos.
+  Conclusões antigas reconhecidas/revisáveis; pedidos diretos passam pelo gate. Bíblia,
+  Biblioteca e cursos de consulta independentes não bloqueados. Sem schema/deps novas.
+- Abaixo da árvore:próxima descoberta/trilha, outros estudos recolhidos. Seções com
+  hierarquia e superfícies do tema. NoteEditor existente e CoursePolicy reutilizados;
+  conclusão anterior não é apagada por edição de rascunho incompleto.
+- TS5/JVM70/typecheck/ESLint/Prettier/buildAndroid aprovados;lint0erros49avisos.
+  4cenários nativos/0falhas em116,429s,com acervo real:novo percurso,guia,formação
+  e aula temática. QA/limites:docs/qa/android-discovery-2026-10-25.md.
+- Novo consumidor apenas Android, sem vídeos novos ou revisão acadêmica humana.
+  Telefone ausente; não confundir teste emulador com instalação física.
+
 ## Android0.6.2 — livros e catálogos leves — 2026-10-25
 
 - Biblioteca: capas reais240px com cache JPEG atômico por checksum; metadados antes de abrir.

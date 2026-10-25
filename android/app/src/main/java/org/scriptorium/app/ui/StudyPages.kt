@@ -68,7 +68,7 @@ internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: Mob
                                 Text("PARA INVESTIGAR", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
                                 module.strings("questions").forEach { Text(it, Modifier.padding(vertical = 10.dp), style = MaterialTheme.typography.titleMedium) }
                             }
-                            module.objects("passages").forEach { passage -> PassageButton(repository, passage.getString("book"), passage.getInt("chapter"), passage.getString("label"), open) }
+                            module.objects("passages").forEach { passage -> PassageButton(repository, passage.getString("book"), passage.getInt("chapter"), passage.getString("label"), open = open) }
                         }
                         StudyPageKind.CHAPTER -> StudyParagraphs(page.content?.strings("paragraphs").orEmpty())
                         StudyPageKind.SOURCES -> StudyReadings("study-guide:${guide.getString("id")}", guide.getString("title"), repository, openLibrary)

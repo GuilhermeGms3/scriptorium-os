@@ -1,5 +1,20 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Conhecer para amar e árvore progressiva — 0.6.3
+
+Estudos conserva a árvore visual e destaca uma próxima descoberta. O primeiro
+percurso tem seis módulos e 30 seções, com perguntas, explicações, leituras bíblicas
+por intervalo, fontes reais do acervo e síntese pessoal. A trilha horizontal libera
+um módulo após o trabalho do anterior; concluir o percurso libera os ramos, e
+cada guia concluído abre seus conceitos seguintes. Conclusões anteriores continuam
+reconhecidas e disponíveis para revisão. Outros cursos e aulas ficam em
+**Explorar outros estudos**, sem bloquear o acesso independente à Bíblia e à Biblioteca.
+
+Atualização somente do APK; sem reimportar livros. O novo currículo está no asset
+editorial. Não representa formação acadêmica integral ou avaliação da fé. O novo
+percurso ainda não tem consumidor web ou vídeos selecionados. Consulte
+[escopo, fontes e progressão](../docs/architecture/knowing-god-discovery.md).
+
 ## Leitor de livros e entrada leve — 0.6.2
 
 - Biblioteca abre a estante, com capa real de primeira página em miniatura de240px,
