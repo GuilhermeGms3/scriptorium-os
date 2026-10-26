@@ -3,6 +3,7 @@ import { PORTUGUESE_KNOWLEDGE_LABELS } from "../../src/lib/content/knowledge-pre
 import { lessonForTopic, LESSON_REFERENCES } from "../../src/lib/content/study-lessons/catalog";
 import type { LessonChapter } from "../../src/lib/content/study-lessons/types";
 import { GENESIS_COURSE } from "../../src/lib/content/study-courses/genesis";
+import { FALL_GRACE_COURSE } from "../../src/lib/content/study-courses/fall-grace";
 
 /** Deduplicated editorial content. Never reads private documents or personal progress. */
 export function buildStudyEditorial() {
@@ -29,6 +30,12 @@ export function buildStudyEditorial() {
     lessons,
     chapters,
     references: LESSON_REFERENCES,
-    courses: { [`course:${GENESIS_COURSE.id}`]: GENESIS_COURSE },
+    courses: {
+      [`course:${GENESIS_COURSE.id}`]: GENESIS_COURSE,
+      [`course:${FALL_GRACE_COURSE.id}`]: {
+        ...FALL_GRACE_COURSE,
+        id: `course:${FALL_GRACE_COURSE.id}`,
+      },
+    },
   };
 }

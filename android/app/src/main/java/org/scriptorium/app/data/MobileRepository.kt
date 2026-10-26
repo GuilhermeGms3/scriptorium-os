@@ -153,7 +153,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         else db.rows("SELECT payload_json FROM personal_seed WHERE id='desktop-personal-v1'").firstOrNull()?.get("payload_json")
     }
     fun catalog(kind: String): List<Row> = (content { it.rows("SELECT id,kind,title FROM reading_catalog WHERE kind=? ORDER BY title", listOf(kind)) } +
-        if (kind == "course") listOfNotNull(navigation.formation(), navigation.discovery()).map { mapOf("id" to it.getString("id"), "kind" to "course", "title" to it.getString("title")) } else emptyList())
+        if (kind == "course") (listOfNotNull(navigation.formation(), navigation.discovery()) + navigation.editorialCourses()).map { mapOf("id" to it.getString("id"), "kind" to "course", "title" to it.getString("title")) } else emptyList())
         .distinctBy { it.text("id") }
         .map { row ->
             val course = if (kind == "course") navigation.editorialCourse(row.text("id")) ?: navigation.discovery()?.takeIf { it.getString("id") == row.text("id") } ?: navigation.formation(row.text("id")) else null
@@ -168,9 +168,9 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             json.objects("chapters").filter { it.optString("id").startsWith("overview:") }.forEach { it.put("title", title) }
         }
     }
-    fun lessonReadings(id: String, title: String): List<StudyReading> {
+    fun lessonReadings(id: String, title: String, assignedWorks: List<JSONObject>? = null): List<StudyReading> {
         val documentary = documentaryReadings(id)
-        val assigned = navigation.lesson(id)?.objects("works").orEmpty()
+        val assigned = assignedWorks ?: navigation.lesson(id)?.objects("works").orEmpty()
         val works = if (assigned.isEmpty()) emptyList() else primaryWorks()
         val linked = assigned.mapNotNull { resource -> works.find { it.text("id") == resource.optString("workId") }?.let { work ->
             StudyReading("work:${work.text("id")}", work.text("title"), "Leitura vinculada · ${resource.optString("role", "fonte do percurso")}", work = work)
@@ -178,7 +178,7 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         val terms = title.split(Regex("[^\\p{L}\\p{N}]+" )).filter { it.length > 3 && normalizedReading(it) !in setOf("sobre", "entre", "para", "como", "estudo", "historia") }.take(3)
         val query = ftsQuery(terms.joinToString(" "))
         val found = readingPages(query, "Encontrado no acervo")
-        if (documentary.isNotEmpty() || linked.isNotEmpty() || found.isNotEmpty()) return (documentary + linked + found).distinctBy { it.id }
+        if (assignedWorks != null || documentary.isNotEmpty() || linked.isNotEmpty() || found.isNotEmpty()) return (documentary + linked + found).distinctBy { it.id }
         val area = navigation.lessonSupport(id) ?: return emptyList()
         val supportWorks = if (works.isNotEmpty()) works else primaryWorks()
         val support = area.objects("works").mapNotNull { resource -> supportWorks.find { it.text("id") == resource.optString("workId") }?.let { work ->

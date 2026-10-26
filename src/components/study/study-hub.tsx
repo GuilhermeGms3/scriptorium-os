@@ -99,6 +99,10 @@ export function StudyHub({ onSelectEntity }: { onSelectEntity: (id: string) => v
         </>
       ) : area === "Percursos" ? (
         <div className="study-course-catalog">
+          <Link to="/study/course/$courseId" params={{ courseId: "queda-graca-providencia" }}>
+            <h2>Queda, graça e providência</h2>
+            <p>Antropologia cristã, cinco vias e tradições · quatorze módulos</p>
+          </Link>
           <Link to="/study/course/$courseId" params={{ courseId: KNOWING_GOD_COURSE.id }}>
             <h2>{KNOWING_GOD_COURSE.title}</h2>
             <p>Teologia fundamental · seis módulos</p>

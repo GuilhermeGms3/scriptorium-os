@@ -8,6 +8,23 @@ import java.io.File
 import java.time.LocalDate
 
 class ReadingNavigationTest {
+    @Test fun fallGraceCurriculumUsesCatalogRouteKeysAndKeepsLegacyProgressIdentity() {
+        val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
+        val catalog = metadata.editorialCourses()
+        assertEquals(setOf("course:genesis-1", "course:queda-graca-providencia"), catalog.map { it.getString("id") }.toSet())
+        assertEquals("genesis-1", metadata.editorialCourse("course:genesis-1")!!.getString("id"))
+        val course = metadata.editorialCourse("course:queda-graca-providencia")!!
+        val modules = course.objects("modules")
+        assertEquals(14, modules.size)
+        assertEquals(5, modules[1].objects("lessons").size)
+        assertTrue(modules.all { it.objects("foundation").isNotEmpty() && it.objects("passages").isNotEmpty() })
+        assertEquals("work:aquinas-summa-prima-pars", modules[1].objects("libraryWorks").first().getString("workId"))
+        assertFalse(StudySequence.unlocked(modules, 1, emptyList()))
+        assertTrue(CoursePolicy.issues(modules.first(), JSONObject()).isNotEmpty())
+        course.put("modules", org.json.JSONArray())
+        assertEquals(14, metadata.editorialCourse("course:queda-graca-providencia")!!.objects("modules").size)
+        assertTrue(ReadingNavigation().editorialCourses().isEmpty())
+    }
     @Test fun updatedLessonsOverlayOldCorpusWithoutLosingChapterIdentityOrLeakingMutableObjects() {
         val metadata = ReadingNavigation(JSONObject(File("../reading-labels.json").readText()))
         val topic = metadata.editorialLesson("lesson:doctrine:trinity")!!

@@ -63,9 +63,9 @@ internal fun ThematicLessons(lessons: List<Row>, repository: MobileRepository, c
 }
 
 @Composable
-internal fun StudyReadings(id: String, title: String, repository: MobileRepository, open: (StudyReading?) -> Unit, openAll: (() -> Unit)? = null) {
+internal fun StudyReadings(id: String, title: String, repository: MobileRepository, open: (StudyReading?) -> Unit, openAll: (() -> Unit)? = null, assignedWorks: List<org.json.JSONObject>? = null) {
     var more by remember(id) { mutableStateOf(false) }
-    Load(id to title, { repository.lessonReadings(id, title) }) { readings ->
+    Load(id to title, { repository.lessonReadings(id, title, assignedWorks) }) { readings ->
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text("Leituras na Biblioteca", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
             if (readings.isEmpty()) Text("Nenhum trecho ou obra vinculada foi encontrado para esta aula no pacote instalado. Você pode consultar sua Biblioteca.", style = MaterialTheme.typography.bodySmall)

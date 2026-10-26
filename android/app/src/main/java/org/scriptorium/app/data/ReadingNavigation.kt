@@ -32,6 +32,10 @@ class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
         return JSONObject().put("title", lesson.getString("title")).put("chapters", JSONArray(resolved.map { JSONObject(it.toString()) }))
     }
     fun editorialCourse(id: String): JSONObject? = labels.optJSONObject("studyContent")?.optJSONObject("courses")?.optJSONObject(id)?.let { JSONObject(it.toString()) }
+    fun editorialCourses(): List<JSONObject> = labels.optJSONObject("studyContent")?.optJSONObject("courses")?.let { courses ->
+        // Catalog keys identify routes; legacy payload IDs still identify saved course progress.
+        courses.keys().asSequence().mapNotNull { key -> editorialCourse(key)?.put("id", key) }.toList()
+    }.orEmpty()
     fun lessonReferences(): List<JSONObject> = labels.optJSONObject("studyContent")?.objects("references").orEmpty()
     fun discovery(): JSONObject? = labels.optJSONObject("discovery")?.let { JSONObject(it.toString()) }
     fun formation(id: String? = null): JSONObject? = labels.optJSONObject("formation")?.takeIf { id == null || it.optString("id") == id }?.let { JSONObject(it.toString()) }

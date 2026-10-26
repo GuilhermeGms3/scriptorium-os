@@ -107,6 +107,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
             LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { StudyRail(pages.map { it.title }, pageIndex, "Etapas do módulo", enabled = { !saving }, compact = true, choose = ::choosePage) }
                 item(key = "$moduleId:${page.id}") { Column {
+                    if (current.objects("lessons").size > 1 && page.lessonTitle != null) Text(page.lessonTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                     Heading(page.title)
                     when (page.kind) {
                         StudyPageKind.OBJECTIVES -> {
@@ -124,7 +125,9 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                         }
                         StudyPageKind.READINGS -> {
                             current.optString("studyGuideId").takeIf(String::isNotBlank)?.let { guideId ->
-                                StudyReadings("study-guide:$guideId", current.optString("readingSearch", current.getString("title")), repository, { target -> save { openLibrary(target) } })
+                                val assigned = if (current.has("libraryWorks")) current.objects("libraryWorks") else null
+                                val readingId = if (assigned != null) "study-course:${course.getString("id").removePrefix("course:")}:$moduleId" else "study-guide:$guideId"
+                                StudyReadings(readingId, current.optString("readingSearch", current.getString("title")), repository, { target -> save { openLibrary(target) } }, assignedWorks = assigned)
                             }
                             current.objects("passages").forEach { passage ->
                                 val ref = passage.getJSONObject("ref")

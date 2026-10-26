@@ -1,5 +1,26 @@
 # Project Memory
 
+## Queda, graça e providência — Android0.6.6/web — 2026-10-26
+
+- Novo percurso independente em Estudos/Percursos:14módulos/18aulas/90seções,
+  cerca de6815palavras;cinco vias separadas,Adão/alteridade/queda,Cristo/Sheol,
+  graça/providência,calvinismo/luteranismo/anglicanismo,oração/síntese.
+- Hipóteses identificadas e confrontadas com fontes primárias;sem consenso fictício,
+  exigência de adesão ou revisão acadêmica humana alegada. Dossiê e limites:
+  docs/content/queda-graca-providencia-2026-10-26.md.
+- Currículo único em study-courses/fall-grace, asset via studyContent.courses.
+  Android editorialCourses usa chave de catálogo; mantém payload legado de Gênesis
+  com idgenesis-1 para preservar progresso. Cursos novos sem reimportar pacote.
+- libraryWorks opcional declara obras reais da Suma/Confissões;web reutiliza
+  loadTopicReadings e Android lessonReadings com seleção explícita. Texto completo
+  abre leitor da Biblioteca;trechos identificados usam janela de contexto.
+- Sem schema/dependência/PDF/banco novo;árvore e progressos antigos preservados.
+- TS587/94arquivos,typecheck/ESLint/buildweb,Androidassemble/JVM73/lint aprovados;
+  lint0erros49avisos. Web1440/390 sem overflow/erros;fonte real aberta.
+  AndroidUI77,454s:livro real,Sl13,critérios,A→B,fundamentação e retomada.
+- QA:docs/qa/study-fall-grace-2026-10-26.md. SystemUIANR no boot do emulador
+  resolvido ao reiniciar;telefone físico ausente. Não afirmar instalação no aparelho.
+
 ## Estudos Android0.6.5/web — fundamentação e árvore — 2026-10-25
 
 - Home de Estudos em Árvore/Percursos/Temas; catálogo temático por áreas/busca.

@@ -24,6 +24,8 @@ function CoursePage() {
         };
       if (courseId === "conhecer-para-amar")
         return (await import("../../../lib/content/study-courses/knowing-god")).KNOWING_GOD_COURSE;
+      if (courseId === "queda-graca-providencia")
+        return (await import("../../../lib/content/study-courses/fall-grace")).FALL_GRACE_COURSE;
       if (courseId.startsWith("guia-"))
         return (await import("../../../lib/content/study-courses/guide-course")).guideCourse(
           courseId.slice(5),

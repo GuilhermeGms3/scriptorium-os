@@ -16024,6 +16024,2407 @@
             "perspective": "Formulação reformada na recensão disponibilizada pela Orthodox Presbyterian Church."
           }
         ]
+      },
+      "course:queda-graca-providencia": {
+        "id": "course:queda-graca-providencia",
+        "revision": 1,
+        "title": "Queda, graça e providência",
+        "description": "Antropologia cristã, razão e fé, morte e ressurreição, graça, providência e oração. Um percurso de leitura filosófica e teológica com hipóteses identificadas, fontes primárias e comparação entre tradições reformada, luterana e anglicana.",
+        "prerequisites": [
+          "É recomendável conhecer as distinções entre texto, interpretação e fonte do percurso Conhecimento de Deus — fé e razão.",
+          "Não é exigida adesão a uma confissão; a progressão registra leitura e elaboração argumentativa."
+        ],
+        "outcomes": [
+          "Distinguir a leitura de Adão como arquétipo de afirmações históricas e da tipologia cristã.",
+          "Explicar as cinco vias e avaliar uma objeção a cada argumento.",
+          "Examinar queda, alteridade, morte e ressurreição sem confundir seus sentidos.",
+          "Comparar graça, providência, eleição e oração em fontes identificadas.",
+          "Registrar uma posição própria com passagem, localizador, objeção e limite."
+        ],
+        "modules": [
+          {
+            "id": "sentido",
+            "phase": "Fundamentos",
+            "title": "Finitude, niilismo e esperança",
+            "studyGuideId": "teologia",
+            "readingSearch": "sentido sofrimento esperança",
+            "description": "Estudar a gravidade da existência sem transformar o cristianismo em promessa de sucesso ou culto ao desespero.",
+            "objectives": [
+              "Distinguir finitude, culpa e ausência de sentido.",
+              "Reconstruir uma objeção filosófica antes de respondê-la.",
+              "Examinar esperança e lamento como atitudes diferentes de otimismo automático."
+            ],
+            "passages": [
+              {
+                "id": "sl13",
+                "label": "Salmo 13:1–6",
+                "purpose": "Examinar a passagem da queixa à confiança sem apagar a queixa.",
+                "ref": {
+                  "bookId": "psalms",
+                  "chapter": 13,
+                  "verseStart": 1,
+                  "verseEnd": 6,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "ec3",
+                "label": "Eclesiastes 3:1–15",
+                "purpose": "Identificar limites de tempo, ação e compreensão.",
+                "ref": {
+                  "bookId": "ecclesiastes",
+                  "chapter": 3,
+                  "verseStart": 1,
+                  "verseEnd": 15,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Niilismo",
+                "explanation": "Problema filosófico sobre sentido e valor; não sinônimo de tristeza, humildade ou cristianismo."
+              },
+              {
+                "label": "Esperança",
+                "explanation": "Confiança orientada a um bem futuro; nesta aula, sua justificação e sua relação com o sofrimento são investigadas."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Uma leitura dramática da vida pode enfrentar a crítica ao ideal ascético sem adotar o niilismo.",
+                "area": "Filosofia",
+                "status": "Interpretação",
+                "basis": "Lente editorial de estudo: o confronto entre os autores é proposto aqui, não atribuído a um consenso entre eles.",
+                "sources": [
+                  {
+                    "title": "Nietzsche — Genealogia da moral",
+                    "url": "https://www.gutenberg.org/cache/epub/52319/pg52319-images.html",
+                    "perspective": "Crítica filosófica da moral e do ideal ascético; III, §§1 e 28; tradução inglesa de 1913.",
+                    "locator": "Genealogia da moral, III, §§1 e 28",
+                    "supports": "Formula uma crítica ao significado do sofrimento no ideal ascético.",
+                    "limit": "É uma objeção à tradição, não uma fonte favorável a toda a síntese do curso."
+                  },
+                  {
+                    "title": "Agostinho — Confissões VII",
+                    "url": "https://www.newadvent.org/fathers/110107.htm",
+                    "perspective": "Relato autobiográfico e argumento cristão antigo; tradução histórica inglesa.",
+                    "locator": "Confissões VII, capítulos 11–12",
+                    "supports": "Articula dependência, bondade do criado e corrupção.",
+                    "limit": "A resposta cristã aqui construída não é uma refutação escrita por Agostinho a Nietzsche."
+                  }
+                ],
+                "alternatives": "Considere respostas religiosas e não religiosas ao sentido. Compreender uma objeção não exige aceitá-la; responder exige mais que desqualificar seu autor."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "sentido:aula",
+                "title": "Finitude, niilismo e esperança",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "A pergunta pelo sentido",
+                    "references": [
+                      "nietzsche"
+                    ],
+                    "paragraphs": [
+                      "A consciência da morte torna urgente a pergunta pelo sentido, mas não determina uma única resposta. Finitude significa que nossa vida tem limites; niilismo, no recorte deste percurso, designa o problema da perda de fundamento ou valor. Uma pessoa pode reconhecer a fragilidade humana e continuar afirmando a dignidade da existência. Pode também ter conforto material e não encontrar razão para viver como vive. Essas situações não devem ser confundidas.",
+                      "A lente adotada aqui é cristã e dramática: criação, queda e redenção organizam uma investigação da condição humana. O drama envolve uma bondade ferida, não uma criação que já nasceu desprezível. Seu objetivo é compreender por que a graça importa, não produzir um estado emocional sombrio como sinal de profundidade."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Crítica do ideal ascético",
+                    "references": [
+                      "nietzsche",
+                      "augustine"
+                    ],
+                    "paragraphs": [
+                      "Na Genealogia da moral III.28, Nietzsche interroga o sentido oferecido ao sofrimento pelo ideal ascético e o preço dessa interpretação. Sua crítica deve ser ouvida como crítica: dar uma explicação religiosa à dor pode ampliar a culpa e a negação da vida. Isso não o transforma em defensor da doutrina cristã da queda. A aula o apresenta como interlocutor que obriga a examinar os efeitos de uma linguagem religiosa.",
+                      "Uma resposta cristã precisa argumentar que arrependimento e esperança podem orientar uma vida responsável, e não apenas renomear ressentimento. A noção agostiniana de uma criação boa permite perguntar se o mal fere algo valioso. Chamar a pessoa de pecadora descreve uma condição moral em uma tradição; concluir que ela não possui qualquer dignidade seria outra tese, que exige outra justificação."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Ler o lamento sem corrigi-lo depressa",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia o Salmo 13 inteiro e divida-o pelos movimentos de queixa, pedido e confiança. Observe que a pergunta sobre abandono não é apagada pela confiança final. Em Eclesiastes 3, marque os pares de acontecimentos e a pergunta sobre o alcance do conhecimento humano. O exercício não consiste em converter cada frase em promessa de resultado favorável, mas em identificar o que cada voz permite dizer diante do limite."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Duas respostas insuficientes",
+                    "references": [],
+                    "paragraphs": [
+                      "Considere estas propostas editoriais para avaliação: toda dor acontece porque a vítima falhou; nenhuma dor permite qualquer esperança. A primeira presume acesso à causa moral de cada sofrimento. A segunda transforma uma experiência real de perda em conclusão universal. Escreva quais premissas faltam a ambas. Uma teologia séria pode admitir perguntas ainda abertas e, mesmo assim, sustentar cuidado, justiça e fidelidade."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Esperança como questão de estudo",
+                    "references": [],
+                    "paragraphs": [
+                      "Ao concluir, formule uma definição provisória de esperança que não dependa de êxito imediato. Distinga sua convicção, o testemunho de um texto e o argumento que você consegue apresentar a outra pessoa. A postura acadêmica não exige eliminar a fé; exige tornar explícito o caminho entre o que foi lido e o que foi concluído."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Compare Salmo 13 e a crítica ao ideal ascético. Apresente uma tese sobre esperança, uma objeção e uma resposta que reconheça um limite real da sua conclusão.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:augustine-confessions",
+                "label": "Confissões de Agostinho"
+              }
+            ]
+          },
+          {
+            "id": "cinco-vias",
+            "phase": "Razão e fé",
+            "title": "As cinco vias de Tomás de Aquino",
+            "studyGuideId": "teologia",
+            "readingSearch": "Tomás Deus existência causa",
+            "description": "Reconstruir cada argumento, examinar uma objeção e delimitar o que a conclusão pretende demonstrar.",
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "objectives": [
+              "Distinguir premissa, inferência e conclusão.",
+              "Explicar ato, potência, causalidade, contingência, participação e finalidade.",
+              "Evitar transformar argumentos metafísicos em testes de laboratório ou slogans apologéticos."
+            ],
+            "lessons": [
+              {
+                "id": "vias:movimento",
+                "title": "Primeira via — mudança, ato e potência",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O problema da mudança",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "A primeira via parte da mudança. Movimento, nesse vocabulário, não se limita a deslocar um objeto: envolve atualizar uma possibilidade. Ato é a realização considerada; potência é a capacidade de receber uma determinação. Dizer que algo muda é distinguir o que já é do que pode vir a ser, sob determinado aspecto."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Reconstrução do argumento",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "Tomás argumenta que a atualização requer algo em ato e que uma série de atualizadores dependentes precisa de um primeiro princípio não movido. O passo decisivo é a dependência do que atualiza; não basta repetir que tudo muda. O argumento não exige, por essa formulação, que Deus seja o primeiro objeto material empurrado no universo. Sua conclusão precisa ser discutida no quadro metafísico em que foi proposta."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Caso: aprender uma língua",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma pessoa capaz de aprender grego ainda não lê grego por possuir essa capacidade. Exercícios, textos, atenção e ensino participam da atualização. O caso é uma analogia editorial para distinguir capacidade e realização; não é uma prova de Deus. Liste os aspectos em que o aprendiz age e recebe, evitando imaginar uma oposição absoluta entre atividade e passividade."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Objeção e teste da resposta",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma objeção pergunta se há mudanças sem atualizador distinto. Outra questiona por que uma série dependente não poderia ser infinita. Reconstrua a resposta possível pela distinção entre aspectos e pela dependência causal, e depois avalie se ela convence. Chamar uma objeção de ignorância não substitui demonstrar onde seu raciocínio falha."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Alcance da primeira via",
+                    "references": [],
+                    "paragraphs": [
+                      "O resultado pretendido é um primeiro princípio da atualização, não uma exposição pronta da Trindade ou da encarnação. Escreva o argumento em quatro frases e marque qual premissa você considera mais discutível. Se a resposta depende de uma definição específica de mudança, declare essa definição."
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "vias:causa",
+                "title": "Segunda via — causalidade eficiente",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Causa e explicação",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "A segunda via considera a ordem das causas eficientes: aquilo pelo qual um efeito é produzido. Uma coisa ser anterior no calendário não basta para torná-la causa. Uma notícia publicada antes de uma tempestade não produz a tempestade. É preciso estabelecer a relação de dependência relevante antes de formar uma cadeia explicativa."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Uma causa que não recebe de outra",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "O argumento rejeita que algo seja causa eficiente de si mesmo e que a ordem causal dependente seja explicada apenas por intermediários sem primeiro princípio. A conclusão pretendida é uma causa primeira. A tese não é simplesmente tudo tem causa, seguida de uma exceção arbitrária. Sua dificuldade está em justificar a estrutura da dependência e o limite da regressão."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Caso: um instrumento em uso",
+                    "references": [],
+                    "paragraphs": [
+                      "Um instrumento opera numa rede de condições: construção, energia, operador e material. Escolha uma operação e desenhe sua cadeia de dependências. Depois separe explicação funcional, origem histórica e fundamento da capacidade de agir. O desenho ajuda a formular a pergunta; não autoriza deduzir Deus da mera existência de ferramentas."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "O universo como fato bruto",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma objeção admite relações causais internas, mas pergunta por que o conjunto teria de receber explicação adicional. Outra questiona a impossibilidade da regressão. Compare a resposta de que intermediários não explicam a própria eficácia com a posição que aceita um fato sem explicação ulterior. Identifique o critério de explicação usado por cada lado, em vez de disfarçar a diferença como uma descoberta experimental."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Não confundir causa e acontecimento inicial",
+                    "references": [],
+                    "paragraphs": [
+                      "Causa primeira pode designar prioridade explicativa e não apenas um evento remoto. Delimite qual sentido está usando. A relação com cosmologias físicas exige trabalho adicional: uma teoria sobre a evolução do universo não se converte automaticamente em demonstração ou refutação de toda a metafísica tomista."
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "vias:contingencia",
+                "title": "Terceira via — contingência e necessidade",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O que pode deixar de existir",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "Contingente é aquilo que pode ser de outro modo ou não existir, conforme a análise considerada. Necessário é aquilo cuja não existência é excluída no sentido argumentado. Não confunda necessidade metafísica com urgência pessoal: precisar de alimento não torna cada refeição um ser necessário."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Da geração e corrupção à necessidade",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "Tomás parte de coisas que surgem e desaparecem e argumenta que nem tudo pode depender desse modo. Considera também a necessidade recebida de outro e procura um fundamento cuja necessidade não seja recebida. A reconstrução precisa conservar esses passos. Saltar diretamente de sou mortal para Deus existe omite justamente a parte que requer justificação."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Caso: uma comunidade duradoura",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma instituição pode permanecer enquanto seus membros mudam. Esse caso permite distinguir duração do conjunto e duração de cada participante. Pergunte o que esse exemplo esclarece e o que não esclarece sobre a terceira via. Ele não resolve o argumento; serve para impedir a passagem irrefletida de uma propriedade de cada membro para a mesma propriedade do todo."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "A objeção da composição",
+                    "references": [],
+                    "paragraphs": [
+                      "O ponto mais exigente é o passo de seres que podem não existir para uma hipótese em que nada existiria. A não existência possível de cada um implica a não existência conjunta? Reconstrua a objeção e examine as condições de tempo e dependência usadas na resposta. Uma versão contemporânea do argumento pode reformular o problema, mas precisa avisar que está oferecendo uma reconstrução, não repetindo literalmente a fonte."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Precisar a necessidade",
+                    "references": [],
+                    "paragraphs": [
+                      "Registre o sentido de necessário defendido e o motivo pelo qual ele não dependeria de outro. A conclusão pretendida não identifica uma espécie de objeto muito resistente, mas um fundamento de outro estatuto. Aceitar ou rejeitar essa diferença exige examinar as premissas, não apenas o nome atribuído ao resultado."
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "vias:graus",
+                "title": "Quarta via — graus de perfeição",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O problema da medida",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "A quarta via considera graus de bondade, verdade e perfeição. O vocabulário não se reduz a preferências estéticas ou a uma classificação de pessoas. Há uma metafísica da participação: seres possuem de modo limitado perfeições cujo fundamento é investigado. Antes de concordar, é necessário esclarecer o que perfeição quer dizer nesse contexto."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Do participado ao fundamento",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "Tomás relaciona a gradação a um máximo e esse máximo à causalidade das perfeições nos demais seres. Esses vínculos são premissas fortes, não consequências óbvias de qualquer comparação. A via precisa justificar por que as perfeições consideradas remetem a uma fonte e em que sentido essa fonte não é apenas um membro extremo da série."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Caso: comparação e limite",
+                    "references": [],
+                    "paragraphs": [
+                      "Classificar respostas como mais ou menos precisas mostra que uma medida orienta a comparação. Mas a existência de notas diferentes não demonstra que exista um aluno infinitamente correto. Use esse contraexemplo para localizar o passo adicional da via. O exercício separa comparação comum e participação metafísica; ele não pretende tornar a nota escolar um substituto do argumento."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "A exigência de um máximo real",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma objeção pergunta se toda escala precisa de um máximo existente. Outra questiona se verdade, bondade e ser podem ser tratados de forma paralela. Apresente a melhor versão dessas objeções e investigue o que uma defesa tomista precisaria demonstrar. Não enfraqueça o oponente para produzir uma vitória apenas verbal."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Avaliar a metafísica pressuposta",
+                    "references": [],
+                    "paragraphs": [
+                      "A quarta via é especialmente dependente de seu quadro conceitual. Sua síntese deve indicar a relação proposta entre participação, medida e causalidade. Se você rejeita essa metafísica, explique onde está a divergência; se a aceita, evite apresentar a aceitação como consenso de toda a filosofia."
+                    ]
+                  }
+                ]
+              },
+              {
+                "id": "vias:finalidade",
+                "title": "Quinta via — ordem e finalidade",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Agir orientado a resultados",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "A quinta via considera a regularidade pela qual seres sem conhecimento agem em direção a resultados. Finalidade, nesse contexto, não significa que todo processo pense no que faz. A questão é se orientações naturais exigem uma inteligência que as ordene. É preciso distinguir essa pergunta de uma simples admiração diante da complexidade."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "O passo para a inteligência",
+                    "references": [
+                      "ways"
+                    ],
+                    "paragraphs": [
+                      "Tomás argumenta de uma ação regular orientada a fins para uma direção inteligente. A inferência depende do princípio segundo o qual aquilo que não conhece não se dirige por si a um fim nesse sentido. Explicar esse princípio é parte da defesa da via. A conclusão não pode ser obtida apenas identificando uma lacuna no conhecimento científico disponível."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Caso: uma função biológica",
+                    "references": [],
+                    "paragraphs": [
+                      "Escolha uma função de um órgão e separe três questões: como opera, como surgiu e o que significa atribuir-lhe um fim. Uma explicação por mecanismos e história natural não é automaticamente uma tese sobre o fundamento último. Inversamente, falar em fundamento não fornece uma alternativa pronta à investigação desses mecanismos. O exercício impede que se misturem níveis diferentes de explicação."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Regularidade sem intenção?",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma objeção considera suficiente descrever leis, processos e seleção, sem postular uma inteligência ordenadora. Uma resposta tomista pode insistir na pergunta pela orientação das próprias causas naturais. Compare o que cada lado entende por explicação completa. A aula não declara que a biologia contemporânea confirmou a via nem que um exemplo isolado a refutou."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Da via à investigação seguinte",
+                    "references": [],
+                    "paragraphs": [
+                      "As cinco vias são argumentos distintos, não cinco etapas de um único experimento. Concluir uma delas não resolve automaticamente todos os atributos divinos, a revelação cristã ou o problema do mal. Ao avançar, registre o que foi estabelecido para você, o que depende de premissas aceitas e qual objeção ainda permanece."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "passages": [
+              {
+                "id": "rm1-razao",
+                "label": "Romanos 1:18–23",
+                "purpose": "Comparar a afirmação paulina sobre conhecimento e criação com a natureza de um argumento filosófico; não tratá-la como demonstração das cinco vias.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 1,
+                  "verseStart": 18,
+                  "verseEnd": 23,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Ato e potência",
+                "explanation": "Realização e capacidade consideradas sob um aspecto; base conceitual da análise de mudança."
+              },
+              {
+                "label": "Causalidade",
+                "explanation": "Relação explicativa que exige mais que anterioridade temporal."
+              },
+              {
+                "label": "Contingência e finalidade",
+                "explanation": "Possibilidade de ser de outro modo e orientação a um resultado são problemas diferentes, tratados em vias diferentes."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "As cinco vias exigem reconstrução das premissas e não encerram todo o conteúdo da fé cristã.",
+                "area": "Filosofia",
+                "status": "Argumento",
+                "basis": "Exposição editorial de Suma I, q.2, a.1–3. Os casos e as objeções didáticas são formulações do percurso, identificadas como exercícios.",
+                "sources": [
+                  {
+                    "title": "Tomás de Aquino — cinco vias",
+                    "url": "https://www.newadvent.org/summa/1002.htm",
+                    "perspective": "Suma Teológica I, q.2; escolástica latina, tradução histórica inglesa.",
+                    "locator": "Suma I, q.2, a.1–3; especialmente o corpo do artigo 3",
+                    "supports": "Apresenta as cinco vias, distinguindo evidência para nós e demonstração pelos efeitos.",
+                    "limit": "Não é validação experimental nem prova automática de toda a doutrina cristã. Analogias contemporâneas da aula não são exemplos literais do autor."
+                  }
+                ],
+                "alternatives": "Examine objeções à regressão, à composição, ao máximo real e à finalidade. O sistema registra estudo e argumento, não exige concordância com Tomás."
+              }
+            ],
+            "activity": {
+              "prompt": "Escolha uma via. Reconstrua premissas e conclusão, explique um termo técnico, desenvolva a objeção mais forte que consegue formular e avalie uma resposta. Identifique o que a conclusão não demonstra.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-pars",
+                "label": "Suma Teológica I"
+              }
+            ]
+          },
+          {
+            "id": "adao",
+            "phase": "Antropologia cristã",
+            "title": "Adão: personagem, tipo e arquétipo",
+            "studyGuideId": "hamartiologia-justificacao",
+            "readingSearch": "Adão imagem humanidade",
+            "description": "Investigar a leitura de Adão como representação da humanidade, distinguindo narrativa, tipologia e reconstrução histórica.",
+            "objectives": [
+              "Definir arquétipo como hipótese de leitura, sem impor uma escola psicológica.",
+              "Distinguir Adão na narrativa e a recepção paulina.",
+              "Explicitar o que uma interpretação não demonstra historicamente."
+            ],
+            "passages": [
+              {
+                "id": "gn2",
+                "label": "Gênesis 2:7–17",
+                "purpose": "Separar descrição narrativa e leitura da condição humana.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 2,
+                  "verseStart": 7,
+                  "verseEnd": 17,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "rm5",
+                "label": "Romanos 5:12–21",
+                "purpose": "Examinar a relação Adão–Cristo no argumento paulino.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 5,
+                  "verseStart": 12,
+                  "verseEnd": 21,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Arquétipo",
+                "explanation": "Figura representativa da condição humana, no uso delimitado deste percurso. Hipótese interpretativa, não dado histórico demonstrado."
+              },
+              {
+                "label": "Tipologia",
+                "explanation": "Relação interpretativa entre figuras ou acontecimentos; observar como o autor constrói a comparação."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Adão pode ser investigado como figura representativa, sem equiparar essa hipótese a uma descoberta histórica.",
+                "area": "Leitura textual",
+                "status": "Interpretação",
+                "basis": "Hipótese de estudo do percurso, examinada à luz de Gênesis 2, Romanos 5 e 1 Coríntios 15. A referência patrística documenta recepção, não comprovação de toda a hipótese.",
+                "sources": [
+                  {
+                    "title": "Irineu — Contra as heresias III.22",
+                    "url": "https://www.newadvent.org/fathers/0103322.htm",
+                    "perspective": "Recepção patrística de Adão, Eva e Cristo; não hipótese arqueológica.",
+                    "locator": "Contra as heresias III.22.1–3",
+                    "supports": "Relaciona Adão, humanidade real de Cristo e recapitulação.",
+                    "limit": "Irineu não formula a tese moderna de Adão exclusivamente arquetípico."
+                  }
+                ],
+                "alternatives": "Compare leitura histórico-representativa e leitura arquetípica. Explicite as premissas de cada uma, sem transformar uma preferência em consenso cristão."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "adao:aula",
+                "title": "Adão: personagem, tipo e arquétipo",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Três níveis de pergunta",
+                    "references": [],
+                    "paragraphs": [
+                      "Perguntar quem é Adão pode significar coisas distintas: qual papel ele exerce em Gênesis, como Paulo o relaciona a Cristo ou que realidade histórica corresponde ao relato. Uma resposta ao primeiro problema não resolve automaticamente os outros. A palavra arquétipo será usada aqui para uma figura que torna legível uma condição humana recorrente. Esse uso editorial não presume toda a teoria de Jung nem descarta, por definição, a historicidade do personagem.",
+                      "A hipótese em estudo é que Adão permite pensar o humano como criatura recebida, responsável, relacional e exposta à ruptura. Nessa lente, ler a narrativa não é apenas procurar um antepassado distante: é perguntar pela estrutura de uma vida que recebe o ser e tenta constituir-se como seu próprio fundamento."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Tipologia e representação",
+                    "references": [
+                      "irenaeus"
+                    ],
+                    "paragraphs": [
+                      "Romanos 5:12–21 relaciona Adão e Cristo em um argumento sobre pecado, morte, dom e justificação. Em 1 Coríntios 15:45–49, o contraste se liga ao corpo e à ressurreição. A tipologia organiza uma relação entre figuras; não é, por si só, uma conclusão arqueológica nem uma autorização para apagar as diferenças entre os textos.",
+                      "Irineu, em Contra as heresias III.22, desenvolve a recapitulação em Cristo e insiste na realidade da humanidade assumida. Seu uso de Adão ilumina a recepção cristã antiga. Entretanto, ele não deve receber retrospectivamente a tese moderna de que Adão é apenas um símbolo sem existência histórica. Uma apropriação contemporânea pode dialogar com o autor e ainda assim discordar dele."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Um quadro de leitura de Gênesis 2",
+                    "references": [],
+                    "paragraphs": [
+                      "Registre três elementos de Gênesis 2:7–17: formação da criatura, recebimento de uma tarefa e enunciação de um limite. Depois escreva duas colunas. Na primeira, descreva os acontecimentos narrados; na segunda, proponha sua leitura sobre dependência e responsabilidade. A separação torna visível onde começa sua interpretação. O texto não contém a palavra autonomia no sentido filosófico moderno; essa categoria será uma ferramenta de análise, não uma tradução literal."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "O alcance da hipótese arquetípica",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma leitura representativa precisa explicar por que esses elementos correspondem ao humano em geral e como se relacionam com o argumento de Paulo. Uma leitura histórica precisa indicar que evidências seriam pertinentes à sua afirmação. Ambas podem dialogar, mas nenhuma deve fingir que a outra já foi resolvida. Tampouco a etimologia de um nome demonstra uma doutrina inteira: uma relação verbal pode sugerir uma interpretação sem prová-la."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Uma tese delimitada",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma formulação defensável pode assumir esta estrutura: nesta unidade, leio Adão como figura da condição recebida da humanidade, porque determinados elementos narrativos e sua recepção permitem essa relação. Acrescente o que essa frase deixa em aberto: ancestralidade, cronologia, mecanismo de transmissão do pecado e interpretações concorrentes. O rigor está em dizer o que você sustenta e o que ainda precisa examinar."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Defenda ou critique a leitura arquetípica de Adão com um elemento de Gênesis e um de Romanos 5. Diferencie o argumento textual de uma afirmação histórica e registre uma objeção à sua leitura.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-pars",
+                "label": "Suma Teológica I"
+              },
+              {
+                "workId": "work:augustine-confessions",
+                "label": "Confissões de Agostinho"
+              }
+            ]
+          },
+          {
+            "id": "alteridade",
+            "phase": "Antropologia cristã",
+            "title": "Adão e Eva: alteridade e comunhão",
+            "studyGuideId": "biblia-interpretacao",
+            "readingSearch": "Gênesis homem mulher comunhão",
+            "description": "Ler o encontro com o outro, o reconhecimento e a responsabilidade em Gênesis 1–3.",
+            "objectives": [
+              "Definir alteridade sem reduzir a pessoa a instrumento.",
+              "Comparar reconhecimento e acusação na narrativa.",
+              "Distinguir descrição do conflito e prescrição ética."
+            ],
+            "passages": [
+              {
+                "id": "gn1-humanidade",
+                "label": "Gênesis 1:26–28",
+                "purpose": "Identificar os sujeitos da afirmação sobre imagem e tarefa.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 1,
+                  "verseStart": 26,
+                  "verseEnd": 28,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "gn2-encontro",
+                "label": "Gênesis 2:18–25",
+                "purpose": "Examinar solidão, encontro e reconhecimento.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 2,
+                  "verseStart": 18,
+                  "verseEnd": 25,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "gn3-acusacao",
+                "label": "Gênesis 3:8–19",
+                "purpose": "Observar as mudanças de responsabilidade e relação.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 3,
+                  "verseStart": 8,
+                  "verseEnd": 19,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Alteridade",
+                "explanation": "Reconhecimento do outro como sujeito, cuja existência não se esgota no meu interesse."
+              },
+              {
+                "label": "Comunhão",
+                "explanation": "Relação que une sem eliminar a diferença; hipótese de leitura a confrontar com os textos."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "A passagem do reconhecimento à acusação permite uma investigação da alteridade em Gênesis 2–3.",
+                "area": "Leitura textual",
+                "status": "Interpretação",
+                "basis": "O suporte imediato são as unidades bíblicas vinculadas; a categoria alteridade pertence à análise editorial. A fonte patrística permite comparar outra recepção de Eva.",
+                "sources": [
+                  {
+                    "title": "Irineu — Contra as heresias III.22",
+                    "url": "https://www.newadvent.org/fathers/0103322.htm",
+                    "perspective": "Recepção patrística de Adão, Eva e Cristo; não hipótese arqueológica.",
+                    "locator": "Contra as heresias III.22.4",
+                    "supports": "Documenta uma leitura antiga de Eva em paralelo com Maria.",
+                    "limit": "O paralelo de Irineu não constitui uma teoria moderna de alteridade nem resolve todos os debates éticos atuais."
+                  }
+                ],
+                "alternatives": "Compare interpretações complementares e igualitárias, distinguindo descrição narrativa, norma defendida e categorias filosóficas utilizadas."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "alteridade:aula",
+                "title": "Adão e Eva: alteridade e comunhão",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O outro não é uma extensão do eu",
+                    "references": [],
+                    "paragraphs": [
+                      "Alteridade é o reconhecimento de um outro que não se reduz à minha projeção, utilidade ou controle. O termo é uma categoria filosófica usada para interrogar Gênesis, não uma palavra técnica colocada pelo narrador. A pergunta desta unidade é o que acontece quando a vida humana é compreendida como relação recebida, em vez de autossuficiência isolada.",
+                      "Gênesis 1:26–28 associa a imagem de Deus à humanidade e menciona homem e mulher. Gênesis 2 desenvolve outra cena, com solidão, encontro e reconhecimento. Ler as unidades em sua organização própria evita usar uma frase para interromper todas as perguntas sobre a outra. Uma síntese teológica vem depois da atenção ao texto."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Reconhecimento, limite e diferença",
+                    "references": [],
+                    "paragraphs": [
+                      "No encontro de Gênesis 2:18–25, investigue como a diferença aparece junto do reconhecimento de uma condição comum. A leitura de alteridade proposta aqui entende que comunhão não exige absorver o outro. O vínculo pode ser pensado como acolhimento de uma existência que não foi produzida por minha vontade. Essa é uma elaboração filosófica da cena, aberta a avaliação.",
+                      "Em Gênesis 3, o deslocamento da responsabilidade aparece nas respostas dos personagens. A ruptura pode ser examinada na relação com Deus, com o outro e com o próprio agir. Descrever essa dinâmica é diferente de atribuir toda culpa a um sexo ou de converter dominação em ideal normativo. Para defender uma conclusão ética, identifique se o texto narra uma ferida, estabelece um mandamento ou recebe uma interpretação posterior."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Duas cenas em paralelo",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Gênesis 2:23 e 3:12 dentro de suas unidades. Compare o modo de se referir à mulher, a presença de Deus na fala e a posição do sujeito que responde. Produza uma observação verificável antes de usar termos como alienação ou objetificação. Depois pergunte se esses termos esclarecem a mudança de relação ou acrescentam algo que precisaria ser sustentado por outro argumento."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Descrição não equivale a legitimação",
+                    "references": [],
+                    "paragraphs": [
+                      "Imagine uma aula que narra a origem da violência e conclui que a violência é, por isso, uma obrigação. Há um salto entre descrever um estado e prescrever sua conservação. Aplique esse teste às interpretações de Gênesis 3. Compare ao menos duas leituras sobre diferença e autoridade, identificando o texto invocado e o princípio usado para passar dele à norma. Uma preferência moral não substitui esse trabalho; tampouco um costume ganha validade apenas por ser antigo."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Da alteridade à responsabilidade",
+                    "references": [],
+                    "paragraphs": [
+                      "A lente do percurso propõe pensar a queda também como deterioração do encontro: o outro passa a ser acusado, temido ou apropriado. Seu contraponto ético é uma responsabilidade que reconhece a dignidade alheia. Essa conclusão precisa conservar seu estatuto interpretativo. Ela não pretende encerrar os debates sobre gênero, matrimônio ou autoridade eclesial em uma única página de leitura."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Compare Gênesis 2:23 e 3:12. Mostre uma mudança verificável na fala, proponha uma interpretação pela alteridade e responda a uma objeção sobre o uso de uma categoria moderna.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-pars",
+                "label": "Suma Teológica I"
+              }
+            ]
+          },
+          {
+            "id": "queda",
+            "phase": "Antropologia cristã",
+            "title": "Queda e ruptura da condição humana",
+            "studyGuideId": "hamartiologia-justificacao",
+            "readingSearch": "pecado original natureza mal",
+            "description": "Examinar o alcance da expressão ruptura ontológica e a permanência da bondade da criação.",
+            "objectives": [
+              "Distinguir natureza, condição, culpa e corrupção.",
+              "Avaliar a tese de uma ruptura ontológica sem pressupor destruição da humanidade.",
+              "Separar explicação teológica e causalidade empírica."
+            ],
+            "passages": [
+              {
+                "id": "gn3-queda",
+                "label": "Gênesis 3:1–24",
+                "purpose": "Descrever rupturas e consequências na organização da narrativa.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 3,
+                  "verseStart": 1,
+                  "verseEnd": 24,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "rm8",
+                "label": "Romanos 8:18–25",
+                "purpose": "Investigar criação, corrupção e esperança sem reduzir o argumento a uma causa física isolada.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 8,
+                  "verseStart": 18,
+                  "verseEnd": 25,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Ontologia",
+                "explanation": "Investigação do ser; neste curso, exige distinguir natureza humana e condição histórica ou moral."
+              },
+              {
+                "label": "Privação",
+                "explanation": "Falta de um bem devido, na tradição agostiniana e tomista; não equivale a uma substância independente."
+              },
+              {
+                "label": "Pecado original",
+                "explanation": "Conceito cuja formulação varia entre tradições; examinar alcance, transmissão e relação com atos pessoais.",
+                "entityId": "doctrine:original-sin"
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Ruptura ontológica é uma hipótese a precisar, não uma licença para identificar natureza humana e mal.",
+                "area": "Teologia",
+                "status": "Interpretação",
+                "basis": "A linguagem da ruptura pertence à lente de estudo. As fontes abaixo ajudam a testar seu alcance, inclusive quando oferecem resistência à formulação.",
+                "sources": [
+                  {
+                    "title": "Agostinho — Confissões VII",
+                    "url": "https://www.newadvent.org/fathers/110107.htm",
+                    "perspective": "Relato autobiográfico e argumento cristão antigo; tradução histórica inglesa.",
+                    "locator": "Confissões VII.12",
+                    "supports": "Discute corrupção e bondade do que existe.",
+                    "limit": "Não descreve o mal como uma natureza criadora independente."
+                  },
+                  {
+                    "title": "Tomás de Aquino — natureza do mal",
+                    "url": "https://www.newadvent.org/summa/1048.htm",
+                    "perspective": "Suma Teológica I, q.48; análise metafísica da privação.",
+                    "locator": "Suma I, q.48, a.1–4",
+                    "supports": "Distingue privação, sujeito do mal e corrupção do bem.",
+                    "limit": "A metafísica da privação não comprova uma cronologia da queda."
+                  },
+                  {
+                    "title": "Confissão de Augsburgo",
+                    "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+                    "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa.",
+                    "locator": "Artigo II",
+                    "supports": "Apresenta uma formulação luterana de pecado original.",
+                    "limit": "É autodescrição confessional; comparar seus termos com os de outras fontes."
+                  }
+                ],
+                "alternatives": "Compare perda de comunhão, justiça original e corrupção da vontade. Não equipare uma descrição teológica à explicação empírica de cada sofrimento."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "queda:aula",
+                "title": "Queda e ruptura da condição humana",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O que teria sido quebrado?",
+                    "references": [],
+                    "paragraphs": [
+                      "Dizer que a queda explica a condição presente é propor uma estrutura teológica de interpretação. Para desenvolvê-la, é preciso identificar o que foi perdido, o que permaneceu e como a ruptura se transmite. A expressão quebra da ontologia humana será examinada como hipótese: ela pode significar perda de comunhão e de ordenação ao bem, mas também pode sugerir, de modo muito mais forte, que o ser humano deixou de ser humano. Essas afirmações não são equivalentes.",
+                      "Ontologia investiga o ser e seus modos; antropologia teológica pergunta pela criatura humana diante de Deus. Uma ferida da vontade, uma perda de justiça original e a extinção da natureza são teses diferentes. Sem essas distinções, uma frase expressiva acaba escondendo o problema que deveria esclarecer."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Privação e bondade ferida",
+                    "references": [
+                      "augustine",
+                      "evil"
+                    ],
+                    "paragraphs": [
+                      "Agostinho, em Confissões VII.12, considera a corrupção como perda de um bem. Tomás, em Suma I, q.48, distingue mal e natureza. Nesse quadro, o mal depende de algo cuja bondade pode ser danificada; não é uma segunda substância criadora. Isso permite falar de uma condição ferida sem concluir que todo aspecto da existência seja mau ou que uma pessoa perca sua dignidade por pecar.",
+                      "A lente proposta interpreta a queda como desordem das relações com Deus, com o próximo e com o bem. Ela deixa aberta a discussão sobre seus mecanismos e não transforma Romanos 5 em manual de biologia. Também distingue morte corporal, alienação espiritual e condenação: reunir todos esses usos em uma única palavra morte pode criar uma explicação circular."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Uma afirmação ampla sob exame",
+                    "references": [],
+                    "paragraphs": [
+                      "Considere a tese: a queda é a principal razão de o mundo ser como é. Divida-a em três perguntas. Ela explica teologicamente o pecado? Explica a vulnerabilidade e a morte? Afirma explicar cada evento natural particular? A terceira formulação exige uma investigação adicional. Um acidente, uma doença ou um desastre não revelam automaticamente a culpa pessoal de quem sofre. O estudo da queda não concede ao leitor conhecimento privado de cada intenção divina."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "A criação continua reconhecível?",
+                    "references": [
+                      "augsburg",
+                      "anglican"
+                    ],
+                    "paragraphs": [
+                      "Compare as formulações confessionais sobre pecado original e observe os verbos usados para descrever a condição humana. Pergunte se a corrupção é apresentada como simples exemplo ruim, inclinação, privação, culpa ou incapacidade em determinada ordem. Não suponha que todas as tradições usem natureza e liberdade da mesma maneira. Uma comparação rigorosa primeiro reconstrói cada posição; somente depois avalia se a expressão ruptura ontológica é esclarecedora."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Uma hipótese com alcance definido",
+                    "references": [],
+                    "paragraphs": [
+                      "A síntese deste ponto é uma pergunta estruturada: em que sentido a humanidade permanece criação boa e, ao mesmo tempo, necessita de restauração? Uma resposta deve evitar dois atalhos: minimizar o mal até torná-lo irrelevante ou absolutizá-lo até eliminar todo bem. Essa tensão prepara o estudo de Cristo e da graça, que só podem ser compreendidos se soubermos o que a salvação pretende restaurar."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Defina exatamente o que você entende por ruptura ontológica. Indique o que permanece humano após a queda, use uma passagem e uma fonte primária, e examine uma objeção à sua definição.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-secundae",
+                "label": "Suma Teológica I–II"
+              },
+              {
+                "workId": "work:augustine-confessions",
+                "label": "Confissões de Agostinho"
+              }
+            ]
+          },
+          {
+            "id": "cristo",
+            "phase": "Cristologia",
+            "title": "Cristo: morte real e vitória da vida",
+            "studyGuideId": "trindade-cristologia",
+            "readingSearch": "Cristo morte ressurreição encarnação",
+            "description": "Examinar a hipótese da incompatibilidade com a morte em diálogo com a humanidade real de Cristo e sua ressurreição.",
+            "objectives": [
+              "Distinguir morte corporal, pecado, corrupção e separação de Deus.",
+              "Comparar a hipótese proposta com Atanásio e Tomás.",
+              "Explicar por que vitória sobre a morte não equivale a aparência de morte."
+            ],
+            "passages": [
+              {
+                "id": "at2",
+                "label": "Atos 2:22–32",
+                "purpose": "Examinar o discurso sobre a morte que não retém Cristo.",
+                "ref": {
+                  "bookId": "acts",
+                  "chapter": 2,
+                  "verseStart": 22,
+                  "verseEnd": 32,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "hb2",
+                "label": "Hebreus 2:14–18",
+                "purpose": "Confrontar participação na condição humana e libertação pela morte.",
+                "ref": {
+                  "bookId": "hebrews",
+                  "chapter": 2,
+                  "verseStart": 14,
+                  "verseEnd": 18,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Encarnação",
+                "explanation": "Afirmação cristã de que o Verbo assume humanidade real; não disfarce corporal.",
+                "entityId": "doctrine:incarnation"
+              },
+              {
+                "label": "União hipostática",
+                "explanation": "Linguagem cristológica sobre unidade pessoal e distinção de naturezas; não mistura que dissolve a humanidade."
+              },
+              {
+                "label": "Incompatibilidade ontológica com a morte",
+                "explanation": "Hipótese deste percurso: precisar se significa impossibilidade de morrer ou impossibilidade de domínio definitivo da morte. As duas leituras têm consequências distintas."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "A hipótese de Cristo não ser retido pela morte deve preservar a realidade de sua morte humana.",
+                "area": "Teologia",
+                "status": "Interpretação",
+                "basis": "Hipótese de estudo do percurso. Atos 2 e Hebreus 2 são unidades de análise; os autores abaixo permitem examinar a coerência cristológica, sem serem apresentados como autores da frase moderna.",
+                "sources": [
+                  {
+                    "title": "Atanásio — Sobre a encarnação",
+                    "url": "https://www.newadvent.org/fathers/2802.htm",
+                    "perspective": "Tratado cristão antigo; corrupção, encarnação e vitória sobre a morte.",
+                    "locator": "Sobre a encarnação, §20",
+                    "supports": "Relaciona corpo mortal, Verbo e vitória sobre a corrupção.",
+                    "limit": "Não ensina uma simples incapacidade corporal de morrer."
+                  },
+                  {
+                    "title": "Tomás de Aquino — morte de Cristo",
+                    "url": "https://www.newadvent.org/summa/4050.htm",
+                    "perspective": "Suma Teológica III, q.50; morte humana e união com o Verbo.",
+                    "locator": "Suma III, q.50, a.1–3",
+                    "supports": "Distingue morte real e permanência da união da divindade com corpo e alma.",
+                    "limit": "A distinção escolástica não equivale a uma explicação biológica."
+                  },
+                  {
+                    "title": "Tomás de Aquino — ressurreição de Cristo",
+                    "url": "https://www.newadvent.org/summa/4053.htm",
+                    "perspective": "Suma Teológica III, q.53; exposição cristológica escolástica.",
+                    "locator": "Suma III, q.53, a.4",
+                    "supports": "Examina a ressurreição segundo poder divino e natureza criada.",
+                    "limit": "A hipótese editorial precisa ser comparada, não atribuída literalmente a Tomás."
+                  }
+                ],
+                "alternatives": "Compare linguagens de vitória, recapitulação e satisfação. Preserve a diferença entre testemunho, interpretação e avaliação histórica."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "cristo:aula",
+                "title": "Cristo: morte real e vitória da vida",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Uma tese que precisa de definições",
+                    "references": [],
+                    "paragraphs": [
+                      "A formulação investigada neste módulo é que Cristo ressuscita porque a morte não pode detê-lo: ele não está submetido a todas as mortes da condição caída. Essa é uma hipótese teológica a desenvolver, não uma frase atribuída automaticamente a um autor antigo. Para examiná-la, defina quais sentidos de morte estão em jogo: falecimento corporal, domínio do pecado, alienação ou destino final. O uso de uma única palavra não torna esses sentidos idênticos.",
+                      "Se incompatibilidade ontológica significasse incapacidade de morrer corporalmente, a tese entraria em tensão com a confissão da paixão, morte e sepultamento reais. Se significar que a morte não pode exercer domínio definitivo sobre o Verbo encarnado, sua relação com as fontes será outra. O trabalho está em formular precisamente essa segunda possibilidade e testar seus fundamentos."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Humanidade assumida e união com o Verbo",
+                    "references": [
+                      "athanasius",
+                      "death",
+                      "resurrection"
+                    ],
+                    "paragraphs": [
+                      "Atanásio, em Sobre a encarnação §20, relaciona a vitória sobre a corrupção com o Verbo que assume um corpo mortal. A morte é enfrentada, não simplesmente evitada. Tomás, em Suma III, q.50, distingue a morte humana da separação da divindade: a união com o Verbo não é tratada como desfeita pela morte. Em III, q.53, a causalidade da ressurreição é examinada nessa distinção entre poder divino e natureza criada.",
+                      "Essas fontes oferecem aproximações à pergunta proposta, mas não autorizam dizer que Jesus possuía uma humanidade incompleta ou que só parecia sofrer. Sua ausência de pecado não equivale à ausência de corpo, vulnerabilidade ou sofrimento. Tampouco o aplicativo transforma a ressurreição em consequência biológica previsível: trata-se de uma afirmação cristológica, com premissas religiosas identificadas."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Atos 2 e Hebreus 2",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Atos 2:22–32 observando quem age na ressurreição e como o discurso interpreta o Salmo citado. Depois leia Hebreus 2:14–18 e marque a relação entre participação na carne e no sangue, morte e libertação. Pergunte como cada unidade associa vitória e participação efetiva na condição humana. Uma leitura que elimina a participação precisa explicar por que o argumento a destaca."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Uma reformulação examinável",
+                    "references": [],
+                    "paragraphs": [
+                      "Teste esta redação editorial: Cristo assume a morte humana sem ser reduzido ao domínio definitivo da morte; sua ressurreição é compreendida em relação à identidade do Verbo encarnado. A frase preserva melhor a morte real, mas ainda requer argumentos sobre identidade, liberdade e ação divina. Compare-a com a formulação inicial e identifique o que mudou. Discordar de uma formulação não exige abandonar toda a intuição que a motivou."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "O que a hipótese explica e o que não explica",
+                    "references": [],
+                    "paragraphs": [
+                      "Sua síntese deve distinguir quatro afirmações: Jesus morreu; sua morte não é interpretada como vitória final do pecado; Deus o ressuscita; a tradição articula isso com sua divindade. Reconstruir essa relação é um trabalho teológico. Ela não é evidência arqueológica da ressurreição e não dispensa o exame histórico dos testemunhos. A próxima unidade investigará os termos usados para falar da condição dos mortos."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Defina os sentidos de morte na hipótese de incompatibilidade ontológica. Confronte-a com Hebreus 2 e uma fonte primária. Apresente uma formulação que preserve a morte real e responda à objeção de uma humanidade incompleta.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-tertia-pars",
+                "label": "Suma Teológica III"
+              }
+            ]
+          },
+          {
+            "id": "sheol",
+            "phase": "Escatologia",
+            "title": "Sheol, Hades, juízo e destino dos mortos",
+            "studyGuideId": "escatologia",
+            "readingSearch": "Sheol mortos juízo inferno",
+            "description": "Distinguir vocabulário bíblico e modelos escatológicos antes de formular uma posição sobre a morte e o juízo.",
+            "objectives": [
+              "Separar morada dos mortos, juízo e destino final.",
+              "Comparar passagens sem uniformizar gêneros e épocas.",
+              "Avaliar a hipótese de ausência de tormento consciente sem usar o léxico como prova suficiente."
+            ],
+            "passages": [
+              {
+                "id": "sl16",
+                "label": "Salmo 16:8–11",
+                "purpose": "Ler confiança e morte no contexto do salmo.",
+                "ref": {
+                  "bookId": "psalms",
+                  "chapter": 16,
+                  "verseStart": 8,
+                  "verseEnd": 11,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "lc16",
+                "label": "Lucas 16:19–31",
+                "purpose": "Examinar função narrativa e linguagem sobre os mortos.",
+                "ref": {
+                  "bookId": "luke",
+                  "chapter": 16,
+                  "verseStart": 19,
+                  "verseEnd": 31,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "ap20",
+                "label": "Apocalipse 20:11–15",
+                "purpose": "Distinguir morte, Hades e a cena do juízo.",
+                "ref": {
+                  "bookId": "revelation",
+                  "chapter": 20,
+                  "verseStart": 11,
+                  "verseEnd": 15,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Sheol e Hades",
+                "explanation": "Vocábulos ligados à condição dos mortos; verificar o uso em cada unidade, sem identificá-los automaticamente com condenação final."
+              },
+              {
+                "label": "Estado intermediário",
+                "explanation": "Questão sobre os mortos antes da consumação final; não equivale à doutrina inteira do juízo."
+              },
+              {
+                "label": "Imortalidade condicional",
+                "explanation": "Família de posições em que a vida imortal depende do dom divino; distinguir suas variantes e os argumentos sobre destruição final."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Identificar Sheol com condenação exclusiva ou negar tormento consciente exige mais que uma equivalência de tradução.",
+                "area": "Teologia",
+                "status": "Interpretação",
+                "basis": "A hipótese de estudo é comparada com unidades bíblicas e autodescrições confessionais. O texto não afirma resolver todo o debate escatológico pelo léxico.",
+                "sources": [
+                  {
+                    "title": "Catecismo — descida à mansão dos mortos",
+                    "url": "https://www.vatican.va/archive/cathechism_po/index_new/p1s2cap2_422-682_po.html",
+                    "perspective": "Autodescrição católica romana; §§632–637, distinguida da análise lexical bíblica.",
+                    "locator": "Catecismo §§632–637, especialmente §633",
+                    "supports": "Distingue mansão dos mortos e condenação e explicita a posição católica sobre justos e injustos.",
+                    "limit": "Não é consenso interconfessional nem defesa da inexistência de juízo final."
+                  },
+                  {
+                    "title": "Confissão de Westminster",
+                    "url": "https://www.opc.org/wcf.html",
+                    "perspective": "Recensão publicada pela Orthodox Presbyterian Church; fonte confessional reformada.",
+                    "locator": "Capítulos 32–33",
+                    "supports": "Documenta uma posição reformada sobre estado após a morte e juízo.",
+                    "limit": "É fonte de contraponto, não uma defesa do aniquilacionismo."
+                  },
+                  {
+                    "title": "Confissão de Augsburgo",
+                    "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+                    "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa.",
+                    "locator": "Artigo XVII",
+                    "supports": "Documenta a formulação luterana sobre retorno de Cristo e juízo.",
+                    "limit": "Não deve ser confundida com a hipótese escatológica do percurso."
+                  }
+                ],
+                "alternatives": "Compare punição consciente, destruição final e restauração universal. Diferencie estado intermediário, imagens de juízo e destino final; indique o que cada interpretação ainda precisa explicar."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "sheol:aula",
+                "title": "Sheol, Hades, juízo e destino dos mortos",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Uma palavra traduzida, vários problemas",
+                    "references": [],
+                    "paragraphs": [
+                      "A palavra portuguesa inferno pode aparecer em debates que tratam de problemas diferentes. Sheol, Hades, Geena e lago de fogo não devem ser fundidos numa definição única sem observar cada passagem. Sheol pertence ao vocabulário hebraico; Hades aparece no grego; Geena e as imagens do Apocalipse exigem seus próprios contextos. Tradução, interpretação de uma imagem e doutrina do destino final são tarefas relacionadas, mas diferentes.",
+                      "A proposta de que não existe tormento consciente eterno terá espaço como posição a examinar. Ela não se demonstra apenas substituindo inferno por Sheol. Também precisa explicar juízo, ressurreição, destruição e vida nos textos relevantes, além de dialogar com leituras que chegam a outras conclusões."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Condição dos mortos e condenação",
+                    "references": [
+                      "sheol",
+                      "westminster",
+                      "augsburg"
+                    ],
+                    "paragraphs": [
+                      "O Catecismo católico, nos §§632–637, distingue a mansão dos mortos do inferno de condenação e inclui na primeira justos e injustos anteriores ao Redentor. Essa é uma autodescrição católica, não uma definição neutra que todas as tradições aceitam. Ela já mostra por que identificar Sheol exclusivamente com pessoas más é uma conclusão adicional, e não uma simples equivalência lexical.",
+                      "Compare três famílias de interpretação sobre o destino final: continuidade consciente de punição, imortalidade condicional com destruição final, e propostas de restauração universal. Cada uma possui variações e enfrenta passagens difíceis. Westminster 32–33 e Augsburgo XVII documentam posições confessionais que não devem ser apresentadas como defesa automática da hipótese preferida neste percurso."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Ler sem apagar as diferenças",
+                    "references": [],
+                    "paragraphs": [
+                      "No Salmo 16:8–11, observe a voz que fala de não ser abandonada à morte. Em Lucas 16:19–31, examine personagens, diálogo, reversão e finalidade da narrativa. Em Apocalipse 20:11–15, marque o lugar da morte e do Hades na cena de juízo. Depois pergunte se a própria narrativa identifica morte, Hades e destino final como a mesma realidade. Não transforme um detalhe isolado em mapa completo da vida futura."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Antes e depois de Cristo",
+                    "references": [],
+                    "paragraphs": [
+                      "A hipótese de destinos diferentes conforme a pessoa tenha vivido antes ou depois de Cristo precisa definir seu critério: cronologia, conhecimento recebido, resposta à graça ou confissão explícita. Esses critérios não são intercambiáveis. Pergunte como a tese trata quem viveu depois de Cristo sem conhecer sua pregação e quais passagens justificam sua resposta. O aplicativo não classifica pessoas concretas como salvas ou condenadas e não apresenta essa periodização como consenso."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Construir uma posição escatológica",
+                    "references": [],
+                    "paragraphs": [
+                      "Para defender a ausência de tormento consciente eterno, formule uma tese positiva e enfrente uma passagem usada por seus críticos. Diferencie o que você conclui sobre estado intermediário e sobre juízo final. Uma convicção amadurece quando consegue reconhecer sua dificuldade mais séria e explicar por que ainda considera sua interpretação preferível. O significado de uma palavra é começo da investigação, não seu encerramento."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Formule sua posição sobre Sheol e destino final. Use duas passagens de gêneros diferentes, enfrente uma objeção à sua posição e diferencie o critério de juízo do simples fato de viver antes ou depois de Cristo.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": []
+          },
+          {
+            "id": "graca",
+            "phase": "Salvação",
+            "title": "Graça: dom, dependência e restauração",
+            "studyGuideId": "etica-soteriologia",
+            "readingSearch": "graça justificação natureza salvação",
+            "description": "Examinar a prioridade do dom divino sem confundir dependência com ausência de dignidade ou de responsabilidade.",
+            "objectives": [
+              "Definir graça em relação a dom, cura e salvação.",
+              "Distinguir incapacidade salvífica e inexistência de todo bem humano.",
+              "Separar justificação e santificação antes de compará-las."
+            ],
+            "passages": [
+              {
+                "id": "at17",
+                "label": "Atos 17:24–28",
+                "purpose": "Examinar independência divina e dependência da vida criada.",
+                "ref": {
+                  "bookId": "acts",
+                  "chapter": 17,
+                  "verseStart": 24,
+                  "verseEnd": 28,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "ef2",
+                "label": "Efésios 2:1–10",
+                "purpose": "Acompanhar a relação entre condição humana, dom e boas obras.",
+                "ref": {
+                  "bookId": "ephesians",
+                  "chapter": 2,
+                  "verseStart": 1,
+                  "verseEnd": 10,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Graça",
+                "explanation": "Dom divino que não se reduz a pagamento por uma prestação humana; examinar as formulações de cura, favor e transformação."
+              },
+              {
+                "label": "Justificação",
+                "explanation": "Questão da justiça diante de Deus; seu vocabulário e relação com transformação variam nas tradições.",
+                "entityId": "doctrine:justification"
+              },
+              {
+                "label": "Santificação",
+                "explanation": "Transformação e ordenação da vida ao bem; distinguir causa, fruto e condição ao comparar sistemas."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "A prioridade da graça não equivale à negação de toda bondade criada ou de toda responsabilidade.",
+                "area": "Teologia",
+                "status": "Argumento",
+                "basis": "Comparação de duas formulações cristãs, sem reduzir suas diferenças a uma síntese indiferenciada.",
+                "sources": [
+                  {
+                    "title": "Tomás de Aquino — necessidade da graça",
+                    "url": "https://www.newadvent.org/summa/2109.htm",
+                    "perspective": "Suma Teológica I–II, q.109; natureza, cura e elevação.",
+                    "locator": "Suma I–II, q.109, a.2–3",
+                    "supports": "Distingue natureza ferida, bens particulares e auxílio para cura e elevação.",
+                    "limit": "Não equivale automaticamente à doutrina luterana da justificação."
+                  },
+                  {
+                    "title": "Confissão de Augsburgo",
+                    "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+                    "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa.",
+                    "locator": "Artigos IV e VI",
+                    "supports": "Relaciona justificação gratuita e nova obediência.",
+                    "limit": "Não transforma boas obras em aquisição do favor divino."
+                  }
+                ],
+                "alternatives": "Compare graça, mérito, fé e cooperação em cada autor. A afirmação de dependência não decide sozinha todas as diferenças soteriológicas."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "graca:aula",
+                "title": "Graça: dom, dependência e restauração",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Deus não é uma carência a ser preenchida",
+                    "references": [],
+                    "paragraphs": [
+                      "A afirmação de que Deus não precisa de nós expressa, no quadro do teísmo clássico, sua independência em relação à criatura. Não significa que a vida humana seja descartável. Atos 17:24–28 permite estudar o contraste entre um Deus que recebe suprimento e um Deus apresentado como fonte da vida. Se a relação começa por um dom, a escolha divina não é salário por suprir uma deficiência em Deus.",
+                      "A linguagem de miséria humana pretende nomear dependência, pecado e impossibilidade de garantir a própria salvação. Precisa ser delimitada: não autoriza negar que a criatura tenha valor, que suas feridas importem ou que o próximo deva ser cuidado. A severidade teológica perde seu objeto quando confunde arrependimento com desprezo indiscriminado pela pessoa."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Natureza, graça e resposta",
+                    "references": [
+                      "grace",
+                      "augsburg"
+                    ],
+                    "paragraphs": [
+                      "Em Suma I–II, q.109, Tomás distingue bens naturais particulares e a necessidade de auxílio divino para cura e bem sobrenatural. A natureza ferida não é descrita simplesmente como ausência de toda capacidade. Na Confissão de Augsburgo IV, a justificação é confessada como dom por causa de Cristo, recebido pela fé, e não como aquisição por mérito próprio. As formulações se aproximam na recusa da autossalvação, mas não devem ser tratadas como sistemas idênticos.",
+                      "Justificação pergunta pela condição de justiça diante de Deus; santificação trata da transformação da vida. A relação entre ambas é discutida de modos diferentes. Antes de escolher uma posição, reconstrua o que cada fonte entende por fé, obra, mérito e dom. Um mesmo termo pode mudar de função dentro de outro argumento."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Efésios 2 antes e depois do versículo conhecido",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Efésios 2:1–10 como unidade. Marque as descrições da condição anterior, os verbos da ação divina e a referência final às boas obras. Observe a relação entre recebimento e modo de viver. O exercício evita dois atalhos: usar a atividade humana para comprar a graça ou usar a graça para declarar a atividade humana irrelevante."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Escolha não é licença para superioridade",
+                    "references": [],
+                    "paragraphs": [
+                      "Se a salvação é recebida como dom, a conclusão de que o beneficiário possui superioridade natural sobre os outros não se segue automaticamente. Examine esse salto. Também pergunte se a ausência de mérito anterior elimina toda resposta posterior. Diferentes doutrinas da cooperação e da ação divina precisam ser comparadas por seus argumentos, não caricaturadas como versões de orgulho ou passividade."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Uma humildade intelectualmente responsável",
+                    "references": [],
+                    "paragraphs": [
+                      "A síntese proposta é que dependência pode fundamentar gratidão, responsabilidade e cuidado, sem apagar a necessidade de restauração. Redija sua posição distinguindo aquilo que a pessoa não pode produzir por si e aquilo a que ela é chamada a responder. Inclua uma fonte e um limite. O sistema avalia o registro dessa elaboração; não mede a autenticidade da fé nem concede uma sentença de salvação."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Explique como Deus não depender da criatura pode ser compatível com a dignidade humana. Use Atos 17, Efésios 2 e uma fonte primária; diferencie dom, resposta e pretensão de mérito.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-secundae",
+                "label": "Suma Teológica I–II"
+              }
+            ]
+          },
+          {
+            "id": "providencia",
+            "phase": "Governo e liberdade",
+            "title": "Providência, causas e responsabilidade",
+            "studyGuideId": "teologia-sistematica",
+            "readingSearch": "providência vontade liberdade causas",
+            "description": "Estudar o governo divino sem transformá-lo em fatalismo ou explicação privada de cada acontecimento.",
+            "objectives": [
+              "Distinguir providência, governo, fatalismo e previsão.",
+              "Explicar causas primeiras e segundas no argumento tomista.",
+              "Examinar a responsabilidade moral diante de um acontecimento permitido."
+            ],
+            "passages": [
+              {
+                "id": "gn50",
+                "label": "Gênesis 50:15–21",
+                "purpose": "Distinguir intenções, responsabilidade e interpretação providencial.",
+                "ref": {
+                  "bookId": "genesis",
+                  "chapter": 50,
+                  "verseStart": 15,
+                  "verseEnd": 21,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "rm8-bem",
+                "label": "Romanos 8:26–30",
+                "purpose": "Ler oração, propósito e conformidade com Cristo na unidade argumentativa.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 8,
+                  "verseStart": 26,
+                  "verseEnd": 30,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Providência",
+                "explanation": "Ordenação divina da criação e de seus fins; não previsão pessoal de cada evento."
+              },
+              {
+                "label": "Causas segundas",
+                "explanation": "Causas criadas com atuação própria no quadro de uma causalidade recebida."
+              },
+              {
+                "label": "Fatalismo",
+                "explanation": "Tese de inevitabilidade que pode tornar a deliberação irrelevante; não presumir sua equivalência com toda doutrina de providência."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Providência pode ser articulada com causalidade criada e deliberação humana.",
+                "area": "Teologia",
+                "status": "Argumento",
+                "basis": "Comparação filosófico-teológica; não atribuição de uma intenção divina específica a cada sofrimento.",
+                "sources": [
+                  {
+                    "title": "Tomás de Aquino — providência",
+                    "url": "https://www.newadvent.org/summa/1022.htm",
+                    "perspective": "Suma Teológica I, q.22; distingue governo, causas e contingência.",
+                    "locator": "Suma I, q.22, a.1, 3–4",
+                    "supports": "Distingue ordenamento, causas criadas e contingência.",
+                    "limit": "Não elimina as diferenças entre o tomismo e as tradições reformadas."
+                  },
+                  {
+                    "title": "Calvino — Institutas I.17",
+                    "url": "https://ccel.org/ccel/calvin/institutes.iii.xviii.html",
+                    "perspective": "Exposição reformada sobre o uso da doutrina da providência; tradução histórica inglesa.",
+                    "locator": "Institutas I.17, especialmente §§3–5",
+                    "supports": "Relaciona a doutrina ao uso de meios, à deliberação e à responsabilidade.",
+                    "limit": "A posição de Calvino precisa ser estudada em seus próprios termos, inclusive onde diverge de outras tradições."
+                  }
+                ],
+                "alternatives": "Compare permissão, determinação, vontade moral e causalidade. Conhecer o resultado de um evento não basta para reconstruir todo o propósito divino."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "providencia:aula",
+                "title": "Providência, causas e responsabilidade",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Providência e limites da previsão",
+                    "references": [],
+                    "paragraphs": [
+                      "Providência designa, neste estudo, a ordenação divina da criação a seus fins; governo considera sua realização. A formulação precisa ser comparada com outras tradições, mas já impede tratar providência como técnica para adivinhar o próximo evento. Conhecer uma doutrina geral não concede acesso a todas as intenções particulares de Deus.",
+                      "Destino também pode ter sentidos distintos: desfecho, sequência causal ou necessidade inevitável. Por isso, desejar uma vida conforme a providência exige perguntar o que conformidade significa. Pode significar orientar vontade e ação ao bem conhecido; não precisa significar passividade diante de tudo o que acontece."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Causas e contingência",
+                    "references": [
+                      "providence",
+                      "calvin"
+                    ],
+                    "paragraphs": [
+                      "Tomás, em Suma I, q.22, distingue o ordenamento da providência e a ação das causas criadas, incluindo causas contingentes. A ação da criatura não é eliminada por receber seu poder de agir. Calvino, em Institutas I.17, combate a conclusão de que providência dispense deliberação e uso dos meios. Os autores possuem quadros diferentes; a comparação identifica uma questão compartilhada, não uma equivalência completa.",
+                      "A distinção editorial entre permissão, comando e aprovação moral é decisiva para o exercício seguinte. Um acontecimento ocorrer não é suficiente para concluir que ele constitui uma obrigação a imitar. Se alguém defende uma tese mais forte sobre decreto, precisa explicitar como ela se relaciona com responsabilidade e mal."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "O caso de José e a duplicidade de intenção",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Gênesis 50:15–21. Observe quem teme, quem responde e como intenções humanas e interpretação providencial são colocadas em relação. O relato não transforma a violência anterior em dever moral. A distinção entre intenção do agente e interpretação de um desfecho permite investigar o problema sem inocentar automaticamente quem fez o mal."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Confiar e agir",
+                    "references": [],
+                    "paragraphs": [
+                      "Considere um caso didático: diante de uma injustiça evitável, alguém declara que não deve fazer nada porque tudo pertence à providência. A conclusão exige uma premissa adicional: ações humanas não teriam função ou obrigação. Examine essa premissa à luz das fontes. No caso oposto, alguém tenta controlar todos os resultados e chama qualquer fracasso de abandono divino. Pergunte que promessa de controle foi presumida e onde estaria fundamentada."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Uma regra de discernimento",
+                    "references": [],
+                    "paragraphs": [
+                      "A posição a elaborar distingue limites de previsão e deveres conhecidos. É possível reconhecer que não se controla o resultado e ainda deliberar, reparar e proteger. Registre o bem que você consegue identificar, os meios de ação disponíveis e a conclusão que permanece incerta. A providência será retomada na oração, entendida como relação e petição, não como mecanismo de coerção divina."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Reconstrua a relação entre providência e responsabilidade em Gênesis 50. Compare uma formulação de Tomás ou Calvino e responda à tese de que confiar em Deus torna toda ação desnecessária.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-prima-pars",
+                "label": "Suma Teológica I"
+              }
+            ]
+          },
+          {
+            "id": "calvinismo",
+            "phase": "Tradições em diálogo",
+            "title": "Calvinismo: soberania, eleição e aliança",
+            "studyGuideId": "historia-tradicoes",
+            "readingSearch": "Calvino eleição providência graça",
+            "description": "Estudar uma formulação reformada a partir de suas fontes, distinguindo soberania, responsabilidade e especulação sobre o destino alheio.",
+            "objectives": [
+              "Reconstruir a prioridade da iniciativa divina numa formulação reformada.",
+              "Distinguir corrupção abrangente e maldade máxima em cada ato.",
+              "Examinar decreto e responsabilidade sem atribuir ao ser humano acesso aos decretos secretos."
+            ],
+            "passages": [
+              {
+                "id": "rm9",
+                "label": "Romanos 9:6–24",
+                "purpose": "Examinar promessa, eleição e objeções no argumento paulino.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 9,
+                  "verseStart": 6,
+                  "verseEnd": 24,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "ef1",
+                "label": "Efésios 1:3–14",
+                "purpose": "Ler eleição e adoção no conjunto da bênção cristológica.",
+                "ref": {
+                  "bookId": "ephesians",
+                  "chapter": 1,
+                  "verseStart": 3,
+                  "verseEnd": 14,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Eleição",
+                "explanation": "Escolha divina cuja finalidade e relação com fé e graça precisam ser definidas em cada tradição.",
+                "entityId": "doctrine:election"
+              },
+              {
+                "label": "Soberania",
+                "explanation": "Governo e autoridade divinos; não equivale a acesso humano a todos os propósitos particulares."
+              },
+              {
+                "label": "Tradição reformada",
+                "explanation": "Ler documentos e autores em seus contextos, sem reduzir toda a tradição a um rótulo.",
+                "entityId": "tradition:reformed"
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Soberania, eleição e responsabilidade devem ser reconstruídas no sistema de cada fonte reformada.",
+                "area": "Teologia",
+                "status": "Argumento",
+                "basis": "Recorte confessional e histórico explícito. As objeções da aula são tarefas de análise, não prova de consenso entre todas as escolas.",
+                "sources": [
+                  {
+                    "title": "Confissão de Westminster",
+                    "url": "https://www.opc.org/wcf.html",
+                    "perspective": "Recensão publicada pela Orthodox Presbyterian Church; fonte confessional reformada.",
+                    "locator": "Capítulos 3 e 5",
+                    "supports": "Articula decreto, providência, vontade criada e causas segundas.",
+                    "limit": "É uma recensão confessional posterior a Calvino; não representa automaticamente toda posição reformada."
+                  },
+                  {
+                    "title": "Calvino — Institutas I.17",
+                    "url": "https://ccel.org/ccel/calvin/institutes.iii.xviii.html",
+                    "perspective": "Exposição reformada sobre o uso da doutrina da providência; tradução histórica inglesa.",
+                    "locator": "Institutas I.17, §§3–5 e 9",
+                    "supports": "Recusa a inferência de que providência elimine meios e deveres.",
+                    "limit": "Reconstruir essa resposta não implica ter resolvido toda a controvérsia sobre liberdade."
+                  }
+                ],
+                "alternatives": "Compare concepções compatibilistas e outras formulações de liberdade. Analise a passagem, a premissa e a consequência moral antes de avaliar a posição."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "calvinismo:aula",
+                "title": "Calvinismo: soberania, eleição e aliança",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Ler uma tradição por seus problemas",
+                    "references": [
+                      "calvin",
+                      "westminster"
+                    ],
+                    "paragraphs": [
+                      "Calvinismo será estudado aqui por uma seleção de problemas reformados: soberania divina, eleição, providência e resposta da criatura. A aula não reduz toda essa tradição a uma sigla e não identifica uma confissão posterior com cada frase de Calvino. As Institutas e a Confissão de Westminster pertencem a momentos e formas de exposição diferentes. Compará-las exige conservar essa diferença.",
+                      "A questão central é como a iniciativa divina pode fundamentar a salvação e, ao mesmo tempo, manter a seriedade do agir humano. Uma apresentação por caricaturas escolheria de antemão entre Deus faz tudo e o ser humano não importa. O estudo exige entender o sentido de causa, vontade e responsabilidade no argumento efetivamente usado."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Eleição, corrupção e meios",
+                    "references": [
+                      "westminster",
+                      "calvin"
+                    ],
+                    "paragraphs": [
+                      "Westminster 3 apresenta o decreto divino e recusa que isso transforme Deus em autor do pecado ou suprima a vontade criada. O capítulo 5 articula providência e causas segundas. A força dessas afirmações precisa ser examinada em conjunto com a questão de como elas se compatibilizam; repeti-las não resolve a dificuldade filosófica.",
+                      "A expressão corrupção total, usada no debate reformado, deve ser definida pelo alcance da ferida, e não confundida automaticamente com a tese de que cada ato é tão mau quanto poderia ser. Ao estudar eleição, diferencie prioridade da graça, fundamento da escolha e conhecimento humano de quem é eleito. A convicção de ser recebido gratuitamente não autoriza emitir listas privadas de condenação ou considerar o próximo naturalmente inferior."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Romanos 9 dentro de uma pergunta maior",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Romanos 9:6–24 e anote quem formula as objeções e como o argumento responde. Depois situe a unidade na discussão sobre Israel e as promessas. A tarefa é reconstruir o problema do autor antes de usar a passagem para resolver todos os debates posteriores. Uma interpretação de eleição individual, corporativa ou de vocação histórica precisa mostrar seu caminho textual, não apenas escolher uma frase isolada."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "A objeção da responsabilidade",
+                    "references": [
+                      "calvin"
+                    ],
+                    "paragraphs": [
+                      "Formule a objeção mais forte que consegue à combinação entre decreto e culpa. Em seguida, examine a resposta que distingue intenção do agente, mandamento conhecido e governo providencial. Calvino I.17 recusa o abandono dos meios e dos deveres sob pretexto de providência. Avalie se essa resposta resolve sua objeção ou se depende de uma concepção de liberdade que você ainda precisa investigar."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Consolo e limite de inferência",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma apropriação responsável dessa tradição pode investigar a segurança fundada no dom sem converter a doutrina em instrumento de arrogância. Ao concluir, diga qual formulação reformada você compreendeu, em que concorda e qual dificuldade permanece. A conclusão da aula depende da elaboração, não de adesão ao calvinismo. Sua investigação pode reconhecer uma contribuição sem aceitar todas as suas premissas."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Reconstrua uma formulação reformada sobre eleição ou providência. Use uma passagem e um localizador confessional, apresente a objeção da responsabilidade e avalie a resposta sem atribuir a Deus a aprovação moral de todo acontecimento.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": []
+          },
+          {
+            "id": "luteranismo",
+            "phase": "Tradições em diálogo",
+            "title": "Luteranismo: promessa, justificação e vocação",
+            "studyGuideId": "historia-tradicoes",
+            "readingSearch": "Lutero justificação fé obras",
+            "description": "Examinar o recebimento da promessa e a relação entre fé, liberdade e vida concreta.",
+            "objectives": [
+              "Distinguir recebimento da graça e aquisição por mérito.",
+              "Comparar justificação e nova obediência em Augsburgo.",
+              "Examinar a diferença entre liberdade civil e justiça espiritual."
+            ],
+            "passages": [
+              {
+                "id": "rm3",
+                "label": "Romanos 3:21–31",
+                "purpose": "Relacionar justiça, graça e vanglória no argumento paulino.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 3,
+                  "verseStart": 21,
+                  "verseEnd": 31,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "gl5",
+                "label": "Gálatas 5:1–6",
+                "purpose": "Examinar liberdade, fé e amor sem separar a frase de seu debate.",
+                "ref": {
+                  "bookId": "galatians",
+                  "chapter": 5,
+                  "verseStart": 1,
+                  "verseEnd": 6,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Lei e evangelho",
+                "explanation": "Categorias para investigar exigência e promessa; não divisão simplista entre os dois Testamentos."
+              },
+              {
+                "label": "Vocação",
+                "explanation": "Responsabilidade concreta na vida comum, na aplicação proposta pelo percurso."
+              },
+              {
+                "label": "Tradição luterana",
+                "explanation": "Nesta unidade, estudada por uma seleção explícita da Confissão de Augsburgo.",
+                "entityId": "tradition:lutheran"
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Na formulação de Augsburgo, justificação gratuita e nova obediência têm funções distintas.",
+                "area": "Teologia",
+                "status": "Argumento",
+                "basis": "Estudo da autodescrição confessional, comparada a Romanos 3 e Gálatas 5; não atribuição automática de toda a aula a Lutero.",
+                "sources": [
+                  {
+                    "title": "Confissão de Augsburgo",
+                    "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+                    "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa.",
+                    "locator": "Artigos IV, VI e XVIII",
+                    "supports": "Distingue justificação, obras e liberdade em ordens diferentes.",
+                    "limit": "As aplicações sobre vocação e controle religioso são reflexões editoriais; a confissão não representa cada comunidade contemporânea."
+                  }
+                ],
+                "alternatives": "Compare leituras católicas e reformadas sobre fé, obras e justiça. Primeiro defina os termos utilizados por cada fonte."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "luteranismo:aula",
+                "title": "Luteranismo: promessa, justificação e vocação",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "O recorte confessional de Augsburgo",
+                    "references": [
+                      "augsburg"
+                    ],
+                    "paragraphs": [
+                      "A aula toma a Confissão de Augsburgo como ponto de entrada no luteranismo. Não a apresenta como texto escrito integralmente por Lutero nem como retrato de cada comunidade luterana atual. O procedimento é identificar uma formulação pública da tradição e examinar suas relações internas. Assim, a comparação não depende apenas do que seus adversários dizem sobre ela.",
+                      "O problema escolhido é a consciência diante da promessa: a pessoa busca uma certeza fundada em Cristo ou tenta estabelecer seu valor religioso pela soma de realizações? Essa pergunta não elimina a ética. Obriga a distinguir o fundamento da aceitação e o modo de viver que decorre dela."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Justificação, obediência e liberdade",
+                    "references": [
+                      "augsburg"
+                    ],
+                    "paragraphs": [
+                      "O artigo IV apresenta justificação gratuita por causa de Cristo, recebida pela fé. O artigo VI relaciona fé e boas obras como nova obediência, sem transformá-las no preço da justificação. O artigo XVIII distingue capacidades em assuntos civis e a justiça espiritual dependente do Espírito. Juntos, esses textos impedem resumir a posição como qualquer ato humano é impossível ou nenhuma ação importa.",
+                      "Lei e evangelho serão usados como categorias para investigar exigência e promessa, não como rótulos automáticos para Antigo e Novo Testamento. Uma mesma leitura pode confrontar uma pretensão de autossuficiência e anunciar um dom. Para sustentar essa análise, mostre qual função a passagem exerce, em vez de decidir apenas por seu lugar na Bíblia."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Romanos 3 e a exclusão da vanglória",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Romanos 3:21–31 e marque justiça, fé, graça, obra e vanglória. Reconstrua a relação entre os termos no argumento de Paulo. Depois compare com a formulação de Augsburgo IV. A distinção de documentos importa: interpretar Paulo por uma confissão é uma leitura de recepção que precisa ser justificada, não a identidade material entre os dois textos."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "A objeção da passividade",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma crítica frequente supõe que a gratuidade dispense qualquer responsabilidade. Teste essa conclusão diante do artigo VI. No sentido oposto, avalie a tentativa de fazer das boas obras uma prova infalível que permite medir a eleição de outra pessoa. A atividade busca perceber quando uma vida de resposta é transformada de novo em mecanismo de controle, superioridade ou garantia por desempenho."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Vocação no cotidiano",
+                    "references": [],
+                    "paragraphs": [
+                      "A aplicação editorial desta unidade entende vocação como investigação da responsabilidade concreta no trabalho, nas relações e no cuidado. Ela não promete que toda tarefa será agradável ou socialmente reconhecida. A questão é como a gratuidade pode deslocar a busca de mérito para o serviço ao próximo. Conclua distinguindo essa aplicação da formulação confessional estrita que você consultou."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Explique por que justificação gratuita não equivale, em Augsburgo IV e VI, à irrelevância das obras. Compare com Romanos 3 e desenvolva uma objeção sobre responsabilidade ou certeza religiosa.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": []
+          },
+          {
+            "id": "anglicanismo",
+            "phase": "Tradições em diálogo",
+            "title": "Anglicanismo: Escritura, liturgia e vida comum",
+            "studyGuideId": "historia-tradicoes",
+            "readingSearch": "anglicanismo artigos graça liturgia",
+            "description": "Estudar o formulário histórico anglicano e o papel da oração comum na formação dos desejos.",
+            "objectives": [
+              "Ler artigos históricos com localizadores e contexto.",
+              "Examinar graça, justificação, obras e eleição no formulário.",
+              "Distinguir autoridade, costume e uniformidade total."
+            ],
+            "passages": [
+              {
+                "id": "at2-comunidade",
+                "label": "Atos 2:42–47",
+                "purpose": "Investigar as práticas da comunidade e os limites de uma aplicação litúrgica direta.",
+                "ref": {
+                  "bookId": "acts",
+                  "chapter": 2,
+                  "verseStart": 42,
+                  "verseEnd": 47,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "rm12",
+                "label": "Romanos 12:1–8",
+                "purpose": "Relacionar culto, renovação do entendimento e diversidade de serviços.",
+                "ref": {
+                  "bookId": "romans",
+                  "chapter": 12,
+                  "verseStart": 1,
+                  "verseEnd": 8,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Liturgia",
+                "explanation": "Forma comunitária de ação e oração; investigar conteúdo, participação e efeitos de formação."
+              },
+              {
+                "label": "Tradição e costume",
+                "explanation": "Distinguir herança recebida, norma defendida e prática que pode variar."
+              },
+              {
+                "label": "Tradição anglicana",
+                "explanation": "Estudada aqui por um formulário histórico com recepções diversas.",
+                "entityId": "tradition:anglican"
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "O formulário anglicano permite estudar graça, eleição e ordem comunitária sem supor uniformidade de toda prática cristã.",
+                "area": "Teologia",
+                "status": "Interpretação",
+                "basis": "Leitura de documento histórico publicado pelo Anglican Communion Office. A avaliação das práticas é um exercício editorial.",
+                "sources": [
+                  {
+                    "title": "Trinta e Nove Artigos de Religião",
+                    "url": "https://anglicancommunion.org/wp-content/uploads/2026/02/Thirty-Nine-Articles-of-Religion.pdf",
+                    "perspective": "Formulário histórico anglicano, publicado pelo Anglican Communion Office; não retrato uniforme de todas as províncias atuais.",
+                    "locator": "Artigos VI, IX–XII, XVII, XX e XXXIV; PDF, pp.1–3 e 5",
+                    "supports": "Documenta Escritura, graça, justificação, eleição, autoridade e diversidade de tradições.",
+                    "limit": "O documento não é pesquisa sociológica de todas as províncias; sua publicação não prova toda a aplicação pedagógica da aula."
+                  }
+                ],
+                "alternatives": "Compare o lugar de Escritura, comunidade e forma de oração em outras tradições. Evite identificar sobriedade com ausência de afeto ou espontaneidade com ausência de reflexão."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "anglicanismo:aula",
+                "title": "Anglicanismo: Escritura, liturgia e vida comum",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Um patrimônio histórico em interpretação",
+                    "references": [
+                      "anglican"
+                    ],
+                    "paragraphs": [
+                      "O anglicanismo será abordado por seus Trinta e Nove Artigos como formulário histórico. O documento não deve ser tratado como descrição sociológica de todos os anglicanos atuais. A aula distingue aquilo que o texto afirma, a maneira como é recebido e a aplicação que o estudante propõe. O interesse aqui é uma formação em que Escritura, doutrina e oração pública possam ser examinadas em conjunto.",
+                      "Liturgia significa uma forma de ação e oração comunitária. Na hipótese pedagógica desta unidade, repetir uma forma pode educar a atenção e o desejo; também pode tornar-se automatismo. A qualidade de uma prática não é demonstrada apenas por sua antiguidade, por sua beleza ou pela intensidade emocional que provoca."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "O encadeamento dos artigos",
+                    "references": [
+                      "anglican"
+                    ],
+                    "paragraphs": [
+                      "Os artigos IX–XII relacionam pecado original, auxílio da graça, justificação e boas obras. O XVII apresenta eleição como tema de consolo e também adverte contra um uso especulativo que produza desespero ou descuido. A combinação é relevante para este percurso: severidade e confiança precisam ser lidas no argumento, sem reduzir a doutrina a uma frase que humilha ou a uma garantia que dispensa responsabilidade.",
+                      "O artigo VI estabelece o lugar da Escritura na afirmação do necessário à salvação. O XX trata da autoridade da Igreja e seu limite diante da Palavra escrita. O XXXIV distingue diversidade de tradições e exigências da ordem comum. Esses pontos permitem perguntar como uma comunidade recebe formas sem considerar todo costume uma obrigação divina universal."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Uma oração pública sob análise",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Atos 2:42–47 e observe ensino, comunhão, partilha e oração. Em seguida, escolha uma oração pública que você conhece e anote seus sujeitos e pedidos. Ela forma uma vontade de serviço, reconhecimento e entrega ou transforma a comunidade em plateia de um desempenho individual? Esta é uma pergunta de análise da prática; a passagem não decide sozinha a forma litúrgica de todas as épocas."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Forma e liberdade",
+                    "references": [],
+                    "paragraphs": [
+                      "Compare duas objeções: uma forma estável sufoca a oração; uma forma espontânea é sempre superficial. Ambas generalizam a partir de características insuficientes. Uma resposta melhor investiga o conteúdo, o uso, a participação e o tipo de relação cultivado. O mesmo exame pode ser aplicado à linguagem contemporânea de avivamento sem transformar todos os protestantes ou toda expressão emocional numa caricatura única."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Ordenar a vida comum",
+                    "references": [],
+                    "paragraphs": [
+                      "A contribuição estudada é uma pergunta sobre formação comunitária: que palavras e práticas tornam a relação com Deus menos centrada em vantagem individual? Uma resposta pode valorizar sobriedade, oração comum e memória sem afirmar que só uma tradição possui acesso a esses bens. Ao concluir, indique qual artigo foi consultado e diferencie sua proposta de aplicação da afirmação histórica do documento."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Escolha dois artigos históricos anglicanos e explique como poderiam orientar uma oração comum centrada em graça e providência. Compare com Atos 2 ou Romanos 12, enfrente uma objeção e delimite a aplicação.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": []
+          },
+          {
+            "id": "oracao",
+            "phase": "Vida cristã",
+            "title": "Oração: petição, entrega e vontade",
+            "studyGuideId": "sacramentos-santificacao",
+            "readingSearch": "oração vontade providência",
+            "description": "Passar da linguagem de barganha ao exame dos desejos, da petição e da conformidade com o bem.",
+            "objectives": [
+              "Distinguir pedir, exigir e negociar um pagamento religioso.",
+              "Relacionar oração e providência sem eliminar a petição.",
+              "Interpretar entrega como disposição ativa e responsável."
+            ],
+            "passages": [
+              {
+                "id": "mt6",
+                "label": "Mateus 6:5–13",
+                "purpose": "Observar finalidade, ordem e objetos dos pedidos.",
+                "ref": {
+                  "bookId": "matthew",
+                  "chapter": 6,
+                  "verseStart": 5,
+                  "verseEnd": 13,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              },
+              {
+                "id": "mt26",
+                "label": "Mateus 26:36–46",
+                "purpose": "Examinar petição e entrega sem eliminar nenhum dos dois movimentos.",
+                "ref": {
+                  "bookId": "matthew",
+                  "chapter": 26,
+                  "verseStart": 36,
+                  "verseEnd": 46,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Petição",
+                "explanation": "Pedido que reconhece necessidade; não obrigação imposta a Deus por uma prestação religiosa."
+              },
+              {
+                "label": "Conformidade da vontade",
+                "explanation": "Disposição de orientar desejo e ação ao bem; não indiferença diante do sofrimento."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "Oração de entrega pode incluir petição sem se reduzir a barganha por resultados.",
+                "area": "Teologia",
+                "status": "Argumento",
+                "basis": "Leitura de Mateus 6 e 26 em diálogo com a análise tomista da oração.",
+                "sources": [
+                  {
+                    "title": "Tomás de Aquino — oração",
+                    "url": "https://www.newadvent.org/summa/3083.htm",
+                    "perspective": "Suma Teológica II–II, q.83; petição e providência.",
+                    "locator": "Suma II–II, q.83, a.2 e 5–6",
+                    "supports": "Investiga oração, providência e os bens que se podem pedir.",
+                    "limit": "Não sustenta a proibição geral de pedir bens concretos nem uma garantia automática de êxito."
+                  }
+                ],
+                "alternatives": "Compare interpretações de oração contemplativa, intercessória e de petição. A crítica à barganha não representa uma condenação indiscriminada de todas as práticas protestantes."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "oracao:aula",
+                "title": "Oração: petição, entrega e vontade",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Petição e controle do resultado",
+                    "references": [],
+                    "paragraphs": [
+                      "A crítica à oração entendida como investimento para obter vantagens não exige abolir todo pedido. Uma petição reconhece necessidade; uma barganha presume que um rito ou desempenho coloca o outro em dívida. O problema estudado é a passagem de relação com Deus a técnica de garantia de resultados. A mesma palavra fé pode ser usada em ambos os discursos e precisa ser examinada pelo argumento que sustenta.",
+                      "A formulação ore para que seu destino esteja de acordo com a providência será precisada: pedir que vontade, discernimento e ação se ordenem ao bem, sem supor que o orante conheça todos os desfechos. Isso não torna sofrimento desejável por si mesmo nem impede pedir alívio."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "A oração dentro da providência",
+                    "references": [
+                      "prayer"
+                    ],
+                    "paragraphs": [
+                      "Em Suma II–II, q.83, a.2, Tomás investiga a utilidade da oração diante da providência. Sua resposta não a apresenta como informação nova oferecida a Deus nem como alteração de um plano por pressão externa. A oração pode ser compreendida como parte da ordem dos meios. Nos artigos seguintes, a análise considera os bens pedidos e o modo de pedir. A reflexão preserva a petição e interroga seu objeto.",
+                      "Essa formulação exige um cuidado: nem toda preferência pessoal se torna bem devido apenas porque foi expressa numa oração. A pergunta pelo objeto do desejo torna-se parte da vida espiritual. Pedir pão, perdão, justiça e sabedoria não é o mesmo que exigir superioridade sobre o próximo."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "O Pai-nosso e o Getsêmani",
+                    "references": [],
+                    "paragraphs": [
+                      "Leia Mateus 6:5–13 e marque a sequência dos pedidos. Compare com Mateus 26:36–46: desejo de afastamento do sofrimento e entrega aparecem na mesma cena. O exercício é observar como petição e conformidade podem coexistir. Eliminar o pedido para tornar a entrega mais pura empobrece o texto; eliminar a entrega para garantir satisfação imediata também."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Quando o resultado não vem",
+                    "references": [],
+                    "paragraphs": [
+                      "Considere uma pessoa que orou por um resultado e não o recebeu. Concluir que ela teve pouca fé exige uma regra que precisa ser demonstrada, não presumida. Outra conclusão precipitada seria que toda oração é inútil. A avaliação do percurso distingue resultado material, transformação do desejo, compromisso e mistério reconhecido. Nenhum desses termos deve ser usado para negar a realidade da frustração ou silenciar um lamento legítimo."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Uma prática que pode ser examinada",
+                    "references": [],
+                    "paragraphs": [
+                      "Redija uma petição com quatro elementos: uma necessidade nomeada, o bem que orienta o pedido, uma entrega quanto ao resultado e uma responsabilidade que você assume. Trata-se de um exercício de compreensão da linguagem, não de uma fórmula para obter respostas. O aplicativo não atribui eficácia espiritual à quantidade de palavras nem transforma a conclusão da aula em mérito diante de Deus."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Compare o Pai-nosso com o Getsêmani e formule uma oração de petição e entrega. Explique por que ela não é barganha nem fatalismo, cite uma fonte e enfrente uma objeção à sua posição.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:aquinas-summa-secunda-secundae",
+                "label": "Suma Teológica II–II"
+              }
+            ]
+          },
+          {
+            "id": "sintese",
+            "phase": "Síntese",
+            "title": "Uma posição fundamentada sobre a vida cristã",
+            "studyGuideId": "teologia",
+            "readingSearch": "graça providência caridade vida cristã",
+            "description": "Articular os conceitos estudados, distinguir convicção e argumento e registrar um percurso de investigação próprio.",
+            "objectives": [
+              "Relacionar criação, queda, Cristo, graça e responsabilidade.",
+              "Identificar convergências e diferenças confessionais sem produzir uma tradição fictícia.",
+              "Registrar uma posição revisável com fonte, objeção e resposta."
+            ],
+            "passages": [
+              {
+                "id": "1co13",
+                "label": "1 Coríntios 13:1–7",
+                "purpose": "Examinar conhecimento, dons e amor no argumento paulino.",
+                "ref": {
+                  "bookId": "1-corinthians",
+                  "chapter": 13,
+                  "verseStart": 1,
+                  "verseEnd": 7,
+                  "versificationSchemeId": "scriptorium-bcv-1"
+                }
+              }
+            ],
+            "connections": [
+              {
+                "label": "Convicção e argumento",
+                "explanation": "Convicção é uma posição assumida; argumento explicita razões que podem ser avaliadas e contestadas."
+              },
+              {
+                "label": "Regra de revisão",
+                "explanation": "Registrar o que faria você reconsiderar a tese e qual fonte precisa consultar a seguir."
+              }
+            ],
+            "foundation": [
+              {
+                "claim": "A síntese pessoal precisa identificar convergências, divergências e limites de atribuição.",
+                "area": "Teologia",
+                "status": "Interpretação",
+                "basis": "Orientação metodológica editorial. As fontes são comparadas como autodescrições, não reunidas em uma doutrina supostamente unânime.",
+                "sources": [
+                  {
+                    "title": "Confissão de Augsburgo",
+                    "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+                    "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa.",
+                    "locator": "Artigos IV e VI",
+                    "supports": "Permite conferir uma formulação luterana da relação entre justificação e obediência.",
+                    "limit": "Não representa todas as diferenças do luteranismo nem todas as tradições cristãs."
+                  },
+                  {
+                    "title": "Trinta e Nove Artigos de Religião",
+                    "url": "https://anglicancommunion.org/wp-content/uploads/2026/02/Thirty-Nine-Articles-of-Religion.pdf",
+                    "perspective": "Formulário histórico anglicano, publicado pelo Anglican Communion Office; não retrato uniforme de todas as províncias atuais.",
+                    "locator": "Artigos XI–XII e XVII",
+                    "supports": "Permite comparar justificação, obras e eleição no formulário histórico.",
+                    "limit": "A síntese do estudante permanece distinta do texto confessional."
+                  }
+                ],
+                "alternatives": "A concordância com o percurso não é condição de conclusão. Exigem-se leitura registrada, elaboração argumentativa e revisão dos critérios."
+              }
+            ],
+            "domains": [
+              "theology",
+              "hermeneutics"
+            ],
+            "lessons": [
+              {
+                "id": "sintese:aula",
+                "title": "Uma posição fundamentada sobre a vida cristã",
+                "sections": [
+                  {
+                    "kind": "introduction",
+                    "title": "Coerência entre os conceitos",
+                    "references": [],
+                    "paragraphs": [
+                      "O percurso começou com a finitude e chegou à oração. O trabalho final é verificar se os conceitos usados ao longo do caminho são compatíveis. Se a criação é boa, a queda não pode ser definida apressadamente como prova de que tudo criado é desprezível. Se Cristo assume a humanidade, a vitória sobre a morte não deve apagar essa humanidade. Se graça é dom, a prática cristã não pode ser explicada apenas como compra de favor.",
+                      "Essas relações não fornecem uma resposta pronta a cada controvérsia. Elas estabelecem perguntas de coerência para uma posição assumida conscientemente. Uma convicção pessoal pode orientar a pesquisa, desde que permaneça distinguida do que uma fonte efetivamente afirma."
+                    ]
+                  },
+                  {
+                    "kind": "concept",
+                    "title": "Um vocabulário que mantém as distinções",
+                    "references": [],
+                    "paragraphs": [
+                      "Retome sete pares: natureza e condição; pecado e finitude; morte corporal e domínio da morte; graça e mérito; justificação e santificação; providência e fatalismo; petição e barganha. Em cada par, explique por que os termos não são sinônimos e como podem se relacionar. Se uma palavra mudou de sentido durante seu argumento, sinalize a mudança em vez de usá-la como se a conclusão já estivesse demonstrada.",
+                      "Ao comparar tradições, use autodescrições antes de críticas externas. Não forme uma doutrina composta apenas escolhendo frases de autores que discordam sobre seus fundamentos. É possível construir uma síntese pessoal, mas ela precisa identificar seus empréstimos, suas tensões e suas razões para preferir determinada formulação."
+                    ]
+                  },
+                  {
+                    "kind": "example",
+                    "title": "Um mapa de argumento no caderno",
+                    "references": [],
+                    "paragraphs": [
+                      "Escolha uma tese estudada e organize uma nota em cinco blocos: formulação, passagem bíblica, fonte com localizador, objeção e resposta provisória. Acrescente links para outras notas quando depender de conceitos como graça ou natureza. Vincular notas torna explícitas as dependências; não aumenta por si só a qualidade do argumento. Abra a fonte antes de atribuir ao autor uma conclusão que encontrou apenas na explicação editorial."
+                    ]
+                  },
+                  {
+                    "kind": "discussion",
+                    "title": "Severidade e caridade",
+                    "references": [],
+                    "paragraphs": [
+                      "Uma formação cristã pode falar seriamente de pecado, juízo e dependência sem usar o conhecimento para humilhar o próximo. Em 1 Coríntios 13:1–7, investigue como capacidades extraordinárias são avaliadas em relação ao amor. Pergunte se sua linguagem sobre a miséria humana conduz a responsabilidade e cuidado ou a uma pretensão de superioridade. Essa pergunta é ética e teológica; não exige abandonar o rigor das distinções."
+                    ]
+                  },
+                  {
+                    "kind": "conclusion",
+                    "title": "Conclusão que abre investigação",
+                    "references": [],
+                    "paragraphs": [
+                      "Conclua com uma tese que você consegue sustentar, uma questão que permanece aberta e uma leitura posterior identificada. A conclusão do aplicativo registra um trabalho realizado. Não equivale a certificação acadêmica, adesão obrigatória a uma confissão ou medida do amor a Deus. Revisar uma posição depois de encontrar melhores razões é parte do estudo, não fracasso do percurso."
+                    ]
+                  }
+                ]
+              }
+            ],
+            "activity": {
+              "prompt": "Escreva uma síntese de criação, queda, Cristo, graça e providência. Defenda uma posição própria, contraste duas fontes com localizadores, formule uma objeção séria e indique uma questão que permanece aberta. Guarde uma nota vinculada para sua investigação posterior.",
+              "criteria": [
+                "Distingui observações do texto e minhas interpretações.",
+                "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+                "Considerei uma alternativa ou um limite da minha conclusão."
+              ]
+            },
+            "videos": [],
+            "libraryWorks": [
+              {
+                "workId": "work:augustine-confessions",
+                "label": "Confissões de Agostinho"
+              }
+            ]
+          }
+        ],
+        "references": [
+          {
+            "id": "ways",
+            "title": "Tomás de Aquino — cinco vias",
+            "url": "https://www.newadvent.org/summa/1002.htm",
+            "perspective": "Suma Teológica I, q.2; escolástica latina, tradução histórica inglesa."
+          },
+          {
+            "id": "evil",
+            "title": "Tomás de Aquino — natureza do mal",
+            "url": "https://www.newadvent.org/summa/1048.htm",
+            "perspective": "Suma Teológica I, q.48; análise metafísica da privação."
+          },
+          {
+            "id": "providence",
+            "title": "Tomás de Aquino — providência",
+            "url": "https://www.newadvent.org/summa/1022.htm",
+            "perspective": "Suma Teológica I, q.22; distingue governo, causas e contingência."
+          },
+          {
+            "id": "grace",
+            "title": "Tomás de Aquino — necessidade da graça",
+            "url": "https://www.newadvent.org/summa/2109.htm",
+            "perspective": "Suma Teológica I–II, q.109; natureza, cura e elevação."
+          },
+          {
+            "id": "prayer",
+            "title": "Tomás de Aquino — oração",
+            "url": "https://www.newadvent.org/summa/3083.htm",
+            "perspective": "Suma Teológica II–II, q.83; petição e providência."
+          },
+          {
+            "id": "death",
+            "title": "Tomás de Aquino — morte de Cristo",
+            "url": "https://www.newadvent.org/summa/4050.htm",
+            "perspective": "Suma Teológica III, q.50; morte humana e união com o Verbo."
+          },
+          {
+            "id": "resurrection",
+            "title": "Tomás de Aquino — ressurreição de Cristo",
+            "url": "https://www.newadvent.org/summa/4053.htm",
+            "perspective": "Suma Teológica III, q.53; exposição cristológica escolástica."
+          },
+          {
+            "id": "augustine",
+            "title": "Agostinho — Confissões VII",
+            "url": "https://www.newadvent.org/fathers/110107.htm",
+            "perspective": "Relato autobiográfico e argumento cristão antigo; tradução histórica inglesa."
+          },
+          {
+            "id": "irenaeus",
+            "title": "Irineu — Contra as heresias III.22",
+            "url": "https://www.newadvent.org/fathers/0103322.htm",
+            "perspective": "Recepção patrística de Adão, Eva e Cristo; não hipótese arqueológica."
+          },
+          {
+            "id": "athanasius",
+            "title": "Atanásio — Sobre a encarnação",
+            "url": "https://www.newadvent.org/fathers/2802.htm",
+            "perspective": "Tratado cristão antigo; corrupção, encarnação e vitória sobre a morte."
+          },
+          {
+            "id": "calvin",
+            "title": "Calvino — Institutas I.17",
+            "url": "https://ccel.org/ccel/calvin/institutes.iii.xviii.html",
+            "perspective": "Exposição reformada sobre o uso da doutrina da providência; tradução histórica inglesa."
+          },
+          {
+            "id": "westminster",
+            "title": "Confissão de Westminster",
+            "url": "https://www.opc.org/wcf.html",
+            "perspective": "Recensão publicada pela Orthodox Presbyterian Church; fonte confessional reformada."
+          },
+          {
+            "id": "augsburg",
+            "title": "Confissão de Augsburgo",
+            "url": "https://thebookofconcord.org/augsburg-confession-single-page/",
+            "perspective": "Fonte confessional luterana de 1530, em tradução histórica inglesa."
+          },
+          {
+            "id": "anglican",
+            "title": "Trinta e Nove Artigos de Religião",
+            "url": "https://anglicancommunion.org/wp-content/uploads/2026/02/Thirty-Nine-Articles-of-Religion.pdf",
+            "perspective": "Formulário histórico anglicano, publicado pelo Anglican Communion Office; não retrato uniforme de todas as províncias atuais."
+          },
+          {
+            "id": "sheol",
+            "title": "Catecismo — descida à mansão dos mortos",
+            "url": "https://www.vatican.va/archive/cathechism_po/index_new/p1s2cap2_422-682_po.html",
+            "perspective": "Autodescrição católica romana; §§632–637, distinguida da análise lexical bíblica."
+          },
+          {
+            "id": "nietzsche",
+            "title": "Nietzsche — Genealogia da moral",
+            "url": "https://www.gutenberg.org/cache/epub/52319/pg52319-images.html",
+            "perspective": "Crítica filosófica da moral e do ideal ascético; III, §§1 e 28; tradução inglesa de 1913."
+          }
+        ]
       }
     }
   },

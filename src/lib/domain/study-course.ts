@@ -27,6 +27,9 @@ export interface CoursePassage {
 }
 export interface CourseModule {
   foundation?: readonly StudyFoundation[];
+  libraryWorks?: readonly { workId: string; label: string }[];
+  studyGuideId?: string;
+  readingSearch?: string;
   id: string;
   title: string;
   description: string;

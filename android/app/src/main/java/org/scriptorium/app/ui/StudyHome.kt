@@ -82,11 +82,11 @@ internal fun StudyHome(state: StudyHomeState, repository: MobileRepository, choo
                     }
                 }
             } else if (area == "Percursos") {
-                items(state.courses, key = { it.text("id") }) { row ->
+                items(state.courses.sortedBy { if (it.text("id") == "course:queda-graca-providencia") 0 else 1 }, key = { it.text("id") }) { row ->
                     OutlinedCard(onClick = { chooseCourse(row.text("id"), -1) }, modifier = Modifier.fillMaxWidth()) {
                         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                             Text(row.text("title"), style = MaterialTheme.typography.titleLarge, fontFamily = FontFamily.Serif)
-                            Text("Conteúdo, leituras e atividade de síntese", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                            Text(if (row.text("id") == "course:queda-graca-providencia") "Antropologia cristã, cinco vias e tradições · 14 módulos" else "Conteúdo, leituras e atividade de síntese", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
                         }
                     }
                 }

@@ -39,6 +39,11 @@ publica recortes rastreáveis no workspace existente, sem confundir seção tem�
 de versículo. O [balanço de 22/10/2026](docs/content/thematic-expansion-2026-10-22.md) distingue
 conteúdo incorporado, auditoria estrutural e frentes ainda pendentes.
 
+O percurso [Queda, graça e providência](docs/content/queda-graca-providencia-2026-10-26.md),
+em Estudos → Percursos no Android e na web, acrescenta 14 módulos sobre condição humana,
+cinco vias, morte e ressurreição, graça, providência e tradições cristãs. As hipóteses
+de leitura ficam diferenciadas das fontes e dos contrapontos confessionais.
+
 A [fila contextual de 24/10/2026](docs/content/contextual-library-expansion-2026-10-24.md)
 reutiliza os extratores e importadores canônicos, com retomada, staging e bloqueios por
 tipo documental. O relatório distingue os novos recortes, comentários e tentativas OCR.

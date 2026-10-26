@@ -1,5 +1,19 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Queda, graça e providência — 0.6.6
+
+Estudos → **Percursos** apresenta 14 módulos/18 aulas: finitude e niilismo,
+cinco vias de Tomás, Adão arquetípico, alteridade, queda, Cristo e ressurreição,
+Sheol e juízo, graça, providência, calvinismo, luteranismo, anglicanismo, oração
+e síntese. São 90 seções em português, com passagens, conceitos-chave,
+fundamentação e hipóteses identificadas. A trilha horizontal usa o progresso
+existente; os cursos anteriores e a árvore não precisam ser refeitos.
+
+As obras declaradas só aparecem se instaladas; buscas do acervo preservam seu
+rótulo e suas fontes. Atualização só do APK, sem reimportação de PDFs. O mesmo
+currículo está disponível na web, com progresso independente por dispositivo.
+[Escopo, fontes e limites](../docs/content/queda-graca-providencia-2026-10-26.md).
+
 ## Conteúdo aprofundado de Estudos — 0.6.4
 
 O APK entrega a ampliação das 95 entidades e dos 16 guias: Análise, Caso de leitura

@@ -18,6 +18,59 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun fallGraceCourseLinksInstalledBooksAndPreservesIndependentProgress() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = ReadingAppearance(motion = false)
+            val repo = repository()
+            val id = "course:queda-graca-providencia"
+            val course = requireNotNull(repo.catalogItem(id))
+            val modules = course.objects("modules")
+            val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
+            // Dedicated emulator only: no mutations to the user's device or other courses.
+            Sqlite.open(File(context.filesDir, "personal.sqlite3"), false).use { db -> db.rows("DELETE FROM course_progress WHERE course_id=?", listOf(id)) }
+            assertEquals(1, repo.catalog("course").count { it.text("id") == id })
+            assertEquals(1, repo.catalog("course").count { it.text("id") == "course:genesis-1" })
+            startAt("Gn1:1"); click("Estudos"); click("Percursos"); click("Queda, graça e providência")
+            waitNode("Módulos · 1 de 14"); capture("fall-grace-map")
+            assertTrue(nodes().any { it.stateDescription?.toString()?.contains("Bloqueado") == true })
+            click("Estudar este ponto")
+            val first = modules.first()
+            val pages = StudySequence.module(first)
+            val assigned = first.objects("libraryWorks")
+            val readingId = "study-course:queda-graca-providencia:sentido"
+            val book = repo.lessonReadings(readingId, first.getString("readingSearch"), assigned).first { it.work != null }
+            assertEquals("work:augustine-confessions", book.work!!.text("id"))
+            pages.forEachIndexed { index, page ->
+                if (page.kind == StudyPageKind.LESSON_SECTION && page.lastInLesson) { reveal("Li esta aula"); click("Li esta aula") }
+                if (page.kind == StudyPageKind.READINGS) {
+                    reveal(book.title); waitNode(book.title); capture("fall-grace-library")
+                    reveal("Salmo 13:1–6"); click("Salmo 13:1–6"); waitNode("Painel")
+                    val target = decodePassage(preferences.lastPassage(), repo.scriptureEditions())
+                    assertEquals("psalms", target?.bookId); assertEquals(13, target?.chapter); assertEquals(1, target?.verse)
+                    back(); back(); reveal(book.title); waitNode(book.title)
+                    first.objects("passages").forEach { passage -> reveal("Li e observei: ${passage.getString("label")}"); click("Li e observei: ${passage.getString("label")}") }
+                }
+                if (page.kind == StudyPageKind.ACTIVITY) {
+                    reveal("Sua resposta, com fontes"); enter("O Salmo 13 preserva a pergunta sobre abandono e termina em confiança. Distingo esperança de garantia de êxito e comparo a crítica de Nietzsche, Genealogia III.28, sem atribuir a ele a interpretação cristã. Permanece a objeção sobre a função da culpa.")
+                }
+                if (index < pages.lastIndex) { reveal("Próxima etapa"); click("Próxima etapa") }
+            }
+            reveal("Concluir módulo"); click("Concluir módulo"); waitNode("Confira:", false)
+            assertTrue(personal.progress(id, 1).all { it["completed_at"].isNullOrBlank() })
+            first.getJSONObject("activity").strings("criteria").forEach { reveal(it); click(it) }
+            reveal("Concluir módulo"); click("Concluir módulo"); waitNode("Módulos · 2 de 14")
+            assertEquals(1, personal.progress(id, 1).count { !it["completed_at"].isNullOrBlank() })
+            click("Estudar este ponto"); click("Próxima etapa")
+            waitNode("Primeira via — mudança, ato e potência"); waitNode("O problema da mudança"); capture("fall-grace-first-way")
+            reveal("Fundamentação ▾"); click("Fundamentação ▾"); reveal("Suma I, q.2, a.1–3; especialmente o corpo do artigo 3"); waitNode("Suma I, q.2, a.1–3; especialmente o corpo do artigo 3")
+            startAt("Gn1:1"); click("Estudos"); click("Percursos"); click("Queda, graça e providência"); waitNode("Módulos · 2 de 14")
+            println("FALL_GRACE_UI_QA catalog/14modules/realAugustine/psalm13/criteriaRequired/AtoB/fiveWays/foundation/resume passed")
+        } finally { preferences.appearance = appearance }
+    }
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val automation = instrumentation.uiAutomation
     private fun descendants(node: AccessibilityNodeInfo?): List<AccessibilityNodeInfo> =

@@ -25,6 +25,7 @@ import { StudyNotebook } from "./study-notebook";
 import { StudyTopicVideos } from "./study-topic-videos";
 import { CoursePassageReading } from "./course-passages";
 import { StudyFoundation } from "./study-foundation";
+import { CourseAssignedReadings } from "./course-assigned-readings";
 import {
   CourseExternalReferences,
   CourseLibraryInventory,
@@ -460,11 +461,31 @@ function CourseModuleWorkspace({
               onCheck={(checked) => toggle("readings", passage.id, checked)}
             />
           ))}
-          <CoursePrivateReadings
-            module={module}
-            links={links}
-            {...(group ? { studyId: group.id } : {})}
-          />
+          {module.libraryWorks && (
+            <CourseAssignedReadings
+              key={module.id}
+              courseId={course.id}
+              module={module}
+              links={links}
+              {...(group ? { studyId: group.id } : {})}
+            />
+          )}
+          {module.libraryWorks ? (
+            <details className="course-inventory">
+              <summary>Comentários ligados às passagens</summary>
+              <CoursePrivateReadings
+                module={module}
+                links={links}
+                {...(group ? { studyId: group.id } : {})}
+              />
+            </details>
+          ) : (
+            <CoursePrivateReadings
+              module={module}
+              links={links}
+              {...(group ? { studyId: group.id } : {})}
+            />
+          )}
           <StudyFoundation records={module.foundation ?? []} />
           <CourseExternalReferences course={course} module={module} />
           <CourseLibraryInventory />
