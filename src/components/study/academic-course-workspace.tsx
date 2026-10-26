@@ -4,6 +4,7 @@ import { ArrowLeft, BookOpen, Check, NotebookPen } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { Button } from "../ui/button";
 import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { useStudyPointMotion } from "../../hooks/use-study-point-motion";
 import { useStudyDraftGuard } from "../../hooks/use-study-draft-guard";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import {
@@ -74,6 +75,7 @@ export function AcademicCourseWorkspace({
   }, [selected, query.data, course, initialModule]);
   const module = course.modules.find((item) => item.id === selected) ?? course.modules[0]!;
   const progress = query.data ?? [];
+  const pointMotion = useStudyPointMotion(module.id, course.modules.indexOf(module));
   return (
     <article className="topic-workspace course-workspace">
       <Link to="/study" search={{}} className="topic-back">
@@ -128,18 +130,20 @@ export function AcademicCourseWorkspace({
           </button>
         </p>
       )}
-      <CourseModuleWorkspace
-        key={`${course.id}:${module.id}:${query.isPending ? "pending" : "settled"}:${session}`}
-        course={course}
-        moduleId={module.id}
-        progress={progress}
-        ready={query.isSuccess}
-        onModule={setSelected}
-        onSaved={async () => {
-          await query.refetch();
-          setSession((value) => value + 1);
-        }}
-      />
+      <div ref={pointMotion}>
+        <CourseModuleWorkspace
+          key={`${course.id}:${module.id}:${query.isPending ? "pending" : "settled"}:${session}`}
+          course={course}
+          moduleId={module.id}
+          progress={progress}
+          ready={query.isSuccess}
+          onModule={setSelected}
+          onSaved={async () => {
+            await query.refetch();
+            setSession((value) => value + 1);
+          }}
+        />
+      </div>
     </article>
   );
 }
@@ -265,6 +269,10 @@ function CourseModuleWorkspace({
     }
   }
   const issues = completionIssues(module, work);
+  const motion = useStudyPointMotion(
+    `${moduleId}:${tab}:${lessonId}`,
+    module.lessons.findIndex((lesson) => lesson.id === lessonId),
+  );
   return (
     <>
       <nav className="course-module-rail" aria-label="Módulos do percurso">
@@ -316,7 +324,13 @@ function CourseModuleWorkspace({
           Feche outras abas deste workspace e reabra para tentar usar o armazenamento persistente.
         </p>
       )}
-      <Tabs value={tab} onValueChange={setTab} activationMode="manual">
+      <Tabs
+        ref={motion}
+        className="course-point-content"
+        value={tab}
+        onValueChange={setTab}
+        activationMode="manual"
+      >
         <div className="topic-tabs-scroll">
           <TabsList
             className="topic-tabs h-auto w-max min-w-full justify-start gap-1 rounded-none bg-transparent p-0"

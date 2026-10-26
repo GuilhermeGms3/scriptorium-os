@@ -18,6 +18,53 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun longBookPageReflowsWithNavigableParagraphsWithoutChangingEvidence() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val repo = repository()
+        val candidate = repo.documents().filter { it.number("pages") > 30 && repo.pdf(it.text("checksum")) != null && !repo.page(it.text("id"), 2)?.text("text").isNullOrBlank() }.take(6).firstNotNullOfOrNull { doc ->
+            (8 until minOf(120, doc.number("pages"))).firstOrNull { page ->
+                repo.page(doc.text("id"), page)?.let { libraryReadingSections(it.text("text")).size >= 3 } == true
+            }?.let { doc to it }
+        } ?: error("Nenhuma página longa com texto no acervo do emulador QA")
+        val (document, index) = candidate
+        val raw = repo.page(document.text("id"), index)!!.text("text")
+        val sections = libraryReadingSections(raw)
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        preferences.saveBookPage(document.text("id"), index)
+        startAt("Gn1:1"); click("Biblioteca"); waitNode("Filtrar títulos"); enter(document.text("title"))
+        click("${document.number("pages")} páginas · ${document.text("language")}")
+        click("Opções de leitura do livro"); click("Texto ajustado")
+        waitNode("§ 1"); waitNode(sections.first())
+        click("Navegar: Parágrafo de leitura 3 · página ${index + 1}")
+        waitNode(sections[2]); capture("book-long-paragraphs")
+        assertEquals(raw, repo.page(document.text("id"), index)!!.text("text"))
+        println("BOOK_PARAGRAPHS_QA actualText/numbering/scrollToThird/unchangedEvidence passed")
+    }
+
+    @Test fun sectionIndicatorsFollowVersesAndStudyPointsAnimateWithoutLosingContent() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = appearance.copy(motion = true, dockedComments = true)
+            startAt("Gn12:1"); openSavedReading()
+            waitNode("Navegar: Versículo 1"); click("Navegar: Versículo 2"); waitNode("Gênesis 12:2", false)
+            waitActiveIndicator("Navegar: Versículo 2")
+            capture("indicators-scripture")
+            back(); waitNode("Encontrar livro ou texto"); capture("engraved-books")
+            click("Estudos"); click("Percursos"); click("Queda, graça e providência")
+            val course = repository().catalogItem("course:queda-graca-providencia")!!
+            val progress = PersonalRepository(File(context.filesDir, "personal.sqlite3")).progress(course.getString("id"), course.getInt("revision"))
+            val selected = StudySequence.resumeIndex(course.objects("modules"), progress)
+            val pages = StudySequence.module(course.objects("modules")[selected])
+            click("Estudar este ponto"); waitNode(pages.first().title)
+            click("Próxima etapa"); waitNode(pages[1].title); capture("study-point-motion")
+            click("Anterior"); waitNode(pages.first().title)
+            println("SECTION_MOTION_QA verseScroll/activeIndicator/engravedCatalog/studyForwardBackward passed")
+        } finally { preferences.appearance = appearance }
+    }
+
     @Test fun fallGraceCourseLinksInstalledBooksAndPreservesIndependentProgress() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val context = instrumentation.targetContext
@@ -84,6 +131,15 @@ class ReadingUiTest {
             SystemClock.sleep(180)
         }
         error("Não encontrou $value. Tela: ${nodes().map(::label).filter(String::isNotBlank).joinToString(" | ").take(2500)}")
+    }
+    private fun waitActiveIndicator(value: String) {
+        val end = SystemClock.uptimeMillis() + 10_000
+        while (SystemClock.uptimeMillis() < end) {
+            val indicator = nodes().firstOrNull { it.contentDescription?.toString() == value }
+            if (indicator != null && (indicator.isSelected || indicator.stateDescription?.toString() == "Seção atual")) return
+            SystemClock.sleep(180)
+        }
+        error("Indicador não ficou ativo: " + nodes().filter { label(it).contains(value) }.map { "${label(it)} selected=${it.isSelected} state=${it.stateDescription}" })
     }
     private fun click(value: String, exact: Boolean = true) {
         val node = waitNode(value, exact)
@@ -290,8 +346,15 @@ class ReadingUiTest {
             click("1 / ${document.number("pages")}"); waitNode("Ir à página"); enter("3"); click("Abrir página")
             waitNode("Página física 3 do PDF original")
             click("Opções de leitura do livro"); click("Texto ajustado"); waitNode("TEXTO AJUSTADO · PÁGINA 3")
-            val expected = readingParagraphs(requireNotNull(repo.page(document.text("id"), 2)).text("text"))
-            waitNode(expected); capture("book-reflow")
+            val expected = libraryReadingSections(requireNotNull(repo.page(document.text("id"), 2)).text("text"))
+            waitNode(expected.first()); waitNode("§ 1")
+            waitNode("Navegar: Parágrafo de leitura 1 · página 3")
+            if (expected.size > 1) {
+                click("Navegar: Parágrafo de leitura 2 · página 3"); waitNode(expected[1])
+                waitActiveIndicator("Navegar: Parágrafo de leitura 2 · página 3")
+                click("Navegar: Parágrafo de leitura 1 · página 3")
+            }
+            capture("book-reflow")
             click("Opções de leitura do livro"); click("A+")
             assertEquals(originalAppearance.size + 1, preferences.appearance.size)
             back(); waitNode("TEXTO AJUSTADO · PÁGINA 3")

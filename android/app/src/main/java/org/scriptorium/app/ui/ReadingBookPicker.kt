@@ -76,13 +76,13 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             LazyColumn(contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 visible.groupBy { repository.navigation.group(it.text("book_id")) }.forEach { (name, rows) ->
                     item { Text(name, Modifier.padding(top = 12.dp), style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.primary) }
-                    items(rows, key = { "bible:${it.text("id")}" }) { row -> BookTile(row.text("title"), "${row.number("chapters")} capítulos", repository.navigation.symbol(row.text("book_id")), row.text("book_id")) { chooseBook(row.text("id")) } }
+                    items(rows, key = { "bible:${it.text("id")}" }) { row -> BookTile(row.text("title"), "${row.number("chapters")} capítulos", row.text("book_id")) { chooseBook(row.text("id")) } }
                 }
                 if (additional.isNotEmpty()) item {
                     Heading("Outros textos do acervo", "Textos não canônicos e fontes históricas permanecem distintos da edição bíblica. Os rótulos não definem o cânon de todas as tradições.")
                 }
                 items(additional, key = { "${it.kind}:${it.row.text("id")}" }) { extra ->
-                    BookTile(extra.row.text("title"), when (extra.kind) { "document" -> "Volume privado · ${extra.row.number("pages")} páginas"; "section" -> "Texto no volume instalado · p. ${extra.row.number("page_index") + 1}"; else -> "${extra.row.text("unit_count")} unidades · fonte antiga" }, if ("Apócrifo" in extra.tags) "☼" else "▤") {
+                    BookTile(extra.row.text("title"), when (extra.kind) { "document" -> "Volume privado · ${extra.row.number("pages")} páginas"; "section" -> "Texto no volume instalado · p. ${extra.row.number("page_index") + 1}"; else -> "${extra.row.text("unit_count")} unidades · fonte antiga" }, "source:${extra.kind}") {
                         if (extra.kind == "work") primary(extra.row)
                         else if (extra.kind == "section") page(extra.row)
                         else page(extra.row + mapOf("document_id" to extra.row.text("id"), "source_title" to extra.row.text("title"), "page_index" to "0", "document_pages" to extra.row.text("pages")))
@@ -97,10 +97,10 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
 }
 
 @Composable
-private fun BookTile(title: String, detail: String, symbol: String, bookId: String = "", open: () -> Unit) {
+private fun BookTile(title: String, detail: String, bookId: String = "", open: () -> Unit) {
     Surface(onClick = open, color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.small, modifier = Modifier.fillMaxWidth()) {
         Row(Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-            BookEmblem(bookId, symbol)
+            BookEmblem(bookId)
             Column(Modifier.weight(1f)) {
                 Text(title, fontFamily = FontFamily.Serif, fontSize = 19.sp)
                 Text(detail, Modifier.padding(top = 3.dp), style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
@@ -110,47 +110,40 @@ private fun BookTile(title: String, detail: String, symbol: String, bookId: Stri
     }
 }
 
-/** Small local vector illustration; no image downloads or new book assets. */
+/** Engraved monochrome manuscript emblems. No emoji fonts or downloaded artwork. */
 @Composable
-private fun BookEmblem(bookId: String, symbol: String) {
-    val bronze = MaterialTheme.colorScheme.primary
-    Box(Modifier.size(44.dp).clearAndSetSemantics { }, contentAlignment = Alignment.Center) {
-        androidx.compose.foundation.Canvas(Modifier.fillMaxSize()) {
-            val centre = androidx.compose.ui.geometry.Offset(size.width / 2, size.height / 2)
-            drawCircle(bronze.copy(alpha = 0.1f))
-            drawCircle(bronze.copy(alpha = 0.4f), radius = size.width * 0.44f, style = androidx.compose.ui.graphics.drawscope.Stroke(1.dp.toPx()))
-            if (bookId == "genesis") {
-                drawCircle(bronze, radius = size.width * 0.12f)
-                repeat(8) { index ->
-                    val angle = index * Math.PI / 4
-                    val start = centre + androidx.compose.ui.geometry.Offset((kotlin.math.cos(angle) * size.width * 0.23).toFloat(), (kotlin.math.sin(angle) * size.height * 0.23).toFloat())
-                    val end = centre + androidx.compose.ui.geometry.Offset((kotlin.math.cos(angle) * size.width * 0.34).toFloat(), (kotlin.math.sin(angle) * size.height * 0.34).toFloat())
-                    drawLine(bronze, start, end, strokeWidth = 1.5.dp.toPx())
-                }
-            }
+private fun BookEmblem(bookId: String) {
+    val ink = MaterialTheme.colorScheme.primary
+    androidx.compose.foundation.Canvas(Modifier.size(40.dp).clearAndSetSemantics { }) {
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(1.15.dp.toPx())
+        fun point(x: Float, y: Float) = androidx.compose.ui.geometry.Offset(size.width * x, size.height * y)
+        fun line(x: Float, y: Float, xx: Float, yy: Float) = drawLine(ink, point(x, y), point(xx, yy), 1.15.dp.toPx())
+        fun path(vararg points: Pair<Float, Float>) {
+            val shape = androidx.compose.ui.graphics.Path()
+            points.forEachIndexed { index, p -> if (index == 0) shape.moveTo(size.width * p.first, size.height * p.second) else shape.lineTo(size.width * p.first, size.height * p.second) }
+            drawPath(shape, ink, style = stroke)
         }
-        if (bookId != "genesis") Text(when (bookId) {
-            "exodus" -> "🌊"
-            "leviticus", "1-maccabees", "2-maccabees" -> "🔥"
-            "numbers" -> "🏕"
-            "deuteronomy", "ezra", "nehemiah" -> "📜"
-            "joshua" -> "🏞"
-            "judges" -> "⚖"
-            "ruth" -> "🌾"
-            "1-samuel", "2-samuel", "1-kings", "2-kings", "1-chronicles", "2-chronicles", "esther" -> "♛"
-            "job" -> "🕯"
-            "psalms" -> "♫"
-            "proverbs", "wisdom", "sirach" -> "🦉"
-            "ecclesiastes" -> "⌛"
-            "song-of-songs" -> "🌹"
-            "lamentations" -> "💧"
-            "jonah" -> "🐟"
-            "daniel", "revelation" -> "✦"
-            "isaiah", "jeremiah", "ezekiel", "hosea", "joel", "amos", "obadiah", "micah", "nahum", "habakkuk", "zephaniah", "haggai", "zechariah", "malachi", "baruch" -> "📯"
-            "matthew", "mark", "luke", "john" -> "✝"
-            "acts" -> "🕊"
-            "romans", "1-corinthians", "2-corinthians", "galatians", "ephesians", "philippians", "colossians", "1-thessalonians", "2-thessalonians", "1-timothy", "2-timothy", "titus", "philemon", "hebrews", "james", "1-peter", "2-peter", "1-john", "2-john", "3-john", "jude" -> "✉"
-            else -> symbol
-        }, fontSize = 25.sp, color = bronze)
+        // A restrained folio frame ties all books to the same library.
+        drawRoundRect(ink.copy(alpha = 0.4f), point(.08f, .05f), androidx.compose.ui.geometry.Size(size.width * .84f, size.height * .9f), androidx.compose.ui.geometry.CornerRadius(2.dp.toPx()), style = stroke)
+        line(.19f, .05f, .19f, .95f)
+        when (bookId) {
+            "genesis" -> { drawCircle(ink, size.width * .16f, point(.55f,.5f), style = stroke); line(.55f,.21f,.55f,.29f); line(.55f,.71f,.55f,.79f); line(.27f,.5f,.34f,.5f); line(.76f,.5f,.83f,.5f) }
+            "exodus", "jonah" -> repeat(3) { i -> val y=.37f+i*.14f; path(.30f to y,.42f to y-.05f,.55f to y,.68f to y-.05f,.81f to y) }
+            "leviticus", "deuteronomy", "ezra", "nehemiah", "hebrews" -> { path(.29f to .4f,.55f to .24f,.81f to .4f,.29f to .4f); repeat(3) { line(.35f+it*.2f,.45f,.35f+it*.2f,.71f) }; line(.28f,.77f,.82f,.77f) }
+            "numbers", "joshua", "acts" -> { path(.28f to .72f,.5f to .3f,.82f to .72f,.28f to .72f); line(.5f,.3f,.5f,.72f) }
+            "judges", "job" -> { line(.55f,.25f,.55f,.77f); line(.31f,.38f,.79f,.38f); path(.31f to .39f,.24f to .58f,.4f to .58f,.31f to .39f); path(.79f to .39f,.71f to .58f,.87f to .58f,.79f to .39f); line(.4f,.77f,.7f,.77f) }
+            "ruth", "proverbs", "wisdom", "sirach" -> { line(.55f,.24f,.55f,.79f); repeat(3) { val y=.35f+it*.14f; line(.55f,y,.36f,y-.1f); line(.55f,y,.74f,y-.1f) } }
+            "1-samuel", "2-samuel", "1-kings", "2-kings", "1-chronicles", "2-chronicles", "esther", "judith", "1-maccabees", "2-maccabees" -> { path(.3f to .4f,.39f to .55f,.55f to .3f,.7f to .55f,.8f to .4f,.75f to .72f,.35f to .72f,.3f to .4f); line(.36f,.79f,.74f,.79f) }
+            "psalms", "song-of-songs", "lamentations" -> { path(.33f to .3f,.36f to .65f,.55f to .77f,.74f to .65f,.77f to .3f); line(.33f,.3f,.77f,.3f); repeat(3) { line(.45f+it*.1f,.34f,.45f+it*.1f,.65f) } }
+            "ecclesiastes" -> { path(.34f to .26f,.76f to .26f,.34f to .75f,.76f to .75f,.34f to .26f); line(.29f,.21f,.81f,.21f); line(.29f,.8f,.81f,.8f) }
+            "matthew", "mark", "luke", "john" -> { line(.55f,.23f,.55f,.79f); line(.34f,.4f,.77f,.4f) }
+            "daniel", "revelation" -> { path(.55f to .22f,.65f to .42f,.83f to .5f,.65f to .59f,.55f to .79f,.45f to .59f,.27f to .5f,.45f to .42f,.55f to .22f); drawCircle(ink,size.width*.05f,point(.55f,.5f),style=stroke) }
+            "isaiah", "jeremiah", "ezekiel", "hosea", "joel", "amos", "obadiah", "micah", "nahum", "habakkuk", "zephaniah", "haggai", "zechariah", "malachi", "baruch" -> {
+                path(.36f to .27f,.73f to .27f,.73f to .73f,.36f to .73f,.36f to .27f)
+                line(.45f,.41f,.66f,.41f); line(.45f,.52f,.66f,.52f); line(.45f,.63f,.59f,.63f)
+                drawCircle(ink,size.width*.055f,point(.36f,.27f),style=stroke); drawCircle(ink,size.width*.055f,point(.73f,.73f),style=stroke)
+            }
+            else -> { path(.3f to .34f,.8f to .34f,.8f to .7f,.3f to .7f,.3f to .34f); path(.3f to .34f,.55f to .55f,.8f to .34f); line(.3f,.7f,.45f,.55f); line(.8f,.7f,.65f,.55f) }
+        }
     }
 }

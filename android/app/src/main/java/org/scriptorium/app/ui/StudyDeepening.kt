@@ -25,7 +25,7 @@ internal fun StudyChapter(chapter: JSONObject?, repository: MobileRepository, op
         LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp), contentPadding = PaddingValues(vertical = 10.dp)) {
             items(blocks.size) { index -> FilterChip(selected == index, { selected = index }, label = { Text(blocks[index].first) }) }
         }
-        Surface(color = if (selected == 1) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
+        Surface(modifier = Modifier.studyPointMotion("${chapter.optString("id")}:$selected", selected), color = if (selected == 1) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
             Column(Modifier.padding(18.dp)) {
                 Text(blocks[selected].first, Modifier.padding(bottom = 12.dp), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
                 StudyParagraphs(listOf(deeper.optString(blocks[selected].second)))

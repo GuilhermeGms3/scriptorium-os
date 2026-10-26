@@ -21,6 +21,31 @@ fun readingParagraphs(raw: String): String = raw.replace("\r\n", "\n").replace('
 
 data class VisibleReadingItem(val index: Int, val offset: Int, val size: Int)
 
+/** Inferred display paragraphs, never citation offsets or purported authorial divisions. */
+fun libraryReadingSections(raw: String): List<String> {
+    val blocks = readingParagraphs(raw).split(Regex("\n{2,}"))
+    return blocks.flatMap { block ->
+        val result = mutableListOf<String>()
+        val current = StringBuilder()
+        // A sentence boundary is preferable to arbitrary character/word wrapping.
+        block.split(Regex("(?<=[.!?;])\\s+(?=[A-ZÀ-ÖØ-Þ\"“‘])")).forEach { sentence ->
+            if (current.length >= 420) { result += current.toString(); current.clear() }
+            if (current.isNotEmpty()) current.append(' ')
+            current.append(sentence)
+        }
+        if (current.isNotBlank()) result += current.toString().trim()
+        result
+    }.filter(String::isNotBlank)
+}
+
+/** A bounded contiguous window keeps the active section reachable, even in long books. */
+fun readingIndicatorWindow(count: Int, selected: Int, capacity: Int): IntRange {
+    if (count <= 0 || capacity <= 0) return IntRange.EMPTY
+    val size = minOf(count, capacity)
+    val start = (selected.coerceIn(0, count - 1) - size / 2).coerceIn(0, count - size)
+    return start until start + size
+}
+
 /** Ignore a sliver of the preceding verse; keep a fully visible short verse as the anchor. */
 fun readingAnchor(items: List<VisibleReadingItem>, start: Int, end: Int): Int? {
     fun visible(item: VisibleReadingItem) = (minOf(item.offset + item.size, end) - maxOf(item.offset, start)).coerceAtLeast(0)

@@ -1,5 +1,21 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Leitura e movimento — 0.6.7
+
+- Escrituras usa emblemas vetoriais monocromáticos de manuscrito, sem emojis.
+- Percursos, guias e aulas temáticas constroem a leitura na entrada e deslizam
+  na direção do avanço/retorno. As conexões da trilha se desenham novamente;
+  a preferência de movimento e a escala de animação do Android são respeitadas.
+- Indicadores discretos na margem esquerda navegam pelos versículos, páginas
+  do PDF, unidades de fontes primárias ou parágrafos do texto ajustado. Uma janela
+  limitada acompanha a seção ativa, sem carregar o livro inteiro ou cobrir o texto.
+- Texto ajustado recompõe linhas e divide blocos extensos em limites de frases.
+  A marca § é uma divisão **visual e local por página**, não a numeração do autor.
+  Extrações sem pontuação/estrutura não permitem reconstrução editorial confiável;
+  o PDF continua disponível. O original e os offsets das evidências não mudam.
+- Estudos web também recebe transições de módulo/aula/contexto, com preferência
+  de movimento reduzido. Nenhuma mudança no currículo ou nos critérios de avanço.
+
 ## Queda, graça e providência — 0.6.6
 
 Estudos → **Percursos** apresenta 14 módulos/18 aulas: finitude e niilismo,

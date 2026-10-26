@@ -19,8 +19,8 @@ import org.scriptorium.app.data.*
 
 @Composable
 internal fun StudyParagraphs(paragraphs: List<String>) {
-    paragraphs.forEach { paragraph ->
-        Text(paragraph, Modifier.fillMaxWidth().padding(bottom = 18.dp),
+    paragraphs.forEachIndexed { index, paragraph ->
+        Text(paragraph, Modifier.fillMaxWidth().revealSection(index).padding(bottom = 18.dp),
             style = MaterialTheme.typography.bodyLarge, fontFamily = LocalReadingAppearance.current.fontFamily, fontSize = (LocalReadingAppearance.current.size * 0.86f).sp, lineHeight = (LocalReadingAppearance.current.size * 1.35f).sp)
     }
 }
@@ -53,8 +53,8 @@ internal fun GuideScreen(guide: JSONObject, lesson: JSONObject?, repository: Mob
         Column(Modifier.fillMaxSize()) {
             Text(guide.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
             StudyRail(pages.map { it.title }, index, "Etapas de leitura", enabled = { !saving && unlocked(it) }, completed = { pages[it].id in completed }) { selected = it }
-            LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp)) {
-                item(key = page.id) { Column {
+            LazyColumn(state = list, modifier = Modifier.weight(1f).studyPointMotion(page.id, index), contentPadding = PaddingValues(bottom = 24.dp)) {
+                item(key = page.id) { Column(Modifier.revealSection(1)) {
                     Heading(page.title)
                     when (page.kind) {
                         StudyPageKind.INTRODUCTION -> {
@@ -119,9 +119,9 @@ internal fun LessonSequence(id: String, lesson: JSONObject, repository: MobileRe
             Text(lesson.getString("title"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
             LinearProgressIndicator(progress = { completed.size.toFloat() / pageIds.size }, modifier = Modifier.fillMaxWidth().padding(top = 12.dp))
             StudyRail(titles, selected, "Etapas da aula", enabled = { !saving && StudySequence.readingUnlocked(pageIds, it, completed) }, completed = { pageIds[it] in completed }) { selected = it }
-            LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(state = list, modifier = Modifier.weight(1f).studyPointMotion(pageIds[selected], selected), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item(key = pageIds[selected]) {
-                    Column {
+                    Column(Modifier.revealSection(1)) {
                         when {
                             selected < chapters.size -> {
                                 Heading(chapters[selected].getString("title"))

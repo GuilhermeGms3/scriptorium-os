@@ -89,7 +89,7 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                 }
                 }
                 item {
-                    Surface(color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
+                    Surface(modifier = Modifier.studyPointMotion(moduleId, moduleIndex), color = MaterialTheme.colorScheme.surfaceContainerHigh, shape = MaterialTheme.shapes.medium) {
                         Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text("PONTO ${moduleIndex + 1} · ${current.optString("phase", "Percurso acadêmico")}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                             Text(current.getString("title"), style = MaterialTheme.typography.headlineSmall, fontFamily = androidx.compose.ui.text.font.FontFamily.Serif)
@@ -104,9 +104,9 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                 }
             } else {
             TextButton(enabled = !saving, onClick = { save { showMap = true } }) { Text("← Percurso · módulo ${moduleIndex + 1} de ${modules.size}") }
-            LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            LazyColumn(state = list, modifier = Modifier.weight(1f).studyPointMotion("$moduleId:${page.id}", moduleIndex * 1000 + pageIndex), contentPadding = PaddingValues(bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 item { StudyRail(pages.map { it.title }, pageIndex, "Etapas do módulo", enabled = { !saving }, compact = true, choose = ::choosePage) }
-                item(key = "$moduleId:${page.id}") { Column {
+                item(key = "$moduleId:${page.id}") { Column(Modifier.revealSection(1)) {
                     if (current.objects("lessons").size > 1 && page.lessonTitle != null) Text(page.lessonTitle, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.secondary)
                     Heading(page.title)
                     when (page.kind) {

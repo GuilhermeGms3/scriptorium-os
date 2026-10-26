@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import type { DeepStudy } from "../../lib/content/study-lessons/deepening-types";
 import type { LessonPassage } from "../../lib/content/study-lessons/deepening-passages";
 import { Button } from "../ui/button";
+import { useStudyPointMotion } from "../../hooks/use-study-point-motion";
 
 const blocks = [
   { key: "analysis", title: "Análise" },
@@ -20,6 +21,7 @@ export function StudyTopicDeepening({
   const [selected, setSelected] = useState(0);
   const id = useId();
   const block = blocks[selected]!;
+  const motion = useStudyPointMotion(`${id}:${selected}`, selected);
   return (
     <section className="topic-deepening" aria-label="Aprofundar este conteúdo">
       <p className="meta-label">Aprofundar este conteúdo</p>
@@ -36,7 +38,7 @@ export function StudyTopicDeepening({
           </Button>
         ))}
       </div>
-      <div id={id} className="topic-deepening-text" aria-live="polite">
+      <div ref={motion} id={id} className="topic-deepening-text" aria-live="polite">
         <h3>{block.title}</h3>
         <p>{content[block.key]}</p>
         {selected === 1 &&

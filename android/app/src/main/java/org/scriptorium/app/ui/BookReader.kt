@@ -47,7 +47,10 @@ internal fun BookReader(repository: MobileRepository, personal: PersonalReposito
         }
         Box(Modifier.weight(1f).fillMaxWidth()) {
             Load("book-file:$id", { repository.pdf(document.text("checksum")) }) { pdf ->
-                if (pdfMode && pdf != null) key(id, index) { BookPdfPage(pdf, index) }
+                if (pdfMode && pdf != null) Row(Modifier.fillMaxSize()) {
+                    ReadingSectionIndicators(count, index, { "Página ${it + 1}" }) { changePage(it) }
+                    Box(Modifier.weight(1f)) { key(id, index) { BookPdfPage(pdf, index) } }
+                }
                 else Load(id to index, { repository.page(id, index) }) { page ->
                     if (page == null || page.text("text").isBlank()) {
                         Column(Modifier.padding(24.dp)) {
@@ -55,20 +58,8 @@ internal fun BookReader(repository: MobileRepository, personal: PersonalReposito
                             if (pdf != null) Button(onClick = { pdfMode = true }) { Text("Ler PDF original") }
                         }
                     } else key(id, index) {
-                        val text = remember(page) { readingParagraphs(page.text("text")) }
-                        Column(Modifier.fillMaxSize().verticalScroll(rememberScrollState()).padding(horizontal = 22.dp, vertical = 24.dp)) {
-                            Text("TEXTO AJUSTADO · PÁGINA ${index + 1}", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
-                            val requested = target?.takeIf { it.text("document_id") == id && it.number("page_index") == index }
-                            val start = requested?.number("start_offset") ?: 0
-                            val end = requested?.number("end_offset") ?: 0
-                            if (start >= 0 && end > start && end <= page.text("text").length) Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.padding(top = 16.dp)) {
-                                Column(Modifier.padding(14.dp)) {
-                                    Text("Trecho indicado", style = MaterialTheme.typography.labelMedium)
-                                    Text(readingParagraphs(page.text("text").substring(start, end)), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp)
-                                }
-                            }
-                            SelectionContainer { Text(text, Modifier.padding(top = 18.dp), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp, letterSpacing = 0.sp) }
-                        }
+                        val requested = target?.takeIf { it.text("document_id") == id && it.number("page_index") == index }
+                        BookAdjustedText(page, index, requested)
                     }
                 }
             }
@@ -86,6 +77,7 @@ internal fun BookReader(repository: MobileRepository, personal: PersonalReposito
     if (tools) ModalBottomSheet(onDismissRequest = { tools = false }, sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)) {
         Column(Modifier.fillMaxWidth().verticalScroll(rememberScrollState()).padding(horizontal = 20.dp).padding(bottom = 28.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
             Text("Leitura do livro", style = MaterialTheme.typography.titleLarge)
+            Text("No texto ajustado, § indica uma divisão visual de leitura, reiniciada em cada página; não é a numeração do autor.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
             Load("book-tools:$id", { repository.pdf(document.text("checksum")) }) { pdf ->
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     if (pdf != null) FilterChip(pdfMode, { pdfMode = true; tools = false }, label = { Text("PDF original") })

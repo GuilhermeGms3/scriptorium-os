@@ -1,3 +1,4 @@
+import { useStudyPointMotion } from "../../hooks/use-study-point-motion";
 import { useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
@@ -10,6 +11,7 @@ import { StudyFoundation } from "./study-foundation";
 export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
   const [index, setIndex] = useState(0);
   const heading = useRef<HTMLHeadingElement>(null);
+  const motion = useStudyPointMotion(`${topic.id}:${index}`, index);
   function turnPage(position: number) {
     setIndex(position);
     requestAnimationFrame(() => {
@@ -98,7 +100,7 @@ export function StudyTopicContent({ topic }: { topic: StudyTopic }) {
           {selected + 1} de {lesson.chapters.length}
         </span>
       </nav>
-      <article className="topic-lesson-text" aria-labelledby="lesson-title">
+      <article ref={motion} className="topic-lesson-text" aria-labelledby="lesson-title">
         <p className="topic-role-label">
           {selected === 0 ? "Começar a leitura" : "Aprofundamento"}
         </p>

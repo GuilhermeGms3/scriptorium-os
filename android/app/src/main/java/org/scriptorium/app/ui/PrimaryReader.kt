@@ -4,6 +4,8 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
+import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -45,7 +47,15 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
         Load(edition.id, { repository.editionMetadata(edition) }) { metadata ->
             Text(metadata.text("language"), style = MaterialTheme.typography.labelSmall)
             Load(work.text("id") to offset, { repository.primaryUnits(edition, work.text("id"), offset) }) { units ->
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(18.dp)) {
+                val list = rememberLazyListState()
+                val scope = rememberCoroutineScope()
+                val active by remember { derivedStateOf { (list.firstVisibleItemIndex - 1).coerceIn(0, (units.size - 1).coerceAtLeast(0)) } }
+                LaunchedEffect(offset) { list.scrollToItem(0) }
+                Row(Modifier.fillMaxSize()) {
+                ReadingSectionIndicators(units.size, active, { units[it].text("display_address").ifBlank { "Unidade ${offset + it + 1}" } }) { section ->
+                    scope.launch { if (appearance.motion) list.animateScrollToItem(section + 1) else list.scrollToItem(section + 1) }
+                }
+                LazyColumn(state = list, modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(18.dp)) {
                     item { Row {
                         TextButton(enabled = offset > 0, onClick = { offset = (offset - 80).coerceAtLeast(0) }) { Text("Anterior") }
                         TextButton(enabled = offset + units.size < work.number("unit_count"), onClick = { offset += 80 }) { Text("Próximas unidades") }
@@ -56,10 +66,11 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
                             if (prepared != null) { Text("Tradução preparada no PC · ${org.json.JSONObject(prepared.text("metadata_json")).optString("review_status")}", style = MaterialTheme.typography.labelSmall); Text(prepared.text("body"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                             TranslationBlock(unit.text("surface_text"), metadata.text("language"), personal)
                         }
-                        SelectionContainer { Text(unit.text("surface_text"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
+                        SelectionContainer { Text(libraryReadingSections(unit.text("surface_text")).joinToString("\n\n"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                         TextButton(onClick = { note = unit.text("id") }) { Text("Anotar") }
                     } }
                     item { Text("Unidades ${offset + 1}–${offset + units.size} de ${work.number("unit_count")}") }
+                }
                 }
             }
         }

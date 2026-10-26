@@ -1,5 +1,8 @@
 package org.scriptorium.app.ui
 
+import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.tween
+import androidx.compose.ui.graphics.PathMeasure
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
@@ -26,6 +29,13 @@ import androidx.compose.ui.text.style.TextOverflow
 fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int) -> Boolean = { true }, completed: (Int) -> Boolean = { false }, compact: Boolean = false, choose: (Int) -> Unit) {
     val list = rememberLazyListState()
     val motion = LocalReadingAppearance.current.motion
+    val construction = remember { Animatable(if (motion) 0f else 1f) }
+    LaunchedEffect(selected, motion) {
+        if (!motion) construction.snapTo(1f) else {
+            construction.snapTo(0f)
+            construction.animateTo(1f, tween(600))
+        }
+    }
     val gold = if (MaterialTheme.colorScheme.surface.luminance() > 0.5f) Color(0xFF94711D) else Color(0xFFD6B85A)
     LaunchedEffect(selected) {
         if (titles.isNotEmpty()) {
@@ -55,7 +65,10 @@ fun StudyRail(titles: List<String>, selected: Int, label: String, enabled: (Int)
                             if (index > 0) { moveTo(0f, middle); cubicTo(x * 0.5f, middle, x * 0.5f, y, x - radius, y) }
                             if (index < titles.lastIndex) { moveTo(x + radius, y); cubicTo(x * 1.5f, y, x * 1.5f, middle, size.width, middle) }
                         }
-                        drawPath(path, accent.copy(alpha = if (available) 0.6f else 0.25f), style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
+                        val measure = PathMeasure().apply { setPath(path, false) }
+                        val built = Path()
+                        measure.getSegment(0f, measure.length * construction.value, built, true)
+                        drawPath(built, accent.copy(alpha = if (available) 0.6f else 0.25f), style = Stroke(1.5.dp.toPx(), pathEffect = PathEffect.dashPathEffect(floatArrayOf(5.dp.toPx(), 4.dp.toPx()))))
                         if (!compact) {
                             repeat(6) { star ->
                                 drawCircle(accent.copy(alpha = 0.16f), radius = 1.dp.toPx(), center = Offset(((index * 19 + star * 37) % 150 + 7).dp.toPx(), ((star * 17 + index * 7) % 100 + 6).dp.toPx()))

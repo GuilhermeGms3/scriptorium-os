@@ -1,5 +1,25 @@
 # Project Memory
 
+## Leitura/movimento Android0.6.7 e Estudos web — 2026-10-26
+
+- Emblemas vetoriais substituem emojis de todos os livros no catálogo nativo.
+- ReadingSectionIndicators: margem reservada de30dp, pontos/traço ativo, até9
+  alvos por janela (capacidade pelo viewport). Versículos, PDF por página, fontes
+  primárias por unidade e texto ajustado por parágrafo; sem varrer acervo inteiro.
+- libraryReadingSections é apresentação: preserva palavras, parágrafos existentes
+  e listas; divide blocos grandes em limites de frase. § reinicia por página e é
+  explicitamente visual, sem modificar raw/offsets/evidências. OCR continua limitado.
+- CourseScreen/GuideScreen/LessonSequence/aprofundamentos têm entrada e deslocamento
+  direcional; StudyRail desenha ligações. Web usa hook de movimento com cancelamento
+  ao reduzir movimento; rascunhos/requisitos/progresso preservados.
+- TS587/94arquivos, typecheck/ESLint/buildweb; Android75JVM/0falhas e builds.
+  Web1440/390 sem overflow/erros, movimento reduzido; nativo3cenários49,079s.
+  Indicador acessível corrigido com nó único/estado/ação; bootANR do SystemUI
+  resolvido ao reiniciar emulador. Telefone ausente; não afirmar instalação.
+- QA e evidências: docs/qa/reading-motion-2026-10-26.md. APK0.6.7/code19;
+  sem dependências, migração, pacote novo ou reimportação de PDFs.
+
+
 ## Queda, graça e providência — Android0.6.6/web — 2026-10-26
 
 - Novo percurso independente em Estudos/Percursos:14módulos/18aulas/90seções,

@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.flow.distinctUntilChanged
@@ -63,7 +64,13 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                     }
                 }
                 if (!appearance.dockedComments) CommentToolbar(all, filtered.size, explanations, toggle, category, document, chooseCategory, chooseDocument, filtersOpen, { filtersOpen = !filtersOpen })
-                LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(start = 16.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                val indicatorScope = rememberCoroutineScope()
+                val indicatorIndex = verses.indexOfFirst { it.number("verse_start") == activeVerse }.coerceAtLeast(0)
+                Row(Modifier.weight(1f)) {
+                ReadingSectionIndicators(verses.size, indicatorIndex, { "Versículo ${verses[it].number("verse_start")}" }) { index ->
+                    indicatorScope.launch { if (appearance.motion) list.animateScrollToItem(index + 1) else list.scrollToItem(index + 1) }
+                }
+                LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(start = 4.dp, top = 8.dp, end = 16.dp, bottom = 24.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     item(key = "chapter-heading") {
                         Heading("${current.title} ${current.chapter}")
                         if (hint) Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
@@ -126,6 +133,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                             TextButton(enabled = current.chapter < lastChapter, onClick = { open(current.copy(chapter = current.chapter + 1, verse = null, verseEnd = null)) }) { Text("Próximo") }
                         }
                     }
+                }
                 }
                 if (appearance.dockedComments) CommentsDock(groups, activeVerse, "${current.title} ${current.chapter}", personal, source,
                     all, filtered.size, explanations, toggle, category, document, chooseCategory, chooseDocument,
