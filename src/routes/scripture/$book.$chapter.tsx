@@ -4,7 +4,7 @@ import {
   type ReaderContextFilter,
 } from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Library, Route as RouteIcon } from "lucide-react";
+import { Library } from "lucide-react";
 import { ScriptureAudioActions } from "../../components/audio/scripture-audio-actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -528,6 +528,19 @@ function ChapterReader() {
           verses={bundle?.passage.verses.map((verse) => verse.verse) ?? []}
           selectedVerse={selectedVerse}
           onVerseChange={goToVerse}
+          {...(!isMobile && bundle
+            ? {
+                exploration: {
+                  active: explorationActive,
+                  toggle: () => {
+                    if (view !== "single") {
+                      setView("single");
+                      setExploring(true);
+                    } else setExploring((value) => !value);
+                  },
+                },
+              }
+            : {})}
           {...(bundle ? { onPrint: print } : {})}
         />
         {/* On phones listening and the comment sources share one row and open on demand, so the
@@ -582,19 +595,6 @@ function ChapterReader() {
                     <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
                       {bookLabel(book.id, book.name)} {chapter}
                     </h1>
-                    {!isMobile && view === "single" && (
-                      <Button
-                        type="button"
-                        variant={explorationActive ? "secondary" : "outline"}
-                        size="sm"
-                        className="mt-3 gap-2"
-                        aria-pressed={explorationActive}
-                        onClick={() => setExploring((value) => !value)}
-                      >
-                        <RouteIcon className="size-4" aria-hidden="true" />
-                        {explorationActive ? "Voltar à leitura contínua" : "Explorar versículos"}
-                      </Button>
-                    )}
                   </header>
                   {explorationActive && (
                     <>

@@ -15,6 +15,7 @@ import {
   MessagesSquare,
   Printer,
   SlidersHorizontal,
+  Route as RouteIcon,
 } from "lucide-react";
 import type { Book, Edition } from "../../lib/domain/scripture";
 import type { ReaderView } from "./verse";
@@ -56,6 +57,7 @@ export function ScriptureToolbar({
   selectedVerse,
   onVerseChange,
   onPrint,
+  exploration,
 }: {
   book: Book;
   chapter: number;
@@ -76,6 +78,7 @@ export function ScriptureToolbar({
   onVerseChange: (verse: number) => void;
   /** Prints the chapter as read now; absent while there is no text to print. */
   onPrint?: () => void;
+  exploration?: { active: boolean; toggle: () => void };
 }) {
   const navigate = useNavigate();
   const selectableEditions = editions.filter(
@@ -260,13 +263,34 @@ export function ScriptureToolbar({
           </select>
         )}
 
-        <div className="flex-1" />
+        <div className="flex min-w-0 flex-1 justify-center">
+          {exploration && (
+            <button
+              type="button"
+              onClick={exploration.toggle}
+              aria-pressed={exploration.active}
+              aria-label={exploration.active ? "Voltar à leitura contínua" : "Explorar versículos"}
+              title={exploration.active ? "Voltar à leitura contínua" : "Explorar versículos"}
+              className={cn(
+                "flex h-9 shrink-0 items-center gap-1.5 rounded-md border px-2.5 text-sm font-medium transition-colors hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                exploration.active
+                  ? "border-primary/60 bg-primary/10 text-foreground"
+                  : "border-input bg-background text-foreground",
+              )}
+            >
+              <RouteIcon className="size-4" aria-hidden="true" />
+              <span className="hidden @min-[40rem]:inline">
+                {exploration.active ? "Leitura contínua" : "Explorar versículos"}
+              </span>
+            </button>
+          )}
+        </div>
 
-        <div className="hidden items-center gap-3 @min-[60rem]:flex">{controls(false)}</div>
+        <div className="hidden items-center gap-3 @min-[74rem]:flex">{controls(false)}</div>
 
         <Popover>
           <PopoverTrigger
-            className="flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-input px-3 text-sm text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring @min-[60rem]:hidden"
+            className="flex h-9 shrink-0 items-center gap-1.5 rounded-md border border-input px-3 text-sm text-foreground hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring @min-[74rem]:hidden"
             aria-label="Opções de leitura: tradução, comentários e modo"
           >
             <SlidersHorizontal className="size-4" aria-hidden="true" />

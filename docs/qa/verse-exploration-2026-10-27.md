@@ -72,3 +72,20 @@ Verificação funcional/estrutural, não revisão acadêmica de todas as fontes.
 do OCR, das sínteses e dos vínculos automáticos preexistentes não foi reclassificada.
 Não foram escritos novos ensaios por versículo; o recurso apresenta conteúdo real já
 disponível e acompanha o crescimento do acervo. Nenhum APK foi gerado ou instalado.
+
+## Botão na barra superior
+
+O acesso passou do título do capítulo para a barra superior, entre referência e
+versão. Compartilhado por todos os livros e capítulos carregados; nos outros modos
+abre Leitura com a exploração ativa. Em colunas estreitas mantém ícone e nome
+acessível, recolhendo controles secundários. Android não foi alterado.
+
+Validação: 635 testes em 104 arquivos, typecheck, ESLint e build aprovados.
+Gênesis 2, João 3 e Salmo 23 verificados no navegador: ativação, retorno e entrada
+pela Comparação. Botão único dentro da barra, sem duplicação sob o título.
+Larguras 1920, 1440, 1280, 1024 e 800, painel de estudo aberto e web de 390 pixels
+com controle ausente, sem overflow ou exceções. Consultas de QA encaminhadas ao
+serviço local existente, somente leitura, sem outro escritor do banco.
+
+Logs locais: `%TEMP%/explore-toolbar-{tests,typecheck,eslint,build,browser}.log`.
+Captura: `%TEMP%/explore-toolbar-desktop.png`.

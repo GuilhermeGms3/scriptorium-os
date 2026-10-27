@@ -1,5 +1,13 @@
 # Project Memory
 
+## Explorar na barra superior — desktop — 2026-10-27
+
+- Botão movido do cabeçalho do capítulo para ScriptureToolbar, entre referência e
+  versão, em todos os livros/capítulos carregados. Nos outros modos, abre Leitura
+  com exploração; voltar restaura leitura contínua. Sem duplicar botão no artigo.
+- Responsivo ao espaço da coluna: ícone em coluna estreita, opções secundárias
+  recolhidas antes de colidir. Android e seu indicador não alterados.
+
 ## Indicador mobile restaurado — Android0.6.10 — 2026-10-27
 
 - Pedido explícito: indicador do celular volta ao anterior e deve ser preservado;

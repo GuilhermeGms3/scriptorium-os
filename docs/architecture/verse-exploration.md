@@ -7,8 +7,10 @@ Não substitui a árvore de Estudos nem implementa o compositor de sessões prop
 
 ## Uso
 
-Nas Escrituras, em **Leitura**, escolha **Explorar versículos** abaixo do título do
-capítulo. Cada versículo fica à esquerda de sua própria sequência horizontal. Arraste
+Nas Escrituras, escolha **Explorar versículos** na barra superior, entre a navegação
+da passagem e os controles de versão. O acesso vale para todos os livros e capítulos
+com texto carregado; nos outros modos ele retorna à Leitura e abre a exploração.
+Cada versículo fica à esquerda de sua própria sequência horizontal. Arraste
 com o mouse, use o trackpad, os controles de direção ou foque o caminho e pressione
 setas/Home/End. Os botões também são acessíveis por Tab e Enter.
 
