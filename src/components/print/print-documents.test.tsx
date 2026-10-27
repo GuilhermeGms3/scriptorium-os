@@ -156,6 +156,7 @@ describe("capítulo impresso", () => {
     const html = renderToStaticMarkup(
       <ChapterPrint
         title="João 1"
+        chapter={1}
         edition="Bíblia Livre · com comentários"
         model={model}
         verseMode="paragraph"
@@ -179,6 +180,7 @@ describe("capítulo impresso", () => {
     const html = renderToStaticMarkup(
       <ChapterPrint
         title="João 1"
+        chapter={1}
         edition="Bíblia Livre"
         model={{ ...model, overview: [{ ...comment, id: "overview", passage: "João 1" }] }}
         verseMode="verse"
@@ -199,6 +201,7 @@ describe("marcações impressas", () => {
     const html = renderToStaticMarkup(
       <ChapterPrint
         title="João 3"
+        chapter={3}
         edition="Bíblia Livre"
         model={{
           overview: [],

@@ -36,7 +36,10 @@ export function MarksPrint({
         <PrintSection key={book} title={book}>
           <ul className="pd-marks">
             {verses.map((verse) => (
-              <li key={verse.key} className="pd-marked-verse">
+              <li
+                key={verse.key}
+                className={cn("pd-marked-verse", verse.color && `verse-mark-${verse.color}`)}
+              >
                 <p className="pd-comment-source">
                   {verse.favorite && "★ "}
                   {verse.reference}
@@ -46,9 +49,7 @@ export function MarksPrint({
                   {verse.text === null ? (
                     <span className="pd-empty">texto indisponível</span>
                   ) : (
-                    <span className={cn(verse.color && `pd-mark verse-mark-${verse.color}`)}>
-                      {verse.text}
-                    </span>
+                    <span className={cn(verse.color && "pd-mark")}>{verse.text}</span>
                   )}
                 </p>
               </li>

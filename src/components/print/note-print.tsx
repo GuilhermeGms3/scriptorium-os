@@ -35,7 +35,7 @@ export function NotePrint({
       }
       {...(printedAt ? { printedAt } : {})}
     >
-      <div className="pd-markdown">
+      <div className="pd-markdown pd-note-alone">
         {body.trim() ? (
           <NoteMarkdown body={body} notes={notes} />
         ) : (

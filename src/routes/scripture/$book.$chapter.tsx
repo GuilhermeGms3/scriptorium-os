@@ -407,6 +407,7 @@ function ChapterReader() {
             return (
               <ChapterPrint
                 title={`${bookLabel(book.id, book.name)} ${chapter}`}
+                chapter={chapter}
                 edition={`${displayedEdition?.title ?? "Edição"}${commented ? " · com comentários" : ""}`}
                 model={model}
                 verseMode={readingPrefs.verseMode}

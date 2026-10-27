@@ -36,13 +36,16 @@ export function StudyPrint({
       )}
       {questions.length > 0 && (
         <PrintSection title="Perguntas de pesquisa">
-          <ol className="pd-list">
-            {questions.map((question) => (
+          <ol className="pd-questions">
+            {questions.map((question, index) => (
               <li key={question.id} className="pd-question">
+                <div className="pd-question-head">
+                  <span className="pd-label">Pergunta {index + 1}</span>
+                  <span className="pd-badge">{researchQuestionStatusLabel(question.status)}</span>
+                </div>
                 <p className="pd-question-text">{question.question}</p>
-                <p className="pd-meta">{researchQuestionStatusLabel(question.status)}</p>
                 {question.provisionalConclusion?.trim() && (
-                  <p>
+                  <p className="pd-conclusion">
                     <span className="pd-label">Conclusão provisória: </span>
                     {question.provisionalConclusion}
                   </p>
@@ -54,11 +57,11 @@ export function StudyPrint({
       )}
       {study.items.length > 0 && (
         <PrintSection title="Material reunido">
-          <ul className="pd-list">
+          <ul className="pd-items">
             {study.items.map((item) => (
               <li key={item.id}>
+                <span className="pd-meta">{studyItemKindLabel(item.kind)}</span>
                 {item.passageRef ? passageLabel(item.passageRef) : item.label}
-                <span className="pd-meta"> · {studyItemKindLabel(item.kind)}</span>
               </li>
             ))}
           </ul>

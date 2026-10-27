@@ -20,10 +20,15 @@ function Comments({ comments }: { comments: readonly PrintComment[] }) {
   );
 }
 
-function VerseText({ verse }: { verse: ChapterPrintVerse }) {
+/** One verse; the chapter's first verse opens with the chapter number instead of its own. */
+function VerseText({ verse, opens }: { verse: ChapterPrintVerse; opens?: number | undefined }) {
   return (
     <>
-      <sup className="pd-verse-number">{verse.verse}</sup>
+      {opens === undefined ? (
+        <sup className="pd-verse-number">{verse.verse}</sup>
+      ) : (
+        <span className="pd-chapter-numeral">{opens}</span>
+      )}
       {verse.mark?.favorite && <span className="pd-star">★ </span>}
       {verse.text === null ? (
         <span className="pd-empty">texto indisponível nesta edição</span>
@@ -39,6 +44,7 @@ function VerseText({ verse }: { verse: ChapterPrintVerse }) {
 /** The chapter as read on screen: the chosen edition, verse by verse or in paragraphs. */
 export function ChapterPrint({
   title,
+  chapter,
   edition,
   model,
   verseMode,
@@ -47,6 +53,7 @@ export function ChapterPrint({
   printedAt,
 }: {
   title: string;
+  chapter: number;
   /** Edition named under the title, e.g. "Bíblia Livre · com comentários". */
   edition: string;
   model: ChapterPrintModel;
@@ -56,12 +63,14 @@ export function ChapterPrint({
   printedAt?: Date;
 }) {
   const blocks: ReactNode[] = [];
+  const opens = (verse: ChapterPrintVerse) =>
+    verse.verse === 1 && verse === model.verses[0] ? chapter : undefined;
   if (verseMode === "verse") {
     for (const verse of model.verses)
       blocks.push(
         <div key={verse.verse} className="pd-verse-block">
           <p className="pd-verse">
-            <VerseText verse={verse} />
+            <VerseText verse={verse} opens={opens(verse)} />
           </p>
           {verse.comments.length > 0 && <Comments comments={verse.comments} />}
         </div>,
@@ -77,7 +86,7 @@ export function ChapterPrint({
           {verses.map((verse, index) => (
             <span key={verse.verse}>
               {index > 0 && " "}
-              <VerseText verse={verse} />
+              <VerseText verse={verse} opens={opens(verse)} />
             </span>
           ))}
         </p>,
