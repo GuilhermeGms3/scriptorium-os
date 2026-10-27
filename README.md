@@ -26,6 +26,11 @@ da passagem. **Notas** possui acesso próprio, pastas/subpastas, editor de pági
 internos, referências recebidas e mapa pessoal colorido, usando esse mesmo banco. Salve pelo
 botão ou Ctrl+S; as capturas de fontes continuam ligadas às passagens e aos estudos existentes.
 
+No desktop, **Escrituras → Leitura → Explorar versículos** apresenta
+[caminhos horizontais por versículo](docs/architecture/verse-exploration.md): comentários reais
+do acervo, análises, palavras do texto original e notas vinculadas. Os blocos abrem o
+aprofundamento e suas fontes; a leitura contínua permanece disponível.
+
 A [Busca ampliada](docs/architecture/external-academic-search.md) conserva texto/referências e
 busca por sentido, acrescentando consultas explícitas ao OpenAlex e caminhos para Google,
 Google Acadêmico e bibliotecas. Resultados externos são separados do conhecimento instalado.

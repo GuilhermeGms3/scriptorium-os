@@ -1,5 +1,23 @@
 # Project Memory
 
+## Caminhos dos versículos — desktop/web — 2026-10-27
+
+- Escrituras/Leitura: entrada opcional Explorar versículos; linhas independentes,
+  verso à esquerda, blocos conectados/arrastáveis à direita. Sem categorias fixas.
+  Leitura contínua padrão, Android/Estudos/impressão/corpora preservados.
+- verse-exploration.ts projeta comentários contextualizados visíveis, análises,
+  claims, palavras originais e notas com âncora. Menções sem análise não viram
+  comentário; panoramas amplos ficam uma vez no capítulo. Agrupa fonte/categoria
+  sem perder trechos; filtros privados existentes preservados. Sem schema/deps/API/IA.
+- Janela com fontes/localizadores/limites, seletor de trechos, contrapontos registrados,
+  leitor contextual original e nota rápida ligada ao versículo. Guarda de rascunho
+  e restauração do foco; vínculos automáticos não promovidos a revisão humana.
+- QA:168versículos/Gn3,Jo1,Sl23,Rm8,Mt5; Gn3 com3–5blocos por versículo na instalação.
+  Queries do banco pessoal só readOnly; notas em OPFS descartável. Temas claro/escuro,
+  arrasto/teclado/fontes/nota/rascunho, sem overflow em1680/1440/1024/390.
+-624testes/101arquivos,typecheck,ESLint,Prettier,build web aprovados. Sem APK.
+  docs/architecture/verse-exploration.md e docs/qa/verse-exploration-2026-10-27.md.
+
 ## Aprofundamento editorial Android0.6.8/web — 2026-10-26
 
 - Queda, graça e providência:22.054palavras/303parágrafos,14módulos/18aulas/90seções;
