@@ -19,6 +19,8 @@ import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-k
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
 import { textDirectionForLanguage } from "../../lib/i18n/locale";
 import { usePrintJob } from "../../components/print/use-print-job";
+import { useVerseMarks } from "../../hooks/use-verse-marks";
+import { VerseMarkControls } from "../../components/scripture/verse-mark-controls";
 import { ChapterPrint } from "../../components/print/chapter-print";
 import { chapterPrintModel } from "../../components/print/chapter-print-model";
 import { hasAvailableData } from "../../lib/domain/availability";
@@ -130,6 +132,7 @@ function ChapterReader() {
     }
   };
   const [hiddenSources, setHiddenSources] = useHiddenCommentarySources();
+  const { markOf } = useVerseMarks();
   const isMobile = useIsMobile();
   const [domainFilter, setDomainFilter] = useState("");
   const [contextFilter, setContextFilter] = useState<ReaderContextFilter>({
@@ -225,6 +228,7 @@ function ChapterReader() {
         ? {
             ref: inspectorRef,
             label: passageLabel(inspectorRef),
+            editionId: effectiveEditionId,
             contextFilter: {
               ...contextFilter,
               domain: domainFilter,
@@ -246,6 +250,7 @@ function ChapterReader() {
     contextFilter,
     domainFilter,
     hiddenSources,
+    effectiveEditionId,
   ]);
 
   useEffect(() => {
@@ -394,6 +399,7 @@ function ChapterReader() {
               libraryItems: privateKnowledge?.items ?? [],
               hiddenSources,
               domain: domainFilter,
+              markOf: (verse) => markOf({ bookId, chapter, verse }),
             });
             const commented =
               model.overview.length > 0 || model.verses.some((verse) => verse.comments.length > 0);
@@ -587,6 +593,7 @@ function ChapterReader() {
                             chapter={chapter}
                             verseMode={readingPrefs.verseMode}
                             selected={selectedVerse === v.verse}
+                            mark={markOf({ bookId, chapter, verse: v.verse })}
                             onSelect={() => {
                               setSelectedVerse(v.verse);
                               if (dockOpen) setDockVerse(v.verse);
@@ -711,6 +718,14 @@ function ChapterReader() {
                     document.getElementById("commentary-layout")?.focus();
                   }}
                 >
+                  {/* In the dock, tapping a verse does not open the study panel: mark it here. */}
+                  {dockVerse > 0 && (
+                    <VerseMarkControls
+                      verse={{ bookId, chapter, verse: dockVerse }}
+                      editionId={effectiveEditionId}
+                      className="mb-4 border-b border-border pb-3"
+                    />
+                  )}
                   {chapterOverview.length > 0 && (
                     <details className="mb-4 border-b border-border pb-3">
                       <summary className="cursor-pointer text-sm">

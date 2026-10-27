@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as AudioRouteImport } from './routes/audio'
+import { Route as HighlightsRouteImport } from './routes/highlights'
 import { Route as KnowledgeRouteImport } from './routes/knowledge'
 import { Route as LibraryRouteImport } from './routes/library'
 import { Route as NotesRouteImport } from './routes/notes'
@@ -42,6 +43,11 @@ const AboutRoute = AboutRouteImport.update({
 const AudioRoute = AudioRouteImport.update({
   id: '/audio',
   path: '/audio',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const HighlightsRoute = HighlightsRouteImport.update({
+  id: '/highlights',
+  path: '/highlights',
   getParentRoute: () => rootRouteImport,
 } as any)
 const KnowledgeRoute = KnowledgeRouteImport.update({
@@ -130,6 +136,7 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/audio': typeof AudioRoute
+  '/highlights': typeof HighlightsRoute
   '/knowledge': typeof KnowledgeRoute
   '/library': typeof LibraryRouteWithChildren
   '/notes': typeof NotesRoute
@@ -151,6 +158,7 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/audio': typeof AudioRoute
+  '/highlights': typeof HighlightsRoute
   '/knowledge': typeof KnowledgeRoute
   '/notes': typeof NotesRoute
   '/search': typeof SearchRoute
@@ -172,6 +180,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/about': typeof AboutRoute
   '/audio': typeof AudioRoute
+  '/highlights': typeof HighlightsRoute
   '/knowledge': typeof KnowledgeRoute
   '/library': typeof LibraryRouteWithChildren
   '/notes': typeof NotesRoute
@@ -195,6 +204,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/audio'
+    | '/highlights'
     | '/knowledge'
     | '/library'
     | '/notes'
@@ -216,6 +226,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/audio'
+    | '/highlights'
     | '/knowledge'
     | '/notes'
     | '/search'
@@ -236,6 +247,7 @@ export interface FileRouteTypes {
     | '/'
     | '/about'
     | '/audio'
+    | '/highlights'
     | '/knowledge'
     | '/library'
     | '/notes'
@@ -258,6 +270,7 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AboutRoute: typeof AboutRoute
   AudioRoute: typeof AudioRoute
+  HighlightsRoute: typeof HighlightsRoute
   KnowledgeRoute: typeof KnowledgeRoute
   LibraryRoute: typeof LibraryRouteWithChildren
   NotesRoute: typeof NotesRoute
@@ -293,6 +306,13 @@ declare module '@tanstack/react-router' {
       path: '/audio'
       fullPath: '/audio'
       preLoaderRoute: typeof AudioRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/highlights': {
+      id: '/highlights'
+      path: '/highlights'
+      fullPath: '/highlights'
+      preLoaderRoute: typeof HighlightsRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/knowledge': {
@@ -431,6 +451,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AboutRoute: AboutRoute,
   AudioRoute: AudioRoute,
+  HighlightsRoute: HighlightsRoute,
   KnowledgeRoute: KnowledgeRoute,
   LibraryRoute: LibraryRouteWithChildren,
   NotesRoute: NotesRoute,

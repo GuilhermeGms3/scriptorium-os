@@ -273,6 +273,29 @@
   color: #5b5850;
 }
 
+/* Marked verses keep their highlighter color on paper, lighter than on screen. */
+.pd-mark {
+  background-color: rgb(var(--mark) / 0.35);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pd-marks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pd-marked-verse {
+  break-inside: avoid;
+}
+
+.pd-marked-verse + .pd-marked-verse {
+  margin-top: 8pt;
+}
+
 .pd-footer {
   margin-top: 22pt;
   padding-top: 7pt;
@@ -284,4 +307,8 @@
 
 .pd-footer p + p {
   margin-top: 2pt;
+}
+
+.pd-star {
+  color: #a8740c;
 }

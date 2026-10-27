@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import type { ChapterPrintModel, ChapterPrintVerse, PrintComment } from "./chapter-print-model";
 import { PrintDocument, PrintSection } from "./print-document";
+import "../scripture/verse-marks.css";
 
 function Comments({ comments }: { comments: readonly PrintComment[] }) {
   return (
@@ -23,7 +24,14 @@ function VerseText({ verse }: { verse: ChapterPrintVerse }) {
   return (
     <>
       <sup className="pd-verse-number">{verse.verse}</sup>
-      {verse.text ?? <span className="pd-empty">texto indisponível nesta edição</span>}
+      {verse.mark?.favorite && <span className="pd-star">★ </span>}
+      {verse.text === null ? (
+        <span className="pd-empty">texto indisponível nesta edição</span>
+      ) : verse.mark?.color ? (
+        <span className={`pd-mark verse-mark-${verse.mark.color}`}>{verse.text}</span>
+      ) : (
+        verse.text
+      )}
     </>
   );
 }

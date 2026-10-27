@@ -36,6 +36,8 @@ export interface PassageContext {
   ref: PassageRef;
   label: string;
   contextFilter?: ReaderContextFilter;
+  /** Edition open in the reader, remembered with a verse marked from the study panel. */
+  editionId?: string;
 }
 
 interface WorkbenchState {

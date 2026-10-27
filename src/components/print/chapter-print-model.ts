@@ -1,6 +1,7 @@
 import type { KnowledgeClaim } from "../../lib/domain/knowledge";
 import type { SourceFragment, SourceReference } from "../../lib/domain/source";
 import type { VerseContent } from "../../lib/domain/scripture";
+import type { VerseMark } from "../../lib/domain/verse-marks";
 import {
   knowledgeItemCoversVerse,
   type WorkspacePassageKnowledgeItem,
@@ -30,6 +31,8 @@ export interface ChapterPrintVerse {
   text: string | null;
   startsParagraph: boolean;
   comments: PrintComment[];
+  /** The reader's highlighter color and star for this verse. */
+  mark?: Pick<VerseMark, "color" | "favorite">;
 }
 
 export interface ChapterPrintModel {
@@ -94,6 +97,7 @@ export function chapterPrintModel({
   libraryItems,
   hiddenSources,
   domain,
+  markOf,
 }: {
   bookId: string;
   chapter: number;
@@ -107,6 +111,8 @@ export function chapterPrintModel({
   libraryItems: readonly WorkspacePassageKnowledgeItem[];
   hiddenSources: ReadonlySet<string>;
   domain: string;
+  /** The reader's marks, printed as on screen. */
+  markOf?: (verse: number) => Pick<VerseMark, "color" | "favorite"> | undefined;
 }): ChapterPrintModel {
   const visible = includeComments
     ? libraryItems.filter(
@@ -173,6 +179,7 @@ export function chapterPrintModel({
       libraryComment(item, passageLinkLabel(item.passageRelation.payload.passage)),
     ),
     verses: verses.map((verse) => ({
+      ...(markOf?.(verse.verse) ? { mark: markOf(verse.verse)! } : {}),
       verse: verse.verse,
       text: original ? originalText(verse) : (verse.translations[editionId] ?? null),
       startsParagraph: Boolean(verse.startsParagraph),

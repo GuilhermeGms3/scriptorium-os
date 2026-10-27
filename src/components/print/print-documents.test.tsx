@@ -6,6 +6,7 @@ import { ChapterPrint } from "./chapter-print";
 import type { ChapterPrintModel } from "./chapter-print-model";
 import { NotePrint } from "./note-print";
 import { StudyPrint } from "./study-print";
+import { MarksPrint } from "./marks-print";
 
 const NOW = "2026-10-27T12:00:00.000Z";
 const printedAt = new Date(NOW);
@@ -190,5 +191,71 @@ describe("capítulo impresso", () => {
     expect(text(html).indexOf("Panorama do capítulo")).toBeLessThan(
       text(html).indexOf("No princípio"),
     );
+  });
+});
+
+describe("marcações impressas", () => {
+  it("keeps the reader's highlighter color and star on the printed chapter", () => {
+    const html = renderToStaticMarkup(
+      <ChapterPrint
+        title="João 3"
+        edition="Bíblia Livre"
+        model={{
+          overview: [],
+          verses: [
+            {
+              verse: 16,
+              text: "Porque Deus amou o mundo",
+              startsParagraph: false,
+              comments: [],
+              mark: { color: "yellow", favorite: true },
+            },
+          ],
+        }}
+        verseMode="verse"
+        direction="ltr"
+        notes={[]}
+        printedAt={printedAt}
+      />,
+    );
+    expect(html).toContain('class="pd-mark verse-mark-yellow"');
+    expect(text(html)).toContain("16 ★ Porque Deus amou o mundo");
+  });
+
+  it("lists marked verses book by book, with their color and text", () => {
+    const html = renderToStaticMarkup(
+      <MarksPrint
+        selection="Favoritos"
+        books={[
+          {
+            book: "João",
+            verses: [
+              {
+                key: "john.3.16",
+                reference: "João 3:16",
+                text: "Porque Deus amou o mundo",
+                color: "green",
+                favorite: true,
+              },
+              { key: "john.3.17", reference: "João 3:17", text: null, favorite: true },
+            ],
+          },
+        ]}
+        printedAt={printedAt}
+      />,
+    );
+    const page = text(html);
+    expect(page).toContain("Marcações Versículos marcados Favoritos");
+    expect(page).toContain("João ★ João 3:16 · Verde Porque Deus amou o mundo");
+    expect(page).toContain("★ João 3:17 texto indisponível");
+    expect(html).toContain("verse-mark-green");
+  });
+
+  it("says so when the selection is empty", () => {
+    expect(
+      text(
+        renderToStaticMarkup(<MarksPrint selection="Cor azul" books={[]} printedAt={printedAt} />),
+      ),
+    ).toContain("Nenhum versículo marcado nesta seleção.");
   });
 });

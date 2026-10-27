@@ -1,0 +1,38 @@
+/*
+ * Highlighter colors for marked verses. Translucent over the page, so the text keeps its own color
+ * in every reading theme; dark themes get a lighter wash. Each color is an RGB triple in --mark.
+ */
+.verse-mark-yellow,
+.mark-swatch-yellow {
+  --mark: 240 205 50;
+}
+.verse-mark-green,
+.mark-swatch-green {
+  --mark: 104 196 120;
+}
+.verse-mark-blue,
+.mark-swatch-blue {
+  --mark: 102 168 236;
+}
+.verse-mark-pink,
+.mark-swatch-pink {
+  --mark: 240 140 180;
+}
+.verse-mark-purple,
+.mark-swatch-purple {
+  --mark: 178 148 236;
+}
+
+.verse-mark {
+  border-radius: 0.2em;
+  background-color: rgb(var(--mark) / 0.4);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+:root.dark .verse-mark {
+  background-color: rgb(var(--mark) / 0.26);
+}
+
+.mark-swatch {
+  background-color: rgb(var(--mark));
+}

@@ -9,6 +9,9 @@ import type { VerseContent } from "../../lib/domain/scripture";
 import { OriginalToken } from "./original-token";
 import { cn } from "../../lib/utils";
 import { t, textDirectionForLanguage } from "../../lib/i18n";
+import { Star } from "lucide-react";
+import { MARK_COLOR_LABELS, type VerseMark } from "../../lib/domain/verse-marks";
+import "./verse-marks.css";
 
 export type ReaderView = "single" | "parallel" | "original" | "interlinear";
 
@@ -20,6 +23,7 @@ export function Verse({
   verseMode,
   selected = false,
   onSelect,
+  mark,
 }: {
   verse: VerseContent;
   editionId: string;
@@ -28,9 +32,17 @@ export function Verse({
   verseMode: "verse" | "paragraph";
   selected?: boolean;
   onSelect?: () => void;
+  /** The reader's highlighter color and star for this verse. */
+  mark?: Pick<VerseMark, "color" | "favorite"> | undefined;
 }) {
   const text = verse.translations[editionId];
   const label = `${bookName} ${chapter}:${verse.verse}`;
+  const marked = [
+    mark?.color ? `marcado de ${MARK_COLOR_LABELS[mark.color].toLocaleLowerCase("pt-BR")}` : "",
+    mark?.favorite ? "favorito" : "",
+  ]
+    .filter(Boolean)
+    .join(", ");
 
   return (
     <span
@@ -38,7 +50,7 @@ export function Verse({
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-pressed={onSelect ? selected : undefined}
-      aria-label={onSelect ? `Selecionar ${label}` : undefined}
+      aria-label={onSelect ? `Selecionar ${label}${marked ? `, ${marked}` : ""}` : undefined}
       onClick={onSelect}
       onKeyDown={(event) => {
         if (!onSelect || (event.key !== "Enter" && event.key !== " ")) return;
@@ -61,8 +73,22 @@ export function Verse({
       >
         {verse.verse}
       </span>
-      <span className="sr-only">{label}. </span>
-      {text ?? (
+      {mark?.favorite && (
+        <Star
+          aria-hidden="true"
+          className="mr-1 inline size-3.5 -translate-y-0.5 fill-amber-400 text-amber-500"
+        />
+      )}
+      <span className="sr-only">
+        {label}
+        {marked ? ` (${marked})` : ""}.{" "}
+      </span>
+      {text && mark?.color ? (
+        <span className={cn("verse-mark", `verse-mark-${mark.color}`)}>{text}</span>
+      ) : (
+        text
+      )}
+      {!text && (
         <span className="text-sm text-muted-foreground italic">
           {t("scripture.translationMissing")}
         </span>

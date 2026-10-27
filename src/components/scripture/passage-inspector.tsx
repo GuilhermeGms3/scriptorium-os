@@ -1,4 +1,5 @@
 /** Passage inspector backed by the PassageKnowledgeBundle. */
+import { VerseMarkControls } from "./verse-mark-controls";
 import * as Tabs from "@radix-ui/react-tabs";
 import { Link } from "@tanstack/react-router";
 import { useMemo } from "react";
@@ -246,6 +247,13 @@ export function PassageInspector() {
         </div>
         <InspectorCloseButton />
       </div>
+      {ref && ref.verseStart !== undefined && (
+        <VerseMarkControls
+          verse={{ bookId: ref.bookId, chapter: ref.chapter, verse: ref.verseStart }}
+          editionId={passageContext?.editionId}
+          className="border-b border-border px-4 py-2"
+        />
+      )}
 
       <Tabs.Root defaultValue="overview" className="flex min-h-0 flex-1 flex-col">
         <Tabs.List
