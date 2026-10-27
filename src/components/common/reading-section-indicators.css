@@ -34,8 +34,7 @@
     flex-shrink: 0;
     min-height: 0;
     padding: 8px 0;
-    border-right: 1px solid var(--border);
-    background: var(--background);
+    background: transparent;
   }
   .reading-indicator-group {
     min-height: 0;
@@ -49,21 +48,9 @@
     font-family: var(--font-sans);
     color: var(--muted-foreground);
   }
-  .reading-indicator-group + .reading-indicator-group {
-    border-top: 1px solid var(--border);
-  }
   .reading-indicator-kind,
   .reading-indicator-position {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    line-height: 1.3;
-    max-width: 32px;
-    text-align: center;
-    overflow: hidden;
-  }
-  .reading-indicator-position {
-    font-size: 8px;
-    overflow-wrap: anywhere;
+    display: none;
   }
   .reading-indicator-points {
     display: flex;
@@ -73,46 +60,47 @@
     display: flex;
     align-items: center;
     justify-content: flex-end;
-    gap: 3px;
     width: 31px;
-    height: 32px;
-    padding-right: 8px;
+    height: 28px;
+    padding-right: 3px;
     color: var(--muted-foreground);
     cursor: pointer;
   }
   .reading-indicator-points button:hover {
-    background: var(--accent);
+    background: transparent;
   }
   .reading-indicator-points button:focus-visible {
     outline: 2px solid var(--ring);
     outline-offset: -2px;
   }
   .reading-indicator-number {
-    font-family: var(--font-mono);
-    font-size: 9px;
-    opacity: 0;
+    display: none;
   }
   .reading-indicator-stroke {
     display: block;
-    width: 3px;
-    height: 5px;
-    border-radius: 2px;
+    width: 12px;
+    height: 2px;
+    border-radius: 1px;
     background: var(--muted-foreground);
     opacity: 0.5;
     transition:
-      height 0.22s,
+      width 0.22s,
       opacity 0.22s,
       background 0.22s;
   }
   .reading-indicator-points button[aria-current] .reading-indicator-stroke {
-    height: 18px;
+    width: 26px;
+    height: 3px;
     opacity: 1;
-    background: var(--primary);
+    background: var(--ring);
   }
-  .reading-indicator-points button[aria-current] .reading-indicator-number,
-  .reading-indicator-points button:hover .reading-indicator-number,
-  .reading-indicator-points button:focus-visible .reading-indicator-number {
+  .reading-indicator-points button:hover .reading-indicator-stroke,
+  .reading-indicator-points button:focus-visible .reading-indicator-stroke {
     opacity: 1;
+  }
+  .reading-indicator-placeholder {
+    width: 31px;
+    height: 28px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

@@ -3,9 +3,37 @@ import {
   activeReadingSection,
   readingIndicatorWindow,
   readingTextSections,
+  centeredReadingIndicatorSlots,
 } from "./reading-sections";
 
 describe("reading section navigation", () => {
+  it("keeps the current horizontal stroke centered at the beginning, middle and end", () => {
+    expect(centeredReadingIndicatorSlots(30, 0, 9)).toEqual([
+      null,
+      null,
+      null,
+      null,
+      0,
+      1,
+      2,
+      3,
+      4,
+    ]);
+    expect(centeredReadingIndicatorSlots(30, 15, 9)).toEqual([11, 12, 13, 14, 15, 16, 17, 18, 19]);
+    expect(centeredReadingIndicatorSlots(30, 29, 9)).toEqual([
+      25,
+      26,
+      27,
+      28,
+      29,
+      null,
+      null,
+      null,
+      null,
+    ]);
+    expect(centeredReadingIndicatorSlots(1, 0, 3)).toEqual([null, 0, null]);
+    expect(centeredReadingIndicatorSlots(0, 0, 9)).toEqual([]);
+  });
   it("retains the preceding verse while its long commentary fills the viewport", () => {
     expect(
       activeReadingSection(

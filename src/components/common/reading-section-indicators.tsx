@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { readingIndicatorWindow } from "../../lib/domain/reading-sections";
+import { centeredReadingIndicatorSlots } from "../../lib/domain/reading-sections";
 import { useReadingScrollspy } from "../../hooks/use-reading-scrollspy";
 import "./reading-section-indicators.css";
 
@@ -26,7 +26,7 @@ function SectionIndicators({ title, count, active, label, choose }: ReadingNavig
     const node = root.current;
     if (!node) return;
     const resize = new ResizeObserver(() =>
-      setCapacity(Math.max(1, Math.min(9, Math.floor((node.clientHeight - 46) / 32)))),
+      setCapacity(Math.max(1, Math.min(9, Math.floor(node.clientHeight / 28)))),
     );
     resize.observe(node);
     return () => resize.disconnect();
@@ -72,22 +72,30 @@ function SectionIndicators({ title, count, active, label, choose }: ReadingNavig
               : "¶"}
       </span>
       <div className="reading-indicator-points">
-        {readingIndicatorWindow(count, active, capacity).map((index) => (
-          <button
-            key={index}
-            type="button"
-            data-section-index={index}
-            aria-label={`Navegar: ${label(index)}`}
-            aria-current={active === index ? "location" : undefined}
-            title={label(index)}
-            onClick={() => choose(index)}
-          >
-            <span className="reading-indicator-number" aria-hidden="true">
-              {index + 1}
-            </span>
-            <span className="reading-indicator-stroke" aria-hidden="true" />
-          </button>
-        ))}
+        {centeredReadingIndicatorSlots(count, active, capacity).map((index, slot) =>
+          index === null ? (
+            <span
+              key={`empty:${slot}`}
+              className="reading-indicator-placeholder"
+              aria-hidden="true"
+            />
+          ) : (
+            <button
+              key={index}
+              type="button"
+              data-section-index={index}
+              aria-label={`Navegar: ${label(index)}`}
+              aria-current={active === index ? "location" : undefined}
+              title={label(index)}
+              onClick={() => choose(index)}
+            >
+              <span className="reading-indicator-number" aria-hidden="true">
+                {index + 1}
+              </span>
+              <span className="reading-indicator-stroke" aria-hidden="true" />
+            </button>
+          ),
+        )}
       </div>
       <span
         className="reading-indicator-position"

@@ -31,6 +31,7 @@ fun PassagePanel(repository: MobileRepository, personal: PersonalRepository, pas
     var newNote by remember { mutableStateOf(false) }
     var editing by remember { mutableStateOf<Row?>(null) }
     var revision by remember { mutableIntStateOf(0) }
+    var filtersOpen by remember { mutableStateOf(false) }
     Dialog(onDismissRequest = close, properties = DialogProperties(usePlatformDefaultWidth = false, decorFitsSystemWindows = false)) {
         Box(Modifier.fillMaxSize()) {
             Spacer(Modifier.matchParentSize().clickable(onClickLabel = "Fechar painel", onClick = close))
@@ -71,8 +72,9 @@ fun PassagePanel(repository: MobileRepository, personal: PersonalRepository, pas
                                     Row(Modifier.padding(horizontal = 20.dp), verticalAlignment = Alignment.CenterVertically) {
                                         Text("Comentários na leitura", Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
                                         Switch(explanations, toggle)
+                                        TextButton(onClick = { filtersOpen = true }) { Text("Filtrar") }
                                     }
-                                    CommentFilters(comments, category, document, chooseCategory, chooseDocument)
+                                    if (filtersOpen) CommentFilters(comments, category, document, chooseCategory, chooseDocument) { filtersOpen = false }
                                     val filtered = filterComments(comments, category, document)
                                     LazyColumn(contentPadding = PaddingValues(start = 8.dp, end = 20.dp, bottom = 20.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                                         if (filtered.isEmpty()) item { Text(if (comments.isEmpty()) "Nenhuma fonte ligada a este trecho no pacote instalado." else "Nenhuma fonte corresponde aos filtros selecionados.", Modifier.padding(16.dp)) }

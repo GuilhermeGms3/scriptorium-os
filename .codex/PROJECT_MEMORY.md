@@ -1,5 +1,20 @@
 # Project Memory
 
+## Leitura compacta e traços livres — Android0.6.9/web — 2026-10-27
+
+- Desktop sem faixa/fundo/borda/números visíveis: traços12×2/26×3px, atual sempre
+  centralizado; slots vazios não interativos nos extremos. Gutter invisível conserva
+  espaço do texto. Native30dp com traços11/24dp, identidade por destino para animar.
+- CommentFilters abre AlertDialog por Filtrar; categorias/fontes/limpar/concluir
+  mantidos. Assunto e fonte/Fonte:todas saem do leitor/dock. PassagePanel usa o mesmo
+  diálogo sob demanda. Sem diminuir comentários ou alterar dados/corpus/progresso.
+-632TS/103arquivos,typecheck,ESLint/Prettier/buildweb;75JVM/builds/lint0erros49avisos.
+  Browser readOnly:traço26×3,centralização0px,semfundo/borda e fluxos anteriores.
+  Nativo16,236s+29,616s aprovados; SystemUI ANR inicial resolvido com reboot.
+- APK0.6.9/code21,sem reimportar acervo. QA:docs/qa/reading-compact-2026-10-27.md.
+  Instalação no SamsungSM-S906E por install-r:Success,versão21/0.6.9 e aberturaok;
+  mesmo acervo4c8bad60…aa2f4 antes/depois,sem limpeza ou testesuiQa no telefone.
+
 ## Indicadores verticais desktop — 2026-10-27
 
 - ReadingSectionLayout/ReadingTextSections/useReadingScrollspy: gutter32px à esquerda,

@@ -1,5 +1,13 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Leitura compacta — 0.6.9
+
+Os indicadores à esquerda agora são traços horizontais, com o atual mais longo e
+centralizado, sem números na margem. Filtros de comentários abrem em uma janela
+por **Filtrar**, incluindo categoria, livro e limpeza da seleção. As linhas
+“Assunto e fonte” e “Fonte: todas” saem da leitura e do painel inferior; nenhum
+comentário é removido. Atualização somente do APK, sem reimportar o acervo.
+
 ## Conteúdo ampliado de Estudos — 0.6.8
 
 Queda, graça e providência tem agora 22 mil palavras em 18 aulas: argumentos, exemplos,

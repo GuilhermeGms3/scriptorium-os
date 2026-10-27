@@ -18,6 +18,26 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun compactDockUsesModalFiltersWithoutConsumingCommentSpace() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val original = preferences.appearance
+        try {
+            preferences.appearance = original.copy(dockedComments = true, motion = false)
+            startAt("Ex18:4"); openSavedReading(); waitNode("Recolher painel ▾")
+            waitNode("Navegar: Versículo 4"); waitActiveIndicator("Navegar: Versículo 4")
+            assertFalse(nodes().any { label(it).contains("Assunto e fonte") || label(it).startsWith("Fonte:") })
+            capture("069-compact-dock")
+            click("Filtrar", false); waitNode("Filtrar comentários"); waitNode("Todas as fontes")
+            capture("069-comment-filters")
+            click("Concluir"); waitNode("Recolher painel ▾")
+            click("Navegar: Versículo 5"); waitActiveIndicator("Navegar: Versículo 5")
+            waitNode("Êxodo 18:5")
+            assertFalse(nodes().any { label(it).contains("Assunto e fonte") || label(it).startsWith("Fonte:") })
+            capture("069-horizontal-strokes")
+            println("READING069_QA compactDock/modalFilters/noExtraRows/verseSync passed")
+        } finally { preferences.appearance = original }
+    }
     @Test fun expandedCourseOpensSupplementalBibleReadingAndRetainsPriorWork() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val context = instrumentation.targetContext
@@ -613,13 +633,13 @@ class ReadingUiTest {
         back(); back()
         waitNode("Gênesis 1", false)
         click("Filtrar", false)
-        waitNode("Assunto e fonte")
-        click("Fonte: todas ▾")
+        waitNode("Filtrar comentários")
         waitNode("Todas as fontes")
+        reveal(title)
         click(title)
         waitNode("Limpar filtros")
         click("Limpar filtros")
-        click("Filtrar", false)
+        click("Concluir")
         click("Painel")
         waitNode("Visão geral")
         click("Fontes")

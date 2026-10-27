@@ -1,8 +1,10 @@
 # Indicadores verticais dos leitores desktop
 
 Implementação de27/10/2026, correspondente aos indicadores já existentes no Android.
-Uma faixa reservada de32px à esquerda acompanha a leitura. Traços discretos, número
-ativo, posição e tooltip identificam o destino. A janela mostra até9 alvos por grupo,
+Uma margem transparente de32px à esquerda acompanha a leitura, sem fundo, borda ou
+retângulo visível. Traços horizontais discretos e tooltips identificam o destino;
+o atual é mais longo e permanece no centro, inclusive no primeiro/último versículo.
+Números e contadores ficam fora da apresentação visual. A janela mostra até9 alvos por grupo,
 ajustando a quantidade à altura disponível; não cria uma lista de milhares de páginas.
 
 ## Onde aparece
@@ -18,7 +20,7 @@ em telas menores a interface web mantém seus controles anteriores.
 
 ## Comportamento e acessibilidade
 
-Clique no ponto para navegar. Tab alcança os botões; setas verticais, Home e End
+Clique no traço para navegar. Tab alcança os botões; setas verticais, Home e End
 permitem percorrer destinos e alcançar os extremos mesmo em obras extensas. Os
 nomes acessíveis dizem verso/página/seção/trecho, e `aria-current="location"` indica
 a posição. Ao mudar a janela de pontos pelo teclado, o foco é preservado.

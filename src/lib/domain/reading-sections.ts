@@ -41,6 +41,22 @@ export function readingIndicatorWindow(count: number, active: number, capacity: 
   return Array.from({ length: size }, (_, i) => start + i);
 }
 
+/** Empty slots at the boundaries keep the current stroke in the visual center. */
+export function centeredReadingIndicatorSlots(
+  count: number,
+  active: number,
+  capacity: number,
+): (number | null)[] {
+  if (count <= 0 || capacity <= 0) return [];
+  const size = Math.max(1, Math.min(9, Math.floor(capacity)));
+  const radius = Math.floor((size % 2 ? size : size - 1) / 2);
+  const current = Math.max(0, Math.min(count - 1, active));
+  return Array.from({ length: radius * 2 + 1 }, (_, index) => {
+    const target = current + index - radius;
+    return target >= 0 && target < count ? target : null;
+  });
+}
+
 /** Ignore the sliver of the preceding section, but retain a fully visible short paragraph. */
 export function activeReadingSection(
   rects: readonly { top: number; bottom: number }[],
