@@ -65,6 +65,15 @@ class WorkerWorkspaceDatabase implements WorkspaceDatabase {
   async exportSnapshot(): Promise<Uint8Array> {
     return (await this.#send({ type: "export-snapshot" })) as Uint8Array;
   }
+  /** Stops the worker at once, which lets go of the workspace files. */
+  close(): void {
+    this.#worker.terminate();
+    for (const pending of this.#pending.values())
+      pending.reject(
+        new StorageUnavailableError("O banco de estudos foi fechado ao sair da página."),
+      );
+    this.#pending.clear();
+  }
 }
 
 /** Explicit migration source; never the fallback when the installation is unavailable. */
@@ -77,12 +86,34 @@ export async function openBrowserMigrationSource() {
 }
 
 let databasePromise: Promise<WorkspaceDatabase> | null = null;
+let workerDatabase: WorkerWorkspaceDatabase | null = null;
+let releasingOnPageHide = false;
+
+/**
+ * A page the browser keeps frozen to come back to with "Voltar" (the back/forward cache) keeps its
+ * worker, and the worker keeps the workspace files: the next page then found them taken and opened
+ * an empty temporary workspace, where notes, studies and marks seemed gone. Such a page now closes
+ * its worker when left; if the reader comes back to it, the next read opens the files again.
+ */
+function releaseWhenPageIsKept(): void {
+  if (releasingOnPageHide) return;
+  releasingOnPageHide = true;
+  window.addEventListener("pagehide", (event) => {
+    if (!event.persisted || !workerDatabase) return;
+    workerDatabase.close();
+    workerDatabase = null;
+    databasePromise = null;
+  });
+}
+
 export function getWorkspaceDatabase(): Promise<WorkspaceDatabase> {
   if (typeof window === "undefined")
     throw new StorageUnavailableError("Workspace SQLite is available in the browser runtime only.");
   databasePromise ??= (async () => {
     if (await installationAvailable()) return new InstallationWorkspaceDatabase();
     const database = new WorkerWorkspaceDatabase();
+    workerDatabase = database;
+    releaseWhenPageIsKept();
     await database.initialize();
     return database;
   })().catch((error: unknown) => {

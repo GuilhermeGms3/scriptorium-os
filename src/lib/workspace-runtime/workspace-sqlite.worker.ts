@@ -82,17 +82,42 @@ function execute(db: Database, sql: string, bind: SqlValue[] = []): void {
   }
 }
 
+/** Waits before each new attempt to open the workspace files: about three seconds in all. */
+const OPFS_RETRY_DELAYS_MS = [100, 250, 500, 900, 1400];
+
+/**
+ * Opens the workspace files, waiting while another page still holds them. Right after a reload
+ * or a link that loads a new page, the page being left can keep them for a moment; giving up at
+ * the first refusal opened an empty temporary workspace instead, where notes, studies and marks
+ * seemed gone and anything written was lost on closing. A browser without OPFS fails at once.
+ */
+async function installWorkspacePool(sqlite: Awaited<ReturnType<typeof sqlite3InitModule>>) {
+  // forceReinitIfPreviouslyFailed: without it the library repeats the first failure forever.
+  // It is a documented option missing from the published types, hence the separate object.
+  const options = {
+    name: "scriptorium-workspace-vfs",
+    directory: "/scriptorium/workspace-v1",
+    initialCapacity: 6,
+    forceReinitIfPreviouslyFailed: true,
+  };
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await sqlite.installOpfsSAHPoolVfs(options);
+    } catch (error) {
+      const delay = OPFS_RETRY_DELAYS_MS[attempt];
+      if (delay === undefined || String(error).includes("Missing required OPFS APIs")) throw error;
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+  }
+}
+
 async function openDatabase(): Promise<Database> {
   if (database) return database;
   const sqlite = await sqlite3InitModule();
   exportSnapshot = () => sqlite.capi.sqlite3_js_db_export(database!.pointer!);
   try {
     if (!reopenOpfsDatabase) {
-      const pool = await sqlite.installOpfsSAHPoolVfs({
-        name: "scriptorium-workspace-vfs",
-        directory: "/scriptorium/workspace-v1",
-        initialCapacity: 6,
-      });
+      const pool = await installWorkspacePool(sqlite);
       reopenOpfsDatabase = () => new pool.OpfsSAHPoolDb("/workspace.sqlite3");
       unlinkWorkspaceDatabase = async () => pool.unlink("/workspace.sqlite3");
     }
