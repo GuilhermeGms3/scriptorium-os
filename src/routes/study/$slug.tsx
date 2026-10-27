@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { BookOpen, Library, Network, StickyNote } from "lucide-react";
+import { BookOpen, Library, Network, Printer, StickyNote } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../../lib/i18n";
@@ -11,6 +11,9 @@ import { errorMessage } from "@/lib/utils";
 import { studyGuideById } from "../../lib/content/study-guides";
 import { PageContainer } from "../../components/layout/page-container";
 import { PageHeader } from "../../components/layout/page-header";
+import { Button } from "../../components/ui/button";
+import { usePrintJob } from "../../components/print/use-print-job";
+import { StudyPrint } from "../../components/print/study-print";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -46,6 +49,23 @@ function StudyWorkspace() {
   );
   const questions = questionsQuery.data ?? [];
   const [questionError, setQuestionError] = useState<string>();
+  const print = usePrintJob(
+    study
+      ? {
+          title: `Estudo — ${study.title}`,
+          render: () => (
+            <StudyPrint
+              study={study}
+              questions={questions}
+              notes={notes.filter((note) =>
+                note.links.some((link) => link.kind === "study" && link.target === study.id),
+              )}
+              allNotes={notes}
+            />
+          ),
+        }
+      : null,
+  );
 
   if (!study && workspacePersistence === "loading")
     return <p className="p-8 text-sm text-muted-foreground">Abrindo o estudo…</p>;
@@ -73,6 +93,11 @@ function StudyWorkspace() {
         eyebrow={t("study.workspace")}
         title={study.title}
         description={study.description ?? t("study.privateDescription")}
+        actions={
+          <Button variant="outline" size="sm" onClick={print}>
+            <Printer data-icon="inline-start" /> Imprimir ou salvar PDF
+          </Button>
+        }
       >
         {guide && (
           <Link

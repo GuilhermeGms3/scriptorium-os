@@ -13,6 +13,7 @@ import {
   WholeWord,
   BookOpenText,
   MessagesSquare,
+  Printer,
   SlidersHorizontal,
 } from "lucide-react";
 import type { Book, Edition } from "../../lib/domain/scripture";
@@ -54,6 +55,7 @@ export function ScriptureToolbar({
   verses,
   selectedVerse,
   onVerseChange,
+  onPrint,
 }: {
   book: Book;
   chapter: number;
@@ -72,6 +74,8 @@ export function ScriptureToolbar({
   verses: readonly number[];
   selectedVerse: number | null;
   onVerseChange: (verse: number) => void;
+  /** Prints the chapter as read now; absent while there is no text to print. */
+  onPrint?: () => void;
 }) {
   const navigate = useNavigate();
   const selectableEditions = editions.filter(
@@ -172,6 +176,27 @@ export function ScriptureToolbar({
           })}
         </div>
       </div>
+
+      {onPrint &&
+        (stacked ? (
+          <button
+            type="button"
+            onClick={onPrint}
+            className="flex h-9 items-center justify-center gap-1.5 rounded-md border border-input text-sm hover:bg-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11"
+          >
+            <Printer className="size-4" aria-hidden="true" /> Imprimir ou salvar PDF
+          </button>
+        ) : (
+          <button
+            type="button"
+            onClick={onPrint}
+            aria-label="Imprimir ou salvar PDF"
+            title="Imprimir ou salvar PDF"
+            className="flex size-9 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Printer className="size-4" aria-hidden="true" />
+          </button>
+        ))}
     </>
   );
 

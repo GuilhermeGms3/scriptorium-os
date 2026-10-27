@@ -1,0 +1,287 @@
+/*
+ * Printouts (Imprimir ou salvar PDF). The document waits hidden in .print-root; when a screen has
+ * one, printing shows only it, black on white whatever the reading theme, on A4 pages.
+ * Unlayered on purpose: it must win over the utility classes the note text reuses.
+ */
+
+.print-root {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 17mm 20mm;
+  }
+
+  /* The dark scheme of a dark theme would paint the page margins dark when the reader prints
+     backgrounds, even under a white page. */
+  html.print-document-active,
+  html.print-document-active body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #1c1b19 !important;
+    color-scheme: light !important;
+  }
+
+  html.print-document-active body > :not(.print-root) {
+    display: none !important;
+  }
+
+  html.print-document-active .print-root {
+    display: block;
+  }
+}
+
+/* The document itself: its own colors, so a dark or sepia theme never reaches the paper. */
+.pd {
+  --background: #fff;
+  --foreground: #1c1b19;
+  --card: #fff;
+  --muted: #f1efea;
+  --muted-foreground: #5b5850;
+  --primary: #1c1b19;
+  --primary-foreground: #fff;
+  --border: #cfcbc2;
+  color: #1c1b19;
+  background: #fff;
+  font-family: var(--font-serif);
+  font-size: 11.5pt;
+  line-height: 1.55;
+  orphans: 3;
+  widows: 3;
+}
+
+.pd p {
+  margin: 0;
+}
+
+.pd-header {
+  border-bottom: 0.75pt solid #8a857a;
+  padding-bottom: 9pt;
+  margin-bottom: 16pt;
+}
+
+.pd-kind,
+.pd-heading,
+.pd-meta,
+.pd-label,
+.pd-comment-source,
+.pd-comment-meta,
+.pd-footer,
+.pd-verse-number {
+  font-family: var(--font-sans);
+}
+
+.pd-kind {
+  font-size: 8pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: #5b5850;
+}
+
+.pd-title {
+  margin: 3pt 0 0;
+  font-size: 21pt;
+  line-height: 1.2;
+  font-weight: 600;
+}
+
+.pd-subtitle {
+  margin-top: 4pt;
+  font-size: 10.5pt;
+  color: #3d3b36;
+}
+
+.pd-subtitle p + p {
+  margin-top: 2pt;
+}
+
+.pd-section {
+  margin-top: 16pt;
+}
+
+.pd-heading {
+  margin: 0 0 7pt;
+  font-size: 9pt;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #3d3b36;
+  break-after: avoid;
+}
+
+.pd-subheading {
+  margin: 12pt 0 4pt;
+  font-size: 13pt;
+  font-weight: 600;
+  break-after: avoid;
+}
+
+.pd-list {
+  margin: 0;
+  padding-left: 16pt;
+}
+
+.pd-list li + li {
+  margin-top: 5pt;
+}
+
+.pd-question {
+  break-inside: avoid;
+}
+
+.pd-question-text {
+  font-weight: 600;
+}
+
+.pd-meta,
+.pd-label {
+  font-size: 8.5pt;
+  color: #5b5850;
+}
+
+.pd-label {
+  font-weight: 600;
+}
+
+.pd-empty {
+  font-style: italic;
+  color: #5b5850;
+}
+
+.pd-note + .pd-note {
+  margin-top: 10pt;
+  padding-top: 8pt;
+  border-top: 0.5pt solid #cfcbc2;
+}
+
+/* Note text: the same formatting as "Ler", at paper size. */
+.pd-markdown > div {
+  display: block;
+  font-size: 11.5pt;
+  line-height: 1.55;
+}
+
+.pd-markdown > div > * + * {
+  margin-top: 7pt;
+}
+
+.pd-markdown h2 {
+  font-size: 15pt;
+  margin-top: 12pt;
+  break-after: avoid;
+}
+
+.pd-markdown h3 {
+  font-size: 13pt;
+  margin-top: 10pt;
+  break-after: avoid;
+}
+
+.pd-markdown h4 {
+  font-size: 11.5pt;
+  margin-top: 8pt;
+  break-after: avoid;
+}
+
+.pd-markdown blockquote {
+  border-left: 1.5pt solid #8a857a;
+  padding-left: 9pt;
+  color: #3d3b36;
+}
+
+.pd-markdown pre {
+  white-space: pre-wrap;
+  background: none;
+  border: 0.5pt solid #cfcbc2;
+  padding: 6pt;
+  font-size: 9.5pt;
+}
+
+.pd-markdown code {
+  background: none;
+}
+
+/* Inside a study each note has its own title, so the note's headings sit below it. */
+.pd-note .pd-markdown h2 {
+  font-size: 12pt;
+}
+
+.pd-note .pd-markdown h3,
+.pd-note .pd-markdown h4 {
+  font-size: 11.5pt;
+}
+
+/* Scripture */
+.pd-scripture {
+  margin-top: 4pt;
+}
+
+.pd-verse,
+.pd-paragraph {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.pd-verse-block + .pd-verse-block {
+  margin-top: 4pt;
+}
+
+.pd-paragraph + .pd-paragraph,
+.pd-comments + .pd-paragraph {
+  margin-top: 6pt;
+}
+
+.pd-verse-number {
+  margin-right: 2pt;
+  font-size: 7pt;
+  color: #5b5850;
+}
+
+.pd-comments {
+  margin: 5pt 0 9pt 12pt;
+}
+
+.pd-comment {
+  border-left: 1.5pt solid #b9b4a8;
+  padding-left: 9pt;
+  font-size: 10pt;
+  line-height: 1.5;
+}
+
+.pd-comment + .pd-comment {
+  margin-top: 7pt;
+}
+
+/* A source line never ends a page alone; a long comment may continue on the next page. */
+.pd-comment-source {
+  font-size: 8.5pt;
+  font-weight: 600;
+  color: #3d3b36;
+  break-after: avoid;
+}
+
+.pd-comment-text {
+  margin-top: 2pt !important;
+}
+
+.pd-comment-meta {
+  margin-top: 2pt !important;
+  font-size: 8pt;
+  color: #5b5850;
+}
+
+.pd-footer {
+  margin-top: 22pt;
+  padding-top: 7pt;
+  border-top: 0.5pt solid #cfcbc2;
+  font-size: 8pt;
+  color: #5b5850;
+  break-inside: avoid;
+}
+
+.pd-footer p + p {
+  margin-top: 2pt;
+}

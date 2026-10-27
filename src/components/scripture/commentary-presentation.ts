@@ -17,6 +17,25 @@ export function isBroadCommentary(item: WorkspacePassageKnowledgeItem): boolean 
   return passageWidth(item) > 6 || longPatristicContext;
 }
 
+/** What a library note is and how it was linked, in the words shown under it on screen and paper. */
+export function commentaryProvenance(item: WorkspacePassageKnowledgeItem): string {
+  const payload = item.passageRelation.payload;
+  const analysis = payload.contextualAnalysis;
+  const kind =
+    analysis?.mode === "source-excerpt"
+      ? payload.referenceRole === "proof-text"
+        ? `Texto confessional original · ${analysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`
+        : "Comentário original da fonte"
+      : analysis
+        ? "Síntese contextual assistida"
+        : "Trecho literal da fonte";
+  return `${kind} · ${
+    item.reviewState === "confirmed"
+      ? "ligação confirmada"
+      : "ligação automática, não é interpretação revisada"
+  }`;
+}
+
 export function belongsInChapterOverview(
   item: WorkspacePassageKnowledgeItem,
   summary: boolean,

@@ -17,6 +17,10 @@ import { InterlinearView } from "../../components/scripture/interlinear-view";
 import { AnalysisLenses } from "../../components/scripture/analysis-lenses";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { bookLabel, passageLabel, t } from "../../lib/i18n";
+import { textDirectionForLanguage } from "../../lib/i18n/locale";
+import { usePrintJob } from "../../components/print/use-print-job";
+import { ChapterPrint } from "../../components/print/chapter-print";
+import { chapterPrintModel } from "../../components/print/chapter-print-model";
 import { hasAvailableData } from "../../lib/domain/availability";
 import { VerseCommentary } from "../../components/scripture/verse-commentary";
 import { CommentarySourceBar } from "../../components/scripture/commentary-source-bar";
@@ -371,6 +375,54 @@ function ChapterReader() {
     if (first !== undefined) requestAnimationFrame(() => scrollToVerse(first));
   };
 
+  // On paper: the edition being read and, in reading mode, the comments the reader kept on.
+  const printsOriginal = view === "original" || view === "interlinear";
+  const print = usePrintJob(
+    book && bundle
+      ? {
+          title: `${bookLabel(book.id, book.name)} ${chapter} — ${displayedEdition?.abbreviation ?? ""}`,
+          render: () => {
+            const model = chapterPrintModel({
+              bookId,
+              chapter,
+              verses: bundle.passage.verses,
+              editionId: effectiveEditionId,
+              original: printsOriginal,
+              includeComments: view === "single" && commentaryLayout !== "hidden",
+              claims: availableClaims,
+              sources: bundle.sources,
+              libraryItems: privateKnowledge?.items ?? [],
+              hiddenSources,
+              domain: domainFilter,
+            });
+            const commented =
+              model.overview.length > 0 || model.verses.some((verse) => verse.comments.length > 0);
+            const language = bundle.passage.verses[0]?.original?.[0]?.language;
+            return (
+              <ChapterPrint
+                title={`${bookLabel(book.id, book.name)} ${chapter}`}
+                edition={`${displayedEdition?.title ?? "Edição"}${commented ? " · com comentários" : ""}`}
+                model={model}
+                verseMode={readingPrefs.verseMode}
+                direction={
+                  printsOriginal && language
+                    ? textDirectionForLanguage(language)
+                    : (displayedEdition?.direction ?? "ltr")
+                }
+                notes={[
+                  `Texto: ${displayedEdition?.title ?? "edição selecionada"}${displayedEdition?.licenseId ? ` · licença ${displayedEdition.licenseId}` : ""}.`,
+                  ...(commented
+                    ? [
+                        "Comentários: trechos e sínteses das fontes indicadas em cada um. Ligações automáticas não equivalem a interpretação revisada.",
+                      ]
+                    : []),
+                ]}
+              />
+            );
+          },
+        }
+      : null,
+  );
   const sourceBar =
     commentaryLayout !== "hidden" && view === "single" && privateSources.length > 0 ? (
       <CommentarySourceBar
@@ -415,6 +467,7 @@ function ChapterReader() {
           verses={bundle?.passage.verses.map((verse) => verse.verse) ?? []}
           selectedVerse={selectedVerse}
           onVerseChange={goToVerse}
+          {...(bundle ? { onPrint: print } : {})}
         />
         {/* On phones listening and the comment sources share one row and open on demand, so the
             fixed bars above the text stay short. */}

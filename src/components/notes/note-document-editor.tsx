@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState } from "react";
-import { BookOpen, Link2, Pencil, Save } from "lucide-react";
+import { BookOpen, Link2, Pencil, Printer, Save } from "lucide-react";
 import { Button } from "../ui/button";
 import { ToggleGroup, ToggleGroupItem } from "../ui/toggle-group";
 import { NoteMarkdown } from "./note-markdown";
@@ -14,6 +14,8 @@ import type { Note, Study } from "../../lib/domain/study";
 import type { StudySource } from "../../lib/domain/study-notebook";
 import { useSourceReader } from "../study/source-reader-context";
 import { formatNoteSelection, type NoteFormat } from "../../lib/domain/note-format";
+import { usePrintJob } from "../print/use-print-job";
+import { NotePrint } from "../print/note-print";
 
 export interface NoteDraft {
   key: string;
@@ -77,6 +79,20 @@ export function NoteDocumentEditor({
   }, [mode]);
   const openSource = useSourceReader();
   const unresolved = wikiReferences(draft.body, notes).filter((ref) => !ref.targetId);
+  // Prints what is on screen, saved or not: the reader asked for this page as it reads now.
+  const place = [group?.title, folderPath(draft.folderId, folders)].filter(Boolean).join(" / ");
+  const print = usePrintJob({
+    title: `Nota — ${draft.title.trim() || "sem título"}`,
+    render: () => (
+      <NotePrint
+        title={draft.title}
+        body={draft.body}
+        notes={notes}
+        {...(place ? { place } : {})}
+        {...(draft.source ? { source: draft.source } : {})}
+      />
+    ),
+  });
   function formatSelection(format: NoteFormat) {
     const element = editor.current;
     const result = formatNoteSelection(
@@ -133,6 +149,10 @@ export function NoteDocumentEditor({
           </ToggleGroup>
           <Button variant="ghost" size="sm" onClick={openPicker}>
             <Link2 data-icon="inline-start" /> Inserir link
+          </Button>
+          <Button variant="ghost" size="sm" onClick={print} aria-label="Imprimir ou salvar PDF">
+            <Printer data-icon="inline-start" />
+            <span className="max-sm:sr-only">Imprimir</span>
           </Button>
           <Button
             size="sm"

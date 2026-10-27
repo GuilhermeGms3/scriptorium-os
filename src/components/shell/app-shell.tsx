@@ -29,6 +29,7 @@ import { t } from "../../lib/i18n";
 import { supportsPassageInspector } from "./shell-route-context";
 import { AudioMiniPlayer } from "../audio/audio-player";
 import { PanelBoundary } from "./panel-boundary";
+import { PrintHost } from "../print/print-host";
 
 export function AppShell({ children }: { children: ReactNode }) {
   const { inspectorOpen, setInspectorOpen, wordSelection, selectWord } = useWorkbench();
@@ -86,6 +87,7 @@ export function AppShell({ children }: { children: ReactNode }) {
       </PanelBoundary>
       {/* Says how actions went (note created, study failed); at the top, clear of the bottom bar. */}
       <Toaster position="top-center" />
+      <PrintHost />
 
       {/* Below 1280 px the study panel slides over the text instead of squeezing it. */}
       <Sheet

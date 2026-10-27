@@ -9,7 +9,8 @@ export function NoteMarkdown({
 }: {
   body: string;
   notes: readonly NoteTarget[];
-  onOpen: (id: string) => void;
+  /** Without it (on paper) a link to another note is just its title. */
+  onOpen?: (id: string) => void;
 }) {
   function inline(text: string): ReactNode[] {
     const references = wikiReferences(text, notes);
@@ -18,7 +19,11 @@ export function NoteMarkdown({
     for (const ref of references) {
       parts.push(...format(text.slice(cursor, ref.index), cursor));
       parts.push(
-        ref.targetId ? (
+        ref.targetId && !onOpen ? (
+          <span key={`ref${ref.index}`} className="font-medium">
+            {ref.label}
+          </span>
+        ) : ref.targetId && onOpen ? (
           <button
             key={`ref${ref.index}`}
             type="button"

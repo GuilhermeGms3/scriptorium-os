@@ -32,7 +32,11 @@ import { SEMANTIC_DOMAIN_LABELS } from "../../lib/domain/semantic-content";
 import { passageReadingSource } from "../../lib/application/reading-source";
 import { useSourceReader } from "../study/source-reader-context";
 import { AppLink } from "../common/app-link";
-import { contextualCommentary, isBroadCommentary } from "./commentary-presentation";
+import {
+  commentaryProvenance,
+  contextualCommentary,
+  isBroadCommentary,
+} from "./commentary-presentation";
 
 const RELATION_LABELS: Record<
   WorkspacePassageKnowledgeItem["passageRelation"]["payload"]["relationType"],
@@ -557,18 +561,7 @@ export function CommentaryNote({
         commentary
       )}
       <p className="commentary-meta mt-3">
-        {analysis?.mode === "source-excerpt"
-          ? payload.referenceRole === "proof-text"
-            ? `Texto confessional original · ${analysis.sourceContext?.traditionLabel ?? "tradição da fonte"} · citação, não exegese universal`
-            : "Comentário original da fonte"
-          : analysis
-            ? "Síntese contextual assistida"
-            : "Trecho literal da fonte"}{" "}
-        ·{" "}
-        {item.reviewState === "confirmed"
-          ? "ligação confirmada"
-          : "ligação automática, não é interpretação revisada"}
-        . Abra a fonte para ler o trecho completo.
+        {commentaryProvenance(item)}. Abra a fonte para ler o trecho completo.
       </p>
     </aside>
   );

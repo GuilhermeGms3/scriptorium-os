@@ -41,6 +41,14 @@ export function studySourceHref(source: StudySource): string {
     ? `/library/document/${encodeURIComponent(valid.documentId)}?page=${valid.page}${valid.unitId ? `&unit=${encodeURIComponent(valid.unitId)}` : ""}`
     : `/library/read/${encodeURIComponent(valid.workId)}${valid.unitId ? `?unit=${encodeURIComponent(valid.unitId)}` : ""}`;
 }
+/** "Livro X · p. 12": where the note's source excerpt came from, as the editor names it. */
+export function studySourceLabel(source: StudySource): string {
+  if (source.kind === "private-document") return `${source.title} · p. ${source.page}`;
+  if (source.kind === "bibliographic" && source.locator)
+    return `${source.title} · ${source.locator}`;
+  return source.title;
+}
+
 export function orderedNotePair(a: string, b: string): [string, string] {
   if (!a || !b || a === b) throw new Error("Escolha duas notas diferentes.");
   return a < b ? [a, b] : [b, a];
