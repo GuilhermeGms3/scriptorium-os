@@ -19,6 +19,12 @@ class ReadingNavigationTest {
         assertEquals(5, modules[1].objects("lessons").size)
         assertTrue(modules.all { it.objects("foundation").isNotEmpty() && it.objects("passages").isNotEmpty() })
         assertEquals("work:aquinas-summa-prima-pars", modules[1].objects("libraryWorks").first().getString("workId"))
+        modules.flatMap { it.objects("lessons") }.forEach { lesson ->
+            val words = lesson.objects("sections").flatMap { it.strings("paragraphs") }.joinToString(" ").split(Regex("\\s+")).size
+            assertTrue("Aula não aprofundada: ${lesson.optString("id")}", words > 1000)
+        }
+        assertEquals(18, modules.flatMap { it.objects("connections") }.count { it.has("ref") })
+        assertTrue(modules.first { it.optString("id") == "cristo" }.objects("connections").any { it.optJSONObject("ref")?.optString("bookId") == "john" })
         assertFalse(StudySequence.unlocked(modules, 1, emptyList()))
         assertTrue(CoursePolicy.issues(modules.first(), JSONObject()).isNotEmpty())
         course.put("modules", org.json.JSONArray())

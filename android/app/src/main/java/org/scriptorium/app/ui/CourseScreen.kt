@@ -140,6 +140,9 @@ internal fun CourseScreen(course: JSONObject, repository: MobileRepository, pers
                             current.objects("connections").forEach { connection ->
                                 Text(connection.getString("label"), style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
                                 Text(connection.getString("explanation"), Modifier.padding(vertical = 10.dp), style = MaterialTheme.typography.bodyMedium)
+                                connection.optJSONObject("ref")?.let { ref ->
+                                    PassageButton(repository, ref.getString("bookId"), ref.getInt("chapter"), "Ler ${connection.getString("label")}", ref.optInt("verseStart").takeIf { it > 0 }, ref.optInt("verseEnd").takeIf { it > 0 }) { target -> save { open(target) } }
+                                }
                             }
                             if (current.objects("videos").isNotEmpty()) Heading("Vídeos do módulo")
                             current.objects("videos").forEach { StudyVideo(it) }

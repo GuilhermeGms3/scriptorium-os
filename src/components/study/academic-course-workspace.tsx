@@ -523,6 +523,7 @@ function CourseModuleWorkspace({
                       book: connection.ref.bookId,
                       chapter: String(connection.ref.chapter),
                     }}
+                    search={connection.ref.verseStart ? { v: connection.ref.verseStart } : {}}
                     hash={`verse-${connection.ref.verseStart ?? 1}`}
                   >
                     Abrir a passagem →

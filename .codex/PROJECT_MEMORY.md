@@ -1,5 +1,24 @@
 # Project Memory
 
+## Aprofundamento editorial Android0.6.8/web — 2026-10-26
+
+- Queda, graça e providência:22.054palavras/303parágrafos,14módulos/18aulas/90seções;
+  todas as aulas >1000palavras.17referências novas,total33,com localizadores/limites;
+  arquétipo/alteridade/liberdade/queda,cinco vias,Cristo,graça/providência,confissões,
+  oração/Sheol/esperança/síntese. Fontes:docs/content/queda-graca-aprofundamento-2026-10-26.md.
+- Camada development-* acrescenta exposição aos IDs existentes;progress-baseline.json
+  captura estrutura anterior. Sem mudar revisão1,leituras obrigatórias/critério/gate.
+  18conexões bíblicas opcionais; web usa v+âncora,Android PassageButton com save guard.
+- Um currículo,asset1.335.687bytes(+151.605);APK0.6.8/code20,sem reimportação de livros.
+  Arquivos privados/offsets/progresso e demais módulos preservados;sem dependência/schema.
+- TS588/94arquivos,typecheck/ESLint/buildweb;Android75JVM/0falhas e builds;
+  lint0erros49avisos. Web1440/390 sem overflow/erros,fonte real e João1 abertos.
+  Nativo23,934s:complemento bíblico,novo texto e work_json anterior intacto.
+  QAseeds só em OPFS/emulador descartável;não estudo humano. Telefone ausente.
+- QA:docs/qa/study-expanded-content-2026-10-26.md. Retomada nativa guarda versículo
+  visível,sem fim do intervalo;web remonta no próximo módulo não concluído.
+
+
 ## Leitura/movimento Android0.6.7 e Estudos web — 2026-10-26
 
 - Emblemas vetoriais substituem emojis de todos os livros no catálogo nativo.

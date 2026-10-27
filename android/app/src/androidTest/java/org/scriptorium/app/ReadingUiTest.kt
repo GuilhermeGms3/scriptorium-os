@@ -18,6 +18,45 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun expandedCourseOpensSupplementalBibleReadingAndRetainsPriorWork() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val repository = repository()
+        val course = repository.catalogItem("course:queda-graca-providencia")!!
+        val modules = course.objects("modules")
+        val personal = PersonalRepository(File(context.filesDir, "personal.sqlite3"))
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = appearance.copy(motion = false)
+            // Isolated QA emulator only: valid seed to inspect the advanced module, not study credit.
+            modules.take(5).forEach { module ->
+                val work = JSONObject().put("lessons", org.json.JSONArray(module.objects("lessons").map { it.getString("id") }))
+                    .put("readings", org.json.JSONArray(module.objects("passages").map { it.getString("id") }))
+                    .put("criteria", org.json.JSONArray(listOf(0, 1, 2)))
+                    .put("response", "QA isolado para conferir o conteúdo ampliado, a abertura bíblica e a preservação das identidades; não representa conclusão humana de estudo.")
+                personal.saveProgress(course.getString("id"), 1, module.getString("id"), work.toString(), true)
+            }
+            val before = personal.progress(course.getString("id"), 1).first { it.text("module_id") == "sentido" }.text("work_json")
+            startAt("Gn1:1"); click("Estudos"); click("Percursos"); click("Queda, graça e providência")
+            waitNode("Módulos · 6 de 14"); click("Estudar este ponto")
+            val christ = modules.first { it.getString("id") == "cristo" }
+            val pages = StudySequence.module(christ)
+            repeat(pages.indexOfFirst { it.kind == StudyPageKind.READINGS }) { click("Próxima etapa") }
+            val link = "Ler Encarnação e testemunho — João 1:1–18"
+            reveal(link); capture("expanded-connections"); click(link); waitNode("Painel")
+            val target = decodePassage(preferences.lastPassage(), repository.scriptureEditions())!!
+            assertEquals("john", target.bookId); assertEquals(1, target.chapter); assertEquals(1, target.verse)
+            // Last-passage storage follows the visible verse and intentionally clears interval end.
+            assertEquals(18, christ.objects("connections").first { it.optJSONObject("ref")?.optString("bookId") == "john" }.getJSONObject("ref").getInt("verseEnd"))
+            back(); back(); click("Anterior")
+            val paragraph = christ.objects("lessons").first().objects("sections").last().strings("paragraphs").first { it.startsWith("Ressurreição não é sinônimo") }
+            reveal(paragraph); capture("expanded-christology")
+            assertEquals(before, personal.progress(course.getString("id"), 1).first { it.text("module_id") == "sentido" }.text("work_json"))
+            println("EXPANDED_COURSE_QA newExposition/supplementalJohnRange/previousWorkUnchanged passed")
+        } finally { preferences.appearance = appearance }
+    }
+
     @Test fun longBookPageReflowsWithNavigableParagraphsWithoutChangingEvidence() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val repo = repository()

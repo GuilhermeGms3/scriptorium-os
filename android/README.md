@@ -1,5 +1,16 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Conteúdo ampliado de Estudos — 0.6.8
+
+Queda, graça e providência tem agora 22 mil palavras em 18 aulas: argumentos, exemplos,
+objeções e sínteses sobre condição humana, cinco vias, Cristo, graça, providência,
+tradições e destino dos mortos.33 referências e 18 leituras bíblicas complementares
+com justificativa e abertura da passagem. Os complementos são opcionais; IDs,
+revisão, critérios, pontos concluídos e rascunhos continuam válidos.
+
+Atualização somente do APK, sem reimportar livros. O mesmo conteúdo é entregue
+à web. [Fontes e limites](../docs/content/queda-graca-aprofundamento-2026-10-26.md).
+
 ## Leitura e movimento — 0.6.7
 
 - Escrituras usa emblemas vetoriais monocromáticos de manuscrito, sem emojis.

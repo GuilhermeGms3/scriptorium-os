@@ -6,8 +6,63 @@ import { BIBLIA_LIVRE_BOOKS } from "../../../corpus-config/biblia-livre";
 import { completionIssues, emptyCourseWork, moduleUnlocked } from "../../../domain/study-course";
 import { PASSAGE_COVERAGE_AREAS } from "../../../domain/workspace-passage-knowledge";
 import { buildStudyEditorial } from "../../../../../scripts/mobile/study-editorial";
+import baseline from "./progress-baseline.json";
+import { FALL_GRACE_DEVELOPMENT } from "./development";
 
 describe("Queda, graça e providência", () => {
+  it("aprofunda todas as aulas sem mudar identidades e exigências de progresso já entregues", () => {
+    expect({
+      id: course.id,
+      revision: course.revision,
+      modules: course.modules.map((module) => ({
+        id: module.id,
+        lessons: module.lessons.map((lesson) => ({
+          id: lesson.id,
+          kinds: lesson.sections.map((section) => section.kind),
+        })),
+        readings: module.passages.map((passage) => passage.id),
+        criteria: module.activity.criteria,
+      })),
+    }).toEqual(baseline);
+    const lessons = course.modules.flatMap((module) => module.lessons);
+    expect(new Set(Object.keys(FALL_GRACE_DEVELOPMENT))).toEqual(
+      new Set(lessons.map((lesson) => lesson.id)),
+    );
+    for (const lesson of lessons) {
+      expect(
+        lesson.sections
+          .flatMap((section) => section.paragraphs)
+          .join(" ")
+          .split(/\s+/).length,
+        lesson.id,
+      ).toBeGreaterThan(1000);
+      expect(
+        lesson.sections.every((section) => section.paragraphs.length >= 3),
+        lesson.id,
+      ).toBe(true);
+    }
+    const books = new Set<string>(Object.values(BIBLIA_LIVRE_BOOKS).map(([id]) => id));
+    const complements = course.modules.flatMap((module) =>
+      module.connections.filter((connection) => connection.ref),
+    );
+    expect(complements).toHaveLength(18);
+    for (const connection of complements) {
+      expect(books.has(connection.ref!.bookId), connection.label).toBe(true);
+      expect(connection.ref!.verseEnd).toBeGreaterThanOrEqual(connection.ref!.verseStart!);
+    }
+    for (const module of course.modules) {
+      const legacy = baseline.modules.find((item) => item.id === module.id)!;
+      expect(
+        completionIssues(module, {
+          lessons: legacy.lessons.map((lesson) => lesson.id),
+          readings: legacy.readings,
+          criteria: [0, 1, 2],
+          response:
+            "Síntese anteriormente registrada com fundamento no texto e nas fontes do módulo. A expansão deve permitir releitura sem invalidar o trabalho pessoal já entregue.",
+        }),
+      ).toEqual([]);
+    }
+  });
   it("cobre o percurso completo com elaboração própria, fontes e vínculos resolvíveis", () => {
     expect(course.modules.map((module) => module.id)).toEqual([
       "sentido",

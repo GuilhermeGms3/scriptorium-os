@@ -5,6 +5,7 @@ import { CHRIST_DEATH_UNITS } from "./christ-death";
 import { GRACE_PROVIDENCE_UNITS, PRAYER_UNIT, SYNTHESIS_UNIT } from "./grace-providence";
 import { TRADITION_UNITS } from "./traditions";
 import { REFERENCES } from "./sources";
+import { developFallGraceModule } from "./development";
 
 const localWorks = {
   summaI: { workId: "work:aquinas-summa-prima-pars", label: "Suma Teológica I" },
@@ -53,6 +54,8 @@ export const FALL_GRACE_COURSE = {
     ...TRADITION_UNITS,
     PRAYER_UNIT,
     SYNTHESIS_UNIT,
-  ].map((module) => ({ ...module, libraryWorks: assigned[module.id] ?? [] })),
+  ]
+    .map(developFallGraceModule)
+    .map((module) => ({ ...module, libraryWorks: assigned[module.id] ?? [] })),
   references: REFERENCES,
 } satisfies StudyCourse;

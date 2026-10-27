@@ -1,5 +1,7 @@
 # Queda, graça e providência — 26/10/2026
 
+> Este documento registra a entrega inicial 0.6.6. A [expansão 0.6.8](queda-graca-aprofundamento-2026-10-26.md) mantém a estrutura e amplia a exposição para 22.054 palavras.
+
 ## Recorte entregue
 
 Percurso independente em Estudos → Percursos, no Android e na web. São 14 módulos,

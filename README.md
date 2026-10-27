@@ -43,6 +43,8 @@ O percurso [Queda, graça e providência](docs/content/queda-graca-providencia-2
 em Estudos → Percursos no Android e na web, acrescenta 14 módulos sobre condição humana,
 cinco vias, morte e ressurreição, graça, providência e tradições cristãs. As hipóteses
 de leitura ficam diferenciadas das fontes e dos contrapontos confessionais.
+O [aprofundamento 0.6.8](docs/content/queda-graca-aprofundamento-2026-10-26.md) amplia
+as 18 aulas para 22 mil palavras, com 33 referências e 18 conexões bíblicas opcionais.
 
 A [fila contextual de 24/10/2026](docs/content/contextual-library-expansion-2026-10-24.md)
 reutiliza os extratores e importadores canônicos, com retomada, staging e bloqueios por

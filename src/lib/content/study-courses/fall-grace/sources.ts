@@ -1,8 +1,10 @@
 import type { CourseReference } from "../../../domain/study-course";
 import type { FoundationSource, StudyFoundation } from "../../../domain/study-foundation";
+import { DEVELOPMENT_SOURCES } from "./development-sources";
 
 /** Primary texts consulted on 2026-10-26. Exposition is original, not a translation. */
 export const SOURCES = {
+  ...DEVELOPMENT_SOURCES,
   ways: {
     title: "Tomás de Aquino — cinco vias",
     url: "https://www.newadvent.org/summa/1002.htm",
