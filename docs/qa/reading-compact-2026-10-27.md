@@ -65,3 +65,14 @@ Samsung SM-S906E atualizado por `adb install -r`, sem desinstalação ou limpeza
 Versão0.6.9/code21 confirmada; abertura com Status:ok. O identificador do acervo ativo
 permaneceu4c8bad60…aa2f4 antes/depois; nenhuma reimportação de livros. Não se executou
 o modo `uiQa` nesse telefone.
+
+## Restauração posterior do indicador mobile — 0.6.10
+
+Por correção de escopo do usuário, o arquivo `ReadingSectionIndicators.kt` retorna
+exatamente ao conteúdo de e48867c (anterior à0.6.9), conferido byte a byte. O indicador
+do Android volta a ser vertical, com número ativo e comportamento anterior. O
+indicador horizontal do desktop e os filtros em diálogo não mudam, conferidos por diff.
+Versão0.6.10/code22 permite atualizar normalmente o APK. Os75 testes JVM passaram;
+não foi repetido o teste instrumental nesta restauração de um componente já validado.
+Build e lint aprovados (0 erros,49 avisos preexistentes). Instalado por `install -r`
+no mesmo Samsung:0.6.10/code22 confirmados, mesmo acervo ativo, aplicação com Status:ok.

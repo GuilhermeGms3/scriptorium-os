@@ -1,5 +1,11 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Indicador mobile restaurado — 0.6.10
+
+O indicador do celular retorna ao modelo anterior à0.6.9: traços verticais curtos,
+com o atual alongado e numerado. Essa restauração não altera os traços horizontais
+do desktop. Os filtros em janela e o espaço liberado nos comentários são mantidos.
+
 ## Leitura compacta — 0.6.9
 
 Os indicadores à esquerda agora são traços horizontais, com o atual mais longo e

@@ -1,5 +1,15 @@
 # Project Memory
 
+## Indicador mobile restaurado — Android0.6.10 — 2026-10-27
+
+- Pedido explícito: indicador do celular volta ao anterior e deve ser preservado;
+  ajustes do indicador do PC não autorizam alterar o mobile.
+- ReadingSectionIndicators.kt restaurado byte a byte de e48867c: traços verticais
+  curtos, atual alongado e numerado, janela original. Filtros em diálogo e desktop
+  horizontal permanecem intactos. Versão0.6.10/code22 para atualização sem downgrade.
+- Build/75JVM/lint aprovados,0erros49avisos; instalado no Samsung por install-r,
+ 0.6.10/code22 confirmados, mesmo acervo4c8bad60…aa2f4. Sem repetição de QA instrumental.
+
 ## Leitura compacta e traços livres — Android0.6.9/web — 2026-10-27
 
 - Desktop sem faixa/fundo/borda/números visíveis: traços12×2/26×3px, atual sempre
