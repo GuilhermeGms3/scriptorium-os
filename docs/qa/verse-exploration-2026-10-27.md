@@ -89,3 +89,9 @@ serviço local existente, somente leitura, sem outro escritor do banco.
 
 Logs locais: `%TEMP%/explore-toolbar-{tests,typecheck,eslint,build,browser}.log`.
 Captura: `%TEMP%/explore-toolbar-desktop.png`.
+
+Docker local reconstruído e atualizado, serviço saudável na porta 3000. A mesma
+verificação de interface passou também nessa versão. Em Gênesis 1 foram carregadas
+31 linhas, 130 blocos e 41 blocos identificados de fontes, sem exceções nem aviso de
+bloqueio. A sessão do acervo respondeu HTTP 200; as contagens anteriores foram
+preservadas: 57 documentos e 806947 vínculos, além de notas/progresso inalterados.
