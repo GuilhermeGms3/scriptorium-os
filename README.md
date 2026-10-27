@@ -31,6 +31,11 @@ No desktop, **Escrituras → Leitura → Explorar versículos** apresenta
 do acervo, análises, palavras do texto original e notas vinculadas. Os blocos abrem o
 aprofundamento e suas fontes; a leitura contínua permanece disponível.
 
+Os [indicadores verticais do desktop](docs/architecture/desktop-reading-indicators.md)
+acompanham versículos, páginas, unidades e trechos nos leitores de Escrituras e da
+Biblioteca, inclusive na consulta contextual. Ficam na margem esquerda, sem cobrir
+o texto, com navegação por clique/teclado e respeito ao movimento reduzido.
+
 A [Busca ampliada](docs/architecture/external-academic-search.md) conserva texto/referências e
 busca por sentido, acrescentando consultas explícitas ao OpenAlex e caminhos para Google,
 Google Acadêmico e bibliotecas. Resultados externos são separados do conhecimento instalado.

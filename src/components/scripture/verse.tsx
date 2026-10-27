@@ -47,6 +47,8 @@ export function Verse({
   return (
     <span
       id={`verse-${verse.verse}`}
+      data-reading-section=""
+      data-reading-label={`Versículo ${verse.verse}`}
       role={onSelect ? "button" : undefined}
       tabIndex={onSelect ? 0 : undefined}
       aria-pressed={onSelect ? selected : undefined}
@@ -113,7 +115,12 @@ export function OriginalVerse({
 
   if (!verse.original) {
     return (
-      <div className="mb-3 flex items-baseline gap-2">
+      <div
+        id={`verse-${verse.verse}`}
+        data-reading-section=""
+        data-reading-label={`Versículo ${verse.verse}`}
+        className="mb-3 flex items-baseline gap-2"
+      >
         <span className="align-super font-mono text-xs text-muted-foreground select-none">
           {verse.verse}
         </span>
@@ -125,7 +132,13 @@ export function OriginalVerse({
   }
 
   return (
-    <div id={`verse-${verse.verse}`} className="mb-4" dir={direction}>
+    <div
+      id={`verse-${verse.verse}`}
+      data-reading-section=""
+      data-reading-label={`Versículo ${verse.verse}`}
+      className="mb-4"
+      dir={direction}
+    >
       <span
         className="me-1.5 align-super font-mono text-xs text-muted-foreground select-none"
         dir="ltr"

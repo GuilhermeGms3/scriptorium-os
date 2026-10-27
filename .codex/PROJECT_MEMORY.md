@@ -1,5 +1,21 @@
 # Project Memory
 
+## Indicadores verticais desktop — 2026-10-27
+
+- ReadingSectionLayout/ReadingTextSections/useReadingScrollspy: gutter32px à esquerda,
+  até9alvos/grupo pela altura, animação/rolagem suave com movimento reduzido,
+  clique/Tab/setas/Home/End e aria-current. Janela móvel mantém foco após o salto.
+- Escrituras em todos os modos e Explorar; Biblioteca privada por página/trecho;
+  fonte primária por unidade/trecho; leitor contextual. Em <1024px fica oculto;
+  Android, árvore, progresso, corpora e contratos não mudam.
+- Spans preservam texto/UTF-16/CRLF/espaços e realces entre limites; nenhum número
+  entra no original selecionável. Trechos longos só dividem após frases completas.
+-631testes/103arquivos,typecheck,ESLint,Prettier/buildweb aprovados. QA com banco
+  readOnly/zeroescritas, Gn3/Jo1,Confissões,CidadeDeDeus,consulta/seleçãoexata3–1103,
+  larguras1440/1024/390; comentário inline mantém o verso mesmo no intervalo entre
+  âncoras. Um aviso inicial React/Vite não se reproduziu com/sem o componente no QA.
+- docs/architecture/desktop-reading-indicators.md e docs/qa/desktop-reading-indicators-2026-10-27.md.
+
 ## Caminhos dos versículos — desktop/web — 2026-10-27
 
 - Escrituras/Leitura: entrada opcional Explorar versículos; linhas independentes,

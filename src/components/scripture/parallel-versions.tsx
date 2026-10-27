@@ -31,7 +31,13 @@ export function ParallelVersions({
         </thead>
         <tbody>
           {verses.map((v) => (
-            <tr key={v.verse} className="align-top odd:bg-muted/30">
+            <tr
+              key={v.verse}
+              id={`verse-${v.verse}`}
+              data-reading-section=""
+              data-reading-label={`Versículo ${v.verse}`}
+              className="align-top odd:bg-muted/30"
+            >
               <td className="py-2 pr-2 text-right font-mono text-xs text-muted-foreground select-none">
                 {v.verse}
               </td>

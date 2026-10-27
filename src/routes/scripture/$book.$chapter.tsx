@@ -53,6 +53,7 @@ import {
   VerseExplorationRow,
 } from "../../components/scripture/verse-exploration";
 import { VerseExplorationDetail } from "../../components/scripture/verse-exploration-detail";
+import { ReadingSectionLayout } from "../../components/common/reading-section-indicators";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // `v`: open the chapter at this verse, selected (links from search, the verse list, notes).
@@ -555,7 +556,7 @@ function ChapterReader() {
 
         <Group orientation="vertical" className="min-h-0 flex-1" id="scripture-reading-layout">
           <Panel id="scripture-text" minSize="25%" defaultSize="62%">
-            <div className="h-full overflow-y-auto" data-reading-scroller="">
+            <ReadingSectionLayout title="Versículos" scrollerAttribute>
               {!bundle ? (
                 <EmptyReader
                   message={t("scripture.notInDemo", {
@@ -829,7 +830,7 @@ function ChapterReader() {
                   </footer>
                 </article>
               )}
-            </div>
+            </ReadingSectionLayout>
           </Panel>
           {dockOpen && bundle && (
             <>

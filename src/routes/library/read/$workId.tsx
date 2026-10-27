@@ -11,6 +11,8 @@ import {
 import { errorMessage } from "@/lib/utils";
 import { useWorkspaceQuery } from "../../../hooks/use-workspace-query";
 import { useIsMobile } from "../../../hooks/use-mobile";
+import { ReadingSectionLayout } from "../../../components/common/reading-section-indicators";
+import { ReadingTextSections } from "../../../components/common/reading-text-sections";
 
 interface ReaderSearch {
   unit?: string;
@@ -247,101 +249,119 @@ function PrimarySourceReader() {
           </nav>
         </aside>
       )}
-      <section aria-label="Texto da obra" className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-        <header className="border-b border-border px-4 py-4 md:px-6">
-          <p className="meta-label flex items-center gap-1.5">
-            <BookOpen className="size-3" /> Fonte primária
-          </p>
-          <h2 className="mt-1 font-serif text-2xl font-semibold">
-            {document.title} · Seção {selected?.address?.section ?? selected?.sequence}
-          </h2>
-          <p className="mt-2 max-w-3xl rounded border border-border bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
-            {languageNotice}
-          </p>
-          <p className="mt-2 max-w-3xl text-xs text-muted-foreground">
-            Direitos da edição:{" "}
-            {document.rights === "Public domain source editions"
-              ? "edições-fonte em domínio público"
-              : document.rights}
-          </p>
-        </header>
-        {selected && (
-          <article className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-8">
-            {document.language === "en" && (
-              <section className="mb-6 rounded-md border border-border bg-muted/20 p-4">
-                <div className="flex flex-wrap items-center justify-between gap-3">
-                  <div>
-                    <h3 className="meta-label flex items-center gap-1.5">
-                      <Languages className="size-3.5" /> Tradução local para português
-                    </h3>
-                    <p className="mt-1 text-xs text-muted-foreground">
-                      Tradução automática auxiliar; o original abaixo permanece canônico.
-                    </p>
+      <section aria-label="Texto da obra" className="min-h-0 min-w-0 flex-1 overflow-hidden">
+        <ReadingSectionLayout
+          title="Trechos da unidade"
+          navigation={{
+            title: "Unidades",
+            count: document.units.length,
+            active: Math.max(
+              0,
+              document.units.findIndex((unit) => unit.id === selected?.id),
+            ),
+            label: (index) =>
+              `Seção ${document.units[index]?.address?.section ?? document.units[index]?.sequence ?? index + 1}`,
+            choose: (index) => {
+              const unit = document.units[index];
+              if (unit) setSelectedId(unit.id);
+            },
+          }}
+        >
+          <header className="border-b border-border px-4 py-4 md:px-6">
+            <p className="meta-label flex items-center gap-1.5">
+              <BookOpen className="size-3" /> Fonte primária
+            </p>
+            <h2 className="mt-1 font-serif text-2xl font-semibold">
+              {document.title} · Seção {selected?.address?.section ?? selected?.sequence}
+            </h2>
+            <p className="mt-2 max-w-3xl rounded border border-border bg-muted/35 px-3 py-2 text-xs text-muted-foreground">
+              {languageNotice}
+            </p>
+            <p className="mt-2 max-w-3xl text-xs text-muted-foreground">
+              Direitos da edição:{" "}
+              {document.rights === "Public domain source editions"
+                ? "edições-fonte em domínio público"
+                : document.rights}
+            </p>
+          </header>
+          {selected && (
+            <article className="mx-auto max-w-3xl px-4 py-6 md:px-6 md:py-8">
+              {document.language === "en" && (
+                <section className="mb-6 rounded-md border border-border bg-muted/20 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-3">
+                    <div>
+                      <h3 className="meta-label flex items-center gap-1.5">
+                        <Languages className="size-3.5" /> Tradução local para português
+                      </h3>
+                      <p className="mt-1 text-xs text-muted-foreground">
+                        Tradução automática auxiliar; o original abaixo permanece canônico.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => void translateSelected()}
+                      disabled={translating || translation === undefined || Boolean(translation)}
+                      className="inline-flex h-9 items-center gap-2 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
+                    >
+                      {translating && <LoaderCircle className="size-3.5 animate-spin" />}
+                      {translation ? "Tradução armazenada" : "Traduzir esta seção"}
+                    </button>
                   </div>
+                  {translation?.translatedText && (
+                    <div className="mt-4 border-t border-border pt-4">
+                      <p className="whitespace-pre-line font-serif text-lg leading-8">
+                        {translation.translatedText}
+                      </p>
+                      <p className="mt-3 font-mono text-xs text-muted-foreground">
+                        Gerada por {translation.model} ·{" "}
+                        {translation.reviewStatus === "human-reviewed"
+                          ? "revisada por humano"
+                          : "não revisada"}
+                      </p>
+                    </div>
+                  )}
+                  {translationError && (
+                    <p role="alert" className="mt-3 text-xs text-destructive">
+                      {translationError} Inicie o perfil Docker “semantic” para usar o modelo local.
+                    </p>
+                  )}
+                </section>
+              )}
+              <p className="meta-label mb-3">Texto original · {document.language}</p>
+              <p
+                id="primary-source-unit-text"
+                className="whitespace-pre-wrap font-serif text-lg leading-8"
+              >
+                <ReadingTextSections text={selected.text} />
+              </p>
+              <section className="mt-10 border-t border-border pt-5">
+                <div className="flex items-center justify-between gap-3">
+                  <h3 className="meta-label">Citação estruturada</h3>
                   <button
                     type="button"
-                    onClick={() => void translateSelected()}
-                    disabled={translating || translation === undefined || Boolean(translation)}
-                    className="inline-flex h-9 items-center gap-2 rounded bg-primary px-3 text-xs text-primary-foreground disabled:opacity-50"
+                    onClick={() =>
+                      void navigator.clipboard.writeText(citation).then(() => setCopied(true))
+                    }
+                    className="inline-flex items-center gap-1 rounded border border-input px-2 py-1 text-xs"
                   >
-                    {translating && <LoaderCircle className="size-3.5 animate-spin" />}
-                    {translation ? "Tradução armazenada" : "Traduzir esta seção"}
+                    {copied ? <Check className="size-3" /> : <Clipboard className="size-3" />}{" "}
+                    {copied ? "Copiada" : "Copiar"}
                   </button>
                 </div>
-                {translation?.translatedText && (
-                  <div className="mt-4 border-t border-border pt-4">
-                    <p className="whitespace-pre-line font-serif text-lg leading-8">
-                      {translation.translatedText}
-                    </p>
-                    <p className="mt-3 font-mono text-xs text-muted-foreground">
-                      Gerada por {translation.model} ·{" "}
-                      {translation.reviewStatus === "human-reviewed"
-                        ? "revisada por humano"
-                        : "não revisada"}
-                    </p>
-                  </div>
-                )}
-                {translationError && (
-                  <p role="alert" className="mt-3 text-xs text-destructive">
-                    {translationError} Inicie o perfil Docker “semantic” para usar o modelo local.
-                  </p>
-                )}
+                <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{citation}</p>
               </section>
-            )}
-            <p className="meta-label mb-3">Texto original · {document.language}</p>
-            <p
-              id="primary-source-unit-text"
-              className="whitespace-pre-wrap font-serif text-lg leading-8"
-            >
-              {selected.text}
-            </p>
-            <section className="mt-10 border-t border-border pt-5">
-              <div className="flex items-center justify-between gap-3">
-                <h3 className="meta-label">Citação estruturada</h3>
-                <button
-                  type="button"
-                  onClick={() =>
-                    void navigator.clipboard.writeText(citation).then(() => setCopied(true))
-                  }
-                  className="inline-flex items-center gap-1 rounded border border-input px-2 py-1 text-xs"
-                >
-                  {copied ? <Check className="size-3" /> : <Clipboard className="size-3" />}{" "}
-                  {copied ? "Copiada" : "Copiar"}
-                </button>
-              </div>
-              <p className="mt-2 text-xs leading-relaxed text-muted-foreground">{citation}</p>
-            </section>
-            <SourceSelectionAction
-              elementId="primary-source-unit-text"
-              source={{
-                kind: "primary-text",
-                workId: document.id,
-                unitId: selected.id,
-                title: document.title,
-              }}
-            />
-          </article>
-        )}
+              <SourceSelectionAction
+                elementId="primary-source-unit-text"
+                source={{
+                  kind: "primary-text",
+                  workId: document.id,
+                  unitId: selected.id,
+                  title: document.title,
+                }}
+              />
+            </article>
+          )}
+        </ReadingSectionLayout>
       </section>
     </div>
   );
