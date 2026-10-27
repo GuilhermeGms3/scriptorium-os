@@ -8,7 +8,7 @@ import type {
 } from "../domain/corpus";
 import type { GeneratedCorpusManifest } from "../domain/generated-corpus";
 
-/** A public-domain eBible.org USFM edition: what changes from one to the next. */
+/** An eBible.org USFM edition we may redistribute: what changes from one to the next. */
 export interface EbibleRegistration {
   dataset: GeneratedCorpusManifest;
   /** eBible id, as in https://ebible.org/details.php?id=<code>. */
@@ -26,6 +26,57 @@ export interface EbibleRegistration {
   authorsOrEditors: string[];
   recommendedCitation: string;
   reviewNote: string;
+  /** Absent for public-domain texts; otherwise the open license declared at the source. */
+  openLicense?: { id: string; name: string; url: string; copyrightHolder: string };
+}
+
+/** The license record of an edition: public domain, or an open license that asks for credit. */
+function licenseOf(registration: EbibleRegistration, detailsUrl: string) {
+  const open = registration.openLicense;
+  if (!open)
+    return {
+      id: "Public-Domain",
+      name: "Public Domain",
+      status: "public-domain" as const,
+      redistributionAllowed: true,
+      commercialUseAllowed: true,
+      attributionRequired: false,
+      mayStore: true,
+      mayRedistribute: true,
+      mayModify: true,
+      mayUseCommercially: true,
+      sourceUrl: detailsUrl,
+      permissions: {
+        redistribution: "yes" as const,
+        modification: "yes" as const,
+        commercialUse: "yes" as const,
+        shareAlike: "no" as const,
+        attribution: "no" as const,
+      },
+    };
+  return {
+    id: open.id,
+    name: open.name,
+    url: open.url,
+    status: "open-license" as const,
+    copyrightHolder: open.copyrightHolder,
+    redistributionAllowed: true,
+    commercialUseAllowed: true,
+    attributionRequired: true,
+    attributionText: registration.recommendedCitation,
+    mayStore: true,
+    mayRedistribute: true,
+    mayModify: true,
+    mayUseCommercially: true,
+    sourceUrl: detailsUrl,
+    permissions: {
+      redistribution: "yes" as const,
+      modification: "yes" as const,
+      commercialUse: "yes" as const,
+      shareAlike: "yes" as const,
+      attribution: "yes" as const,
+    },
+  };
 }
 
 /** Corpus, edition, source artifact and package records of an eBible edition, rights verified. */
@@ -35,6 +86,7 @@ export function ebibleRegistration(registration: EbibleRegistration) {
   const detailsUrl = `https://ebible.org/details.php?id=${code}`;
   const artifactId = dataset.sourceArtifactIds[0]!;
   const packageId = dataset.packageId;
+  const license = licenseOf(registration, detailsUrl);
 
   const corpus: CorpusIdentity = {
     id: dataset.corpusId,
@@ -56,7 +108,7 @@ export function ebibleRegistration(registration: EbibleRegistration) {
     version,
     revision: dataset.sourceRevision,
     releaseDate: version,
-    licenseId: "Public-Domain",
+    licenseId: license.id,
   };
 
   const artifact: SourceArtifact = {
@@ -97,30 +149,11 @@ export function ebibleRegistration(registration: EbibleRegistration) {
       status: "verified",
       declaredBy: "eBible.org",
       declaredAtSource: detailsUrl,
-      license: {
-        id: "Public-Domain",
-        name: "Public Domain",
-        status: "public-domain",
-        redistributionAllowed: true,
-        commercialUseAllowed: true,
-        attributionRequired: false,
-        mayStore: true,
-        mayRedistribute: true,
-        mayModify: true,
-        mayUseCommercially: true,
-        sourceUrl: detailsUrl,
-        permissions: {
-          redistribution: "yes",
-          modification: "yes",
-          commercialUse: "yes",
-          shareAlike: "no",
-          attribution: "no",
-        },
-      },
+      license,
       attribution: {
         work: registration.work,
         authorsOrEditors: registration.authorsOrEditors,
-        license: "Public Domain",
+        license: license.name,
         canonicalSource: detailsUrl,
         recommendedCitation: registration.recommendedCitation,
       },
@@ -130,8 +163,8 @@ export function ebibleRegistration(registration: EbibleRegistration) {
           sourceUrl: detailsUrl,
           sourceKind: "project-website",
           observedAt: registration.retrievedAt,
-          licenseId: "Public-Domain",
-          licenseName: "Public Domain",
+          licenseId: license.id,
+          licenseName: license.name,
         },
       ],
       reviewNote: registration.reviewNote,

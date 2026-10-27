@@ -54,6 +54,66 @@
     "editionStatus": "stable",
     "redistributionStatus": "redistributable"
   },
+  "eBibleNovaBibliaViva": {
+    "revision": "2026-10-27",
+    "url": "https://ebible.org/Scriptures/poronbv_usfm.zip",
+    "details": "https://ebible.org/details.php?id=poronbv",
+    "sha256": "3085d59184ce7912c9c85ad9f4f843b2393497e9dc2c6690e2313c1dfa63a486",
+    "sizeBytes": 1717117,
+    "works": 66,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Nova Bíblia Viva (Biblica® Open), © 2007, 2010 Biblica, Inc., eBible.org.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
+  "eBibleBibliaLivreParaTodos": {
+    "revision": "2026-10-27",
+    "url": "https://ebible.org/Scriptures/porblt_usfm.zip",
+    "details": "https://ebible.org/details.php?id=porblt",
+    "sha256": "a4d8ad26fa48612b3ac62e8d7d518dc906eec889c1d59643d7508a101d1ab76c",
+    "sizeBytes": 468232,
+    "works": 27,
+    "license": "CC BY-SA 4.0",
+    "attribution": "Bíblia Livre Para Todos (Novo Testamento), © 2022 Free Bible Ministry, Inc., eBible.org.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
+  "eBibleWorldEnglishBible": {
+    "revision": "2026-10-27",
+    "url": "https://ebible.org/Scriptures/engwebp_usfm.zip",
+    "details": "https://ebible.org/details.php?id=engwebp",
+    "sha256": "d2a7c9640820003d8ed475ce6d92cc990b0447fe96ce72fd0df17c0dac9d95fe",
+    "sizeBytes": 2908005,
+    "works": 66,
+    "license": "Public Domain",
+    "attribution": "World English Bible, eBible.org.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
+  "eBibleReinaValera1909": {
+    "revision": "2026-10-27",
+    "url": "https://ebible.org/Scriptures/spaRV1909_usfm.zip",
+    "details": "https://ebible.org/details.php?id=spaRV1909",
+    "sha256": "b8c5f45ef19a6d26faa0844dedbb2c8aceefd8698f5ed1e070878f41715b1869",
+    "sizeBytes": 2384899,
+    "works": 66,
+    "license": "Public Domain",
+    "attribution": "Santa Biblia Reina-Valera 1909, eBible.org.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
+  "eBibleVulgataClementina": {
+    "revision": "2026-10-27",
+    "url": "https://ebible.org/Scriptures/latVUC_usfm.zip",
+    "details": "https://ebible.org/details.php?id=latVUC",
+    "sha256": "439d1789e021e3209125270dd2e3476f9ff7e99fea2a0349778655e4e40b7826",
+    "sizeBytes": 3554559,
+    "works": 73,
+    "license": "Public Domain",
+    "attribution": "Biblia Sacra Vulgata Clementina (1598), eBible.org.",
+    "editionStatus": "stable",
+    "redistributionStatus": "redistributable"
+  },
   "copticScriptoriumThomas": {
     "revision": "3ac067f1709a0012daf39ea8da2fac79980176a5",
     "url": "https://raw.githubusercontent.com/CopticScriptorium/corpora/3ac067f1709a0012daf39ea8da2fac79980176a5/thomas-gospel/thomas.gospel_TEI/thomas_gospel.xml",

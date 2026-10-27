@@ -27,6 +27,7 @@
     "content:import:bpm": "tsx scripts/content/import-ebible-bpm.ts",
     "content:fetch:kjv": "tsx scripts/content/fetch-ebible-kjv.ts",
     "content:import:kjv": "tsx scripts/content/import-ebible-kjv.ts",
+    "content:ebible": "tsx scripts/content/ebible-editions.ts",
     "content:import:contextual": "tsx scripts/content/import-contextual-reading.ts",
     "content:import:thematic": "tsx scripts/content/import-thematic-readings.ts",
     "library:enqueue": "tsx scripts/content/process-library-queue.ts enqueue",

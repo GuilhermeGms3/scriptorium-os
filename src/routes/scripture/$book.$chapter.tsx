@@ -624,6 +624,7 @@ function ChapterReader() {
                       editions={editions.filter(
                         (e) => e.kind === "translation" || e.kind === "original-language",
                       )}
+                      currentEditionId={effectiveEditionId}
                     />
                   )}
 

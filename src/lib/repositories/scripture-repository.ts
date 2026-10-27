@@ -28,6 +28,7 @@ import bibliaLivreManifestJson from "../../../generated/corpora/biblia-livre/202
 import oshbManifestJson from "../../../generated/corpora/wlc/2.2/manifest.json";
 import bibliaPortuguesaMundialManifestJson from "../../../generated/corpora/biblia-portuguesa-mundial/2026-08-19/manifest.json";
 import kingJamesManifestJson from "../../../generated/corpora/king-james-version/2026-09-26/manifest.json";
+import { ebibleEditionManifests, ebibleReaderEditions } from "./ebible-editions-registration";
 import { BIBLIA_LIVRE_EDITION, BIBLIA_LIVRE_EDITION_ID } from "../corpus-config/biblia-livre";
 
 export type EditionPassageQuery = {
@@ -109,6 +110,7 @@ const MANIFEST_BY_EDITION = new Map<string, GeneratedCorpusManifest>([
   [OSHB_MANIFEST.editionId, OSHB_MANIFEST],
   [BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.editionId, BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST],
   [KING_JAMES_MANIFEST.editionId, KING_JAMES_MANIFEST],
+  ...ebibleEditionManifests.map((manifest) => [manifest.editionId, manifest] as const),
 ]);
 const CANONICAL_BOOKS: Book[] = BIBLIA_LIVRE_MANIFEST.books.map((book) => ({
   id: book.id,
@@ -119,10 +121,11 @@ const CANONICAL_BOOKS: Book[] = BIBLIA_LIVRE_MANIFEST.books.map((book) => ({
   testament: book.order <= 39 ? "ot" : "nt",
 }));
 const CANONICAL_BOOK_IDS = new Set(CANONICAL_BOOKS.map((book) => book.id));
-// Apocrypha of the BPM, then the ones only the KJV has (Susanna, Bel, the additions to Esther…).
+// Apocrypha of the BPM, then the ones only the KJV or the Vulgate has (Susanna, Bel, additions…).
 const ADDITIONAL_BOOKS: Book[] = [
   ...BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.books,
   ...KING_JAMES_MANIFEST.books,
+  ...ebibleEditionManifests.flatMap((manifest) => manifest.books),
 ]
   .filter(
     (book, index, all) =>
@@ -292,6 +295,7 @@ export const ScriptureRepository = {
       BIBLIA_LIVRE_READER_EDITION,
       BIBLIA_PORTUGUESA_MUNDIAL_EDITION,
       KING_JAMES_EDITION,
+      ...ebibleReaderEditions,
       SBLGNT_EDITION,
       OSHB_EDITION,
     ];
