@@ -4,7 +4,7 @@ import {
   type ReaderContextFilter,
 } from "../../lib/domain/reader-context-filter";
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { Library } from "lucide-react";
+import { Library, Route as RouteIcon } from "lucide-react";
 import { ScriptureAudioActions } from "../../components/audio/scripture-audio-actions";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Group, Panel, Separator } from "react-resizable-panels";
@@ -44,6 +44,16 @@ import {
   type WorkspacePassageKnowledgeItem,
 } from "../../lib/domain/workspace-passage-knowledge";
 import type { LinguisticAnnotation } from "../../lib/domain/linguistic";
+import {
+  buildVerseExploration,
+  type VerseExplorationBlock,
+} from "../../lib/domain/verse-exploration";
+import {
+  ExplorationLegend,
+  VerseExplorationRow,
+} from "../../components/scripture/verse-exploration";
+import { VerseExplorationDetail } from "../../components/scripture/verse-exploration-detail";
+import { ReadingSectionLayout } from "../../components/common/reading-section-indicators";
 
 export const Route = createFileRoute("/scripture/$book/$chapter")({
   // `v`: open the chapter at this verse, selected (links from search, the verse list, notes).
@@ -100,7 +110,12 @@ function ChapterReader() {
   const { edition: requestedEdition, v: requestedVerse } = Route.useSearch();
   const navigate = Route.useNavigate();
   const chapter = Number(chapterParam);
-  const { setPassageContext, selectWord, readingPrefs, setInspectorOpen } = useWorkbench();
+  const { setPassageContext, selectWord, readingPrefs, setInspectorOpen, notes } = useWorkbench();
+  const [exploring, setExploring] = useState(false);
+  const [explorationSelection, setExplorationSelection] = useState<{
+    block: VerseExplorationBlock;
+    verse: number;
+  } | null>(null);
 
   const [editionId, setEditionId] = useState(
     () => requestedEdition ?? ScriptureKnowledgeEngine.defaultEditionId(bookId, chapter),
@@ -134,6 +149,7 @@ function ChapterReader() {
   const [hiddenSources, setHiddenSources] = useHiddenCommentarySources();
   const { markOf } = useVerseMarks();
   const isMobile = useIsMobile();
+  const explorationActive = exploring && !isMobile && view === "single";
   const [domainFilter, setDomainFilter] = useState("");
   const [contextFilter, setContextFilter] = useState<ReaderContextFilter>({
     tradition: "",
@@ -257,6 +273,7 @@ function ChapterReader() {
     setOpenVerses(new Set());
     setSelectedVerse(null);
     setDockVerse(1);
+    setExplorationSelection(null);
     // A subject chosen in another chapter may not exist here; it used to hide every comment.
     setDomainFilter("");
   }, [activeRef]);
@@ -307,7 +324,12 @@ function ChapterReader() {
       contextualCommentary(
         (privateKnowledge?.items ?? []).filter(
           (item) =>
-            belongsInChapterOverview(item, density === "summary", bookId, chapter) &&
+            belongsInChapterOverview(
+              item,
+              explorationActive || density === "summary",
+              bookId,
+              chapter,
+            ) &&
             !hiddenSources.has(item.document.id) &&
             (!domainFilter ||
               item.proposals.some(
@@ -317,7 +339,7 @@ function ChapterReader() {
               )),
         ),
       ),
-    [bookId, chapter, density, domainFilter, hiddenSources, privateKnowledge],
+    [bookId, chapter, density, domainFilter, hiddenSources, privateKnowledge, explorationActive],
   );
   const privateDomains = useMemo(
     () =>
@@ -342,6 +364,36 @@ function ChapterReader() {
       ]),
     );
   }, [bookId, bundle, chapter, privateKnowledge]);
+  const explorationPaths = useMemo(
+    () =>
+      bundle && explorationActive
+        ? buildVerseExploration(
+            bundle,
+            (privateKnowledge?.items ?? []).filter(
+              (item) =>
+                !hiddenSources.has(item.document.id) &&
+                !belongsInChapterOverview(item, true, bookId, chapter) &&
+                (!domainFilter ||
+                  item.proposals.some(
+                    (proposal) =>
+                      proposal.payload.kind === "topic-assignment" &&
+                      proposal.payload.domain === domainFilter,
+                  )),
+            ),
+            notes,
+          )
+        : new Map<number, VerseExplorationBlock[]>(),
+    [
+      bundle,
+      explorationActive,
+      privateKnowledge,
+      hiddenSources,
+      domainFilter,
+      notes,
+      bookId,
+      chapter,
+    ],
+  );
   const annotationsByToken = useMemo(() => {
     const byToken = new Map<string, LinguisticAnnotation[]>();
     if (bundle && hasAvailableData(bundle.linguisticAnnotations))
@@ -431,7 +483,9 @@ function ChapterReader() {
       : null,
   );
   const sourceBar =
-    commentaryLayout !== "hidden" && view === "single" && privateSources.length > 0 ? (
+    (commentaryLayout !== "hidden" || explorationActive) &&
+    view === "single" &&
+    privateSources.length > 0 ? (
       <CommentarySourceBar
         sources={privateSources.map((source) => ({ id: source.id, title: source.title }))}
         hidden={hiddenSources}
@@ -503,7 +557,7 @@ function ChapterReader() {
 
         <Group orientation="vertical" className="min-h-0 flex-1" id="scripture-reading-layout">
           <Panel id="scripture-text" minSize="25%" defaultSize="62%">
-            <div className="h-full overflow-y-auto" data-reading-scroller="">
+            <ReadingSectionLayout title="Versículos" scrollerAttribute>
               {!bundle ? (
                 <EmptyReader
                   message={t("scripture.notInDemo", {
@@ -512,7 +566,13 @@ function ChapterReader() {
                   hint={t("scripture.demoChapters")}
                 />
               ) : (
-                <article className="mx-auto max-w-3xl px-5 py-6 md:px-8">
+                <article
+                  className={
+                    explorationActive
+                      ? "mx-auto w-full max-w-[110rem] px-5 py-6 md:px-8"
+                      : "mx-auto max-w-3xl px-5 py-6 md:px-8"
+                  }
+                >
                   <header className="mb-5 border-b border-border pb-3">
                     <p className="meta-label">
                       {view === "parallel"
@@ -522,7 +582,30 @@ function ChapterReader() {
                     <h1 className="mt-1 font-serif text-2xl font-semibold tracking-tight">
                       {bookLabel(book.id, book.name)} {chapter}
                     </h1>
+                    {!isMobile && view === "single" && (
+                      <Button
+                        type="button"
+                        variant={explorationActive ? "secondary" : "outline"}
+                        size="sm"
+                        className="mt-3 gap-2"
+                        aria-pressed={explorationActive}
+                        onClick={() => setExploring((value) => !value)}
+                      >
+                        <RouteIcon className="size-4" aria-hidden="true" />
+                        {explorationActive ? "Voltar à leitura contínua" : "Explorar versículos"}
+                      </Button>
+                    )}
                   </header>
+                  {explorationActive && (
+                    <>
+                      <ExplorationLegend />
+                      {privateKnowledgeQuery.isPending && (
+                        <p role="status" className="mb-3 text-sm text-muted-foreground">
+                          Carregando os caminhos da biblioteca…
+                        </p>
+                      )}
+                    </>
+                  )}
 
                   {unconfirmedItems.length > 0 && (
                     <div
@@ -553,7 +636,7 @@ function ChapterReader() {
                       filtros para consultar as demais fontes.
                     </p>
                   ) : null}
-                  {showExplanations && chapterOverview.length > 0 && (
+                  {(showExplanations || explorationActive) && chapterOverview.length > 0 && (
                     <details className="mb-6 rounded-md border border-border bg-muted/10 px-4 py-3">
                       <summary className="cursor-pointer text-sm font-medium">
                         Panorama do capítulo · {chapterOverview.length}{" "}
@@ -573,10 +656,21 @@ function ChapterReader() {
                   {privateKnowledgeError ? (
                     <p role="alert" className="mb-4 text-xs text-destructive">
                       A biblioteca privada não pôde ser carregada: {privateKnowledgeError}
+                      {explorationActive && (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="ml-2"
+                          onClick={() => void privateKnowledgeQuery.refetch()}
+                        >
+                          Tentar novamente
+                        </Button>
+                      )}
                     </p>
                   ) : null}
 
-                  {view === "single" && (
+                  {view === "single" && !explorationActive && (
                     <div className="reading-text">
                       {bundle.passage.verses.map((v) => (
                         // In paragraph reading the verses flow as one text; only a verse with a
@@ -616,6 +710,46 @@ function ChapterReader() {
                         </div>
                       ))}
                     </div>
+                  )}
+
+                  {explorationActive && (
+                    <div className="reading-text">
+                      {bundle.passage.verses.map((v) => (
+                        <VerseExplorationRow
+                          key={v.verse}
+                          verse={v.verse}
+                          blocks={explorationPaths.get(v.verse) ?? []}
+                          onOpen={(block, verse) => {
+                            setSelectedVerse(verse);
+                            setExplorationSelection({ block, verse });
+                          }}
+                        >
+                          <Verse
+                            verse={v}
+                            editionId={effectiveEditionId}
+                            bookName={bookLabel(book.id, book.name)}
+                            chapter={chapter}
+                            verseMode="verse"
+                            selected={selectedVerse === v.verse}
+                            mark={markOf({ bookId, chapter, verse: v.verse })}
+                            onSelect={() => {
+                              setSelectedVerse(v.verse);
+                              if (dockOpen) setDockVerse(v.verse);
+                              else setInspectorOpen(true);
+                            }}
+                          />
+                        </VerseExplorationRow>
+                      ))}
+                    </div>
+                  )}
+                  {explorationSelection && (
+                    <VerseExplorationDetail
+                      key={`${bookId}:${chapter}:${explorationSelection.block.id}`}
+                      block={explorationSelection.block}
+                      verse={explorationSelection.verse}
+                      bundle={bundle}
+                      onClose={() => setExplorationSelection(null)}
+                    />
                   )}
 
                   {view === "parallel" && (
@@ -698,7 +832,7 @@ function ChapterReader() {
                   </footer>
                 </article>
               )}
-            </div>
+            </ReadingSectionLayout>
           </Panel>
           {dockOpen && bundle && (
             <>

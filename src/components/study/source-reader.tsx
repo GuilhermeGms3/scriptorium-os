@@ -20,6 +20,8 @@ import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { errorMessage } from "../../lib/utils";
 import { useStudyDraftGuard } from "../../hooks/use-study-draft-guard";
 import { passageRefKey } from "../../lib/domain/scripture";
+import { ReadingSectionLayout } from "../common/reading-section-indicators";
+import { ReadingTextSections } from "../common/reading-text-sections";
 
 export function SourceReaderProvider({ children }: { children: ReactNode }) {
   const { passageContext, setInspectorOpen } = useWorkbench();
@@ -162,134 +164,138 @@ function SourceReading({
           Escrever uma nota
         </Button>
       </div>
-      <div className="grid min-h-0 min-w-0 flex-1 gap-6 overflow-y-auto lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
-        <section ref={sourceText} className="min-w-0" aria-label="Conteúdo da fonte">
-          {reading.context && (
-            <p className="mb-3 text-xs text-muted-foreground">{reading.context}</p>
-          )}
-          {source.kind === "private-document" && (
-            <div className="flex flex-col gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="self-start"
-                aria-expanded={showPage}
-                onClick={() => setShowPage((value) => !value)}
-              >
-                {showPage ? "Recolher página original" : "Ver página original"}
-              </Button>
-              {showPage && (
-                <SourcePagePreview
-                  documentId={source.documentId}
-                  page={source.page}
-                  caption={reading.caption ?? source.title}
-                />
-              )}
-            </div>
-          )}
-          {query.isPending && <p role="status">Carregando trecho original…</p>}
-          {query.error && (
-            <div role="alert">
-              <p>{errorMessage(query.error)}</p>
-              <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
-                Tentar novamente
-              </Button>
-            </div>
-          )}
-          {query.data && (
-            <>
-              {query.data.metadataOnly && reading.excerpt && (
-                <blockquote className="my-3 whitespace-pre-wrap border-l-2 border-primary/40 pl-3 font-serif">
-                  {reading.excerpt}
-                </blockquote>
-              )}
-              <p className="my-3 meta-label">
-                {query.data.metadataOnly
-                  ? "Registro bibliográfico"
-                  : `Texto original · ${query.data.language}`}
-              </p>
-              <p
-                ref={originalText}
-                className="whitespace-pre-wrap break-words font-serif text-base leading-relaxed"
-              >
-                {selection && sourceSelectionMatches(query.data.text, selection) ? (
-                  <>
-                    {query.data.text.slice(0, selection.start)}
-                    <mark>{selection.quote}</mark>
-                    {query.data.text.slice(selection.end)}
-                  </>
-                ) : (
-                  query.data.text ||
-                  "Esta página não possui texto extraído. Consulte a imagem original."
-                )}
-              </p>
-              {!query.data.metadataOnly && (
+      <ReadingSectionLayout title="Trechos da fonte">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+          <section ref={sourceText} className="min-w-0" aria-label="Conteúdo da fonte">
+            {reading.context && (
+              <p className="mb-3 text-xs text-muted-foreground">{reading.context}</p>
+            )}
+            {source.kind === "private-document" && (
+              <div className="flex flex-col gap-2">
                 <Button
-                  className="my-3"
-                  size="sm"
+                  type="button"
                   variant="outline"
-                  onMouseDown={(event) => event.preventDefault()}
-                  onClick={() => {
-                    const captured = originalText.current
-                      ? captureSourceSelection(originalText.current)
-                      : null;
-                    if (captured) {
-                      setSelection(captured);
-                      setSelectionStatus("");
-                    } else {
-                      setSelectionStatus("Selecione primeiro um trecho do texto original acima.");
-                    }
-                  }}
+                  size="sm"
+                  className="self-start"
+                  aria-expanded={showPage}
+                  onClick={() => setShowPage((value) => !value)}
                 >
-                  Marcar seleção para a nota
+                  {showPage ? "Recolher página original" : "Ver página original"}
                 </Button>
-              )}
-              {selectionStatus && (
-                <p role="status" className="my-2 text-sm">
-                  {selectionStatus}
+                {showPage && (
+                  <SourcePagePreview
+                    documentId={source.documentId}
+                    page={source.page}
+                    caption={reading.caption ?? source.title}
+                  />
+                )}
+              </div>
+            )}
+            {query.isPending && <p role="status">Carregando trecho original…</p>}
+            {query.error && (
+              <div role="alert">
+                <p>{errorMessage(query.error)}</p>
+                <Button variant="outline" size="sm" onClick={() => void query.refetch()}>
+                  Tentar novamente
+                </Button>
+              </div>
+            )}
+            {query.data && (
+              <>
+                {query.data.metadataOnly && reading.excerpt && (
+                  <blockquote className="my-3 whitespace-pre-wrap border-l-2 border-primary/40 pl-3 font-serif">
+                    {reading.excerpt}
+                  </blockquote>
+                )}
+                <p className="my-3 meta-label">
+                  {query.data.metadataOnly
+                    ? "Registro bibliográfico"
+                    : `Texto original · ${query.data.language}`}
                 </p>
-              )}
-              {selection && (
-                <p className="my-2 text-xs text-muted-foreground">
-                  {sourceSelectionMatches(query.data.text, selection)
-                    ? "Seleção vinculada à nota; o destaque reaparece ao consultar sua fonte."
-                    : "O texto original mudou: seleção anterior preservada, mas não destacada nesta versão."}
+                <p
+                  ref={originalText}
+                  className="whitespace-pre-wrap break-words font-serif text-base leading-relaxed"
+                >
+                  {query.data.text ? (
+                    <ReadingTextSections
+                      text={query.data.text}
+                      marks={
+                        selection && sourceSelectionMatches(query.data.text, selection)
+                          ? [selection]
+                          : []
+                      }
+                    />
+                  ) : (
+                    "Esta página não possui texto extraído. Consulte a imagem original."
+                  )}
                 </p>
-              )}
-              {source.kind !== "bibliographic" && (
-                <PageTranslation
-                  id={
-                    source.unitId ??
-                    `${source.kind === "private-document" ? source.documentId + ":page:" + source.page : source.workId}`
-                  }
-                  text={query.data.text}
-                  language={query.data.language}
-                  sourceKind={
-                    source.kind === "private-document" ? "private-segment" : "primary-text-unit"
-                  }
-                />
-              )}
-            </>
-          )}
-          {externalUrl && (
-            <Button className="ml-2 mt-5" variant="outline" asChild>
-              <a href={externalUrl} target="_blank" rel="noreferrer">
-                Consultar site da fonte
-              </a>
-            </Button>
-          )}
-        </section>
-        <div ref={noteForm} className="min-w-0">
-          <SourceNoteEditor
-            reading={reading}
-            source={
-              source.kind !== "bibliographic" && selection ? { ...source, selection } : source
-            }
-            onDirty={onDirty}
-          />
+                {!query.data.metadataOnly && (
+                  <Button
+                    className="my-3"
+                    size="sm"
+                    variant="outline"
+                    onMouseDown={(event) => event.preventDefault()}
+                    onClick={() => {
+                      const captured = originalText.current
+                        ? captureSourceSelection(originalText.current)
+                        : null;
+                      if (captured) {
+                        setSelection(captured);
+                        setSelectionStatus("");
+                      } else {
+                        setSelectionStatus("Selecione primeiro um trecho do texto original acima.");
+                      }
+                    }}
+                  >
+                    Marcar seleção para a nota
+                  </Button>
+                )}
+                {selectionStatus && (
+                  <p role="status" className="my-2 text-sm">
+                    {selectionStatus}
+                  </p>
+                )}
+                {selection && (
+                  <p className="my-2 text-xs text-muted-foreground">
+                    {sourceSelectionMatches(query.data.text, selection)
+                      ? "Seleção vinculada à nota; o destaque reaparece ao consultar sua fonte."
+                      : "O texto original mudou: seleção anterior preservada, mas não destacada nesta versão."}
+                  </p>
+                )}
+                {source.kind !== "bibliographic" && (
+                  <PageTranslation
+                    id={
+                      source.unitId ??
+                      `${source.kind === "private-document" ? source.documentId + ":page:" + source.page : source.workId}`
+                    }
+                    text={query.data.text}
+                    language={query.data.language}
+                    sourceKind={
+                      source.kind === "private-document" ? "private-segment" : "primary-text-unit"
+                    }
+                  />
+                )}
+              </>
+            )}
+            {externalUrl && (
+              <Button className="ml-2 mt-5" variant="outline" asChild>
+                <a href={externalUrl} target="_blank" rel="noreferrer">
+                  Consultar site da fonte
+                </a>
+              </Button>
+            )}
+          </section>
+          <div ref={noteForm} className="min-w-0">
+            <SourceNoteEditor
+              reading={reading}
+              source={
+                source.kind !== "bibliographic" && selection ? { ...source, selection } : source
+              }
+              onDirty={onDirty}
+            />
+          </div>
         </div>
-      </div>
+      </ReadingSectionLayout>
     </>
   );
 }

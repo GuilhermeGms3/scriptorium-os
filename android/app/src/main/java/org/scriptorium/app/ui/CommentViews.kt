@@ -3,6 +3,8 @@ package org.scriptorium.app.ui
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.ui.semantics.Role
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.material3.*
@@ -49,32 +51,35 @@ internal fun CommentToolbar(comments: List<Row>, count: Int, explanations: Boole
             TextButton(onClick = toggleFilters) { Text("Filtrar${if (category != null || document != null) " ●" else " ▾"}") }
             Spacer(Modifier.weight(1f))
         }
-        if (filtersOpen) CommentFilters(comments, category, document, chooseCategory, chooseDocument)
+        if (filtersOpen) CommentFilters(comments, category, document, chooseCategory, chooseDocument, toggleFilters)
     }
 }
 
 @Composable
-internal fun CommentFilters(comments: List<Row>, category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit) {
-    Column(Modifier.padding(horizontal = 12.dp)) {
-        Text("Assunto e fonte", style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
+internal fun CommentFilters(comments: List<Row>, category: String?, document: String?, chooseCategory: (String?) -> Unit, chooseDocument: (String?) -> Unit, close: () -> Unit) {
+    AlertDialog(onDismissRequest = close, title = { Text("Filtrar comentários") },
+        confirmButton = { TextButton(onClick = close) { Text("Concluir") } },
+        dismissButton = { if (category != null || document != null) TextButton(onClick = { chooseCategory(null); chooseDocument(null) }) { Text("Limpar filtros") } },
+        text = { Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         val categories = comments.flatMap { it.commentCategories() }.distinct().sorted()
         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
             item { FilterChip(category == null, { chooseCategory(null) }, label = { Text("Todos") }) }
             if (categories.any { it in setOf("Exegese", "Comentário bíblico") }) item { FilterChip(category == "Exegese e comentário bíblico", { chooseCategory("Exegese e comentário bíblico") }, label = { Text("Exegese e comentário bíblico") }) }
             items(categories) { name -> FilterChip(category == name, { chooseCategory(if (category == name) null else name) }, label = { Text(if (name == "Catequese e confissão") "Catecismo e confissão" else name) }) }
         }
-        var menu by remember { mutableStateOf(false) }
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            Box(Modifier.weight(1f)) {
-                TextButton(onClick = { menu = true }) { Text("Fonte: ${comments.find { it.text("document_id") == document }?.text("source_title") ?: if (document == null) "todas" else "selecionada"} ▾", maxLines = 2) }
-                DropdownMenu(menu, { menu = false }) {
-                    DropdownMenuItem(text = { Text("Todas as fontes") }, onClick = { chooseDocument(null); menu = false })
-                    comments.distinctBy { it.text("document_id") }.forEach { row -> DropdownMenuItem(text = { Text(row.text("source_title")) }, onClick = { chooseDocument(row.text("document_id")); menu = false }) }
+        LazyColumn(Modifier.heightIn(max = 300.dp)) {
+            item { Row(Modifier.fillMaxWidth().selectable(document == null, role = Role.RadioButton, onClick = { chooseDocument(null) }).padding(vertical = 4.dp), verticalAlignment = Alignment.CenterVertically) {
+                RadioButton(document == null, onClick = null)
+                Text("Todas as fontes", Modifier.padding(start = 8.dp), style = MaterialTheme.typography.bodyMedium)
+            } }
+            items(comments.distinctBy { it.text("document_id") }, key = { it.text("document_id") }) { row ->
+                Row(Modifier.fillMaxWidth().selectable(document == row.text("document_id"), role = Role.RadioButton, onClick = { chooseDocument(row.text("document_id")) }).padding(vertical = 6.dp), verticalAlignment = Alignment.CenterVertically) {
+                    RadioButton(document == row.text("document_id"), onClick = null)
+                    Text(row.text("source_title"), Modifier.padding(start = 8.dp).weight(1f), style = MaterialTheme.typography.bodyMedium)
                 }
             }
-            if (category != null || document != null) TextButton(onClick = { chooseCategory(null); chooseDocument(null) }) { Text("Limpar filtros") }
         }
-    }
+    } })
 }
 
 @Composable
@@ -96,7 +101,7 @@ internal fun CommentsDock(groups: List<CommentGroup>, activeVerse: Int?, referen
             }
             if (expanded) {
                 if (!explanations) TextButton(onClick = { toggle(true) }) { Text("Mostrar comentários") }
-                if (filtersOpen) CommentFilters(all, category, document, chooseCategory, chooseDocument)
+                if (filtersOpen) CommentFilters(all, category, document, chooseCategory, chooseDocument, toggleFilters)
                 LazyColumn(state = list, modifier = Modifier.weight(1f), contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
                     if (groups.isEmpty()) item { Text(if (!explanations) "Ative Mostrar para consultar as fontes." else "Nenhum comentário corresponde a este capítulo e aos filtros.", style = MaterialTheme.typography.bodySmall) }
                     groups.forEach { group ->

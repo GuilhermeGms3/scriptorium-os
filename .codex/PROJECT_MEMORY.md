@@ -1,5 +1,64 @@
 # Project Memory
 
+## Indicador mobile restaurado — Android0.6.10 — 2026-10-27
+
+- Pedido explícito: indicador do celular volta ao anterior e deve ser preservado;
+  ajustes do indicador do PC não autorizam alterar o mobile.
+- ReadingSectionIndicators.kt restaurado byte a byte de e48867c: traços verticais
+  curtos, atual alongado e numerado, janela original. Filtros em diálogo e desktop
+  horizontal permanecem intactos. Versão0.6.10/code22 para atualização sem downgrade.
+- Build/75JVM/lint aprovados,0erros49avisos; instalado no Samsung por install-r,
+ 0.6.10/code22 confirmados, mesmo acervo4c8bad60…aa2f4. Sem repetição de QA instrumental.
+
+## Leitura compacta e traços livres — Android0.6.9/web — 2026-10-27
+
+- Desktop sem faixa/fundo/borda/números visíveis: traços12×2/26×3px, atual sempre
+  centralizado; slots vazios não interativos nos extremos. Gutter invisível conserva
+  espaço do texto. Native30dp com traços11/24dp, identidade por destino para animar.
+- CommentFilters abre AlertDialog por Filtrar; categorias/fontes/limpar/concluir
+  mantidos. Assunto e fonte/Fonte:todas saem do leitor/dock. PassagePanel usa o mesmo
+  diálogo sob demanda. Sem diminuir comentários ou alterar dados/corpus/progresso.
+-632TS/103arquivos,typecheck,ESLint/Prettier/buildweb;75JVM/builds/lint0erros49avisos.
+  Browser readOnly:traço26×3,centralização0px,semfundo/borda e fluxos anteriores.
+  Nativo16,236s+29,616s aprovados; SystemUI ANR inicial resolvido com reboot.
+- APK0.6.9/code21,sem reimportar acervo. QA:docs/qa/reading-compact-2026-10-27.md.
+  Instalação no SamsungSM-S906E por install-r:Success,versão21/0.6.9 e aberturaok;
+  mesmo acervo4c8bad60…aa2f4 antes/depois,sem limpeza ou testesuiQa no telefone.
+
+## Indicadores verticais desktop — 2026-10-27
+
+- ReadingSectionLayout/ReadingTextSections/useReadingScrollspy: gutter32px à esquerda,
+  até9alvos/grupo pela altura, animação/rolagem suave com movimento reduzido,
+  clique/Tab/setas/Home/End e aria-current. Janela móvel mantém foco após o salto.
+- Escrituras em todos os modos e Explorar; Biblioteca privada por página/trecho;
+  fonte primária por unidade/trecho; leitor contextual. Em <1024px fica oculto;
+  Android, árvore, progresso, corpora e contratos não mudam.
+- Spans preservam texto/UTF-16/CRLF/espaços e realces entre limites; nenhum número
+  entra no original selecionável. Trechos longos só dividem após frases completas.
+-631testes/103arquivos,typecheck,ESLint,Prettier/buildweb aprovados. QA com banco
+  readOnly/zeroescritas, Gn3/Jo1,Confissões,CidadeDeDeus,consulta/seleçãoexata3–1103,
+  larguras1440/1024/390; comentário inline mantém o verso mesmo no intervalo entre
+  âncoras. Um aviso inicial React/Vite não se reproduziu com/sem o componente no QA.
+- docs/architecture/desktop-reading-indicators.md e docs/qa/desktop-reading-indicators-2026-10-27.md.
+
+## Caminhos dos versículos — desktop/web — 2026-10-27
+
+- Escrituras/Leitura: entrada opcional Explorar versículos; linhas independentes,
+  verso à esquerda, blocos conectados/arrastáveis à direita. Sem categorias fixas.
+  Leitura contínua padrão, Android/Estudos/impressão/corpora preservados.
+- verse-exploration.ts projeta comentários contextualizados visíveis, análises,
+  claims, palavras originais e notas com âncora. Menções sem análise não viram
+  comentário; panoramas amplos ficam uma vez no capítulo. Agrupa fonte/categoria
+  sem perder trechos; filtros privados existentes preservados. Sem schema/deps/API/IA.
+- Janela com fontes/localizadores/limites, seletor de trechos, contrapontos registrados,
+  leitor contextual original e nota rápida ligada ao versículo. Guarda de rascunho
+  e restauração do foco; vínculos automáticos não promovidos a revisão humana.
+- QA:168versículos/Gn3,Jo1,Sl23,Rm8,Mt5; Gn3 com3–5blocos por versículo na instalação.
+  Queries do banco pessoal só readOnly; notas em OPFS descartável. Temas claro/escuro,
+  arrasto/teclado/fontes/nota/rascunho, sem overflow em1680/1440/1024/390.
+-624testes/101arquivos,typecheck,ESLint,Prettier,build web aprovados. Sem APK.
+  docs/architecture/verse-exploration.md e docs/qa/verse-exploration-2026-10-27.md.
+
 ## Aprofundamento editorial Android0.6.8/web — 2026-10-26
 
 - Queda, graça e providência:22.054palavras/303parágrafos,14módulos/18aulas/90seções;

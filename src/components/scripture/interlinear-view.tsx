@@ -30,7 +30,12 @@ export function InterlinearView({
 
   if (!verse.original) {
     return (
-      <div className="mb-4 flex items-baseline gap-2">
+      <div
+        id={`verse-${verse.verse}`}
+        data-reading-section=""
+        data-reading-label={`Versículo ${verse.verse}`}
+        className="mb-4 flex items-baseline gap-2"
+      >
         <span className="font-mono text-xs text-muted-foreground select-none">{verse.verse}</span>
         <span className="text-sm text-muted-foreground italic">
           {t("scripture.interlinearMissing")}
@@ -40,7 +45,12 @@ export function InterlinearView({
   }
 
   return (
-    <div className="mb-5 overflow-x-auto pb-1">
+    <div
+      id={`verse-${verse.verse}`}
+      data-reading-section=""
+      data-reading-label={`Versículo ${verse.verse}`}
+      className="mb-5 overflow-x-auto pb-1"
+    >
       <div className="mb-2 border-l-2 border-border pl-3">
         <p className="meta-label tracking-wide text-muted-foreground">
           {t("scripture.portugueseParallel")}
