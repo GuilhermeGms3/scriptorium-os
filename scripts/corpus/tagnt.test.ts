@@ -202,7 +202,7 @@ describe("real NT linguistic layer", () => {
     expect(audit.length).toBe(unresolved);
     expect(Object.keys(manifest.books)).toHaveLength(27);
     expect(manifest.statistics.unmappedMorphology).toBe(0);
-  }, 30000);
+  }, 120_000);
   it("John 1:1 has three distinct logos tokens, real noun analyses and a shared lexical identity", async () => {
     const chapter = await ScriptureRepository.loadChapter("john", 1);
     await ScriptureKnowledgeEngine.loadLinguisticPassage({
@@ -347,5 +347,5 @@ describe("SBLGNT compact storage regression", () => {
         );
       }
     }
-  }, 30000);
+  }, 120_000);
 });

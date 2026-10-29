@@ -1,0 +1,41 @@
+{
+  "$comment": "Typed references the site (scripture-reference.test.ts) and Android (ReadingNavigationTest.kt) must read the same way. Add a case here, not in one of the two tests.",
+  "books": [
+    { "id": "genesis", "chapters": 50 },
+    { "id": "job", "chapters": 42 },
+    { "id": "psalms", "chapters": 150 },
+    { "id": "jonah", "chapters": 4 },
+    { "id": "john", "chapters": 21 },
+    { "id": "1-corinthians", "chapters": 16 }
+  ],
+  "valid": [
+    { "input": "Jo 3:16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "Jo3:16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "João 3:16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "joao 3,16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "John 3:16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "Jo 3.16", "book": "john", "chapter": 3, "verse": 16 },
+    { "input": "  João 3:16–18 ", "book": "john", "chapter": 3, "verse": 16, "end": 18 },
+    { "input": "Jó 3:16", "book": "job", "chapter": 3, "verse": 16 },
+    { "input": "Jn 3:2", "book": "jonah", "chapter": 3, "verse": 2 },
+    { "input": "1Co13:4-7", "book": "1-corinthians", "chapter": 13, "verse": 4, "end": 7 },
+    { "input": "I Coríntios 13:4-7", "book": "1-corinthians", "chapter": 13, "verse": 4, "end": 7 },
+    { "input": "1 Cor 13:4", "book": "1-corinthians", "chapter": 13, "verse": 4 },
+    { "input": "Sl 119:105", "book": "psalms", "chapter": 119, "verse": 105 },
+    { "input": "Salmo 119:105", "book": "psalms", "chapter": 119, "verse": 105 },
+    { "input": "Gn 1:1", "book": "genesis", "chapter": 1, "verse": 1 },
+    { "input": "Gênesis 1", "book": "genesis", "chapter": 1 }
+  ],
+  "invalid": [
+    "Jo 99:1",
+    "Jo 0:1",
+    "Jo 1:0",
+    "Jo 3:16-2",
+    "Livro 1:1",
+    "Jo -1:2",
+    "Jo 3:16 SELECT",
+    "J 3:16",
+    "perdoar os inimigos",
+    "3:16"
+  ]
+}

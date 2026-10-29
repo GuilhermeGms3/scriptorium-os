@@ -1,0 +1,600 @@
+import type { CourseModule, StudyCourse } from "../../domain/study-course";
+import { section as s, lesson as l, reading as r, criteria } from "./helpers";
+import { KNOWING_GOD_DEEPENING } from "./knowing-god-deepening";
+import { KNOWING_GOD_FOUNDATIONS } from "./knowing-god-foundations";
+
+// Original introductory exposition. References identify primary texts, not quotations
+// or claims of academic review. Private sources are resolved separately on the device.
+const modules: (CourseModule & { studyGuideId: string; readingSearch: string })[] = [
+  {
+    id: "buscar",
+    title: "Conhecimento, fé e investigação",
+    studyGuideId: "teologia",
+    readingSearch: "conhecimento de Deus",
+    description:
+      "Conhecimento racional, testemunho e fé: distinções para investigar as afirmações sobre Deus.",
+    objectives: [
+      "Distinguir conhecer informações e conhecer alguém.",
+      "Formular uma pergunta de estudo com uma passagem de apoio.",
+      "Separar explicação editorial, texto bíblico e testemunho pessoal.",
+    ],
+    lessons: [
+      l(
+        "buscar:aula",
+        "Conhecimento, fé e investigação",
+        s(
+          "introduction",
+          "Objeto da investigação",
+          [],
+          "O estudo de Deus reúne perguntas sobre existência, natureza, atributos, revelação e relação com a vida humana. O percurso distingue as afirmações de uma fonte, os argumentos de seus intérpretes e as convicções do leitor. A investigação começa pela delimitação dessas perguntas e pelo exame das razões apresentadas, sem presumir que todas as tradições cristãs organizem as respostas da mesma maneira.",
+          "Comece distinguindo três perguntas. O que esta passagem diz? Como alguém a interpreta? O que ela provoca em mim? A primeira pede observação; a segunda exige argumentos e contexto; a terceira acolhe sua experiência. Elas podem conversar, mas uma impressão pessoal não substitui a leitura, e uma informação correta não descreve sozinha toda a experiência de fé.",
+        ),
+        s(
+          "concept",
+          "Conhecimento, confiança e amor",
+          ["aquinas-love", "augustine-search"],
+          "Quando dizemos que conhecemos alguém, podemos falar de fatos sobre sua vida, de convivência ou da confiança construída nessa relação. Na busca religiosa, também há diferenças entre conhecer um ensinamento, compreender suas razões e confiar em Deus. Uma pessoa pode decorar conceitos sem se sentir próxima de Deus; outra pode começar a orar antes de conseguir explicar aquilo em que crê.",
+          "Tomás de Aquino examina a relação entre conhecer e amar na Suma Teológica, I–II, questão 27, artigo 2. Em sua análise, o amor pressupõe alguma apreensão do bem amado. Isso não equivale a exigir conhecimento exaustivo de Deus como condição para a fé. Agostinho, no início das Confissões, transforma a relação entre invocar e conhecer em uma pergunta dirigida a Deus. São modos diferentes de elaborar a busca: argumento escolástico e oração autobiográfica.",
+        ),
+        s(
+          "example",
+          "Análise de João 1:35–39",
+          [],
+          "Em João 1:35–39, observe o movimento dos personagens: alguém dá testemunho, outros seguem Jesus, uma pergunta é feita e um convite os leva a permanecer. Antes de tirar uma conclusão sobre sua própria vida, anote quem fala e a quem cada fala se dirige. O relato apresenta uma aproximação concreta; não oferece um método universal de estudo em cinco passos.",
+          "Uma pergunta possível é: o que os discípulos já sabem quando começam a seguir? Outra é: o que ainda precisam descobrir? Compare suas respostas com os verbos do relato. Assim, a curiosidade ganha um objeto delimitado, e você evita usar o texto apenas para confirmar uma ideia anterior.",
+        ),
+        s(
+          "discussion",
+          "Formulação de problemas",
+          [],
+          "Escolha uma dificuldade real: a distância entre Deus e o sofrimento, uma imagem de Deus recebida na infância ou um conflito entre duas interpretações. Reescreva-a como pergunta, sem tentar resolver tudo de uma vez. Perguntar o que Marcos mostra sobre a compaixão de Jesus é mais investigável neste momento do que exigir uma explicação completa de todo sofrimento humano.",
+          "Mantenha um caderno com três registros: o que observei, o que proponho como interpretação e o que permanece em aberto. A separação ajuda a reconhecer mudanças na sua compreensão. Uma boa nota pode terminar com uma dúvida mais precisa do que a inicial.",
+        ),
+        s(
+          "conclusion",
+          "Síntese e critérios de estudo",
+          [],
+          "Você não precisa apresentar uma certeza que ainda não possui. Ao concluir este ponto, deve conseguir mostrar uma pergunta, uma observação bíblica e a diferença entre elas. O próximo ponto investigará quem é o Deus ao qual essa busca se dirige, começando pelo testemunho de Israel.",
+          "A conclusão desta etapa registra seu trabalho de leitura. Ela não mede amor, santidade ou qualidade da fé. Guarde sua pergunta: você voltará a ela no fim do percurso para perceber o que mudou e o que ainda pede estudo.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "buscar:jo",
+        "João 1:35–39",
+        "john",
+        1,
+        35,
+        39,
+        "Observe testemunho, pergunta e convite; registre o que os discípulos ainda não sabem.",
+      ),
+    ],
+    domains: ["theology", "hermeneutics"],
+    activity: {
+      prompt:
+        "Escreva sua pergunta inicial sobre Deus. Relacione-a a uma observação de João 1:35–39, distinguindo o que o narrador apresenta, sua interpretação e uma dúvida que permanece. Cite a passagem e explique qual será seu próximo passo de investigação.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Do desejo ao estudo",
+        explanation:
+          "Seu registro inicial será retomado na síntese final; mantenha também dúvidas sem resposta.",
+      },
+    ],
+    videos: [],
+  },
+  {
+    id: "israel",
+    title: "Deus e aliança nas Escrituras de Israel",
+    studyGuideId: "biblia-interpretacao",
+    readingSearch: "Êxodo Deus aliança",
+    description:
+      "Ler nome, libertação e aliança no contexto narrativo, antes de reduzir Deus a uma lista de atributos.",
+    objectives: [
+      "Localizar a revelação do nome no chamado de Moisés.",
+      "Distinguir nome divino, tradução e interpretação.",
+      "Relacionar libertação, aliança e responsabilidade.",
+    ],
+    lessons: [
+      l(
+        "israel:aula",
+        "Nome divino, libertação e aliança",
+        s(
+          "introduction",
+          "Narrativa e apresentação de Deus",
+          [],
+          "A Bíblia não apresenta o Deus de Israel somente por definições abstratas. Conta histórias de criação, promessa, escravidão, libertação, aliança e exílio. Essas narrativas oferecem o contexto no qual palavras como fidelidade, justiça e misericórdia recebem sentido. Isolar um atributo e esquecer as histórias pode produzir uma imagem muito estreita de Deus.",
+          "Em Êxodo 3, Moisés não recebe uma apresentação desligada da vida do povo. O chamado responde a uma situação de opressão e envolve uma missão. Leia o capítulo perguntando o que Deus vê, ouve, promete e pede. A atenção a esses movimentos vem antes da discussão sobre como traduzir uma expressão hebraica.",
+        ),
+        s(
+          "concept",
+          "YHWH: nome, reverência e tradução",
+          [],
+          "YHWH é a transliteração convencional das quatro consoantes do nome divino hebraico. Nas tradições judaicas, evita-se habitualmente pronunciá-lo durante a leitura, empregando uma forma de substituição. Por isso, traduções bíblicas podem representar o nome por SENHOR. Nome no texto original, forma lida e escolha de tradução são questões relacionadas, mas distintas.",
+          "Êxodo 3:14–15 aproxima a resposta dada a Moisés da apresentação do nome divino. A forma verbal de 3:14 recebe traduções e interpretações diferentes; não é responsável extrair toda uma doutrina de Deus de uma tradução isolada. Compare a resposta com a promessa de presença em 3:12 e com a referência aos antepassados em 3:15. O contexto ajuda a reconhecer continuidade, presença e missão.",
+        ),
+        s(
+          "example",
+          "Ações divinas e resposta humana",
+          [],
+          "Faça duas colunas em sua nota sobre Êxodo 3: uma para ações atribuídas a Deus e outra para respostas de Moisés. Uma leitura que só registra o nome perde a resistência, o temor e a tarefa presentes na cena. Pergunte como a apresentação de Deus responde às objeções do personagem, sem transformar cada detalhe em símbolo secreto.",
+          "Depois, leia Deuteronômio 6:4–9 como uma unidade. Observe a relação entre ouvir, amar, guardar e ensinar. A confissão sobre Deus se articula com memória e prática cotidiana. Essa observação impede separar o discurso teológico das relações que ele procura formar.",
+        ),
+        s(
+          "discussion",
+          "O mesmo Deus em histórias difíceis",
+          [],
+          "Algumas narrativas suscitam perguntas morais sérias. Não resolva o desconforto chamando tudo de metáfora, nem trate qualquer ordem narrada como instrução direta para hoje. Identifique gênero, destinatário, situação e lugar do episódio no livro. Diferencie explicar o contexto de justificar moralmente tudo que você encontra.",
+          "A leitura cristã relaciona as Escrituras de Israel a Jesus; isso não autoriza ignorar a identidade judaica dos textos ou fingir que intérpretes judeus os leem da mesma maneira. Anote quando uma conclusão depende de uma leitura especificamente cristã. Essa transparência permite comparar tradições sem apagar suas diferenças.",
+        ),
+        s(
+          "conclusion",
+          "Resultados da leitura",
+          [],
+          "Ao terminar, explique por que Êxodo 3 é mais do que uma pergunta sobre pronúncia. Relacione nome, memória dos antepassados, sofrimento do povo e chamado de Moisés. A ideia não é dominar uma definição completa de Deus, mas aprender a lê-lo no testemunho de uma história.",
+          "O próximo ponto passará aos Evangelhos. Leve consigo esta pergunta: de que maneira Jesus fala e age dentro da história de Israel? Ela prepara uma aproximação à sua identidade sem começar por um vocabulário técnico desconectado dos relatos.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "israel:ex",
+        "Êxodo 3:1–15",
+        "exodus",
+        3,
+        1,
+        15,
+        "Relacione a revelação do nome ao chamado e à promessa de presença.",
+      ),
+      r(
+        "israel:dt",
+        "Deuteronômio 6:4–9",
+        "deuteronomy",
+        6,
+        4,
+        9,
+        "Observe como a confissão sobre Deus se liga à vida cotidiana.",
+      ),
+    ],
+    domains: ["biblical-theology"],
+    activity: {
+      prompt:
+        "Explique como nome, presença e libertação se articulam em Êxodo 3. Use pelo menos dois detalhes da narrativa e compare com uma observação de Deuteronômio 6:4–9. Identifique uma questão de tradução ou interpretação que você ainda precisaria pesquisar.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Bíblia e interpretação",
+        explanation:
+          "A observação do contexto prepara o estudo de exegese e hermenêutica na árvore.",
+      },
+    ],
+    videos: [],
+  },
+  {
+    id: "jesus",
+    title: "Identidade de Jesus nos Evangelhos",
+    studyGuideId: "trindade-cristologia",
+    readingSearch: "Cristo encarnação",
+    description:
+      "Da narrativa à cristologia: ações, perguntas e identidade de Jesus, sem confundir os quatro Evangelhos.",
+    objectives: [
+      "Observar a construção narrativa da identidade de Jesus.",
+      "Distinguir episódio evangélico e formulação doutrinal posterior.",
+      "Explicar o sentido inicial de encarnação na leitura cristã.",
+    ],
+    lessons: [
+      l(
+        "jesus:aula",
+        "Identidade e missão de Cristo",
+        s(
+          "introduction",
+          "Delimitação da cristologia",
+          [],
+          "O termo cristologia designa o estudo de Jesus Cristo, sua identidade e sua obra. Para iniciar, porém, não é preciso decorar classificações. É preciso observar o que os Evangelhos narram: encontros, ensinamentos, conflitos, gestos de cuidado e respostas de pessoas diferentes. O modo como uma história é contada também orienta a compreensão de quem Jesus é.",
+          "Os quatro Evangelhos não devem ser tratados como páginas intercambiáveis de um único relato. Compare-os depois de ouvir cada voz no seu próprio contexto. Começar por uma unidade de Marcos e outra de João permite reconhecer perguntas e escolhas literárias sem forçar uma harmonia de todos os detalhes.",
+        ),
+        s(
+          "concept",
+          "Messias, Filho e Palavra",
+          [],
+          "Em Marcos 8:27–35, uma pergunta sobre a identidade de Jesus é seguida por ensino sobre sofrimento e discipulado. O acerto de um título não elimina o problema de compreender seu significado. Leia a reação de Pedro: o relato distingue reconhecer uma designação e aceitar o caminho anunciado por Jesus.",
+          "João 1:1–18 apresenta Jesus por meio de uma abertura teológica sobre a Palavra, criação, vida e revelação. A afirmação de que a Palavra se fez carne sustenta a linguagem cristã da encarnação. Não confunda essa afirmação com a ideia de que Jesus apenas aparentou humanidade. As formulações doutrinais posteriores procuram expressar a relação entre divindade e humanidade, mas não são simplesmente termos já definidos no vocabulário de todos os personagens.",
+        ),
+        s(
+          "example",
+          "Ler uma palavra no argumento do texto",
+          [],
+          "Ao ler João 1, anote o que o prólogo afirma sobre a Palavra antes de chegar ao versículo 14. Em seguida, observe o que muda quando aparecem habitação, testemunho e conhecimento de Deus. Em vez de reunir versículos soltos que contenham a mesma palavra, descreva como a sequência organiza sua afirmação sobre Jesus.",
+          "Em Marcos 8, compare a pergunta inicial, a resposta de Pedro e o chamado ao discipulado. Você pode formular uma hipótese: neste trecho, a identidade de Jesus não se separa do caminho que ele anuncia. Verifique a hipótese nos detalhes do relato e registre o que ela ainda não explica.",
+        ),
+        s(
+          "discussion",
+          "A interpretação de Atanásio",
+          ["athanasius-incarnation"],
+          "Atanásio, em Sobre a encarnação, relaciona a ação criadora do Verbo à salvação. Sua exposição é uma defesa cristã situada, e não uma descrição neutra de todas as religiões. Ao consultá-lo, identifique a pergunta enfrentada e o encadeamento da argumentação. Isso é diferente de escolher uma frase admirável e atribuir a ela todo o pensamento do autor.",
+          "Use a fonte como interlocutora: o que ela ajuda a perceber na leitura bíblica? Que pressupostos traz? Que objeção você precisaria examinar? Admirar um pensador pode acompanhar uma leitura crítica e cuidadosa. Nesta etapa, basta explicar uma relação concreta entre texto bíblico e argumento, sem pretender resolver toda a história dos debates cristológicos.",
+        ),
+        s(
+          "conclusion",
+          "Da identidade ao caminho",
+          [],
+          "Ao terminar, você deve conseguir explicar por que nomear Jesus e compreender sua missão são tarefas ligadas. Mostre uma observação de Marcos e outra de João; identifique em qual relato cada uma aparece. Esse cuidado dá base à comparação futura das interpretações.",
+          "O ponto seguinte se deterá na paixão e na cruz. A pergunta será como uma execução pode ocupar lugar central numa mensagem de salvação. Leve suas observações sobre identidade e discipulado, porque elas impedirão tratar a cruz como símbolo desligado da vida narrada de Jesus.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "jesus:mc",
+        "Marcos 8:27–35",
+        "mark",
+        8,
+        27,
+        35,
+        "Compare título, anúncio do sofrimento e discipulado.",
+      ),
+      r(
+        "jesus:jo",
+        "João 1:1–18",
+        "john",
+        1,
+        1,
+        18,
+        "Acompanhe o argumento do prólogo antes de isolar seus termos.",
+      ),
+    ],
+    domains: ["christology"],
+    activity: {
+      prompt:
+        "Responda quem é Jesus segundo as duas unidades estudadas. Sustente sua explicação com uma observação de Marcos 8 e outra de João 1, diferenciando as vozes dos relatos. Formule uma pergunta que você levaria à leitura de Atanásio ou a um comentário do acervo.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Cristologia",
+        explanation:
+          "Identidade e obra de Cristo abrem a investigação das formulações trinitárias e cristológicas.",
+      },
+    ],
+    videos: [],
+  },
+  {
+    id: "cruz",
+    title: "Paixão, cruz e salvação",
+    studyGuideId: "etica-soteriologia",
+    readingSearch: "cruz salvação",
+    description:
+      "Distinguir o acontecimento narrado, sua interpretação teológica e suas consequências éticas.",
+    objectives: [
+      "Ler a paixão como uma sequência narrativa.",
+      "Reconhecer mais de uma imagem bíblica de salvação.",
+      "Evitar transformar a cruz em justificativa da violência.",
+    ],
+    lessons: [
+      l(
+        "cruz:aula",
+        "Narrativa da paixão e interpretação da cruz",
+        s(
+          "introduction",
+          "Uma execução e uma mensagem de esperança",
+          [],
+          "A crucificação pertence ao mundo de punição e poder romano. Nos Evangelhos, a morte de Jesus envolve atores, acusações, decisões e sofrimento concreto. Começar pelo relato ajuda a não tornar a cruz uma ideia abstrata. Pergunte quem age, o que é dito sobre Jesus e como o narrador conduz o leitor até sua morte.",
+          "A pergunta teológica vem junto: como os cristãos passaram a anunciar salvação por meio daquele que foi crucificado? A narrativa da paixão e a interpretação de sua importância são relacionadas, mas não idênticas. Saber distinguir essas tarefas permite ler um Evangelho e uma carta sem exigir que ambos exponham o assunto da mesma forma.",
+        ),
+        s(
+          "concept",
+          "Mais de uma linguagem para falar de salvação",
+          [],
+          "Em 1 Coríntios 1:18–25, Paulo confronta avaliações de sabedoria e poder ao falar da cruz. Observe os destinatários e o problema da comunidade antes de generalizar sua linguagem. O argumento não pede abandonar todo raciocínio; ele questiona critérios pelos quais a mensagem é julgada e as pessoas se exaltam.",
+          "O Novo Testamento emprega imagens distintas para a obra de Cristo: reconciliação, libertação, sacrifício, vitória e participação numa nova vida. Cada imagem ilumina relações diferentes. As tradições cristãs organizam essas linguagens de modos próprios. Não atribua automaticamente ao relato de Marcos uma teoria formulada séculos depois, nem apresente uma dessas teorias como se fosse o único vocabulário de todos os autores bíblicos.",
+        ),
+        s(
+          "example",
+          "Análise de Marcos 15",
+          [],
+          "Leia Marcos 15:21–39 prestando atenção às falas ao redor de Jesus e à fala do centurião. Registre também o abandono e os sinais narrados. Depois, separe uma coluna de observações e outra de questões teológicas. O texto deve poder surpreender sua hipótese inicial.",
+          "Um comentário pode relacionar a narrativa a outras passagens, explicar um costume ou defender uma interpretação da salvação. Pergunte qual dessas tarefas está realizando. Uma ligação temática pode ser útil sem constituir prova de que uma palavra isolada carregue toda a doutrina proposta pelo comentarista.",
+        ),
+        s(
+          "discussion",
+          "Sofrimento não se torna bom por si mesmo",
+          [],
+          "A centralidade da cruz na fé cristã não obriga a chamar toda violência de vontade de Deus ou a exigir que uma vítima permaneça em situação de abuso. Acompanhar o sofrimento narrado de Jesus é diferente de legitimar quem causa sofrimento. Ao discutir discipulado, considere também cuidado, justiça e responsabilidade.",
+          "Quando duas interpretações discordarem, registre o que cada uma tenta explicar: perdão, justiça, vitória sobre a morte ou transformação da vida. Compare passagens e pressupostos. O objetivo desta introdução é aprender a reconhecer os problemas, sem fingir que uma breve aula encerra o debate sobre expiação.",
+        ),
+        s(
+          "conclusion",
+          "Cruz e ressurreição",
+          [],
+          "Ao terminar, explique por que a cruz precisa ser lida tanto em sua narrativa quanto em sua recepção teológica. Mostre uma observação de Marcos e uma de Paulo, sem fundir seus argumentos. Indique qual pergunta sobre salvação permanece aberta para você.",
+          "O próximo ponto abordará a ressurreição. Assim, a cruz será situada no anúncio cristão de morte e vida, evitando terminar a história apenas na execução ou saltar o sofrimento para chegar rapidamente à vitória.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "cruz:mc",
+        "Marcos 15:21–39",
+        "mark",
+        15,
+        21,
+        39,
+        "Observe vozes, sofrimento e reconhecimento na narrativa.",
+      ),
+      r(
+        "cruz:paulo",
+        "1 Coríntios 1:18–25",
+        "1-corinthians",
+        1,
+        18,
+        25,
+        "Identifique os critérios de poder e sabedoria discutidos por Paulo.",
+      ),
+    ],
+    domains: ["soteriology"],
+    activity: {
+      prompt:
+        "Explique por que a cruz é uma pergunta sobre salvação, usando Marcos 15 e 1 Coríntios 1. Distinga relato e interpretação e indique uma questão que diferentes modelos de salvação procuram responder. Acrescente um cuidado ético necessário ao falar de sofrimento.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Soteriologia e ética",
+        explanation:
+          "A investigação da salvação deve conversar com as consequências de cada interpretação para a vida.",
+      },
+    ],
+    videos: [],
+  },
+  {
+    id: "ressurreicao",
+    title: "Ressurreição e esperança cristã",
+    studyGuideId: "escatologia",
+    readingSearch: "ressurreição esperança",
+    description:
+      "Investigar testemunho, esperança e nova criação sem reduzir ressurreição a uma metáfora de otimismo.",
+    objectives: [
+      "Ler o argumento de Paulo sobre a ressurreição.",
+      "Distinguir testemunho, argumento e interpretação.",
+      "Relacionar esperança futura e responsabilidade presente.",
+    ],
+    lessons: [
+      l(
+        "ressurreicao:aula",
+        "Ressurreição: testemunho e interpretação",
+        s(
+          "introduction",
+          "Uma afirmação que reorganiza a história",
+          [],
+          "O anúncio cristão não termina com a preservação da memória de um mestre morto. Afirma a ressurreição de Jesus e relaciona essa afirmação ao futuro dos que pertencem a Cristo. Para compreendê-lo, é preciso perguntar o que os autores dizem e que consequências extraem, antes de substituir sua linguagem por uma ideia genérica de renovação interior.",
+          "Também é preciso diferenciar o estudo dos testemunhos e a adesão de fé. O leitor pode examinar um texto, suas afirmações e seus argumentos sem que o sistema presuma uma decisão religiosa. As atividades pedem compreensão e uso de fontes, não uma declaração obrigatória de crença.",
+        ),
+        s(
+          "concept",
+          "O argumento de 1 Coríntios 15",
+          [],
+          "Paulo recorda em 1 Coríntios 15:1–11 uma mensagem recebida e transmitida, menciona morte, sepultamento, ressurreição e testemunhas. Identifique como essas afirmações se encadeiam. Em 15:12–28, sua discussão responde à negação da ressurreição dos mortos e explora as consequências dessa posição para o anúncio de Cristo.",
+          "Observe a diferença entre repetir uma afirmação e acompanhar um argumento condicional: se determinada tese fosse verdadeira, o que aconteceria com as demais afirmações? A análise ajuda a explicar por que o tema é estrutural na carta. Ela não transforma o exercício de leitura numa prova automática que dispense discutir testemunhos, pressupostos e objeções.",
+        ),
+        s(
+          "example",
+          "Reconhecer continuidade e transformação",
+          [],
+          "Leia João 20:19–29 observando medo, encontro, envio e a participação de Tomé. Compare o que o relato afirma sobre Jesus e sobre os discípulos. Não tome o nome do personagem como sinônimo de um defeito moral que dispense ler suas falas e a resposta recebida.",
+          "Em seguida, compare o propósito desse episódio com o argumento de Paulo. João apresenta uma cena e sua orientação ao leitor; Paulo debate consequências de uma tese para a comunidade. Ambos podem integrar seu estudo, mas a comparação fica melhor quando você conserva a diferença de gênero e situação.",
+        ),
+        s(
+          "discussion",
+          "Esperar não é abandonar o presente",
+          [],
+          "Escatologia é o estudo das últimas coisas e da esperança final. Reduzi-la a calendários de eventos futuros empobrece as perguntas sobre morte, justiça, criação e vida. Neste início, pergunte como o futuro esperado modifica o modo de olhar pessoas e responsabilidades no presente.",
+          "Cristãos divergem sobre diversos aspectos dessa esperança. Apresente a posição consultada com sua origem e seus argumentos, sem montar um cronograma único misturando tradições incompatíveis. Uma dúvida importante pode ser o ponto de entrada para um estudo posterior, em vez de um obstáculo a ser ocultado para concluir a aula.",
+        ),
+        s(
+          "conclusion",
+          "Uma esperança que precisa ser explicada",
+          [],
+          "Ao terminar, apresente o papel da ressurreição no argumento de Paulo e uma observação sobre o encontro narrado em João. Explique por que os textos não falam apenas de sentir-se melhor depois de uma experiência dolorosa. Identifique também uma pergunta que ainda exigiria pesquisa histórica ou teológica.",
+          "O último ponto relacionará o que foi estudado a amor, formação e vida comunitária. A tarefa será retomar sua pergunta inicial e descrever como seu entendimento se desenvolveu, preservando as dúvidas que continuam honestamente abertas.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "ress:paulo",
+        "1 Coríntios 15:1–28",
+        "1-corinthians",
+        15,
+        1,
+        28,
+        "Acompanhe mensagem, testemunhas e consequências do argumento.",
+      ),
+      r(
+        "ress:jo",
+        "João 20:19–29",
+        "john",
+        20,
+        19,
+        29,
+        "Observe encontro, envio e a participação de Tomé.",
+      ),
+    ],
+    domains: ["eschatology"],
+    activity: {
+      prompt:
+        "Explique o lugar da ressurreição no argumento de 1 Coríntios 15 e compare com uma observação de João 20. Distinga as formas de apresentação e proponha uma consequência para a vida presente, indicando se ela é afirmação do texto ou uma aplicação sua.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Escatologia",
+        explanation:
+          "Morte, ressurreição e esperança abrem o estudo das últimas coisas e de suas interpretações.",
+      },
+    ],
+    videos: [],
+  },
+  {
+    id: "viver",
+    title: "Conhecimento, virtude e vida cristã",
+    studyGuideId: "sacramentos-santificacao",
+    readingSearch: "amor vida cristã",
+    description:
+      "Voltar à pergunta inicial e construir uma síntese que una compreensão, responsabilidade e um próximo estudo.",
+    objectives: [
+      "Retomar a pergunta inicial com fontes identificadas.",
+      "Distinguir compreender, concordar e praticar.",
+      "Escolher o próximo ramo da árvore com uma questão concreta.",
+    ],
+    lessons: [
+      l(
+        "viver:aula",
+        "Virtude, caridade e responsabilidade",
+        s(
+          "introduction",
+          "Revisão da investigação",
+          [],
+          "Volte ao registro feito no primeiro ponto. Talvez sua pergunta tenha encontrado uma resposta parcial; talvez tenha ficado mais difícil e precisa. As duas situações podem representar avanço. O estudo permite perceber problemas antes invisíveis e reconhecer quando uma resposta depende de argumentos que você ainda não examinou.",
+          "Não avalie o percurso apenas pelo número de termos memorizados. Tente explicar uma ideia sem usar seu nome técnico, indicando a passagem que sustenta a explicação. Depois, diga qual diferença essa ideia faz para a compreensão de Deus, de Jesus ou da vida humana. Esse exercício aproxima conceito, fonte e significado.",
+        ),
+        s(
+          "concept",
+          "Amor, compreensão e prática",
+          [],
+          "Em Marcos 12:28–34, leia a pergunta feita a Jesus, sua resposta e a reação do interlocutor. Observe como amor a Deus e ao próximo são colocados em relação. A passagem oferece um eixo para examinar práticas religiosas sem transformar seu estudo em uma competição de quantidade de informações.",
+          "Compreender uma afirmação não obriga concordar com ela, e concordar não assegura praticá-la. Registre essas diferenças quando escrever sua síntese. Você pode compreender melhor uma tradição e ainda ter objeções; pode reconhecer um compromisso que deseja assumir e admitir sua dificuldade em realizá-lo. O aplicativo não deve pontuar sua sinceridade ou sua vida espiritual.",
+        ),
+        s(
+          "example",
+          "Uma síntese que mostre o caminho",
+          [],
+          "Uma síntese possível começa por apresentar a pergunta inicial, descreve uma descoberta em Êxodo e outra num Evangelho e explica como a cruz e a ressurreição alteraram a investigação. Cada afirmação precisa de localizador. Sua conclusão deve dizer até onde as fontes permitem ir e onde começa sua interpretação.",
+          "Evite reunir frases bonitas sem explicar suas relações. Ao mencionar um autor, diga qual problema ele enfrenta e o que sua leitura acrescenta. Se uma obra do acervo trouxe uma objeção, registre-a com título e página; se não encontrou uma fonte pertinente, nomeie essa lacuna em vez de preencher o espaço com uma referência inventada.",
+        ),
+        s(
+          "discussion",
+          "Escolher um próximo ramo",
+          [],
+          "Se sua dificuldade está em entender passagens, avance para exegese e hermenêutica. Se está na identidade de Jesus, aprofunde cristologia e os debates trinitários. Se sua pergunta é sobre salvação, siga soteriologia; se envolve esperança, prossiga em escatologia. A história das tradições ajudará a compreender como diferentes comunidades formularam suas respostas.",
+          "Escolha um ramo por uma pergunta concreta e defina uma pequena investigação: uma unidade bíblica, uma fonte de apoio e uma resposta provisória. A árvore torna visíveis relações e pré-requisitos. Ela não exige que todas as pessoas percorram todas as disciplinas antes de poderem ler, orar ou explorar a biblioteca.",
+        ),
+        s(
+          "conclusion",
+          "Síntese e continuidade do estudo",
+          [],
+          "Ao concluir este percurso, você terá um primeiro conjunto de observações, argumentos e perguntas. Isso é uma base de estudo, não uma formação teológica completa. Os módulos permanecem disponíveis para revisão, e sua síntese pode ser retomada quando novas leituras mudarem sua compreensão.",
+          "Escreva uma próxima pergunta e o motivo pelo qual ela importa para você. O avanço na árvore deve acompanhar essa continuidade: conhecer, confrontar fontes, registrar, revisar e seguir. O interesse permanece vivo quando cada descoberta oferece uma questão melhor para a próxima leitura.",
+        ),
+      ),
+    ],
+    passages: [
+      r(
+        "viver:mc",
+        "Marcos 12:28–34",
+        "mark",
+        12,
+        28,
+        34,
+        "Observe a relação entre conhecimento, amor a Deus e amor ao próximo.",
+      ),
+    ],
+    domains: ["ethics", "sanctification"],
+    activity: {
+      prompt:
+        "Retome sua pergunta inicial e escreva uma síntese com pelo menos duas passagens estudadas. Explique uma mudança de compreensão, uma objeção ou dúvida preservada e uma aplicação que você propõe. Finalize escolhendo um próximo ramo e uma pergunta delimitada para investigar nele.",
+      criteria,
+    },
+    connections: [
+      {
+        label: "Sua próxima investigação",
+        explanation:
+          "A síntese abre os ramos da árvore; aulas concluídas continuam disponíveis para revisão.",
+      },
+    ],
+    videos: [],
+  },
+];
+
+export const KNOWING_GOD_COURSE = {
+  id: "conhecer-para-amar",
+  revision: 1,
+  title: "Conhecimento de Deus — fé e razão",
+  description:
+    "Uma primeira investigação sobre o Deus cristão: da pergunta pessoal ao testemunho de Israel, à identidade de Jesus, à cruz, à ressurreição e à vida. Conteúdo editorial introdutório com fontes identificadas, sem pressupor adesão religiosa ou substituir formação acadêmica.",
+  prerequisites: [
+    "Nenhum conhecimento prévio de teologia. Disponibilidade para ler, perguntar e registrar observações.",
+  ],
+  outcomes: [
+    "Ler unidades bíblicas em contexto.",
+    "Distinguir texto, interpretação e aplicação.",
+    "Construir uma síntese com fontes e uma próxima pergunta.",
+  ],
+  modules: modules.map((module) => ({
+    ...module,
+    foundation: KNOWING_GOD_FOUNDATIONS[module.id] ?? [],
+    lessons: module.lessons.map((lesson) => ({
+      ...lesson,
+      sections: lesson.sections.map((section) => {
+        const deeper = KNOWING_GOD_DEEPENING[module.id];
+        const extra =
+          section.kind === "concept"
+            ? deeper?.analysis
+            : section.kind === "example"
+              ? deeper?.caseStudy
+              : section.kind === "discussion"
+                ? deeper?.reflection
+                : undefined;
+        return {
+          ...section,
+          paragraphs: extra ? [...section.paragraphs, extra] : section.paragraphs,
+          references:
+            module.id === "buscar" && section.kind === "concept"
+              ? [...section.references, "aquinas-knowledge"]
+              : module.id === "viver" && section.kind === "concept"
+                ? [...section.references, "aquinas-charity"]
+                : section.references,
+        };
+      }),
+    })),
+  })),
+  references: [
+    {
+      id: "aquinas-knowledge",
+      title: "Tomás de Aquino — Suma Teológica I, q. 12",
+      url: "https://www.newadvent.org/summa/1012.htm",
+      perspective:
+        "Fonte escolástica cristã latina; conhecimento humano de Deus. Tradução inglesa histórica.",
+    },
+    {
+      id: "aquinas-charity",
+      title: "Tomás de Aquino — Suma Teológica II–II, q. 25",
+      url: "https://www.newadvent.org/summa/3025.htm",
+      perspective:
+        "Fonte escolástica cristã latina; amor a Deus e ao próximo. Tradução inglesa histórica.",
+    },
+    {
+      id: "aquinas-love",
+      title: "Tomás de Aquino — Suma Teológica, I–II, q. 27, a. 2",
+      url: "https://www.newadvent.org/summa/2027.htm#article2",
+      perspective:
+        "Fonte escolástica cristã latina; tradução inglesa histórica. Exposição editorial em português, sem citação traduzida literal.",
+    },
+    {
+      id: "augustine-search",
+      title: "Agostinho — Confissões, livro I, capítulo 1",
+      url: "https://www.newadvent.org/fathers/110101.htm",
+      perspective:
+        "Oração autobiográfica cristã antiga; tradução inglesa histórica. Comparar com a edição instalada quando disponível.",
+    },
+    {
+      id: "athanasius-incarnation",
+      title: "Atanásio — Sobre a encarnação, §§ 1–3",
+      url: "https://www.newadvent.org/fathers/2802.htm",
+      perspective:
+        "Tratado apologético cristão antigo; tradução inglesa histórica. Perspectiva do autor identificada, sem equivalência a consenso inter-religioso.",
+    },
+  ],
+} satisfies StudyCourse;

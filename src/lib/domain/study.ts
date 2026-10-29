@@ -7,6 +7,7 @@
 
 import type { TextAnchor } from "./knowledge";
 import type { PassageRef } from "./scripture";
+import type { StudySource } from "./study-notebook";
 
 export type NoteLinkKind = "passage" | "word" | "resource" | "concept" | "study";
 
@@ -24,6 +25,8 @@ export interface Note {
   title: string;
   body: string;
   links: NoteLink[];
+  color?: string;
+  source?: StudySource;
   createdAt: string;
   updatedAt: string;
 }
@@ -46,6 +49,7 @@ export interface Study {
   slug: string;
   title: string;
   description?: string;
+  color?: string;
   items: StudyItem[];
   createdAt: string;
   updatedAt: string;

@@ -1,0 +1,45 @@
+/* A brief ink/papyrus reveal, not replacement glyphs or rewritten biblical text. */
+@media (prefers-reduced-motion: no-preference) {
+  .today-inscriptions > * {
+    animation: inscription-reveal 850ms cubic-bezier(0.22, 1, 0.36, 1) both;
+    animation-delay: var(--inscription-delay, 0ms);
+  }
+
+  .today-inscriptions > :nth-child(2) {
+    --inscription-delay: 100ms;
+  }
+  .today-inscriptions > :nth-child(3) {
+    --inscription-delay: 200ms;
+  }
+  .today-inscriptions > :nth-child(4) {
+    --inscription-delay: 300ms;
+  }
+  .today-inscriptions > :nth-child(5) {
+    --inscription-delay: 400ms;
+  }
+
+  /* The reveal waits behind the opening instead of finishing underneath it. */
+  html.intro-on .today-inscriptions > * {
+    animation-play-state: paused;
+  }
+
+  /* Keyboard focus never waits for a decorative reveal or stays clipped. */
+  .today-inscriptions > :focus-within {
+    animation: none;
+  }
+}
+
+@keyframes inscription-reveal {
+  from {
+    opacity: 0;
+    clip-path: inset(0 100% 0 0);
+    transform: translateY(8px);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    clip-path: inset(0 0 0 0);
+    transform: translateY(0);
+    filter: blur(0);
+  }
+}

@@ -16,6 +16,8 @@ import { morphologyLabel, t } from "../../lib/i18n";
 import type { WordKnowledgeBundle } from "../../lib/domain/knowledge-bundle";
 import type { LexicalDictionaryEntry } from "../../lib/domain/linguistic";
 import { LexicalOccurrences } from "./lexical-occurrences";
+import { PrivateLexicalReadings } from "./private-lexical-readings";
+import { withFeedback } from "../common/feedback";
 
 const TABS = [
   { id: "lexicon", label: t("scripture.tab.lexicon") },
@@ -90,6 +92,13 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
         ["Estado da análise", morph.status],
       ] as [string, string | undefined][],
   );
+  const visibleTabs = TABS.filter((tab) => {
+    if (tab.id === "lexicon" || tab.id === "notes") return true;
+    if (tab.id === "morphology") return morphRows.some(([, value]) => Boolean(value));
+    if (tab.id === "occurrences") return Boolean(annotation?.normalized.lexemeId || token.lemmaId);
+    if (tab.id === "sources") return Boolean(annotation || wordBundle?.sources.references.length);
+    return false;
+  });
 
   return (
     <div className="flex h-full flex-col">
@@ -111,11 +120,12 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           </p>
         </div>
         <button
+          type="button"
           onClick={() => selectWord(null)}
-          className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-foreground"
+          className="inline-flex h-8 shrink-0 items-center gap-1.5 rounded-md px-2 text-sm text-muted-foreground hover:bg-accent hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring pointer-coarse:min-h-11"
           aria-label={t("scripture.word.close")}
         >
-          <X className="size-4" />
+          <X className="size-4" aria-hidden="true" /> Voltar à passagem
         </button>
       </div>
 
@@ -124,11 +134,11 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
           className="flex gap-0.5 overflow-x-auto border-b border-border px-2 py-1.5"
           aria-label={t("scripture.word.sections")}
         >
-          {TABS.map((tab) => (
+          {visibleTabs.map((tab) => (
             <Tabs.Trigger
               key={tab.id}
               value={tab.id}
-              className="shrink-0 rounded px-2 py-1 font-mono text-[10px] tracking-wider text-muted-foreground uppercase transition-colors hover:text-foreground data-[state=active]:bg-accent data-[state=active]:text-foreground"
+              className="shrink-0 rounded-md px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring data-[state=active]:bg-accent data-[state=active]:font-medium data-[state=active]:text-foreground"
             >
               {tab.label}
             </Tabs.Trigger>
@@ -171,6 +181,15 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
             </div>
           )}
           <Tabs.Content value="lexicon" className="space-y-4">
+            <PrivateLexicalReadings
+              lemmas={[
+                ...(wordBundle?.lexeme.status === "available" ? wordBundle.lexeme.data.lemmas : []),
+                ...(wordBundle?.dictionary.status === "available"
+                  ? wordBundle.dictionary.data.map((entry) => entry.lemma)
+                  : []),
+                ...(annotation?.normalized.lemmas ?? [token.lemma ?? token.surface]),
+              ]}
+            />
             {wordBundle?.dictionary.status === "available" &&
               wordBundle.dictionary.data.map((entry) => (
                 <LexiconEntry key={entry.id} entry={entry} />
@@ -247,9 +266,7 @@ export function WordInspector({ selection }: { selection: WordSelection }) {
                   .filter(([, v]) => v)
                   .map(([k, v], index) => (
                     <tr key={`${k}:${index}`} className="border-b border-border/60 last:border-0">
-                      <td className="py-1.5 pr-3 font-mono text-[11px] text-muted-foreground">
-                        {k}
-                      </td>
+                      <td className="py-1.5 pr-3 font-mono text-xs text-muted-foreground">{k}</td>
                       <td className="py-1.5 capitalize">{v ? morphologyLabel(v) : v}</td>
                     </tr>
                   ))}
@@ -435,21 +452,11 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
           <span className="font-mono text-xs text-muted-foreground">{entry.transliteration}</span>
         )}
       </div>
-      <div>
-        <p className="meta-label">Glosa breve da fonte (em inglês)</p>
-        <p className="mt-1 font-medium">{entry.gloss}</p>
-      </div>
-      {entry.definition && (
-        <div>
-          <p className="meta-label">Definição da fonte (em inglês)</p>
-          <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{entry.definition}</p>
-        </div>
-      )}
       {translation ? (
-        <div className="rounded border border-border bg-muted/20 p-2">
-          <p className="meta-label">Tradução automática auxiliar</p>
+        <div className="rounded border border-primary/30 bg-primary/5 p-2.5">
+          <p className="meta-label">Em português · tradução automática auxiliar</p>
           <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{translation}</p>
-          <p className="mt-2 text-[10px] text-muted-foreground">Não revisada academicamente.</p>
+          <p className="mt-2 text-xs text-muted-foreground">Não revisada academicamente.</p>
         </div>
       ) : (
         <button
@@ -463,7 +470,22 @@ function LexiconEntry({ entry }: { entry: LexicalDictionaryEntry }) {
         </button>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <p className="text-[11px] text-muted-foreground">
+      <details open={!translation} className="border-t border-border pt-2">
+        <summary className="cursor-pointer text-xs font-medium text-muted-foreground">
+          Consultar texto original da definição em inglês
+        </summary>
+        <div className="mt-2">
+          <p className="meta-label">Glosa breve da fonte</p>
+          <p className="mt-1 font-medium">{entry.gloss}</p>
+        </div>
+        {entry.definition && (
+          <div className="mt-2">
+            <p className="meta-label">Definição da fonte</p>
+            <p className="mt-1 whitespace-pre-line text-sm leading-relaxed">{entry.definition}</p>
+          </div>
+        )}
+      </details>
+      <p className="text-xs text-muted-foreground">
         {entry.language === "hbo"
           ? "TBESH · STEP Bible / Tyndale House Cambridge · gloss importado; definição longa retida pelo gate de direitos"
           : "TBESG · STEP Bible / Tyndale House Cambridge · CC BY 4.0"}
@@ -501,15 +523,21 @@ function WordNotes({
       ))}
       <button
         onClick={() =>
-          void addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
-            { kind: "word", target: wordId, label: wordLabel },
+          void withFeedback(
+            addNote(t("scripture.noteOn", { lemma: wordLabel }), "", [
+              { kind: "word", target: wordId, label: wordLabel },
+              {
+                kind: "passage",
+                target: passageRefKey(passageRef),
+                label: verseLabel,
+                anchor: { type: "passage", ref: passageRef },
+              },
+            ]),
             {
-              kind: "passage",
-              target: passageRefKey(passageRef),
-              label: verseLabel,
-              anchor: { type: "passage", ref: passageRef },
+              success: "Nota criada. Ela está em Notas.",
+              failure: "Não foi possível criar a nota.",
             },
-          ])
+          )
         }
         className="inline-flex items-center gap-1.5 rounded-md border border-input px-2.5 py-1.5 text-xs font-medium hover:bg-accent"
       >
@@ -539,10 +567,13 @@ function AddToStudy({
         onChange={(e) => {
           const id = e.target.value;
           if (!id) return;
-          void addToStudy(id, { kind: "word", refId: wordId, label: wordLabel });
+          void withFeedback(addToStudy(id, { kind: "word", refId: wordId, label: wordLabel }), {
+            success: "Palavra adicionada ao estudo.",
+            failure: "Não foi possível adicionar ao estudo.",
+          });
           e.target.value = "";
         }}
-        className="h-7 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground"
+        className="h-8 flex-1 rounded-md border border-input bg-background px-1.5 text-xs text-foreground pointer-coarse:min-h-11"
       >
         <option value="" disabled>
           {t("common.chooseStudy")}

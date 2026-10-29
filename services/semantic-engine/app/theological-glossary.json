@@ -1,0 +1,11 @@
+{
+  "version": "1",
+  "rules": [
+    {"source": "Logos", "target": "Logos"},
+    {"source": "Torah", "target": "Torá"},
+    {"source": "Torá", "target": "Torá"},
+    {"source": "Septuagint", "target": "Septuaginta"},
+    {"source": "Septuaginta", "target": "Septuaginta"},
+    {"source": "LORD", "target": "SENHOR"}
+  ]
+}

@@ -30,10 +30,13 @@ export function InterlinearView({
 
   if (!verse.original) {
     return (
-      <div className="mb-4 flex items-baseline gap-2">
-        <span className="font-mono text-[10px] text-muted-foreground select-none">
-          {verse.verse}
-        </span>
+      <div
+        id={`verse-${verse.verse}`}
+        data-reading-section=""
+        data-reading-label={`Versículo ${verse.verse}`}
+        className="mb-4 flex items-baseline gap-2"
+      >
+        <span className="font-mono text-xs text-muted-foreground select-none">{verse.verse}</span>
         <span className="text-sm text-muted-foreground italic">
           {t("scripture.interlinearMissing")}
         </span>
@@ -42,13 +45,18 @@ export function InterlinearView({
   }
 
   return (
-    <div className="mb-5 overflow-x-auto pb-1">
+    <div
+      id={`verse-${verse.verse}`}
+      data-reading-section=""
+      data-reading-label={`Versículo ${verse.verse}`}
+      className="mb-5 overflow-x-auto pb-1"
+    >
       <div className="mb-2 border-l-2 border-border pl-3">
-        <p className="font-mono text-[9px] uppercase tracking-wide text-muted-foreground">
+        <p className="meta-label tracking-wide text-muted-foreground">
           {t("scripture.portugueseParallel")}
         </p>
         <p className="mt-0.5 font-serif text-sm leading-relaxed">
-          <span className="mr-1 font-mono text-[10px] text-muted-foreground">{verse.verse}</span>
+          <span className="mr-1 font-mono text-xs text-muted-foreground">{verse.verse}</span>
           {Object.values(verse.translations)[0]}
         </p>
       </div>
@@ -77,13 +85,13 @@ export function InterlinearView({
                 {token.surface}
                 {token.suffix}
               </span>
-              <span className="font-mono text-[10px] text-muted-foreground">
+              <span className="font-mono text-xs text-muted-foreground">
                 {annotation?.normalized.transliteration ?? token.transliteration ?? ""}
               </span>
               <span className="text-xs text-foreground/80">
                 {annotation?.normalized.lemmas[0] ?? token.lemma ?? "—"}
               </span>
-              <span className="font-mono text-[9px] tracking-wide text-muted-foreground">
+              <span className="font-mono text-xs tracking-wide text-muted-foreground">
                 {morphology?.rawMorphologyCode ??
                   token.morphology?.code ??
                   (token.morphology

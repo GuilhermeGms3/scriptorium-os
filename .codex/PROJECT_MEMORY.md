@@ -1,5 +1,1120 @@
 # Project Memory
 
+## Tradução de leitura e painel agrupado — Android0.6.12 — 2026-10-29
+
+- PrimaryReader: uma ação para traduzir o feed carregado, progresso, original e
+  continuidade por lote; ML Kit/cache existentes, sem tocar IDs ou fontes.
+- Comentários agrupados por fonte dentro do versículo, contador discreto, todos os
+  recortes e seus acessos preservados. Cartões neutros, acentos suaves. Dock com
+  alça arrastável 25–75%, inicial48%; filtros em janela e índices de sincronização corrigidos.
+- 80 JVM/build/lint aprovados (0 erros/49 avisos); três instrumentados reais:
+  Gn3:1 (8 recortes/4 fontes), Didaquê16 unidades traduzidas, arrasto/filtros/original.
+- Snapshot antigo de QA não tinha esses dados; exportação real sem PDFs/notas foi
+  instalada somente no emulador. Sem celular físico. APK0.6.12/code24.
+- Evidência e limites: docs/qa/android-reader-panel-2026-10-29.md.
+
+## Busca de referências na seleção — Android0.6.11 — 2026-10-29
+
+- Encontrar livro ou texto reconhece Romanos 12, Romanos 12 2, abreviações e pequenos
+  erros; Abrir passagem usa catálogo completo e valida endereço na edição real.
+- Parser compartilhado Android aceita espaço entre capítulo/versículo, prioriza
+  correspondência exata e rejeita empate. Salmos 67:15 informa ausência sem esconder Salmos.
+- 76 JVM/build/lint aprovados (0 erros/49 avisos); dois instrumentados com acervo real
+  no Pixel_8 aprovados, inclusive indicador no versículo 2. APK0.6.11/code23.
+- Sem celular físico conectado, sem instalação no Samsung. Desktop/indicadores/acervo
+  preservados. Evidência: docs/qa/android-reading-reference-2026-10-29.md.
+
+## Explorar na barra superior — desktop — 2026-10-27
+
+- Botão movido do cabeçalho do capítulo para ScriptureToolbar, entre referência e
+  versão, em todos os livros/capítulos carregados. Nos outros modos, abre Leitura
+  com exploração; voltar restaura leitura contínua. Sem duplicar botão no artigo.
+- Responsivo ao espaço da coluna: ícone em coluna estreita, opções secundárias
+  recolhidas antes de colidir. Android e seu indicador não alterados.
+
+## Indicador mobile restaurado — Android0.6.10 — 2026-10-27
+
+- Pedido explícito: indicador do celular volta ao anterior e deve ser preservado;
+  ajustes do indicador do PC não autorizam alterar o mobile.
+- ReadingSectionIndicators.kt restaurado byte a byte de e48867c: traços verticais
+  curtos, atual alongado e numerado, janela original. Filtros em diálogo e desktop
+  horizontal permanecem intactos. Versão0.6.10/code22 para atualização sem downgrade.
+- Build/75JVM/lint aprovados,0erros49avisos; instalado no Samsung por install-r,
+ 0.6.10/code22 confirmados, mesmo acervo4c8bad60…aa2f4. Sem repetição de QA instrumental.
+
+## Leitura compacta e traços livres — Android0.6.9/web — 2026-10-27
+
+- Desktop sem faixa/fundo/borda/números visíveis: traços12×2/26×3px, atual sempre
+  centralizado; slots vazios não interativos nos extremos. Gutter invisível conserva
+  espaço do texto. Native30dp com traços11/24dp, identidade por destino para animar.
+- CommentFilters abre AlertDialog por Filtrar; categorias/fontes/limpar/concluir
+  mantidos. Assunto e fonte/Fonte:todas saem do leitor/dock. PassagePanel usa o mesmo
+  diálogo sob demanda. Sem diminuir comentários ou alterar dados/corpus/progresso.
+-632TS/103arquivos,typecheck,ESLint/Prettier/buildweb;75JVM/builds/lint0erros49avisos.
+  Browser readOnly:traço26×3,centralização0px,semfundo/borda e fluxos anteriores.
+  Nativo16,236s+29,616s aprovados; SystemUI ANR inicial resolvido com reboot.
+- APK0.6.9/code21,sem reimportar acervo. QA:docs/qa/reading-compact-2026-10-27.md.
+  Instalação no SamsungSM-S906E por install-r:Success,versão21/0.6.9 e aberturaok;
+  mesmo acervo4c8bad60…aa2f4 antes/depois,sem limpeza ou testesuiQa no telefone.
+
+## Indicadores verticais desktop — 2026-10-27
+
+- ReadingSectionLayout/ReadingTextSections/useReadingScrollspy: gutter32px à esquerda,
+  até9alvos/grupo pela altura, animação/rolagem suave com movimento reduzido,
+  clique/Tab/setas/Home/End e aria-current. Janela móvel mantém foco após o salto.
+- Escrituras em todos os modos e Explorar; Biblioteca privada por página/trecho;
+  fonte primária por unidade/trecho; leitor contextual. Em <1024px fica oculto;
+  Android, árvore, progresso, corpora e contratos não mudam.
+- Spans preservam texto/UTF-16/CRLF/espaços e realces entre limites; nenhum número
+  entra no original selecionável. Trechos longos só dividem após frases completas.
+-631testes/103arquivos,typecheck,ESLint,Prettier/buildweb aprovados. QA com banco
+  readOnly/zeroescritas, Gn3/Jo1,Confissões,CidadeDeDeus,consulta/seleçãoexata3–1103,
+  larguras1440/1024/390; comentário inline mantém o verso mesmo no intervalo entre
+  âncoras. Um aviso inicial React/Vite não se reproduziu com/sem o componente no QA.
+- docs/architecture/desktop-reading-indicators.md e docs/qa/desktop-reading-indicators-2026-10-27.md.
+
+## Caminhos dos versículos — desktop/web — 2026-10-27
+
+- Escrituras/Leitura: entrada opcional Explorar versículos; linhas independentes,
+  verso à esquerda, blocos conectados/arrastáveis à direita. Sem categorias fixas.
+  Leitura contínua padrão, Android/Estudos/impressão/corpora preservados.
+- verse-exploration.ts projeta comentários contextualizados visíveis, análises,
+  claims, palavras originais e notas com âncora. Menções sem análise não viram
+  comentário; panoramas amplos ficam uma vez no capítulo. Agrupa fonte/categoria
+  sem perder trechos; filtros privados existentes preservados. Sem schema/deps/API/IA.
+- Janela com fontes/localizadores/limites, seletor de trechos, contrapontos registrados,
+  leitor contextual original e nota rápida ligada ao versículo. Guarda de rascunho
+  e restauração do foco; vínculos automáticos não promovidos a revisão humana.
+- QA:168versículos/Gn3,Jo1,Sl23,Rm8,Mt5; Gn3 com3–5blocos por versículo na instalação.
+  Queries do banco pessoal só readOnly; notas em OPFS descartável. Temas claro/escuro,
+  arrasto/teclado/fontes/nota/rascunho, sem overflow em1680/1440/1024/390.
+-624testes/101arquivos,typecheck,ESLint,Prettier,build web aprovados. Sem APK.
+  docs/architecture/verse-exploration.md e docs/qa/verse-exploration-2026-10-27.md.
+
+## Aprofundamento editorial Android0.6.8/web — 2026-10-26
+
+- Queda, graça e providência:22.054palavras/303parágrafos,14módulos/18aulas/90seções;
+  todas as aulas >1000palavras.17referências novas,total33,com localizadores/limites;
+  arquétipo/alteridade/liberdade/queda,cinco vias,Cristo,graça/providência,confissões,
+  oração/Sheol/esperança/síntese. Fontes:docs/content/queda-graca-aprofundamento-2026-10-26.md.
+- Camada development-* acrescenta exposição aos IDs existentes;progress-baseline.json
+  captura estrutura anterior. Sem mudar revisão1,leituras obrigatórias/critério/gate.
+  18conexões bíblicas opcionais; web usa v+âncora,Android PassageButton com save guard.
+- Um currículo,asset1.335.687bytes(+151.605);APK0.6.8/code20,sem reimportação de livros.
+  Arquivos privados/offsets/progresso e demais módulos preservados;sem dependência/schema.
+- TS588/94arquivos,typecheck/ESLint/buildweb;Android75JVM/0falhas e builds;
+  lint0erros49avisos. Web1440/390 sem overflow/erros,fonte real e João1 abertos.
+  Nativo23,934s:complemento bíblico,novo texto e work_json anterior intacto.
+  QAseeds só em OPFS/emulador descartável;não estudo humano. Telefone ausente.
+- QA:docs/qa/study-expanded-content-2026-10-26.md. Retomada nativa guarda versículo
+  visível,sem fim do intervalo;web remonta no próximo módulo não concluído.
+
+
+## Leitura/movimento Android0.6.7 e Estudos web — 2026-10-26
+
+- Emblemas vetoriais substituem emojis de todos os livros no catálogo nativo.
+- ReadingSectionIndicators: margem reservada de30dp, pontos/traço ativo, até9
+  alvos por janela (capacidade pelo viewport). Versículos, PDF por página, fontes
+  primárias por unidade e texto ajustado por parágrafo; sem varrer acervo inteiro.
+- libraryReadingSections é apresentação: preserva palavras, parágrafos existentes
+  e listas; divide blocos grandes em limites de frase. § reinicia por página e é
+  explicitamente visual, sem modificar raw/offsets/evidências. OCR continua limitado.
+- CourseScreen/GuideScreen/LessonSequence/aprofundamentos têm entrada e deslocamento
+  direcional; StudyRail desenha ligações. Web usa hook de movimento com cancelamento
+  ao reduzir movimento; rascunhos/requisitos/progresso preservados.
+- TS587/94arquivos, typecheck/ESLint/buildweb; Android75JVM/0falhas e builds.
+  Web1440/390 sem overflow/erros, movimento reduzido; nativo3cenários49,079s.
+  Indicador acessível corrigido com nó único/estado/ação; bootANR do SystemUI
+  resolvido ao reiniciar emulador. Telefone ausente; não afirmar instalação.
+- QA e evidências: docs/qa/reading-motion-2026-10-26.md. APK0.6.7/code19;
+  sem dependências, migração, pacote novo ou reimportação de PDFs.
+
+
+## Queda, graça e providência — Android0.6.6/web — 2026-10-26
+
+- Novo percurso independente em Estudos/Percursos:14módulos/18aulas/90seções,
+  cerca de6815palavras;cinco vias separadas,Adão/alteridade/queda,Cristo/Sheol,
+  graça/providência,calvinismo/luteranismo/anglicanismo,oração/síntese.
+- Hipóteses identificadas e confrontadas com fontes primárias;sem consenso fictício,
+  exigência de adesão ou revisão acadêmica humana alegada. Dossiê e limites:
+  docs/content/queda-graca-providencia-2026-10-26.md.
+- Currículo único em study-courses/fall-grace, asset via studyContent.courses.
+  Android editorialCourses usa chave de catálogo; mantém payload legado de Gênesis
+  com idgenesis-1 para preservar progresso. Cursos novos sem reimportar pacote.
+- libraryWorks opcional declara obras reais da Suma/Confissões;web reutiliza
+  loadTopicReadings e Android lessonReadings com seleção explícita. Texto completo
+  abre leitor da Biblioteca;trechos identificados usam janela de contexto.
+- Sem schema/dependência/PDF/banco novo;árvore e progressos antigos preservados.
+- TS587/94arquivos,typecheck/ESLint/buildweb,Androidassemble/JVM73/lint aprovados;
+  lint0erros49avisos. Web1440/390 sem overflow/erros;fonte real aberta.
+  AndroidUI77,454s:livro real,Sl13,critérios,A→B,fundamentação e retomada.
+- QA:docs/qa/study-fall-grace-2026-10-26.md. SystemUIANR no boot do emulador
+  resolvido ao reiniciar;telefone físico ausente. Não afirmar instalação no aparelho.
+
+## Estudos Android0.6.5/web — fundamentação e árvore — 2026-10-25
+
+- Home de Estudos em Árvore/Percursos/Temas; catálogo temático por áreas/busca.
+  Título público Conhecimento de Deus — fé e razão; IDs/revisão/requisitos preservados.
+- Árvore horizontal compartilhada em study-skill-tree.ts e asset studyTree; pontos
+  dourados/cinzas sem cadeados, seletor textual, pré-requisitos pela conclusão real.
+  GSAP3.15 carregado ao entrar na tela web; Compose nativo; movimento reduzido respeitado.
+- Fundamentação dos seis módulos: afirmação/domínio/natureza/fonte/localizador/
+  perspectiva/alcance/alternativas. Nos demais capítulos, bibliografia temática
+  explícita; não atribuição frase a frase nem revisão acadêmica humana.
+- Web consome introdução/Formação18/Gênesis/guias com StudyCourseRepository e gate
+  de pré-requisito existente. Progresso web e Android continuam independentes.
+- Sem migração/PDF/pacote novo. Asset editorial sobrepõe mapa/aulas/cursos antigos;
+  títulos de cursos também atualizados no catálogo de pacotes antigos.
+- TS583/93arquivos, typecheck/ESLint/buildweb aprovados. Playwright isolado
+  1440/390px: árvore/temas/percurso/fontes/gate/movimento reduzido, sem overflow/erros.
+- Fontes e QA: docs/architecture/knowing-god-discovery.md;
+  docs/qa/study-foundations-tree-2026-10-25.md. Consultar QA para resultado Android.
+- Android final:72JVM/0falhas, assembleDebug/AndroidTest/lint aprovados(0erros49avisos).
+  Temas e Formação passaram; descoberta retestada98,684s com fundamentação,
+  passagem real, recusa de trabalho incompleto, A→B e retomada. Um lint intermediário
+  preso foi encerrado e reexecutado sem desativar regras. USB físico ausente.
+
+## Android0.6.4/web — aprofundamento de Estudos — 2026-10-25
+
+-95entidades/16guias,111aulas/130capítulos,97aprofundamentos distintos (13.470palavras)
+  com análise/caso/síntese;aliases equivalentes e competências compartilhadas explícitos.
+  Conhecerparaamar4424palavras/30seções;formação18módulos/200seções;Gênesis6módulos ampliados.
+- IDs/requisitos anteriores preservados;fixture público study-progress-baseline.json
+  confere módulos/aulas/leituras/quantidade de capítulos. Sem schema/deps novas.
+- Registro editorial deduplicado no reading-labels sobrepõe aulas antigas do pacote
+  Android e Gênesis;sem reimportar acervo/PDFs. Casos pertinentes têm links bíblicos.
+- Um contexto por vez no Android/web;árvore/trilha preservadas. Formação/Conhecerparaamar
+  ainda nativos;web consome temas/guias/Gênesis. Sem revisão acadêmica humana/curadoria vídeo nova.
+- TS579/92arquivos,typecheck/ESLint/buildweb/buildAndroid aprovados;JVM71/0falhas;
+  lint0erros49avisos;asset do APK idêntico ao editorial gerado.
+  Web1440/390px sem overflow/erros;3cenários nativos verificados (2+1reteste),acervo real.
+  QA descreve ANRSystemUI e correção de rolagem no teste;telefone ausente no QA inicial.
+- Instalação física posterior autorizada:SamsungSM-S906E,install-r Success,0.6.4/code16
+  confirmados;aberturaCOLD1368ms/statusok;mesmo acervo4c8bad60…aa2f4 antes/depois.
+  Sem desinstalação/limpeza/reimportação ou cenários de QA que escrevem progresso.
+- Fontes/escopo:docs/content/study-deepening-2026-10-25.md;
+  evidências:docs/qa/android-study-depth-2026-10-25.md.
+
+## Android0.6.3 — Conhecer para amar — 2026-10-25
+
+- Primeiro percurso de descoberta:6módulos/30seções/3.001palavras editoriais originais,
+  10leituras bíblicas por referência, fontes externas identificadas e acervo real/caderno.
+  Currículo em src/lib/content/study-courses/knowing-god.ts, asset via mobile:labels.
+- Árvore nativa preservada; percurso libera origem, guias concluídos liberam filhos.
+  Conclusões antigas reconhecidas/revisáveis; pedidos diretos passam pelo gate. Bíblia,
+  Biblioteca e cursos de consulta independentes não bloqueados. Sem schema/deps novas.
+- Abaixo da árvore:próxima descoberta/trilha, outros estudos recolhidos. Seções com
+  hierarquia e superfícies do tema. NoteEditor existente e CoursePolicy reutilizados;
+  conclusão anterior não é apagada por edição de rascunho incompleto.
+- TS5/JVM70/typecheck/ESLint/Prettier/buildAndroid aprovados;lint0erros49avisos.
+  4cenários nativos/0falhas em116,429s,com acervo real:novo percurso,guia,formação
+  e aula temática. QA/limites:docs/qa/android-discovery-2026-10-25.md.
+- Novo consumidor apenas Android, sem vídeos novos ou revisão acadêmica humana.
+  Telefone ausente; não confundir teste emulador com instalação física.
+
+## Android0.6.2 — livros e catálogos leves — 2026-10-25
+
+- Biblioteca: capas reais240px com cache JPEG atômico por checksum; metadados antes de abrir.
+  Novo BookReader: PDF à largura/pan/zoom1–4×, uma página por vez; Texto ajustado com
+  fonte/tamanho. Cabeçalho/rodapé compactos; índice/anotação/áudio/tradução em Leitura.
+- Página por livro salva em ReadingPreferences; não no backup de notas. Original/offsets
+  preservados; OCR/colunas complexas não reconstruídos. Sem acervo/migration/dependências novas.
+- Confirmado pelo usuário: também aba Leitura/Escrituras deve entrar em catálogo leve.
+  Sem capítulo automático; Continuar leitura explícito. Entradas novas por abas limpam
+  pedidos antigos; links de Busca/Estudos/Início/Áudio mantêm abertura direta.
+- Build/JVM66/lint0erros48avisos;7cenários nativos cobertos com acervo real/offline,
+  PDF/capa/cache/refluxo/fontes/retomada/catálogo/links/comentários. QA explica reteste
+  de asserção e ANR inicial do sistema do emulador. docs/qa/android-library-reader-2026-10-25.md.
+- APK de atualização0.6.2/code14 na Área de Trabalho; instalado no SM-S906E por `install -r`,
+  versão/abertura confirmadas e mesmo ID do acervo antes/depois, sem reimportação.
+
+## Contextualização desktop — 2026-10-24
+
+- Inventário confirmado:57documentos/47.707páginas/47.441com texto. Sem novo backup completo.
+- Fila persistente `contextual-library-queue`:5publicados/33com contexto anterior/19bloqueados;
+  coordena Python e importadores canônicos, não outro banco. Primeiro lote terminou.
+- Publicados2.184recortes:Confissões435(com DeMagistro separado),Enciclopédia710,
+  Oxford793(p26–868),NagII246(p11–278,títulos espaçados). AgostinhoCCELJoão/1João:
+  144trechos iniciais/123seções/11exceções,25capítulos com algum contexto, não cobertura total.
+- CidadeDeDeus117tentativas OCR:87vazias/30ruído inicialmente importado e depois
+  quarentenado por recibo, sem âncoras;705/822com texto preservadas. Novo gate conservador.
+- Jerusalém1219/1221extraídas, aparato não identificado; não tratar Escritura como comentário.
+- Python140,mypy18arquivos,Ruff;TS572/90arquivos quick,typecheck,lint,build aprovados.
+- Idempotência e consumidores reais Reader/estudos conferidos;FK0,hashes pessoais iguais.
+  Sem QA visual navegador nem novo pacote móvel. Relatório/limites:
+  docs/content/contextual-library-expansion-2026-10-24.md.
+
+## Android0.6.1 — idiomas, catálogo e autoria editorial — 2026-10-23
+
+- Continuação da missão de Áudio: não declarar fases2–5 concluídas. Native TTS continua
+  alternativa literal, sem voz neural expressiva/roteiro LLM/produção cinematográfica.
+- Leitor removido da navegação de Áudio; fila mantida em Início. Reflexões possui roteiro
+  manual/revisão/rascunho, edição por projectId e coleção separada (100/4MiB), sem expulsão
+  pelo histórico de30leituras. Música/volume por episódio; player/serviço existentes.
+- Tradução em versos/comentários/fontes; Language ID17.0.6 local embarcado para trechos
+  sem idioma, oculta PT e permite escolha em caso indeterminado. Tradutor suporta en/es, não copta.
+- Volumes gnósticos no filtro Esotérico; abrem leitor integral. Tomé copta oferece consulta
+  do início espanhol real no volumeII, localizado por FTS+abertura, sem alinhamento inventado.
+- Cinza acromático e Marrom com containers quentes; Claro/Preto preservados.
+- Build/JVM66/0falhas/lint0erros46avisos; gate final nativo5testes/0falhas em29,105s,
+  incluindo reflexão narrada/música/revisão, identificação e tradução real en/es→pt.
+- Telefone ausente do ADB: atualização física não confirmada. Nenhum kit/backup pesado novo,
+  alteração no workspace, notas ou pacote de acervo. APK normal da saída Gradle, code13.
+- Fonte canônica e limites:docs/qa/android-reading-reflections-2026-10-23.md.
+
+## Áudio Android0.6.0 — fase1 — 2026-10-23
+
+- Missão nova: Áudio Android + provedor neural + Reflexões desktop/Android. Esta entrega
+  implementa fase1, não fingir fases2–5 prontas. Fonte canônica:docs/architecture/audio-android.md.
+- Media3 1.9.4/MediaSessionService único, TTS local→WAV e player principal + canal musical
+  interno sem foco próprio. Nada de WebView/serviços concorrentes. AndroidversionCode12.
+- MenuÁudio/mini player, Escrituras/intervalos/fila, páginas/seleção e etapas de estudo,
+  histórico/favoritos/perfis, cache e progresso; SAF/hash/quotas para música com três modos.
+- Sem migration/acesso ao workspace canônico, reimportação de PDFs ou backup completo novo.
+  Áudio/histórico em files/audio e SharedPreferences, não no backup de notas/patch de acervo.
+-64JVM/48TS-áudio/typecheck/buildAndroid aprovados;lint0erros/42avisos. Dois cenários
+  instrumentados reais passaram no Pixel_8; síntese de trecho novo sem rede também passou.
+  Foco transitório, botão de mídia, segundo plano/tela desligada, cache e UI nativa conferidos.
+- Após reconexão,APK0.6.0/code12 instalado no Samsung sem reenviar acervo. Primeiro QA
+  revelou localeISO3 Samsung por/spa; normalizado por Locale para pt/es, com região e
+  distinção grc/el preservadas.66JVM/0falhas,build/lint repetidos aprovados.
+-2testes físicos ÁudioPlayback/AudioUi passaram em17,046s; sem screenOffQa/PIN/Bluetooth.
+ 9tabelas pessoais idênticas antes/depois,FKs0; acervo4c8bad60…aa2f4 preservado ao reiniciar.
+  Nenhum backup completo novo nem troca/download de voz do sistema. App reaberto ao final.
+- Voz neural expressiva/roteiros/Reflexões/mix/export ainda pendentes, sem credenciais ou
+  chamadas pagas. Exigem próximo incremento real e validação; não considerar missão concluída.
+- QA/limites/comandos:docs/qa/android-audio-2026-10-23.md. APK em saída Gradle normal;
+  não gerar outro kit de2GB apenas para atualizar código.
+
+## Android — patch OCR ativado e verificado — 2026-10-23
+
+- A pedido do usuário, resultado desktop exportado com base exata f2efca3e…b7299;
+  novo ID4c8bad60…aa2f4, compatível com APK0.5.3 existente, sem reconstrução.
+- Desktop/Scriptorium-Atualizacao-OCR-20261023: pacote272.325.844bytes;
+  somente content.sqlite3 mudou,75arquivos/PDFs reutilizados. Sem novo backup completo.
+- 57PDFs/11edições,47.707páginas/47.441com texto,50.934comentários elegíveis,
+  35.065recortes/verbetes. Novos4.851Keener/689temáticos conferidos,27livros NT.
+- 13testes do exportador/kit passaram;hashes/CRC/SQLite/FKs/seed vazio aprovados.
+- USB autorizado/base exata;272MB entregues/hash correto,APK principal preservado.
+  Após desbloqueio,novoID ativo inclusive após reinício;entrada removida automaticamente.
+- 3testes instrumentados DocumentaryContentTest com documentaryQa/ocrQa passaram em16,644s;
+  totais Keener/recortes e consultas nativas confirmados.58JVM/lint aprovados na preparação.
+- 9tabelas pessoais idênticas por contagem/hash antes/depois,FKs0. Sem backup novo de banco
+  nem livros. Tela inicial conferida após reinício; não QA visual completo de todos os módulos.
+- Relatório:docs/qa/android-ocr-patch-2026-10-23.md. Não confundir patch com kit inicial.
+
+## Desktop — OCR concluído e contextos publicados — 2026-10-23
+
+- Política do usuário: não gerar backups completos repetidos; reutilizar snapshot existente
+  explicitamente nos importadores. Não apagar backups/acervo sem autorização. Não mexer no
+  celular nem gerar outro kit/APK antes de terminar a etapa desktop.
+-6obras/1.540páginas processadas;1.536com texto. Agostinho142,Wegner129,VonRad21,Ladd207,
+  Lossky207; Keener830/834,quatro páginas brancas visualmente conferidas(2,812,826,828).
+- Publicados689recortes temáticos(232/166/12/101/178,nessa ordem sem Keener) e4.851relações
+  culturais Keener, com destinos nos27livros do NT. Não é revisão integral de todos os vínculos.
+- JSON atômico com retry/temporários únicos;4processos isolam gateTesseract. Importador
+  preserva estrutura contextual, não força reconstrução destrutiva de índices genéricos.
+- Lotes finais privados:recovered-thematic-20261023-v4 e keener-cultural-20261023-complete.
+ 14remissões retidas;3localizadores Agostinho corrigidos com histórico preservado.
+  Repetições0novas/689 e0novas/4.851;OCR0novas/1.540;FKs0. ReaderMt1:1/Wegner-guia reais.
+- Jerusalém:1.219textos/1.221páginas,sem aparato de notas identificado;não falha geral de
+  extração. Fonte completa/diagnóstico e limites:docs/content/ocr-contextual-recovery-2026-10-23.md.
+-618TS/133Python,typecheck,mypy18,Ruff,lint focado,build aprovados. Sem novo QA visual web
+  completo; amostras PDF revisadas. Dois índices genéricos preservados como parciais.
+- Telefone0.5.3 ainda tem snapshot anterior; próxima entrega pode ser patch de conteúdo,
+  reutilizando PDFs/corpora imutáveis. Esta rodada não gerou APK nem novo backup completo.
+
+## Android — acervo atualizado0.5.3 — 2026-10-23
+
+- Pedido: kit completo para outra pessoa e atualização USB do aparelho autorizado, sem
+  desinstalar.0.5.3/code11 acrescenta consumo dos recortes temáticos e verbetes do desktop;
+  não apenas cópia dos PDFs. Projeções opcionais documentary_readings/documentary_topics,
+  estudos por tema explícito, léxico PT por lema normalizado e fonte/página/offset preservados.
+- Exportação `--complete --without-personal`:57PDFs/47.707páginas,46.265com texto,
+  46.083comentários elegíveis (igual consulta canônica),29.216recortes/5.160verbetes,11edições.
+  FKs0/quick_checkok; seed pessoal vazio para destinatário. Não é OCR nem revisão integral.
+- Exportação em LOCALAPPDATA/Temp/scriptorium-export-atualizado-20261023; kit concluído
+  no Desktop/Scriptorium-Android-0.5.3-completo-20261023. ZIP2.001.373.184bytes,
+ 76arquivos SHA/CRC verificados. APK instalado por cima e pacote USB transferido;
+  após desbloqueio, ID f2efca3e…b7299 ativo confirmado inclusive após reinício.
+-2testes instrumentados DocumentaryContentTest passaram no aparelho físico;
+  leituras da Trindade/léxico λόγος consultados.9tabelas pessoais idênticas ao backup,
+  FKs0; tela inicial/retomada preservadas. Sem auditoria visual integral de todos os módulos.
+-58testes JVM/13exportação,typecheck,ESLint,Prettier,assembleDebug/AndroidTest aprovados;
+  lint Android0erros/23avisos. QA e limitações:docs/qa/android-acervo-2026-10-23.md.
+- Backup do banco pessoal Android anterior em Documents/Scriptorium Workspace Backups/
+  android-antes-0.5.3-20261023; nunca incluído no kit para terceiros. Instalação sem wipe.
+
+## Histórico — início da recuperação OCR — 2026-10-23
+
+- Escopo: seis documentos sem texto (Agostinho/Doutrina Cristã, Keener, Wegner, von Rad,
+  Ladd, Lossky),1540páginas físicas.168páginas reais já incorporadas com backup/FKs0;
+  restante em worker independente, não declarar completo sem consultar banco/recibo.
+- Staging válido `data/workspace/ocr-recovery-validated-20261023`, logs worker-* e progress.json.
+  Worker lê SQLite/PDFs; ao terminar, importador obtém lock e estrutura sem LLM.
+  Se lock do app bloquear publicação, resultados ficam prontos; não roubar o lock.
+- Tesseract5.4 portátil em LOCALAPPDATA/Scriptorium/tools/ocr-5.4.0; por/spa/eng/grc/heb+OSD.
+  Setup verifica hashes, extrai sem executar instaladores nem alterar PATH/registro.
+- Corrigidos parserTSV (aspas não escapadas, QUOTE_NONE), orientaçãoPSM1 e retomada
+  tupla/lista JSON. Receita `;tsv-literal-v1`; resultados anteriores são recusados.
+- Originais intocados; schema26 mantido; não substitui texto/âncoras existentes.
+  Jerusalém continua sem aparato identificado nas amostras; hash da pasta é o mesmo.
+  Institutas45páginas NUL permanecem em quarentena, fora deste backfill de páginas vazias.
+- Operação/limites: `docs/architecture/offline-ocr-recovery.md`. Não confundir OCR com
+  interpretação/publicação contextual. Validar e registrar estado da fila ao retomar.
+- Snapshot:Agostinho142/142páginas,315unidades; Keener13/834; demais3por obra;359unidades
+  totais iniciais. Agostinho recuperado textualmente, não integralmente contextualizado.
+ 616testes TS/124Python,
+  mypy17arquivos,Ruff,typecheck,lint focado,build aprovados. FTS real e retomada verificados.
+
+## Desktop — incorporação temática e lexical — 2026-10-22
+
+- Escopo ativo: aproveitar acervo existente nos estudos e no leitor; áudio e Android fora
+  desta entrega. Base canônica `data/workspace/workspace.sqlite3`, schema26 preservado.
+- Publicados29.216 recortes temáticos/13fontes,5.160 verbetes gregos PT e5 análises de
+  Reimer (At16/Ex20/Dt5), aditivos nas tabelas existentes. Não são34mil comentários bíblicos.
+- Contrato/operador: `docs/architecture/thematic-source-incorporation.md`. Contagens e
+  pendências: `docs/content/thematic-expansion-2026-10-22.md`.
+- Método `documentary-thematic:v1`, estado machine-proposed; questão/objeção/resposta
+  distinguidas. Estudos consulta relações reais; inspetor consulta verbetes por lema.
+- Stagings válidos privados: thematic-expansion-20261022-v3, greek-lexical-index-20261022,
+  methodological-exegesis-20261022-v2. Reimportação:0novas,29.216/5.160/5 reutilizadas.
+  Auditoria estrutural84amostras/14fontes,0FKs; não é revisão teológica integral.
+- Pendente: OCR6obras (Tesseract ausente), Salmos/crosswalk, exceções Beale/Crisóstomo,
+  léxicos hebraicos/DITAT/NDITAT integrais, Price/mapas e tratados NHC/DSS especializados.
+  Quarentena45páginas Institutas EN com NUL; originais intactos.
+- Validação final23/10:611testes TS/92arquivos e120Python aprovados; mypy16arquivos,
+  Ruff, typecheck, lint focado, Prettier e build aprovados. QA desktop/móvel confirmou
+  nova Suma/p117 → fonte → nota salva, relatório e Reimer em At16;0erros de console.
+  QA usa subconjunto real separado, não migra nem grava na base canônica.
+- Integrados por fast-forward6commits remotos até4073f2b, sem conflitos/force-push.
+  Docker indisponível; imagem e APK não atualizados. Relatório mantém pendências explícitas.
+
+## Android — textos adicionais e títulos0.5.2 — 2026-10-22
+
+- Apócrifo antes excluía obras com capítulos: Judite/Macabeus/Daniel Grego já estavam na BPM
+  do pacote-base. Metadados agora85 livros (BL+BPM+KJV), tags de filtro e referências PT
+  em busca normal/semântica.19 obras estruturadas e seus cabeçalhos com rótulos PT.
+- Judas abre página real do PDF Nag Hammadi III, física313, espanhol; descoberta por FTS
+  mais cabeçalho explícito. Tomé continua copta; traduzir título não altera idioma-fonte.
+- Delta adiciona KJV registrada do desktop:15.654.404 bytes transferidos/147.034.112 novos
+  instalados;75 arquivos antigos reutilizados no emulador, sem outra cópia dos PDFs.
+  Gerador: scripts/mobile/add-corpus-editions.ts. Usar manifesto-base correspondente.
+- QA/limites: docs/qa/android-additional-texts-2026-10-22.md. Entrega desktop0.5.2 inclui
+  APK+delta+instalador. Instalado0.5.2/code10 e delta no SM-S906E;75 arquivos reutilizados/1 novo
+  confirmados no aparelho.53 testes JVM,12 TS,2 cenários nativos/2 dados reais aprovados;
+  typecheck/lint/build aprovados,22 avisos existentes de lint Android.
+
+## Android — catálogo completo de leitura 0.5.1 — 2026-10-22
+
+- Causa da ausência de AT: o seletor consultava apenas a edição da última passagem,
+  que podia ser SBL/TAGNT/NT. Todos e Todas as seções não tinham como sair dessa edição.
+- `readingBooks` combina catálogos instalados e mantém uma entrada por livro, priorizando
+  Bíblia Livre quando presente. Cada entrada conserva sua edição/obra/esquema para abrir.
+- Catálogo independente da leitura restaurada; sem migração, mudança de corpus ou exclusões.
+- Build/lint aprovados (0 erros/22 avisos),52 testes JVM e3 cenários nativos com acervo
+  real aprovados. Instalado0.5.1/code9 no SM-S906E via atualização, abertura confirmada.
+  Evidência: docs/qa/android-book-catalog-2026-10-22.md.
+
+## Android — formação e estações de estudo 0.5.0 — 2026-10-22
+
+- Estudos mantém a árvore. Guias/aulas e percursos usam estações horizontais conectadas,
+  ponto atual, concluídos e cadeados; conclusão libera o próximo, com revisão dos anteriores.
+- Novo `course:theology-formation`, revisão1, distribuído em `reading-labels.json` no APK:
+  18 pontos graduais,58 aulas,199 parágrafos,48 capítulos bíblicos. Formação geral introdutória;
+  capítulos editoriais existentes + panoramas AT/NT/ética, sem fingir trechos de obras privadas.
+- Fontes de cada módulo usam guia editorial e busca temática no acervo real; abrem Biblioteca.
+  CoursePolicy preservada (aulas/passagens/resposta/critérios), sem certificação automática.
+- Guias retomam primeiro ponto incompleto; progresso na tabela pessoal existente, sem schema
+  ou reimportação. Navegação dos cursos fora do conteúdo rolável; rascunho preservado.
+- Janela de comentários mantém a correção0.4.1: serifa/tamanho limitado/refluxo de PDF,
+  sem alterar texto-fonte, offsets ou quantidade de comentários.
+- QA e limites: `docs/qa/android-study-progression-2026-10-22.md`. Entrega é APK de atualização,
+  sem acervo privado; instalação sobre a versão atual. Celular físico não conectado nesta rodada.
+- Verificação:50 testes JVM,11 testes TS,4 cenários com dados reais e8 cenários nativos
+  (148,202s) aprovados; typecheck/lint focado/build aprovados; Android lint0 erros/22 avisos.
+- Trabalho de música web foi preservado e entregue separadamente no commit9d8d881.
+
+## Música e Ambiente — primeira entrega web — 2026-10-22
+
+- Motor global de áudio coordena voz + canal musical: modos Voz/Misto/Música, volumes separados,
+  loop, pausa conjunta opcional, troca de trilha sem reiniciar fala, mini player e atalho Ambiente.
+- Importação pessoal: assinatura/codec/duração, SHA256,50MiB/arquivo,100 arquivos/500MiB,
+  cópia IndexedDB v1 (`scriptorium-local-audio`,tracks/files) com escrita/exclusão atômicas.
+  Metadados e limites validados; reimport não duplica, edição preserva hash. Nenhuma trilha fictícia.
+- Ajustes `scriptorium.ambience.v1`; sem autoplay ao restaurar. Músicas pertencem ao navegador/
+  origem, não a SQLite/acervo/Git/Docker/APK/backup. Interface explicita esse limite.
+- Ganho musical imediato onde suportado; voz nativa recebe volume só no próximo segmento,
+  sem cortar a fala. Sem exportação, ducking, fades, perfis ou favoritos (entregas seguintes).
+- 600 testes/90 arquivos no estado colaborativo passaram,15 novos de ambiente; typecheck,
+  lint focado e build. QA produção1440/390 com voz nativa/Gn1+WAV real, modos, navegação,
+  reload, idempotência, renomeação/exclusão e arquivo inválido; sem erros. No dev, relatórios
+  Android paralelos provocavam reload; QA final não depende de HMR. Acervo original preservado.
+- Android e scripts de formação estavam em edição paralela: preservar e não incluí-los no
+  commit de áudio. Documento: docs/architecture/audio-ambience.md. Ainda sem APK/Docker novos.
+
+## Android — correções de uso 0.4.1 — 2026-10-21
+
+- Substitui decisões anteriores de Home junto à marca/duas colunas: Home centralizado,
+  Menu modal2×3 e livros em lista com emblemas locais. Seletor redundante de edição retirado;
+  originais/edições continuam disponíveis em Interlinear/Comparação no cabeçalho do leitor.
+- Busca separa Escrituras/Biblioteca/Exegese/Hermenêutica e conserva acadêmica/web. Assuntos
+  dependem da classificação existente nas associações; não é classificação completa de PDFs.
+- Destino da busca consumido uma vez com revisão de navegação, inclusive no mesmo capítulo;
+  capítulo isola carga assíncrona anterior. Voltar físico na passagem retorna aos livros.
+- Ações por versículo somente ao segurar2s; toque indica foco. Dock compacto com Filtrar central,
+  sem contagem redundante; âncora ignora sobra do versículo anterior. Comentários preservados.
+- Fonte em serifa limitada/refluxo visual de linhas; originais/offsets não alterados. Interlinear
+  em blocos, morfologia legível em vez de JSON, códigos preservados no inspetor.
+- 49 testes JVM, lint0 erros/22 avisos, build;6 cenários nativos103,058s e3 dados reais11,091s
+  aprovados.467 comentários em Gn1/14 leituras Trindade. Hash pessoal mantido no install-r.
+  QA exclusivo AVD porta5562; celular não conectado. Desktop/pipeline/schema/acervo preservados.
+- Relatório: docs/qa/android-usage-fixes-2026-10-21.md. Atualizar APK por cima, sem reimportar livros.
+
+## Scriptorium Áudio — Fase 1 — 2026-10-21
+
+- `/audio`, navegação web/Mais e player único no shell; capítulo, versículo/intervalo e texto
+  pessoal literais. Repositório abre somente obra/edição pedida, preserva unidades/esquema/licença.
+- Adapter Web Speech somente `localService === true`; sem nuvem, chave, dependência nova ou
+  arquivo exportável. Naturalidade depende das vozes instaladas; não prometer voz neural.
+- Progresso/histórico validado em `scriptorium.audio-progress.v1`, até20 referências/hash/posição;
+  não contém texto/PDF e não faz parte do backup SQLite. Texto pessoal e fila só na sessão.
+  Não abre outro banco nem altera schema/acervo. Android e Docker não atualizados nesta entrega.
+- 582 testes TS/88 arquivos aprovados (30 novos), typecheck, lint dos arquivos alterados e build
+  node-server. QA em workspace temporário: vozes reais Daniel/Maria detectadas; fala/pausa/retomada,
+  continuidade entre rotas, reload, Gênesis1:2–3, velocidade/volume/fila e ausência de voz tratada.
+  Produção1440/390 sem erros; ausência de voz simulada só no teste negativo. Acervo original
+  manteve mtime14:32:28, anterior ao trabalho. Não foi migrado para testar áudio.
+- Próximo: perfis/prévias, leitura ancorada de fontes/estudos/notas, fila persistente, arquivos
+  com direitos e player nativo Android. Escopo e limites: docs/architecture/scriptorium-audio.md.
+
+## Desktop — auditoria e aproveitamento do acervo — 2026-10-21
+
+- Retomada executada sobre o original: 57 PDFs, 47.707 páginas/45.905 com texto, schema26.
+  Backup consistente, FKs limpas e baseline de 232 propostas anteriores preservado.
+- `audit-delivery-20261021`: publicados 8 vínculos de A Trindade que antes só existiam no QA,
+  2 notas Shedd delimitadas (2Ts1:1/1:3) e 2 destinos Price (Lc3:1/Jo18). 12 novas, uma antiga
+  retida com evidência e sucessora; reimportação somente leitura 0 novas/12 reutilizadas.
+- 24 amostras estruturais das quatro Bíblias; leitura contextual seletiva. Corrigida exclusão
+  visual de notas de capítulo/livro também nos modos completo/painel (930 Wesley,34 Shedd).
+  Não confundir amostra assistida com aprovação humana ou todos os comentários corretos.
+- Jerusalém instalada é texto bíblico sem aparato identificado (p2/600/1100/1220 revalidadas).
+  Não fabricar comentários. Precisa da edição anotada. Veja checksum no relatório canônico.
+- Inspetor lexical privado: FTS limitada + delimitação grega e 3 localizadores com hash
+  (ראשית p497, ארץ DITAT p150, שאר NDITAT IV p44); fragmentos/OCR qualificados, não obra integral.
+- Estudos:22 localizadores; separação local de questão/artigo/objeções/solução/respostas,
+  Institutas e confissões; Ware tem localizadores temáticos, não falsa estrutura escolástica.
+- Rastro `/trace?view=utilization`: SQL por documento/passagem/esquema; contagens de ligações,
+  não versículos únicos. Arqueologia traz lugar/período/limites e imagem real Price p252.
+- 552 testes TS/86 arquivos passaram após integração (513/84 antes), typecheck/lint alterados/build. QA produção1440/390:
+  panorama nos três modos, filtro relatório, nota de seção salva, λόγος com destaque, imagem.
+  Aviso React ocorreu durante HMR; repetição de produção sem erros. Python não alterado nesta fase.
+- Integrados seis commits remotos até bad2498, incluindo KJV e regra noteTargets compartilhada;
+  preservada a exibição no painel, sem algoritmo concorrente de alcance. KJV abriu texto real em QA.
+- Não reconstruído Docker (daemon desligado); alterações Android do colega preservadas, sem novo APK validado. Não publicar PDFs no Git.
+  Continuação: ampliar auditoria/OCR/verbetes multipágina/roteiros e imagens, sem alegar cobertura
+  integral. Relatório: docs/content/acervo-utilization-audit-2026-10-21.md.
+
+## Desktop — estudos e notas na leitura — 2026-10-21 (estado anterior; publicação atualizada acima)
+
+- Commits9013cac (funcionalidade) e e676003 (integração do remoto20bb808) preservam melhorias
+  colaborativas: versículo por URL, comentários resumidos, panorama e barra de fontes persistente.
+  Filtros de tradição/tipo em detalhe na barra; sidebar acompanha fontes ocultas/área/tradição.
+- Editor de página de Notas reutilizado na janela/leitores, sem migration. Seleção UTF16 + quote
+  validada no original integral e guardada no JSON da fonte; volta marcada em Consultar fonte.
+  Biblioteca integral conserva âncora de página/unidade, não seleção pessoal exata por URL.
+- 19 localizadores verificados por hash, sete novos de Agostinho/Calvino/hermenêutica/Augsburgo;
+  13 capítulos introdutórios históricos/conciliares/confessionais, sem fingir atas completas.
+  Vídeo ao lado por link validado ou API, sem recomendações fictícias; recolher desmonta player.
+- Lote privado desktop-context-20261021:8 notas literais de A Trindade, páginas39/43/51, preparado
+  e importado SOMENTE no snapshot de QA (8 novas,0 novas/8 reutilizadas na verificação).
+  NÃO está publicado no banco original. Docker indisponível; lock Linux original preservado.
+- Original confirmado:57 docs, schema26, quick_check=ok e FKs limpas. Não migrar original para28
+  só para QA. Snapshot temporário em AppData/Local/Temp/scriptorium-study-context-qa-20261021;
+  seus rascunhos e relações de teste NÃO são produção. Documentos via junction apenas leitura.
+- 506 testes TS/113 Python aprovados; mypy em 15 fontes, Ruff, typecheck, lint TS/TSX alterados e build.
+  QA produção1440/390: fonte real, nota/grupo/formatação, reload+destaque, filtros e Biblioteca.
+  Tradução nova não validada: somente cache existente e erro recuperável com serviço desligado.
+- Próximo seguro: concluir publicação do lote original com exclusão de escritores; reativar e
+  testar tradutor real. Não reconstruído Docker, não modificado Android. Não alegar cobertura
+  integral dos temas/concílios/acervo. Relato: docs/content/desktop-study-context-2026-10-21.md.
+
+## Desktop — retomada contextual — 2026-10-20
+
+- Mobile fora do escopo. Acervo canônico: data/workspace/workspace.sqlite3, 57 documentos.
+- Importadas 118 relações de aberturas de homilias de Crisóstomo: 80 Atos/38 Romanos. Perfil novo
+  chrysostom-acts-romans.json; 85 lemas válidos/84 aberturas publicadas, 5 exceções. Lote integral 507 NÃO importado:
+  não ligar aplicações posteriores ao primeiro verso. Restante aguarda segmentação própria.
+- Suma: 12 localizadores temáticos reais com SHA da edição/texto da página; estudos/árvore usam
+  Leituras selecionadas via repository. Não equivale ao grafo de argumentos nem à leitura integral.
+  Objeções/solução distinguidas no aviso; compilação de traduções mistas permanece identificada.
+- Baseline preservada, quick_check/FKs aprovados; idempotência: 0 novas/118 reutilizadas. Recibos
+  privados em data/workspace/desktop-context-20261020. Catálogo Suma: 12/12, somente leitura.
+- Docker parado/religado com autorização. Lock antigo preservado após backup e confirmação do
+  container parado. Importador aceita 25–28 sem migration alheia e manteve 25. Docker possui
+  schema 26 e cria seu próprio backup/migração aditiva ao reabrir a instalação.
+- Reabertura concluída: HTTP 200, schema 26, 57 documentos. Backup do caderno terminou;
+  os timeouts iniciais ocorreram durante VACUUM síncrono, não foram perda do acervo.
+- QA em cópia temporária isolada; não impor 28 ao original: imagem Docker existente até 26.
+  Código novo de estudos exige rebuild posterior da imagem; nesta entrega não reconstruir Docker.
+- Próximos: A Trindade/Institutas/métodos/léxicos/arqueologia; Salmos exigem crosswalk e 6 PDFs sem
+  texto continuam com OCR pendente. Detalhes: docs/content/desktop-context-expansion-2026-10-20.md.
+- Passaram 494 testes TS, 113 Python, typecheck, build, ESLint alterados, Ruff e mypy/app.
+  Playwright em 1440/390 px: Suma por página, janela original e Crisóstomo em Atos 1:1;
+  sem erros de console/overflow. Não testados tradução nem escrita de notas novas.
+
+## Android — revisão do leitor e aulas 0.4.0 — 2026-10-20
+
+- Feedback atual substitui a decisão anterior do botão flutuante: retirar Ir para…, selo26dp,
+  Home junto ao título e Painel junto a Home só com passagem aberta. Sem perfis culto/estudo.
+- Comentários recolhidos só com fonte/expansão; cartão abre fonte, Biblioteca no topo da janela,
+  sem detalhes técnicos. Mesma coleção/filtros por assunto+documento em linha ou dock opcional,
+  agrupado por versículo e acompanhando posição. Mais comentários preservado; Gn1:467 intactos.
+- Mais/Aparência e leitura: famílias nativas, tamanho18–32, Preto/Cinza/Marrom/Claro, dock e
+  animações. SharedPreferences separado de notas/backup. Leitura em fontes/Biblioteca também
+  responde às preferências; PDF original mantém tipografia do arquivo. Contextos em cartões.
+- Guias/aulas em trilhas horizontais; conteúdo, leitura e síntese. Etapa lida autorrelatada em
+  course_progress/lesson, sem migration nem mudança em CoursePolicy. Livros abrem na Biblioteca.
+- Metadados públicos gerados por mobile:labels: famílias e workIds editoriais; FTS local por aula.
+- 103/111 têm leitura direta/pesquisada;8 usam apoio explícito da trilha por capítulos compartilhados.
+  Não apresentar apoio de área ou FTS como curadoria exata. Na página de conteúdo só uma leitura
+  de partida, demais na etapa Leituras. Nenhum conteúdo privado novo incluído no APK.
+- Passaram 45 JVM, 8 Node/mobile,typecheck/ESLint,Android build/lint sem erros (22 avisos),7 verificações
+  instrumentadas de dados/cobertura e 4 cenários UI em 80,679s. Quatro temas conferidos no AVD
+  isolado, acervo b289f600.../3.637.896KiB mantido. Sem teste físico/API28 desta versão.
+- Entrega somente APK0.4.0/versionCode6 em C:/Users/comical/Desktop/Scriptorium-Android-0.4.0.
+  QA: docs/qa/android-reading-ui-2026-10-20.md. Desktop/pipeline/banco canônico preservados.
+
+## Android — painel e percurso horizontal 0.3.1 — 2026-10-20
+
+- Decisão explícita: experiência única de leitura, sem separar culto/estudo. Não reconstruir
+  árvore nem identidade bronze/escura. Cabeçalho compacto e Ir para… flutuante acessível.
+- Painel contextual pela direita (tela inteira no telefone, max480dp em telas largas): visão
+  geral/texto e língua/fontes/minhas notas. Leitor preservado abaixo; notas por IDs exatos,
+  sem migration. Ferramentas existentes permanecem; retorno usa versículo visível.
+- Guias/aulas com etapas horizontais; cursos com módulos e etapas, uma seção por vez.
+  Textos conservados. Salvar antes de navegar/sair; conclusão e liberação mantêm CoursePolicy,
+  sem completar por clique/rolagem. Progresso atualizado sem desmontagem integral por etapa.
+- Título humano com dois-pontos não pode virar Estudo temático. Trilha usa Surface visual +
+  clickable para evitar falha de nó semântico destacado do Material em troca de estado.
+- 42 JVM e 5 dados instrumentados passaram, build/lint sem erros. Dois cenários UI passaram:
+  painel/retorno/versículo105 e 14 etapas/rascunho/saída sem conclusão automática.
+- Entrega só APK0.3.1/versionCode5 em C:/Users/comical/Desktop/Scriptorium-Android-0.3.1,
+  sem reenviar livros. Acervo b289f600.../3.637.896KiB mantido. QA somente AVD isolado;
+  sem teste físico/API28. Detalhes: docs/qa/android-contextual-reading-2026-10-20.md.
+
+## Android — uso diário 0.3.0 — 2026-10-20
+
+- Feedback mobile implementado preservando tema/bronze e acervo: salto `Jo3:16`/ranges e grid
+  livro→capítulo→versículo, FTS com destino exato, cache por geração, leitor sem aguardar comentários,
+  previews independentes/filtros classe+fonte, selo branco/bronze e hierarquia serif/sans.
+- Home visível por título/botão, retomada do versículo e passagem/trilha derivadas de dados reais;
+  histórico Android entre módulos e na leitura, subpáginas e confirmação de descarte preservados.
+- Duas colunas/grupos do desktop, textos antigos/volumes privados em Leitura e filtros explícitos;
+  não inventar 52 traduções a partir do catálogo NHC. Aulas com rótulos reais também em pacote antigo;
+  exportador futuro corrigido. Paleta de cores nomeadas. Transições e som opcional inicialmente off.
+- Usuário recusou Google Cloud por não ter chave. Tradução mantida ML Kit; modelos preparáveis
+  nos ajustes, progresso/timeout/tentativa e offline sem checar atualizações de modelos presentes.
+- Passaram38 JVM,8 Node/mobile,typecheck/lint,Android build/testAPK/lint; cenário UI nativo completo,
+  referências/dados antigos e3 regressões pessoais. Tradução real passou após download e em modo avião.
+  Banco pessoal SHA idêntico após atualização e UI; acervo b289f600.../3.637.896KiB preservado.
+- Entrega apenas APK0.3.0/versionCode4 em C:/Users/comical/Desktop/Scriptorium-Android-0.3.0,
+  sem outro ZIP de livros. Baseline usado: kit0.2.1 Desktop; antigos data/mobile* não foram encontrados.
+  QA em CTemp/scriptorium-feedback-avd-20261020, sem tocar Pixel_8. Sem teste físico/áudio audível.
+- Relatório completo: docs/qa/android-reading-experience-2026-10-20.md. Desktop, pipeline e banco
+  canônico não alterados; semântica experimental/traduções acadêmicas/sync permanecem limites prévios.
+
+## Android — instalação física / PowerShell 5.1 — 2026-10-19
+
+- Erro real do usuário: StandardInputEncoding não existe no ProcessStartInfo do .NET
+  Framework/Windows PowerShell5.1. Teste anterior cobria somente caminho sem reenvio.
+- Transferência por stdin no Windows também falhou no Samsung:exec-in truncou e shell
+  recebeu EOF prematuro. Instalador passou a adb push para pasta shell0700 +pipe local
+  Android para incoming privado; remove staging e exige SHA256 remoto antes de ativar.
+- Testes do kit/exportador:8 passaram;regressões WindowsPS5.1 usam ADB falso compilado
+  para cobrir primeira instalação/cópia binária, checksum divergente bloqueado e update
+  sem reenvio. Não confundem simulação com validação real no telefone.
+- Instalador extraído em Desktop/Scriptorium-Android-0.2.1 corrigido;sem rebuild do APK,
+  sem mudanças de schema/desktop/OCR. Instalação física concluída:script confirmou acervo
+  b289f600...,UI exibiu “Acervo instalado”/Hoje Salmos55;incoming ficou vazio. APK não foi
+  desinstalado. ZIP e checksums da Área de Trabalho também atualizados com instalador novo.
+
+## Android — atualização com espaço limitado — 2026-10-19
+
+- Usuário tem20GB livres no celular e pediu resolver cópias/acúmulo de atualizações.
+  APK0.2.1/versionCode3 mantém pacote/manifesto v1 e acervo completo; não retira PDFs.
+- ContentPackageStore usa InstalledContent +locations.json privado achatado. Arquivos imutáveis
+  inalterados são referenciados pelo mesmo caminho físico, sem hardlink nem cópia. Repositórios
+  de leitura/semântica resolvem paths pela snapshot; cache ONNX considera toda a receita.
+- Confere SHA/SQLite, ativa AtomicFile, confirma ponteiro e só então coleta arquivos derivados
+  não usados. Não alcança personal.sqlite3, paths externos ou symlinks. Startup limpa cópias
+  legadas e staging sob lock; não copia/converte o acervo ativo. Leitura SQL/semântica no processo
+  é excluída durante instalação. Layout exige0.2.1+, não fazer downgrade para0.2.0.
+- Instalador USB:mesmo ID ativo→só APK, sem reenviar1,79GB. Mudança de banco continua delta por
+  arquivo; content.sqlite3 (~1,02GB) pode exigir essa folga. Reserva mudou para novos bytes+64MiB;
+  arquivo de entrada e instalação do APK ainda exigem espaço. Primeira preparação não é instantânea.
+- QA real AVD5560:content de10.912.160KiB para3.637.920KiB,liberou~7,45GB de cópias obsoletas.
+  Patch6.050bytes aplicou em17.601ms (anterior268.079ms),reutilizou75 paths físicos; crescimento
+  lógico15.645bytes. SHA e backup pessoal integral preservados. Restart manteve c256f804...,
+  Activity COLD2.162ms (não é tempo até todos os dados prontos). Sem teste em aparelho físico.
+- Passaram31 JVM,5 instrumentation selecionados (patch+consumo/migração/seed/backup),483 Node,
+  typecheck/lint,assembleDebug/AndroidTest/lintDebug. Gate semântico/tradução continuam pendentes.
+- Relatório:docs/qa/android-storage-2026-10-19.md. Kit privado0.2.1 em
+  C:/Users/comical/Desktop/Scriptorium-Android-0.2.1,fora do F para evitar novo pacote grande no
+  projeto. Não publicar acervo/modelos/APKs. Pacotes originais/desktop/Pixel_8 preservados.
+
+## Android — expansão de consumo em andamento — 2026-10-18
+
+- Pedido atual reforçado: PDFs originais e funções de consumo junto ao APK Kotlin, não um
+  shell vazio nem importação manual de cada livro. Produção/OCR/editorial continuam no PC.
+- Alterações ainda em validação nesta continuação: leitura/comparação/interlinear, léxico,
+  estatísticas, fontes/PDF/capas/índice, árvore/guias/aulas/curso, notas/pastas/links/grafo,
+  backup pessoal, pesquisa externa, tradução local ML Kit e busca ONNX experimental.
+- Projeção privada atual: `data/mobile-personal-dense-20261018/`,57 PDFs,47.707 páginas,
+  45.949 comentários elegíveis,10 edições,16 guias/111 aulas/curso e catálogo NHC52.
+  Pacote ~1,787 GB; não comitar livros/modelos/APK. Docs: `mobile-consumption.md`.
+- Decisão de entrega revisada após QA: APK ~2GB causou timeout `ApkAssets.finalize()` no
+  `system_server` do emulador API37. Não insistir nesse formato. `mobile:bundle -- --package
+data/mobile-personal-dense-20261018 --output data/mobile-delivery-complete-20261018` gera
+  ZIP único com APK pequeno, pacote completo e instalador USB automático. Todos os PDFs vão
+  juntos, sem importação por livro. O APK sozinho não tem o acervo. Não habilita ADB remoto.
+  AppModel processa entradas privadas `incoming/<id>.scriptorium` e apaga a cópia após sucesso.
+  Modo de assets embutidos retirado; propriedade antiga falha com orientação. O gerador do kit
+  limpa somente build Android para evitar resíduos privados em ZIP incremental. CI não gera
+  kit privado. Script nunca desinstala/wipa notas. Emulador QA reiniciado com6GB/4cores após
+  watchdog no próprio system_server/API37; não alterar Pixel_8 nem dados do usuário.
+- SQLite pessoal v2 aditivo, seed uma vez por IDs, backup/restore transacional. Conteúdo
+  imutável tem lock de arquivo, staging recuperável e reúso por SHA/hardlink/fallback cópia.
+  SHA é sempre conferido; SQL validado previamente só é reutilizado para bytes idênticos.
+- QA achou inicialização SQLite pessoal na thread principal; movida para IO. Primeiro
+  carregamento do pacote grande foi lento no emulador. Abertura posterior medida ~1,8s.
+- ONNX inicial sem Dense foi substituído pela projeção oficial 768→512/Tanh/L2. Receita
+  `distiluse-onnx-dense-tanh-l2-96-v2`;69.130 vetores,geração4threads ~759s. Não mistura
+  índice antigo. A relevância de “perdoar os inimigos” continua inadequada: busca marcada
+  experimental e teste privado de qualidade mantido como gate pendente, sem mascarar falha.
+- Verificado nesta expansão:482 testes Node/75 arquivos;typecheck/lint/build web;19 JVM.
+  Lint Android:0 erros/18 avisos. Instrumentation API37:6 testes,5 passaram/1 falhou
+  (gate de relevância semântica). Acervo/consultas/FTS/léxico/probes512 e preservação da
+  nota criada pela UI passaram; migração/seed/backup transacional também passaram.
+  Consulta semântica aquecida medida960ms; consistência vetorial não implica relevância.
+- Kit final: `data/mobile-delivery-ready-20261018/Scriptorium-completo.zip`,1.968.288.826
+  bytes,APK181.193.301 bytes;livros fora dos assets. Instalador PS real concluiu transferência
+  binária e ativação do acervo b289f600...;atualização para APK final preservou conteúdo.
+  Relatório: `docs/qa/mobile-consumption-2026-10-18.md`. Kit anterior foi preservado porque
+  a tentativa de remover apenas o artefato obsoleto foi bloqueada pelo ambiente.
+- Emulador isolado `Scriptorium_QA`,porta5560 em `data/mobile-qa-avd`,não usa/wipa Pixel_8.
+  Canonical workspace do PC só foi aberto read-only; não recriou Docker nem expôs serviço.
+- Patch real aprovado em268s:manifesto6.278 bytes,ID e6c451cb...,base b289f600...;
+  comparação integral do backup pessoal e reinstalação idempotente passaram. Total privado:
+  7 casos,6 passaram/1 falhou (relevância). No AVD houve fallback para cópia (inodes distintos),
+  não prometer economia/patch instantâneo. Restart manteve e6c451cb...,abertura COLD1757ms.
+  UI final confirmou notas com links/grupos/capas e Didaquê+tradução já preparada no PC.
+  ML Kit:consentimento/download/tradução local confirmados;qualidade ruim no inglês arcaico
+  (fast→rápido no contexto de jejum),não aprovada para estudo. Preservar original,sem remendo
+  global de palavra ambígua. Relatório distingue funcionamento técnico de qualidade.
+- Próximo seguro:calibrar recuperação com coleção de avaliação, melhorar tradução/testar OpenAlex
+  e aparelho físico;continuar lacunas da matriz de paridade, sem declarar tudo concluído.
+  Não declarar paridade integral: faltam editor de investigações, sync/abas/Markdown completo,
+  painéis especializados, Marian idêntico e calibração semântica/aparelho físico.
+
+## Android nativo para consumo — 2026-10-18
+
+- Autorizado: levar funcionalidades de consumo do desktop ao Android Kotlin/Compose, sem OCR,
+  desmontagem ou produção de conhecimento no aparelho. PC prepara conteúdo; celular recebe patches.
+- Projeto independente em `android/`, AGP9.2.1/Kotlin embutido2.2.10, Gradle9.4.1 verificado por SHA,
+  SDK36/min28, SQLite AndroidX bundled2.6.2 para FTS5/STRICT. Sem WebView e sem permissão INTERNET.
+- Primeira vertical real: edição/livro/capítulo, comentários/ranges, fonte/página com realce,
+  Rastro, FTS, ontologia/relacionamentos, notas pessoais locais e importação de pacotes/patches.
+  Não é paridade total: comparação/interlinear/léxico completo, cursos/mapas, pastas/grafo de notas,
+  migração pessoal do desktop, busca semântica/externa e tradução ainda precisam ser portados.
+- `scripts/mobile/export-content.ts`/`mobile:export`: transação read-only sobre workspace canônico,
+  projeção de consumo com IDs/páginas/evidência, política accepted/machine-visible sem rejeitados,
+  bancos públicos originais e PDFs opcionais. Derivado não é segunda autoridade nem restore pessoal.
+- ZIP `.scriptorium` DEFLATE, manifesto v1, SHA/tamanhos, base exata e delta por arquivo.
+  Geração imutável em staging; valida SQLite/FKs antes de AtomicFile. Nunca toca personal.sqlite3.
+  Gerações antigas retidas: ainda exige gestão de espaço. Sem assinatura/autodownload/delta SQL.
+- QA real: 57 livros,47.707 páginas,45.949 comentários elegíveis; pacote com uma Bíblia/ontologia
+  212.452.898 bytes, sem PDFs. Patch real de labels PT:1.336 bytes; notas preservadas no Android.
+  Esses números não equivalem a cobertura integral ou revisão humana das ligações.
+- 479 testes/74 arquivos Node passaram;10 JVM e2 instrumentation no Pixel8/API37 passaram,
+  incluindo pacote real/patch/FTS/STRICT. Typecheck/lint desktop e build/lint Android passaram;
+  lint Android tem12 avisos (versões/SDK/otimização), zero erros. Aparelho físico/API28 não testados.
+- Build desktop também passou. APK debug ~34,3 MB; QA visual de leitura/fonte e reinício conferidos.
+  Workflow Android criado (execução remota ainda não conferida). Pacote/patch reais ficam privados.
+- Regressões corrigidas: ZIP STORED/data-descriptor incompatível com Java; seleção do esquema
+  original em vez do endereço explícito de navegação. Não ignorar esquema para "achar" comentários.
+- `android/README.md` e `docs/architecture/mobile-foundation.md`: matriz, contratos e operação.
+  `data/mobile*/` e builds privados ignorados. Acervo original não alterado; Docker não reconstruído.
+
+## Busca acadêmica e caminhos externos — 2026-10-18
+
+- `/search` preserva texto/referências, busca por sentido, edição/preparo do índice e Ctrl+K.
+  Três ramos: Meu acervo, Pesquisa acadêmica e Na web; gravura celeste existente e bronze.
+- OpenAlex direto por ação explícita, filtros idioma/ano/acesso aberto,10 registros/10 páginas,
+  Zod, timeout15s, abort/stale guard, cache5min/20 consultas. Sem chave/conta criada ou proxy.
+  Google/Scholar/SciELO/BDTD/USP/UnB/Harvard/Frankfurt/Archive são atalhos identificados, não SERP.
+- CSL via SourceImportService, DOI/URL idempotentes, FTS/invalidação e anotar via leitor/caderno.
+  StudySourceService consulta também LibraryRepository para metadados privados guardados.
+  Não baixa PDF, não muda direitos de conteúdo, não publica claims nem envia textos privados.
+- CSS próprio importado pela rota; palavra hebraica com movimento reduzido, sem atrasar resultados.
+  AppShell mantém Search montada ao cruzar o breakpoint. Estudos/Rastro concorrentes preservados.
+- 17 testes focados passaram; suíte atual477/73 passou. QA real OpenAlex e ausência de requests
+  antes do submit; cotas simuladas somente no QA, referências/rotações e fontes reais conferidas.
+  Guia: docs/architecture/external-academic-search.md. Acervo real e Docker não alterados.
+
+## Notas independentes e explorador — 2026-10-18
+
+- Escopo: separar Notas na navegação, editor de página/abas inspirado no Obsidian, pastas
+  aninhadas, grupos/cores e referências escritas, preservando Estudos/Biblioteca celeste e acervo.
+- `/notes?group=&note=`; URL antiga `/study?view=notebook` redireciona. Investigações apontam
+  para o grupo; captura contextual permanece e seu sucesso abre a nota específica.
+- Migração027 somente aditiva: note_folders, note_placements por nota/grupo, note_references
+  dirigidas separadas das arestas manuais. FKs, ciclos, nomes irmãos e restauração pai→filho.
+  Worker OPFS/CLI atualizados; backupv3 inclui arrays opcionais, mantendo leitura dos anteriores.
+- Seletor `/`/`[[`/Inserir link grava destino por ID; título ambíguo não cria aresta. Leitura
+  Markdown parcial escapada, sem HTML/URLs executáveis. Links do texto não apagam arestas manuais.
+- Salvar explícito/Ctrl+S, rascunhos em memória entre abas, guard de descarte e controle de versão.
+  Sem autosave ou restauração de rascunho após fechamento forçado. Último grupo é preferência local.
+  AppShell usa contêiner estável em /notes para não perder abas/rascunhos ao cruzar o breakpoint móvel.
+- 452 testes/69 arquivos passaram; QA1536/390 e OPFS real/reload em workspace temporário.
+  Typecheck, lint completo, build e produção/reinício/breakpoints passaram sem erros de console.
+  Acervo real não migrado/reimportado, sem rebuild Docker. Guia: docs/architecture/study-notebook.md.
+- Trabalho concorrente em Estudos/Rastro deve ser preservado; baseline desta entrega ae0a572.
+
+## Leitor contextual e caderno conectado — 2026-10-17
+
+- Pedido atual: fontes/imagens da sidebar abrem janela sobre a Bíblia; notas por grupo com
+  cores e conexões pessoais em Estudos. Preservar árvore/guia e mapa acadêmico separado.
+- Migração026 aditiva: cores de studies/notes, notes.source_json e note_connections com FKs,
+  canonical pair e idempotência. Mesmo WorkspaceDatabase; nenhum reprocessamento de livros.
+- SourceReaderProvider único; StudySourceService consulta unidade limitada, sem carregar obra
+  inteira. Biblioteca é botão explícito com página física e unit; referências sem texto integral
+  identificadas como metadados. Inglês reutiliza tradutor existente; não adicionar LLM.
+- Caderno em /study?view=notebook e em cada investigação. Notas antigas editáveis, FTS atualizado
+  transacionalmente, controle de edição concorrente, guard de rascunhos e cores herdadas.
+- OPFS worker alinhado a025/026. Instalação faz VACUUM INTO pré026 sob lock exclusivo; a cópia
+  exige espaço equivalente ao DB inteiro. Não migrar o DB real durante QA nem recriar Docker
+  sem pedido. Usar workspace temporário e preservar os PDFs/revisões/propostas canônicos.
+- Especificação operacional: docs/architecture/study-notebook.md.
+- Validação:425 testes/62 arquivos, typecheck, lint focado e build; QA1440/390 com notas, cores,
+  conexões, reload nativo/OPFS e vínculo imediato à passagem. Usar Playwright quando Browser
+  plugin indisponível. Corrigida sobreposição com drawer móvel; modal mantém fechar visível.
+- Trabalho paralelo de árvore/tema entrou separadamente em88a0a2c; não reverter nem misturar.
+
+## Fila de incorporação privada — 2026-10-16
+
+- Usuário autorizou incorporar os livros adicionais, com execução independente dos tokens/chat.
+  Inventário SHA-256: 52 arquivos na pasta de origem (51 PDF/1 EPUB), 31 já importados,
+  21 novos candidatos. Banco anterior: 37 documentos, incluindo seis vindos de outros locais.
+- Worker CLI `scripts/content/process-library-queue.ts` reutiliza repositório de documentos,
+  desmontagem determinística em lotes, perfis/papéis e pipeline canônico de referências explícitas.
+  Sem LLM; `sourceSchemeConfirmed=false`, propostas ficam para revisão, não são comentários
+  originais aprovados. Não aplicar perfis Shedd/Genebra automaticamente aos novos livros.
+- Fila operacional privada: `data/workspace/library-import-queue/queue.json`; comandos
+  `library:enqueue/run/status/retry/pause`. JSON guarda só jobs, não conhecimento/texto paralelo.
+  Helper `start-library-queue.ps1` inicia Node oculto fora do chat; `-RetryFailed` retoma falhas
+  com menos de três tentativas. Aguarda locks até quatro horas sem takeover. Sem auto-start no reboot.
+- Agendados 20 PDFs + EPUB Anchor bloqueado (importador ainda não implementado).
+  Worker real iniciado; snapshot durante execução: 41 documentos no banco, Wesley importado
+  com 4.465 páginas, Mar Morto concluído (1.387 páginas/1.964 unidades/4.408 propostas),
+  Beale em desmontagem. Doutrina Cristã incorporada sem texto, exige OCR. Consultar a fila/logs
+  para estado atual; não considerar todos concluídos a partir deste registro.
+- Falha transitória Windows EPERM na troca atômica do recibo interrompeu a estruturação Wesley.
+  Adicionado retry limitado de rename sem apagar recibo vivo, testado; worker atualizado aguarda
+  pausa normal do primeiro e retoma falhas/checkpoints. Recursos PDF.js de fontes/CMap/WASM locais.
+- Backup consistente `workspace.sqlite3.before-library-queue-*` criado antes de alterar o acervo.
+  Worker adquire o mesmo lock exclusivo de Vite/Docker, mantém posse até fechar SQLite; front pode
+  receber 423 enquanto a manutenção processa. Não iniciar outro escritor nem remover lock vivo.
+- Conferência durante execução: 232 propostas editoriais antigas com hash preservado, todos os
+  24.057 comentários originais anteriores intactos. Novos documentos não foram certificados.
+- Validação: 391 testes/54 arquivos passaram, typecheck, lint e build Node passaram;
+  teste de integração nativo importa/desmonta PDF sintético, mantém EPUB bloqueado, verifica
+  idempotência/FKs e recusa outro escritor. Sem redesign/frontend QA ou Docker nesta entrega.
+- Fonte canônica: `docs/architecture/library-import-queue.md`. Pendentes: OCR onde necessário,
+  EPUB, calibração contextual das novas fontes e isolamento/timeout forte por parser.
+
+## Próxima prioridade editorial preservada (2026-10-16)
+
+- Antes de expandir módulos, completar/operar o pipeline especializado nas Bíblias comentadas:
+  separar texto/notas/margens, reconstruir livro-capítulo e notas entre páginas, distinguir
+  comentário direto de mera menção, disponibilizar originais com página/fonte e auditar lotes.
+- Reutilizar Python e serviços canônicos existentes; não criar motor ou banco concorrente.
+  Relatório por fonte/livro/página com retomada e exceções. Nenhuma promessa de comentário
+  individual onde a fonte só comenta um intervalo. Preservar as 116 notas existentes e revisões.
+- Usuário interrompeu essa frente para ajustar animações do commit do colega `23e54fe`.
+  Essa alteração visual não executa ingestão, reprocessamento ou leitura editorial adicional.
+- Abertura agora roda por carga/recarga de documento, ignora a antiga chave localStorage e não
+  repete em navegação interna. Hoje recebe revelação CSS tinta/papiro, pausada durante a abertura,
+  com foco imediato e respeito a movimento reduzido.
+- Verificação: 383 testes/52 arquivos, typecheck, lint e build passaram. Playwright local em
+  1365×900 e 390×844 confirmou reload, Esc, replay, navegação interna, movimento reduzido,
+  ausência de overflow horizontal e pageerrors. Cabeçalho mobile já quebra texto do botão de
+  busca; dívida visual fora deste escopo. Imagem Docker não reconstruída nesta tarefa.
+
+## Proposta adiada — Compor leitura (2026-10-15)
+
+- Ideia registrada em `docs/architecture/reading-composer-proposal.md`: blocos conectáveis para
+  compor texto, fontes e perspectivas, com consultas determinísticas, sem inferência LLM.
+- Apenas documentação autorizada. Antes de implementar, priorizar cobertura contextual do acervo
+  já entregue ao longo da Bíblia e ampliação das traduções realmente legíveis. 116 notas em
+  passagens selecionadas de Gn 1–12 não significam cobertura completa desses capítulos.
+- King James, NAA e outras Almeida são opções desejadas, não corpora declarados instalados;
+  identificar edição/idioma/direitos antes de adquirir e integrar.
+
+## Exclusividade do acervo (2026-10-15)
+
+- Corrigido o protocolo de `8c58d9a`: heartbeat antigo não prova morte de processo Windows/Docker;
+  não há takeover automático por timeout. Locks inválidos também falham fechados.
+- API verifica posse antes das operações e após leitura assíncrona de uploads/comandos; heartbeat
+  usa descriptor sem recriar lock ausente e qualquer falha suspende acesso. Importador contextual
+  compartilha o lock até fechar SQLite, inclusive durante backup.
+- Crash exige recuperação offline com todos os escritores parados. Atualizar todos os runtimes/
+  imagem Docker; scripts/editores externos que ignoram o protocolo não são protegidos.
+- Fonte canônica: `docs/architecture/installation-workspace.md`. Acervo privado não usado para
+  testes de concorrência; sem alteração de schema, reprocessamento ou redesign nesta correção.
+- Verificação: 360 testes/45 arquivos, typecheck, lint completo, build e formatação passaram.
+  Inclui importador em processo separado e perda de posse durante streaming sem apagar registro.
+  SQLite privado manteve tamanho/mtime; Docker não foi reconstruído nem iniciado nesta correção.
+
+## Acervo compartilhado da instalação (2026-10-13)
+
+- Escopo ativo: migração integral OPFS → pasta local do projeto/Docker e biblioteca/leitor reais.
+  Leitura contextual editorial retomada em 14/10: 116 notas reais (Shedd, Genebra, MacArthur),
+  seleção Gn 1–12. Não é cobertura integral nem revisão humana. Consulte a seção de leitura
+  contextual abaixo e `docs/content/contextual-bible-reading.md`. Esta seção substitui a
+  limitação histórica OPFS-only das notas abaixo.
+- `SCRIPTORIUM_WORKSPACE_DIR` habilita adapter SQLite nativo autenticado por sessão local, header e
+  origem. Sem configuração, o modo navegador/Cloudflare permanece OPFS; falhas não alternam bancos.
+  Compose monta `data/workspace`; loopback single-user, não pronto para LAN/internet.
+- Migração real preservou 37 PDFs/671.893.492 bytes, 26.243 páginas, 49.229 unidades, 388.961 propostas,
+  137.375 decisões e eventos de Rastro. Original OPFS intacto. Pasta privada ignorada por Git/Docker;
+  não confundir estar na pasta do repositório com ser publicado no Git ou incluído na imagem.
+- Backup SQLite consistente `data/workspace/workspace.sqlite3.before-index22` e recibo local SHA-256
+  verificado. Nenhum PDF foi reprocessado, aceito ou rejeitado para fazer a migração.
+- Schema 22: índice parcial de secondary targets + união materializada dos IDs evita o scan causado
+  pelo OR de additionalPassages. Teste verifica índices, deduplicação e esquema. Medição Windows real:
+  Gênesis 1/200 relações 124 ms cold/91 ms warm; camada completa 184 ms. Em 14/10, camada completa
+  pelo adapter HTTP/Docker retornou os 200 itens em 5.440 ms; não confundir o transporte com SQL nativo.
+- Estante usa primeiras páginas reais via Poppler lazy, perfis por título explicitamente sugeridos;
+  leitor tem estrutura/assuntos extraídos, dicionário FTS e links página+unidade com realce. Estrutura
+  detectada ainda não é sumário editorial validado. Nag Hammadi localiza ocorrências nos volumes,
+  não inventa limites de tratados/códices. Contexto editorial bíblico fica recolhido.
+- Tradutor Marian inglês→português funciona no companion CPU com SentencePiece/Sacremoses e cache
+  /models corrigido para uid1001. Proxy same-origin, botão visível, tradução preservada separadamente.
+  Teste real Didaquê foi armazenado, mas mostrou qualidade ruim/omissões em trecho longo arcaico;
+  não declarar tradução acadêmica fiel. Espanhol não implementado, botão informa indisponibilidade.
+- Gates finais: 344 tests/44 arquivos e 11 Python tests, typecheck, lint e formatação passaram;
+  imagem Node/Docker produzida e verificada com as alterações finais; build Cloudflare também passou.
+  Docker reiniciado em 14/10 confirmou 37 livros/26.243 páginas/schema22, ambos serviços healthy.
+- QA IAB anterior à interrupção: estante 37 livros em localhost3000 sem reimportar, dicionários com
+  ocorrências reais de aliança, Nag Hammadi/Apócrifo de João na p.229, citação Shedd p.922 com um mark,
+  tradução Didaquê persistida após recriação, leitor 390px sem overflow, console Docker limpo.
+  Na retomada de 14/10, abas restauradas chrome-error foram bloqueadas pela política do navegador;
+  não houve tentativa de contorno nem nova validação visual dessa retomada. Abrir a URL normal
+  manualmente para uma nova rodada visual. A leitura contextual editorial integral não foi feita.
+- Fonte canônica: `docs/architecture/installation-workspace.md`. Reset/deleção física compartilhados
+  recusados; restore JSON grande, sincronização push entre browsers, HTTP Range e catálogo público
+  metadata-only permanecem dívida documentada. Nunca subir Vite/Windows + Docker/Linux sobre o mesmo DB.
+
+## Profile reliability integration (2026-10-12)
+
+- Integrated coworker branch `origin/melhoria/confiabilidade-perfis` into
+  `melhoria/verificacao-no-versiculo` with a merge, preserving published history and seven local
+  contextual-reading files in checkpoint `e45cafe`; merge commit `c305963`.
+- Canonical payload keeps reference zones, profile-specific roles and optional contextual analysis.
+  Contextual importer uses the shared secure-context hashing helper; trace explanations recover
+  from the canonical analysis after quote-redacted structural backup restore.
+- Five synthetic integration tests cover evidence offsets/errors, idempotent import and human
+  rejection preservation, profile/analysis coexistence, backup restore and atomic prevalidation.
+- Verification: 339 tests / 43 files, typecheck, full lint and production build passed. Browser QA
+  opened the real 37-book OPFS catalog, contextual-import disclosure, Shedd's profile selector and
+  Genesis 1; explanations toggled off/on and console had no warnings/errors. No private content
+  was imported, reprocessed or newly committed.
+- Existing-document reference-zone fixes still require explicit reprocessing. Whole-library
+  contextual reading is paused, not completed by this integration.
+- Structural rebuilding of a book with contextual analysis now refuses before deleting units;
+  span reconciliation is still required before safely reprocessing those notes. Existing books
+  without assistant contextual notes retain their normal reprocessing flow.
+
+## Knowledge trace module (2026-10-12)
+
+- `/trace` joins real proposals/decisions/private document spans; paginated filters and detail with
+  rationale, source page, scheme, original unit and timeline. Private Reader cards link directly.
+- Migration 020 captures proposal/decision changes with SQL triggers; legacy records get an honest
+  baseline snapshot. Reprocessing retains history by old proposal ID; deleting a document cascades it.
+- Backup v3 optional traceEvents preserves history and suppresses artificial restore events within
+  the transaction. No book corpus was newly analyzed by this UI delivery.
+- Canonical spec: `docs/architecture/knowledge-trace.md`. Migration 021 indexes paginated queries.
+- Verification: 256 tests in 37 files, strict typecheck, full lint and production build passed.
+  Browser QA recovered the persistent collection after a transient memory fallback, opened a real
+  Shedd link to physical page 935, and filtered Genebra references at Genesis 1:1. No editorial
+  analysis, acceptance, rejection or book reprocessing was performed during this read-only QA.
+- OPFS baseline history survived closing/reopening the browser tab on the same origin. Final
+  clean-tab console had no warnings/errors; mobile 390 px and desktop 1280 px had no global overflow.
+
+## Gamified visual study tree (2026-10-11)
+
+- Follow-up: every map node now navigates to its own `/study/guide/$topic` page; the center is
+  Teologia and the former right node inspector is removed. The previous inspector behavior below
+  describes the first iteration and is superseded by this navigation contract.
+- Sixteen distinct guides use editorial curricula plus bounded private-page FTS and verified
+  manifest resources. Search occurrences are not presented as approved semantic knowledge.
+- Personal investigations resume via stable `study-guide:<id>` markers, with legacy title fallback;
+  guide questions use existing ResearchQuestion persistence and workspaces link back to their guide.
+- Follow-up verification: 247 tests in 36 files; strict typecheck, full lint and Node production
+  build passed. Browser QA verified real PDF pages, duplicate-question prevention, guide/workspace
+  navigation, clean console and 390 px layout. Guide-only router scroll reset preserves Reader.
+
+- `/study` now opens a visual learning map inspired by a skill tree, while preserving the academic
+  workstation identity. Four journeys connect eleven existing source-backed study paths.
+- Node state is honest and derived from current data: an exact matching local study means started;
+  a path with sources is available; a path without source resources is an explicit collection gap.
+  No XP, mastery score or completion is fabricated.
+- Selecting a node shows contextual description, real starting works and the next action. Starting
+  creates the existing SQLite-backed `Study`; continuing opens its current workspace. Personal
+  investigations and workspace backup remain available in a dedicated view.
+- The Knowledge route remains the free graph mode. Study-map edges are pedagogical organization,
+  not theological truth claims or ontology relations.
+- Canonical graph content and derivation live in `src/lib/content/study-learning-map.ts`; rendering
+  lives in `src/components/study/study-learning-map.tsx`.
+
+## Functional front-end restructuring (2026-10-10)
+
+- Home rotates a real daily passage across all installed chapters and persists the last chapter in
+  localStorage. It never fabricates exegesis/hermeneutics for uncovered passages.
+- Scripture navigation is grouped by literary/canonical blocks; additional traditions remain an
+  explicit group rather than being mixed into the 66-book order.
+- Study is the primary learning tree and links to Knowledge as a deeper concept map. Knowledge was
+  removed from primary navigation but its route and graph remain available.
+- Library catalog has focused views for private books, installed primary sources, Nag Hammadi and
+  bibliographic records. PDF import/OCR/linking/audit moved to `/library/process`.
+- Passage and word inspectors hide empty tabs. Private passage cards foreground extracted claims
+  and arguments and collapse the source excerpt. English lexicon translation is now foregrounded.
+- Search offers intent examples and result-group filters over the existing SQLite-backed service.
+
+## Front-end experience foundation (2026-10-10)
+
+- Canonical UX direction: `docs/architecture/frontend-experience.md`. Preserve the dense academic
+  workstation identity, but organize the product into reading, library and investigation contexts.
+- The passage/word inspector is now route-scoped to chapter reading. Library, Study, Knowledge,
+  Search and other general routes no longer sacrifice space to an empty biblical inspector.
+- Library pipeline controls use progressive disclosure; the catalog remains the primary surface.
+- Knowledge Explorer now filters entities and omits empty relation cards, replacing an entirely
+  empty graph with one honest explanatory state.
+- Translation is already exposed for English primary-source units, accepted English private units
+  and eligible word definitions. Private batch translation and the configured Docker model remain
+  English-to-Portuguese only; Spanish-to-Portuguese is not implemented yet.
+- Verification: 229 tests across 31 files, typecheck, repository lint, Node production build and
+  desktop/mobile browser QA passed. Browser QA covered contextual inspector visibility, pipeline
+  disclosure, Knowledge filtering, 390 px overflow and clean-console fresh-page loads.
+
+## Contextual private knowledge engine (2026-10-02)
+
+- Workspace schema 14 preserves reviewed proposals while adding explicit bibliographic reference,
+  attribution and coreference proposal kinds. The deterministic analyzer carries bibliography,
+  recent-person and recent-work context across its 50-page checkpoints.
+- The optional Python service now implements the same bounded `analyzeBatch()` contract and returns
+  a serializable provider checkpoint. The client accepts only loopback endpoints, validates output
+  with Zod, rejects proposals for units outside the submitted batch and keeps every result
+  `machine-proposed`.
+- Private PDF batch import continues after per-file failures, detects Portuguese/English/Spanish and
+  Greek/Hebrew script conservatively, reports partial text layers and accepts files up to 256 MiB.
+  OCR remains explicit future work; protected bytes/text remain OPFS-only.
+- Python development is pinned to 3.13.3 through `.python-version`; npm semantic commands prefer the
+  local venv or Windows `py -3.13`, avoiding the stale `python` 3.10 PATH alias.
+- Client chunking separates React runtime from the application entry. The final measured entry fell
+  from 550.03 kB to 372.11 kB (React runtime 189.73 kB) without raising the warning threshold.
+- Browser QA imported the 37 PDFs found in the user's private library into OPFS: 31 were indexed and
+  six were rejected explicitly because they have no extractable text layer and require OCR. Protected
+  bytes and extracted text remain local and are not tracked by Git. Checksum reimports corrected
+  metadata without duplicating documents.
+- The contextual analyzer was exercised end-to-end against the local Python service. Reprocessing a
+  21-page document produced 260 reviewable proposals; a detected lowercase false attribution was
+  eliminated by the deterministic guard, and the browser console remained clean.
+- Fast Refresh ESLint exceptions are restricted to known stable component helpers/hooks; all eight
+  previous warnings are gone while the rule remains active.
+
+## Local pipeline implementation milestone (2026-10-04)
+
+- Architecture: `docs/architecture/local-knowledge-pipeline.md`; local companion setup in
+  `services/semantic-engine/README.md`. Extension of canonical units/proposals, not a duplicate engine.
+- Workspace migration 15: jobs/configuration/checkpoints, unit receipts, publication/audit decisions,
+  OCR layouts. Optional backup-v3 fields preserve compatibility with older checksums.
+- Scanned originals can now be imported; Tesseract recovers only empty pages. Native PDF geometry is
+  retained on new text-layer imports. Existing text/evidence is never overwritten by OCR.
+- Companion: bounded loopback-only OCR/index/link endpoints; optional global multilingual CPU vector
+  retrieval plus FTS and cosine rerank; candidate-constrained JSON LLM output and literal UTF-16 spans.
+- Front: per-book preparation, OCR languages, model toggle, scheme confirmation, pause/resume, audit
+  sampling and bulk review/revocation. Inspector distinguishes private machine links from editorial review.
+- Inferential auto-publication remains blocked pending evaluation; explicit reference auto-visibility
+  requires verified source numbering and corpus resolution. Author/bibliography/coreference still heuristic.
+- Validation: typecheck, focused ESLint, Ruff, Python 3.13.3 syntax and production build passed;
+  migrations reapplied to an in-memory SQLite database at version 15 with zero FK violations.
+- Deferred at user request: automated suites, real OCR/model processing, performance and browser QA.
+  No new PDFs were processed during this code-only stage. Concurrent tabs/job leases, neural structure,
+  cross-encoder and calibration remain debt. Rebuilding canonical units invalidates private derived audits.
+
+## Canonical private knowledge consolidation details (2026-10-01)
+
+- Workspace schema 13 migrates accepted `semantic_segments` passage/domain results into canonical
+  `semantic_units` and `knowledge_proposals`. Production UI and Passage Inspector no longer query
+  the legacy semantic engine; its service/repository remain deprecated compatibility surfaces.
+- Library now lists persisted private documents after reload. Backup schema v3 preserves private
+  document identity, structure, spans, review decisions, translations and translation-job state,
+  but deliberately exports empty page anchors rather than protected text. Reimport of the original
+  checksum rehydrates those page IDs without deleting derived knowledge.
+- Knowledge Explorer now consumes supporting/opposing arguments, evidence, objections, responses
+  and multidimensional perspectives. Private passage knowledge renders arguments, premises,
+  citations and entities in addition to claims/topics/translations.
+- Immutable knowledge builds use the epoch migration timestamp and a byte-for-byte reproducibility
+  test. Curated claims now include actual evidence and perspective links instead of schema-only
+  support.
+- Local English-to-Portuguese translation resolves Hugging Face aliases to a commit SHA, separates
+  model-info and inference timeouts, persists batch progress and supports pause/resume through the
+  checksum cache. `main` is rejected as cache identity.
+- The document analyzer provider boundary remains canonical. Deterministic analyzer v2 improves
+  claim-kind and qualifier classification and processes 50-page batches with a serialized
+  hierarchy/ordinal checkpoint. Failed runs resume after the last committed batch with idempotent
+  inserts. Full author/citation/coreference understanding remains future work; optional providers
+  only gain resumability when they implement `analyzeBatch()`.
+
+## Passage aggregation and editorial gate (2026-10-01)
+
+- Workspace schema 12 keys local translations by provider model revision and expands controlled
+  semantic domains for social/political history, tradition, soteriology, eschatology and religious
+  currents.
+- Accepted private-book passage relations now resolve to their citeable semantic unit, sibling
+  accepted proposals, physical pages and optional local translation in Passage Inspector. This is
+  a private overlay; curated knowledge remains read-only and separate.
+- Passage Inspector exposes an honest 15-area coverage matrix. Pending links do not count as
+  coverage.
+- The deterministic resolver supports full pt/en references, same-chapter continuations and
+  context-bound relative verses; exact per-chapter verse counts remain future work.
+- Accepted English units can be translated in batch, without tokenizer truncation, and translations
+  have an explicit human-review action.
+- Claims and arguments can declare an interpretive perspective. Editorial staging always has
+  `publicationAllowed: false` and blocks private rights, missing passage or missing evidence before
+  any future curated import.
+
+## Book Decomposition Pipeline v1 (2026-10-01)
+
+- Workspace schema 11 adds private `document_nodes`, multi-span `semantic_units`,
+  `semantic_unit_spans`, reviewable `knowledge_proposals` and versioned
+  `document_knowledge_indexes`. No proposal writes to the public knowledge snapshot.
+- `DocumentKnowledgeAnalyzer` is the provider boundary. The deterministic v1 implementation
+  detects book/part/chapter/section/bibliography structure, joins simple cross-page continuations
+  and proposes topics, passage relations, claims, arguments, quotations and controlled entities.
+- Proposal IDs include a payload fingerprint. Reprocessing is idempotent and preserves accepted or
+  rejected decisions, including edited claim text, when the semantic proposal remains the same.
+- The private document reader now exposes Structure, Review and Aggregate views. Export is explicit,
+  local-only JSON (`scriptorium-private-knowledge-export-v1`) marked as requiring rights review.
+- Verification: strict typecheck passed; focused ESLint passed; 24 focused tests passed; direct Vite
+  client/SSR/Nitro build passed. Direct full Vitest without `pretest` remained blocked by local
+  corpus SQLite files whose checksums differ from the committed registry after a Node 24 rebuild;
+  this is the previously identified cross-toolchain artifact reproducibility issue.
+- Next safe actions: browser QA with a real text-layer PDF; add golden-layout fixtures for footnotes,
+  bibliographies and complex tables of contents; pin the binary corpus build toolchain.
+
 ## Semantic content engine (2026-09-30)
 
 - Workspace schema 10 adds page-offset semantic segments, controlled domain classifications,
@@ -137,6 +1252,9 @@
 - 2026-09-22 — quarantine the Wikisource Tradução Brasileira from distributable runtime packages because US hosting does not establish Brazilian public-domain status; preserve the artifact only for rights review.
 - 2026-09-22 — pin the official eBible porbrbsl USFM ZIP (SHA-256 52eae6cc562494ac9d68e618e271ff764628dec34017cc2a4f37fd446f3e66bd) as the public-domain Portuguese expansion; label it as a draft in active revision and preserve all 81 works without treating its collection as a universal canon.
 - 2026-09-25 — ingest user-owned PDFs only into private browser storage: keep original bytes in OPFS, index page text in workspace SQLite/FTS5, derive stable IDs from SHA-256, make checksum reimports idempotent and never add protected files/text to Git or public corpus packages.
+- 2026-10-05 — orchestrate the complete private library through the existing canonical knowledge pipeline, persisting run/document state and continuing after isolated failures; do not introduce a competing analyzer or storage path.
+- 2026-10-05 — represent contextual passage reach as one primary target plus bounded additional targets, with explicit verse/range/pericope/chapter/book scope; keep source edition and versification provenance on every relation.
+- 2026-10-05 — release explicit reference links under their own policy and keep inferred links withheld behind deterministic distributed batch samples; accepting a sample is an operational publication gate, not proof of theological or statistical truth.
 
 ## Current state
 
@@ -145,11 +1263,15 @@
 - Data: 142,096 TAGNT records processed; 137,074/137,741 targets aligned (99.5158%): 82,918 exact, 53,740 normalized, 416 positional, 75 ambiguous, 592 unmatched. 5,621 lexical identities; 27 books/260 chapters. John 7:53–8:11 retains all 187 textual tokens with no accepted TAGNT link.
 - Storage: SBL generated 74,746,655 → 23,829,469 bytes (-68.12%); generated TAGNT 33,726,686 bytes. Exact metrics and timing in `docs/corpora/phase5-metrics.json`.
 - Bíblia Livre: 68 artifacts, 4,582,764 source bytes; 66 books, 1,189 chapters, 31,101 verses; 1,167 notes, 116 psalm titles, zero explicit paragraphs; 8,472,398 generated bytes. One explicit anomaly: Mark 5:19 omitted in N4.
-- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, interlinear, Hebrew or LXX. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF text-layer ingestion works; OCR, EPUB, structural section detection and automatic passage linking remain future work.
+- Known issues: repository-wide CRLF/Prettier debt remains. The generic Bíblia Livre candidate remains blocked, while only the official pinned package is bundled. Knowledge/interpretation/bibliographic fixtures remain DEMO. F4 notes/titles are audited but lack their own editorial UI. No Portuguese word alignment, LXX or aparato crítico. Global text FTS still opens the complete edition index; concordance now uses a 60,268,544-byte linguistic index and Reader paths use work shards. Browser workspace persistence requires OPFS support; unsupported contexts run in visibly degraded memory mode. Private PDF ingestion, deterministic structure/linking and optional OCR exist; OCR requires Tesseract/idiomas locais e EPUB permanece futuro.
 - Verification performed: Phase 9 passed 106 tests across 11 files, typecheck, focused lint, Node production build and Lovable sandbox Cloudflare build. Browser QA covered João 1, OPFS across reload/server restart, immediate source-list invalidation, duplicate import, λόγος with 328 paginated occurrences and a clean console. A byte-counting proxy observed 31,744,000 corpus bytes for João versus 358,256,640 monolithic bytes; concordance transferred only the 60,268,544-byte linguistic part. Direct SSR returned the client loading shell without SQLite/OPFS initialization. Repository-wide lint remains blocked by the pre-existing line-ending/Prettier debt snapshot.
 - Phase 10.1 continuation: imported the public-domain 1885 ANF IX OCR source for Origen's Commentary on John Books I-II as 65 stable primary-source units and a 1,908,736-byte work-sharded SQLite/FTS5 package. John 1:1 now links to exact unit II.2 through a source-backed reception-history analysis. Final verification passed 126 tests across 16 files, typecheck, focused ESLint and Node production build; a no-change corpus rebuild reused all six packages. Browser QA opened the exact II.2 unit, confirmed real global FTS results and a clean console. Repository-wide lint still reports 2,974 pre-existing formatting/CRLF problems.
 - Phase 10.1 content continuation: imported the public-domain eBible Bíblia Portuguesa Mundial draft as 81 works, 1,402 chapters, 38,029 text units and 2,311 detected editorial notes. Added 15 Portuguese deuterocanonical/other apocryphal works to navigation and work-sharded SQLite/FTS delivery. Wikisource TBB is blocked from the public registry pending Brazilian rights review.
 - Private library continuation (2026-09-25): six user-purchased Portuguese PDFs were imported locally as 4,280 physical pages, 4,261 with searchable text. Global search opens exact document pages; reload persistence and checksum-idempotent reimport were verified in the browser. The files and extracted content are not tracked by Git.
+- Private library orchestration (2026-10-09): schema 18 persists workspace identity, whole-library runs, per-document stage state, document profiles, semantic-unit roles and review batches; an indexed unit/proposal lookup keeps deterministic resumptions bounded. Coverage reports missing text/OCR/structure/linking state, profile distribution, proposal policy and target/domain gaps. Reader selection can narrow the inspector to one verse; accepted private excerpts appear below the relevant verse with page/section/author metadata and obey the explanations toggle.
+- Workspace consolidation (2026-10-10): the canonical OPFS origin is `http://127.0.0.1:5173` and now contains all 37 PDFs, 26,243 pages, 49,229 semantic units and a completed deterministic run (37/37, zero operational failures). It reaches 16,701 distinct verses; 60,036 relations are machine-visible and 77,339 remain in exception/review. The former six-book OPFS workspace was archived outside the live browser profile after a verified raw backup.
+- The final raw OPFS backup is `C:\Users\comical\Documents\Scriptorium Workspace Backups\2026-10-10-final-workspace-consolidation`; its 1,187,467,264-byte main database file matches the canonical source by SHA-256 (`926C73C2B41FB23EB015459121391D9C28C4B9B1627D5861C58EECC9C1015FDC`). The retired six-book store is recoverable at `2026-10-10-retired-six-book-workspace` and the earlier before/after snapshots remain available.
+- Reader consolidation (2026-10-10): schema 19 adds the passage lookup index; contextual proposal resolution now uses the already-computed publication set instead of a correlated scan and fetches only required document nodes/pages. A native Gênesis 1 diagnostic fell from about 28.2 s to 0.51 s. Browser QA on the 1.1 GB OPFS workspace showed 200 published links in Gênesis 1, source/page cards, filters, inspector coverage and a working clean-reading explanations toggle. OPFS cold startup remains around 30 s and the browser/WASM reader path around 18 s for the 200-item chapter cap.
 
 ## Next safe actions
 
@@ -157,4 +1279,297 @@
 - If translation/original alignment is added later, use an explicit dataset and algorithm; never infer Portuguese↔Greek links by position.
 - Keep the 667 TAGNT residues unchanged unless explicit editorial evidence is introduced.
 - Build a compact cross-work search/lexeme index or range VFS before global operations span substantially larger corpora; preserve the `CorpusStorage` boundary.
-- Add OCR, EPUB, structural section detection, private citations and human-reviewed passage links without weakening local-only privacy or provenance.
+- Audit high-density explicit references and false positives by document profile; the completed deterministic run connects the library but does not make every extracted link academically correct.
+- Install Tesseract with Portuguese/English/Spanish language data only when recovering the remaining 219 image-only pages; OCR no longer blocks the 37-document collection.
+- Add EPUB support and improve structural section/citation extraction without weakening local-only privacy or provenance.
+
+# Leitura contextual privada — 2026-10-14
+
+- Incorporadas realmente 116 notas. Primeiros lotes: Shedd p. físicas 5–6 (Gn 1–3), Genebra p. 28–36
+  (seleção Gn 1–2). Lote privado `genesis-shedd-genebra-20261014-01`, JSON/plano em
+  `data/workspace/`; idempotência real: 0 importadas/48 reutilizadas. Não é leitura integral.
+- Segundo lote: 3 notas MacArthur p. 37–39, Gn 1:26, 3:1–24 e 12:1–3,
+  `genesis-macarthur-20261014-01`; reimportado 0/3. Snapshot completo de 48 notas
+  verificado por IDs + ambos os pacotes permitem recuperação; `.partial` não é backup válido.
+- Terceiro lote `genesis-shedd-genebra-20261014-02`: 65 notas novas, Shedd p. 7–11
+  (seleção Gn 3–12), Genebra p. 38–41 (seleção Gn 3–4). Importado 65/0 e repetido 0/65.
+  Novos snapshots completos antes dessas operações preservam 51 e 116 notas. Não é cobertura integral.
+- `content:import:contextual` usa serviço canônico + backup SQLite e exige runtimes parados.
+  Não executar Windows e Docker escrevendo simultaneamente no bind mount.
+- Reader mostra múltiplas fontes contextuais, links sublinhados para página/unidade;
+  intervalos >7 versos recolhidos; consulta prioriza contexto antes do teto de 200 relações.
+- A versão digital Genebra tem português e referências defeituosos no próprio PDF;
+  limitação preservada nas notas. Não afirmar que a edição foi certificada.
+- Continuidade: completar notas/capítulos na ordem bíblica; nunca converter citações
+  cruzadas existentes em comentário direto sem leitura. Docs: `docs/content/contextual-bible-reading.md`.
+- Marcadores editoriais: Shedd p. física 11, próxima nota `13.2`; Genebra p. física 41,
+  após `4:01`, seguir na p. 42. Lacunas deliberadas incluem Shedd 5:24 (p. 7–8) e
+  Genebra 3:2–5 (p. 37–38), 3:17 (p. 39–40): precisam recortes multi-página.
+  O livro de exegese/hermenêutica ainda não recebeu um lote editorial nesta entrega.
+
+# Comentários originais em escala — 2026-10-16
+
+- Estado atual: workspace da instalação em `data/workspace/workspace.sqlite3`, schema 24;
+  não é mais exclusivamente o OPFS antigo. Preservados os 37 documentos, 26.243 páginas,
+  49.345 unidades preexistentes, 116 notas editoriais e 232 propostas associadas por hashes.
+- Incorporados realmente 24.057 comentários originais adicionais: Shedd 11.876, Genebra 12.181.
+  Extração Python percorreu 935/1.740 páginas e reconheceu os 66 livros de ambas as fontes.
+  São 21.297 notas pontuais, 2.514 intervalos, 212 perícopes entre capítulos e 34 notas de capítulo.
+  Notas pontuais: 16.276 endereços distintos; com intervalos/perícopes: 28.142. Não é cobertura
+  individual integral, revisão humana de todas as páginas ou geração de novas interpretações.
+- CLI `app.commentary_cli` usa perfis vinculados ao checksum, estrutura e negrito quando disponível;
+  serviço TypeScript canônico valida citações literais, separa comparação/menção do alvo primário,
+  importa transacionalmente com lock, backup e retomada. Nenhuma LLM necessária.
+- Novas notas machine-proposed/machine-visible por política documental, auditoria pendente.
+  Exceções incluem referências não contíguas, remissões sem explicação e texto incompleto;
+  não foram corrigidas nem publicadas cegamente. Outros livros não reprocessados nesta execução.
+- Migration 024 permite evidência compartilhada por unidades distintas, sem duplicar a mesma
+  evidência dentro da unidade. Atualizar todos os runtimes antes de abrir schema 24. Docker não
+  foi reconstruído: daemon indisponível. Reversão exige backup offline, não downgrade arbitrário.
+- Pacotes privados finais: `shedd-commentary-publish-v1`, `genebra-commentary-publish-v1`.
+  Auditoria: `data/workspace/commentary-baseline-20261016.json.verification.json`.
+  Shedd reimportada 0/11.876; Genebra retomada com 100 reutilizadas/12.081 novas.
+  `quick_check` e `foreign_key_check` passaram; backups privados completos preservados.
+- Reader mostra comentário original literal, fonte/página sublinhada e trecho destacado ao abrir.
+  Consulta separa orçamento contextual (2.000) de referências gerais (200); futura paginação
+  necessária para fontes adicionais. Salmos 119 exibiu 342 cartões, filtro Shedd 256, toggle 0/256.
+- Validação: 387 testes TS/53 arquivos, 54 Python, typecheck, lint integral, build Node, Ruff e
+  mypy strict passaram. QA produção João 3, Salmos 119, citação/página/destaque e viewport móvel
+  sem pageerrors; há dívida visual preexistente no cabeçalho/filtro de fonte em tela estreita.
+  OPFS roundtrip e Docker não foram validados nesta execução. Docs canônicos:
+  `docs/architecture/original-commentary-extraction.md`, `docs/content/contextual-bible-reading.md`.
+
+# Wesley e Novo AT incorporados — 2026-10-16
+
+- Estado mais recente substitui as contagens anteriores: fila encerrada (14 PDFs completos,
+  seis originais sem texto aguardando OCR, um EPUB bloqueado). Workspace: 57 documentos,
+  47.707 páginas físicas/45.905 com texto; todos os originais presentes.
+- Incorporadas 18.427 entradas adicionais: Wesley 6.232 (5.302 notas pontuais NT + 930
+  trechos de capítulo AT, não versos), Novo AT 11.248, recuperação Shedd 497/Genebra 450.
+  Wesley em inglês; não foi gerada tradução. Não houve LLM ou revisão humana integral.
+- Extração especializada `commentary_structured.py`: outline + layout checksum-pinned,
+  offsets UTF16, serif/body vs boxes, falha fechada para marcadores corrompidos e capítulos
+  faltantes no outline. Recuperação protege todos os spans contextuais antigos.
+- Totais: 42.484 comentários originais + 116 editoriais = 42.600. Incluindo editoriais,
+  20.089 endereços pontuais/30.477 com intervalos; 625 versículos instalados sem cobertura.
+  1.189 capítulos com algum contexto, 87 completos por notas pontuais/1.028 com intervalos.
+  Métricas dos 66 livros, não certificação de qualidade nem comentário individual universal.
+- Baseline preservado: 57 metadados, 89.231 unidades genéricas anteriores, 232 propostas
+  editoriais. SQLite integrity/FKs ok. Serviço canônico read-only confirmou idempotência
+  0 novas/6.232 reutilizadas, 0/11.248, 0/497 e 0/450.
+- Pacotes privados finais: `wesley-commentary-publish-v1`, `novo-at-commentary-publish-v3`,
+  `shedd-adjacent-recovery-v1`, `genebra-adjacent-recovery-v1`; calibrações não publicadas.
+  Auditoria: `data/workspace/commentary-baseline-second-sources-20261016.json.verification.json`.
+- Gates: 391 testes TS/54 arquivos, 64 Python, typecheck, lint, build, Ruff/mypy passaram.
+  QA produção: João 3 filtro Wesley 29 cartões/toggle; Gn 1 Novo AT 29; link p.48 com dois
+  destaques; móvel sem overflow global/console errors. Cabeçalho/filtro móvel ainda têm
+  dívida visual preexistente. Nenhum componente front alterado, Docker não reconstruído.
+- Continuar por Jerusalém, Agostinho e Catecismo/confissões, depois léxicos/temáticos;
+  preservar exceções, revisões e fonte literal. Não anunciar prioridades 3–7 concluídas.
+
+# Patrística e confissões — 2026-10-17
+
+- Entrega realmente incorporada: 1.935 vínculos em 23 lotes. João comentado Agostinho I:
+  125/20 conferências; III: 133/48 conferências (duas sem referência principal resolvida).
+  Gênesis: 388 contextos de obra; Sermão da Montanha: 129 contextos de obra, não versos.
+  Catecismo: 1.018 citações de 669 parágrafos publicados; Augsburgo: 142 citações de capítulo
+  em dez artigos. Total: 775 contextos patrísticos + 1.160 vínculos confessionais.
+- `app.source_context` usa geometria/snapshot/checksum e o parser TS existente exportado por
+  `export-source-references.ts`. Não há LLM. Evita listas internas como parágrafos do CIC e
+  número de rodapé como ordinal de 1 João. Exclui lema/Análise editorial das conferências.
+- `sourceContext` preserva tipo/localizador/caminho/autor/tradição; relações confessionais
+  são `cites` + `proof-text`, não comentário universal. Sem destino explícito não há vínculo.
+  Perfis calibrados por SHA-256; não aplicar a PDFs diferentes com o mesmo título.
+- Jerusalém: não identificado aparato de notas no arquivo de 1.221 páginas; zero comentários
+  inventados. Westminster: 33 capítulos reconhecidos, zero destinos explícitos nesse exemplar.
+  Demais obras/volumes de Agostinho e Saltério sem crosswalk permanecem pendentes. OCR adiado.
+- Schema atual 25: migration 025 normalizou 1.475 unidades deste namespace para `paragraph`,
+  sem mudar IDs/texto/spans/revisões; protege unidades revisadas. Dois backups consistentes
+  antes de importação/migration. Atualizar runtimes antes de abrir schema 25; sem downgrade vivo.
+- Pacote privado final: `data/workspace/patristic-confessional-delivery-v1`, seis fontes.
+  Fontes-base: `augustine-john-i-context-publish-v1`, `augustine-john-iii-context-publish-v1`,
+  `augustine-genesis-context-publish-v2`, `augustine-sermon-context-publish-v2`,
+  `catholic-catechism-context-publish-v1`, `augsburg-confession-context-publish-v1`.
+  Auditoria: `patristic-confessional-baseline-20261016.json.verification.json`; idempotência
+  real 0 novas/1.935 reutilizadas. Verificação read-only dos seis pacotes anteriores reutilizou
+  os 42.484 comentários originais. Baseline, quick_check/FKs, 57 documentos e 232 propostas
+  editoriais preservados. Nenhum job em andamento; originais/extração anteriores não alterados.
+- Total contextual: 44.535 incluindo 116 editoriais; cobertura de comentários exclui textos-prova:
+  20.090 endereços pontuais/30.491 com intervalos, 611 versículos instalados sem cobertura.
+- Reader identifica confissão/tradição, conserva links sublinhados e recolhe exposições longas
+  sem reescrever o conteúdo. Ordena trechos da mesma fonte por página/offset, não pela importação.
+- Gates já executados: 395 testes TS/55 arquivos, 73 Python, build/typecheck/lint/Ruff/mypy.
+  QA produção em 127.0.0.1:5173: João 2/Agostinho, João 3/CIC (21 cartões confessionais),
+  expansão/toggle, citação p.119 com destaque, viewport 390×844 sem overflow global/console errors.
+  Cabeçalho/filtro estreito têm dívida visual anterior. Docker não reconstruído. Documentação:
+  `docs/architecture/patristic-confessional-context.md`, `docs/content/contextual-bible-reading.md`.
+- Próximo: auditar exceções/alcances patrísticos finos, demais volumes de Agostinho e crosswalk
+  do Saltério; obter aparato real de Jerusalém e tratar confissões sem inventar referências.
+  Não anunciar leitura humana integral, cobertura individual universal ou todas as obras concluídas.
+
+## Beale, Crisóstomo/Mateus e MacArthur — 2026-10-17
+
+- `app.outlined_sources` e três perfis por checksum reutilizam o importador canônico, sem LLM.
+  Incorporados 1.414 vínculos: Beale 391 (120 seções/419 páginas, 11 livros do NT), Crisóstomo
+  521 (424 + 97 de recuperação, 85 lemas/895 páginas), MacArthur 502 (contextos de 66 livros).
+  Beale mantém 410 marcadores em exceção/27 páginas duplicadas; não anunciar integração integral.
+- Recuperação das homilias exclui folios/cabeçalhos de 11pt e desconta os spans existentes antes
+  de formar blocos. Não sobrescreveu os 424 iniciais. Introduções/índices não viraram exegese.
+- Campo opcional `sourceVisual` exige legenda literal na própria página citada. Três mapas
+  MacArthur conferidos nas páginas 36/81/407; não são fotografias arqueológicas. Painel direito
+  mostra contexto geral identificado, fonte/página e imagem lazy via endpoint local autenticado.
+  `covers/<sha>?page=n` usa cache privado e limites de documento; capa antiga preservada.
+- Dados continuam em `data/workspace`, não Git/Docker image. Dois backups consistentes antes
+  dos lotes; baseline, quick_check/FK e idempotência 0 novas/1.414 reutilizadas passaram.
+  Total contextual 45.949 incluindo 116 editoriais; cobertura com intervalos 30.559 endereços.
+- 397 TS/55 arquivos, 81 Python, typecheck/lint/build/Ruff/mypy passaram. Teste concorrente com
+  build pegou checksum transitório; repetido após build passou, sem enfraquecer integridade.
+  QA produção desktop/móvel: mapa Josué 11, fonte p.81 com mark, filtros Mateus, ausência em
+  Êxodo, teclado/lazy; sem erros de aplicação. Cabeçalho móvel estreito é dívida anterior.
+  Preview encerrado/lock liberado; Docker e tradução não reconstruídos. Próximo: calibrar
+  marcadores Beale restantes, mapear referências internas das homilias e classificar outros
+  mapas/imagens do acervo. Guia: `docs/architecture/outlined-source-contexts.md`.
+
+## Pipeline tipado, vetores, busca e léxico — 2026-10-17
+
+- Contrato escalar compartilhado de checkpoint entre API/analisador; testes HTTP de retomada.
+  `local_pipeline.py` tem testes diretos com modelos falsos/SQLite temporário: evidência literal,
+  offsets UTF-16, candidato/edição, rollback, revisão/dimensão, abstinência, gate e índice ausente.
+- Ambiente `.venv` via uv 0.11.26 + `uv.lock`, Python 3.11–3.13, Torch CPU no Windows/Linux.
+  `semantic:typecheck` verifica `mypy --strict app` inteiro; `semantic:lint` app/tests/scripts.
+  CI configurado Windows/Linux × Python 3.11/3.13, mas execução remota não certificada aqui.
+- Somente índice derivado `candidates.sqlite` migra a schema3 BLOB `<f4`; backup SQLite consistente,
+  transação/rollback, dimensão/checks/FKs; nunca modifica schema/PDFs/associações do workspace.
+  Matriz NumPy, sem Torch no retrieval, cache invalidado ao indexar; revisão/recipe/checksum/edição.
+  Benchmark sintético 10k×768: JSON163.938.304B/2.450,95ms leitura, BLOB41.058.304B/62,76ms.
+- `/v1/pipeline/search` compartilha FTS5/BM25 + embedding global com o linker, fusão RRF explícita.
+  Busca ganhou Por sentido, edição, preparação em lotes/cancelamento e fallback FTS identificado.
+  Índice incompleto ou revisão alterada dá409; não exige LLM geradora nem publica inferências.
+  Proxy local autenticado/whitelist integra Docker; modo browser-only mantém loopback.
+  Resultados preservam edição via `?edition=` e hash de verso. Busca textual permanece padrão.
+- Glossário JSON versionado protege Logos/Torá/Septuaginta/LORD; fingerprint no modelRevision
+  invalida cache exato sem sobrescrever revisão humana. Se Marian danifica placeholders, fallback
+  traduz segmentos circundantes preservando termos. Fluência/modelos reais ainda não validados.
+- Estatísticas no inspetor/Ocorrências: SQL por lema/edição, distribuição por livro e janela ±2
+  na mesma unidade. Sem duplicar por endereços alternativos; surface hebraica em vez de códigos
+  OSHB, sem unificar automaticamente referências compostas em raízes. Corpus linguístico lazy.
+- Validação local: 403 TS/57 arquivos, 110 Python, build/typecheck/lint/Ruff/mypy passaram.
+  QA produção1440×1000/390×844: preparo/cancelamento, restart do companion, edição solicitada,
+  fallback/409 legível e estatísticas gregas/hebraicas; sem pageerrors/overflow global. Header
+  móvel tem clipping anterior. Correção final de prefixos OSHB coberta por testes relacionados.
+- Integridade real read-only: 57 documentos, 45.949 propostas contextuais, quick_check ok/FKs0;
+  não reimportou/acrescentou livros. Previews/companion de QA encerrados, lock liberado.
+  Dockerfile usa lock e `/models/semantic-index`; imagem não reconstruída. Índice antigo efêmero
+  do container não é migrado automaticamente para esse volume: reindexar, sem afetar a biblioteca.
+- Guia operacional: `docs/architecture/semantic-search-vectors-lexical-statistics.md`.
+
+## Estudos e leitura — 2026-10-17
+
+- Árvore incorpora os 95 registros existentes em sete núcleos pedagógicos, sem inferir relações.
+  `/knowledge` redireciona seleções para Estudos; o caderno de notas de outro trabalho é preservado.
+- Ambientes Branco/Preto/Cinza/Marrom/Sistema; guias por etapas horizontais; comentários inline,
+  em painel inferior redimensionável ou ocultos. Mesmos serviços e revisão, sem alterar o acervo.
+- Fonte canônica: `docs/architecture/frontend-experience.md`, seção Estudos, ambientes e comentários.
+- QA em 1536×1024 e 390×844: temas persistem, entidades/links antigos abrem, etapas navegam,
+  comentários mudam de posição, seleção acompanha versículo, teclado redimensiona e sem overflow.
+  Preview OPFS isolado; comentários privados não conferidos no acervo de produção.
+- Verificado: 425 testes/62 arquivos, typecheck, lint e build Node passaram. Sem nova ingestão.
+
+## Espaços de estudo com dados do acervo — 2026-10-17
+
+- Documento canônico: `docs/architecture/study-topic-workspace.md`. Árvore expande núcleos em
+  constelações paginadas; cada guia/entidade usa Percurso, Leituras, Conexões, Caderno e Vídeos.
+- `StudyTopicService` reutiliza catálogos, FTS público/privado, unidades e páginas canônicas.
+  Roteiros usam correspondências editoriais explícitas; busca textual não vira relação aprovada.
+- Notas mantêm tema + grupo + origem, com backlinks. Aba Caderno preserva rascunhos montados;
+  associação direta de uma nota não torna todas as notas do grupo pertinentes ao tema.
+- Grafo usa somente relações/parentesco registrados, roteiros existentes e conexões pessoais;
+  não infere arestas por palavras iguais. Mantém limites e paginação para reduzir a carga visual.
+- YouTube Data API opcional: chave restrita somente em memória, header X-Goog-Api-Key,
+  consulta explícita, timeout/cache limitados e player sob ação. Sem chave real nesta validação.
+- QA isolado confirmou nota simples, nota com unidade original, conexão, rascunho entre abas,
+  reload, backlinks e responsividade. Dados de teste não foram criados no acervo original.
+- Acervo original consultado read-only: documentos e ocorrências privadas reais presentes.
+  Lock Linux e journal de backup anterior preservados; API Docker indisponível. Não recuperar
+  lock nem migrar o banco por suposição. Preview Vite 5173 permanece isolado em OPFS.
+- Verificado: 437 testes/65 arquivos, typecheck, lint e build; QA desktop/mobile sem pageerrors,
+  origem da nota preservada após reload e descarte protegido inclusive para rascunho de vídeo.
+
+## Conteúdo educacional dos temas — 2026-10-18
+
+- Correção explícita do usuário: preservar árvore e Biblioteca celeste; entrar num tema deve oferecer
+  explicação para ler/aprender, além dos livros, em vez de somente instruções de investigação.
+- Conteúdo é a primeira aba. study-lessons tem introduções específicas para 95 entidades e capítulos
+  por correspondência explícita para 16 guias; bibliografia por capítulo, perspectivas identificadas.
+  Texto editorial original, sem simular citação dos livros nem alegar revisão acadêmica.
+- Leitura do acervo também dentro de Conteúdo; topic-reading-text carrega unidade/página original
+  completa, nunca snippet como substituto. Reusa os repositórios e o leitor/caderno existentes.
+- Novos temas pessoais sem lição mostram ausência explícita, com as fontes reais disponíveis.
+- Nenhuma alteração na árvore, backend, schema, processamento dos PDFs ou identidade visual.
+
+## Próximo escopo aprovado: formação acadêmica e Rastro — 2026-10-18
+
+- Usuário aprovou expressamente a proposta da conversa e pediu que fosse preservada integralmente.
+  Antes de implementar, diagnosticar o espaço do disco F. Não alterar outras funcionalidades.
+- Preservar árvore e Biblioteca celeste. Trocar a experiência de textos introdutórios/seletor 01/02
+  por currículo com recorte, pré-requisitos, objetivos, módulos, aulas, leituras e atividade final.
+- Trilha horizontal com progresso persistido: disponível, em andamento, concluído; concluir módulo
+  libera o próximo. Progresso de atividades não é comprovação automática de domínio acadêmico.
+- Conteúdo, Percurso, Leituras, Conexões, Caderno e Vídeos devem acompanhar o mesmo módulo.
+- Cada aula: introdução, conceitos explicados, exemplos analisados, fontes, discussão, conclusão,
+  atividade. Curso profundo distribuído em aulas, sem paredões de texto nem excesso de cartões.
+- Distinguir visualmente explicação, Escritura, citação, método e atividade por hierarquia tipográfica,
+  espaçamento e poucos acentos de cor; conservar a ambientação aprovada.
+- Aproveitar os 51 livros mencionados pelo usuário: inventariar autor/obra/edição/perspectiva,
+  conferir extração e estrutura, selecionar unidades citáveis por função pedagógica e página exata.
+  Busca textual é descoberta, não curadoria. Importado/extraído/estruturado/analisado são distintos.
+- Explicação editorial sustentada por referências; combinar acervo privado com fontes externas
+  verificáveis. Comparar tradições sem avaliar concordância religiosa como acerto acadêmico.
+- Ampliar Rastro para dossiê por palavra/passagem/conceito, mantendo proveniência/histórico atuais:
+  léxico, morfologia, ocorrências, contexto textual, história/cultura, interpretações, fontes e revisão.
+  Arqueologia/antropologia somente quando pertinentes e apoiadas em evidências identificadas.
+- Referências funcionais: Logos Workflows, Guides, Bible Word Study e Factbook; aproveitar o pipeline
+  e banco canônicos, com unidades, spans, propostas e notas existentes, sem fonte de verdade paralela.
+- Proposta de primeiro percurso completo: Gênesis 1 (orientação, texto, Bereshit/linguagem,
+  contexto histórico-cultural, comparação de interpretações, síntese final), validando as seis áreas
+  e progressão antes de expandir. Na aprovação ainda era proposta; a implementação do piloto está registrada abaixo.
+
+## Formação acadêmica e dossiê do Rastro — 2026-10-18
+
+- Primeiro currículo desenvolvido em `/study/course/genesis-1`: seis módulos, doze aulas,
+  introdução/conceito/exemplo/discussão/conclusão, objetivos, leituras e síntese final. Referências
+  e perspectivas explícitas; material editorial original, sem atribuir revisão acadêmica humana.
+- Trilha horizontal sequencial; seis áreas acompanham o módulo. Manrope/Biblioteca celeste e
+  árvore preservadas. Outros temas permanecem introdutórios, não declarar 95 cursos completos.
+- Migration028 aditiva `study_course_progress`, revisão do currículo, confirmação de aulas e
+  passagens, atividade e critérios. Versão otimista com guarda transacional; backup v2/v3 opcional
+  compatível. Conclusão registra percurso, não domínio acadêmico ou concordância religiosa.
+- Leituras bíblicas integrais/edição; acervo por vínculo principal/análise contextual, estado de
+  revisão, domínio, esquema e páginas. Sem associação por palavras soltas. Agrupamento por obra,
+  quatro trechos visíveis, um original aberto. Leitor/captura existentes preservados.
+- Inventário read-only canônico:57 documentos,51 com texto/unidades; primeiro módulo encontrou
+  oito obras pertinentes. Consulta não equivale a curadoria humana integral. DB real mantém
+  4.018.020.352 bytes e mtimeUTC2026-10-17T21:49:28, sem migração/reprocessamento nesta entrega.
+- Caderno compartilhado por curso, vínculos por módulo/passagem; retorno `study-course:` pelo
+  index de Estudos ao curso/módulo. Integra editor existente; Notas/pastas/wikilinks preservados.
+  Rascunho protegido entre abas e bloqueia remontagem ao salvar progresso. Vídeos reaproveitam
+  configuração YouTube existente, API opcional em memória, além de materiais selecionados.
+- Rastro tem pesquisa e histórico; palavras/passagens/`palavra @ passagem`, Bereshit reconhece
+  sinais/segmentação OSHB. Texto, morfologia, verbetes/concordância reais; contexto/interpretações
+  desenvolvidos para Gn1. Demais passagens usam dados disponíveis e ausência explícita. URLs
+  antigas filtradas continuam históricas. Não inferir arqueologia por semelhança lexical.
+- QA em origem isolada5174: conclusão/desbloqueio/reload OPFS, seis abas, nota vinculada e retorno
+  ao módulo, Notes explorer, histórico, Bereshit e viewport390 sem overflow da página. Segunda
+  aba pode cair no fallback memory já existente; curso avisa perda ao recarregar nesse estado.
+- Especificações: `docs/architecture/academic-study-course.md`, `study-topic-workspace.md`,
+  `knowledge-trace.md`. Migração/concorrência/backup e seleção de fontes cobertos por testes.
+- Limite operacional: banco canônico v25/lock antigo preservado; migrações testadas em bancos
+  descartáveis. Não abrir instalação real para QA nem recriar backups grandes. Limpeza anterior
+  já moveu26 arquivos/43,051GiB para `C:/Users/comical/Desktop/apagar`, preservando banco atual,
+  PDFs e snapshot válido mais recente. Não repetir limpeza nem apagar automaticamente.
+- Há alterações concorrentes de busca acadêmica em `src/components/search`, serviços acadêmicos,
+  `routes/search.tsx` e `study-source-service`; manter fora do commit deste escopo.
+- Verificação final do snapshot compartilhado: `npm run typecheck`, `npm run lint` e suíte completa
+  `npx vitest run --testTimeout=60000`:477 testes/73 arquivos passaram. Falhas transitórias nos
+  testes novos da busca paralela foram corrigidas pelo trabalho correspondente, sem editar tais
+  arquivos nesta entrega. Build de produção passou; evidências visuais em arquivos temporários.

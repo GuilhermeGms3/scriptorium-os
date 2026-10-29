@@ -6,4 +6,10 @@ The startup migration imports legacy studies, their items and notes from localSt
 
 Research questions aggregate linked sources, passages, claims, arguments, theories and notes. Their provisional conclusions are user-owned and never become shared academic claims automatically. FTS5 indexes source titles, citation text, notes and research questions.
 
-JSON export and validated, idempotent import provide a portable backup. Workspace data is not sent to a remote service and no account is required.
+JSON export and validated, idempotent import provide a portable backup. Backup schema v3 includes
+private-document identity, page anchors, document structure, semantic units, proposal review state,
+local translations, human reviews and translation-job progress. It deliberately replaces protected
+page text with empty reimport anchors and sets `privateTextIncluded: false`; importing the legally
+held original again rehydrates those same page IDs without deleting spans or review decisions.
+Schema v1 and v2 backups remain importable. Workspace data is not sent to a remote service and no
+account is required.

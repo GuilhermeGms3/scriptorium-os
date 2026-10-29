@@ -1,0 +1,49 @@
+.study-foundation {
+  border-top: 1px solid var(--border);
+  margin: 1.5rem 0;
+  padding: 1rem 0;
+}
+.study-foundation > summary {
+  cursor: pointer;
+  color: var(--primary);
+  font: 500 0.85rem var(--font-sans);
+  min-height: 2rem;
+}
+.study-foundation > summary span {
+  color: var(--muted-foreground);
+  margin-left: 0.75rem;
+  font-size: 0.75rem;
+}
+.study-foundation-record {
+  margin-top: 1rem;
+  padding: clamp(1rem, 3vw, 1.5rem);
+  background: var(--muted);
+  font-family: var(--font-sans);
+}
+.study-foundation-record h3 {
+  font-family: var(--font-serif);
+  font-size: 1.15rem;
+  margin: 0.5rem 0 1rem;
+}
+.study-foundation-record p {
+  font-size: 0.9rem;
+  line-height: 1.8;
+  margin: 0.6rem 0;
+}
+.study-foundation-record article {
+  border-top: 1px solid var(--border);
+  margin-top: 1rem;
+  padding-top: 1rem;
+}
+.study-foundation-record a {
+  color: var(--primary);
+  text-decoration: underline;
+}
+.study-foundation-kind,
+.study-foundation-locator {
+  color: var(--primary);
+}
+.study-foundation-limit,
+.study-foundation-record small {
+  color: var(--muted-foreground);
+}

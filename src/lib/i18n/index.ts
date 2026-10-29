@@ -7,6 +7,7 @@ import type {
   SupportLevel,
 } from "../domain/knowledge";
 import type { ResourceType } from "../domain/library";
+import type { SOURCE_TYPES } from "../domain/bibliography";
 import type { PassageRef } from "../domain/scripture";
 import { ptBR, type TranslationKey } from "./pt-BR";
 export { DEFAULT_LOCALE, DOCUMENT_LANGUAGE_CODES, textDirectionForLanguage } from "./locale";
@@ -102,6 +103,10 @@ const BOOK_LABELS: Record<string, string> = {
   "2-esdras": "2 Esdras",
   "4-maccabees": "4 Macabeus",
   "greek-daniel": "Daniel Grego",
+  "additions-to-esther": "Adições a Ester",
+  "song-of-three-youths": "Cântico dos Três Jovens",
+  susanna: "Susana",
+  "bel-and-the-dragon": "Bel e o Dragão",
 };
 
 export function bookLabel(bookId: string, fallback?: string): string {
@@ -238,6 +243,37 @@ export function resourceTypeLabel(type: ResourceType): string {
   return RESOURCE_LABELS[type];
 }
 
+const SOURCE_TYPE_LABELS: Record<(typeof SOURCE_TYPES)[number], string> = {
+  book: "Livro",
+  journal: "Periódico",
+  "journal-issue": "Número de periódico",
+  "journal-article": "Artigo de periódico",
+  chapter: "Capítulo",
+  thesis: "Tese",
+  dissertation: "Dissertação",
+  "conference-paper": "Trabalho de congresso",
+  "encyclopedia-entry": "Verbete de enciclopédia",
+  website: "Site",
+  manuscript: "Manuscrito",
+  papyrus: "Papiro",
+  inscription: "Inscrição",
+  "archaeological-report": "Relatório arqueológico",
+  "council-document": "Documento conciliar",
+  creed: "Credo",
+  confession: "Confissão de fé",
+  catechism: "Catecismo",
+  "ancient-work": "Obra antiga",
+  "patristic-work": "Obra patrística",
+  "rabbinic-source": "Fonte rabínica",
+  "user-document": "Documento pessoal",
+  dataset: "Conjunto de dados",
+};
+
+/** Kind of bibliographic source in Portuguese, e.g. "Obra antiga" for "ancient-work". */
+export function sourceTypeLabel(type: (typeof SOURCE_TYPES)[number]): string {
+  return SOURCE_TYPE_LABELS[type];
+}
+
 const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
   textual: "Textual",
   historical: "Histórica",
@@ -248,7 +284,7 @@ const EVIDENCE_LABELS: Record<EvidenceKind, string> = {
 };
 
 export function evidenceLabel(kind: EvidenceKind | string): string {
-  return EVIDENCE_LABELS[kind as EvidenceKind] ?? kind;
+  return EVIDENCE_LABELS[kind as EvidenceKind] ?? CLAIM_KIND_LABELS[kind as ClaimKind] ?? kind;
 }
 
 const REVIEW_LABELS: Record<ReviewStatus, string> = {
@@ -266,6 +302,8 @@ export function reviewStatusLabel(status: ReviewStatus): string {
 }
 
 const CLAIM_KIND_LABELS: Record<ClaimKind, string> = {
+  "textual-observation": "Observação textual",
+  "historical-source-observation": "Observação de fonte histórica",
   "linguistic-analysis": "Análise linguística",
   "textual-critical-analysis": "Crítica textual",
   "historical-reconstruction": "Reconstrução histórica",
@@ -311,6 +349,75 @@ const RELATION_LABELS: Record<RelationKind, string> = {
 
 export function relationLabel(relation: RelationKind | string): string {
   return RELATION_LABELS[relation as RelationKind] ?? relation;
+}
+
+const ARGUMENT_RELATION_LABELS: Readonly<Record<string, string>> = {
+  supports: "sustenta",
+  opposes: "se opõe a",
+  "objects-to": "objeta a",
+  "responds-to": "responde a",
+  qualifies: "qualifica",
+  "depends-on": "depende de",
+  undercuts: "enfraquece a base de",
+  rebuts: "refuta",
+  "alternative-to": "alternativa a",
+  "competes-with": "concorre com",
+  "derived-from": "deriva de",
+  // Links between themes of the theology tree (ontology), shown by the same explorer.
+  "belongs-to-topic": "pertence ao tema",
+  "addresses-doctrine": "trata da doutrina",
+  "historically-affirms": "historicamente afirma",
+  "historically-rejects": "historicamente rejeita",
+  "associated-with": "associado a",
+  "used-by-analysis": "usado pela análise",
+  influences: "influencia",
+};
+
+const RESEARCH_QUESTION_STATUS_LABELS: Readonly<Record<string, string>> = {
+  open: "Aberta",
+  investigating: "Investigando",
+  provisional: "Provisória",
+  answered: "Respondida",
+  archived: "Arquivada",
+};
+
+export function researchQuestionStatusLabel(status: string): string {
+  return RESEARCH_QUESTION_STATUS_LABELS[status] ?? status.replaceAll("-", " ");
+}
+
+const CITATION_KIND_LABELS: Readonly<Record<string, string>> = {
+  "exact-quote": "Citação literal",
+  paraphrase: "Paráfrase",
+  summary: "Resumo",
+  "reference-only": "Só a referência",
+};
+
+export function citationKindLabel(kind: string): string {
+  return CITATION_KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
+}
+
+const KNOWLEDGE_KIND_LABELS: Readonly<Record<string, string>> = {
+  "knowledge-entity": "Registro",
+  "theological-topic": "Tema",
+  doctrine: "Doutrina",
+  tradition: "Tradição",
+  school: "Escola",
+  method: "Método",
+  "epistemic-stance": "Postura epistemológica",
+  "interpretive-framework": "Sistema interpretativo",
+  position: "Posição",
+  theory: "Teoria",
+  claim: "Proposição",
+  argument: "Argumento",
+  lexeme: "Palavra do léxico",
+};
+
+export function knowledgeKindLabel(kind: string): string {
+  return KNOWLEDGE_KIND_LABELS[kind] ?? kind.replaceAll("-", " ");
+}
+
+export function argumentRelationLabel(relation: string): string {
+  return ARGUMENT_RELATION_LABELS[relation] ?? relation.replaceAll("-", " ");
 }
 
 export function formatNumber(value: number): string {

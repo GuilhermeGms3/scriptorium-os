@@ -33,6 +33,15 @@ import {
   installedBpmPackage,
 } from "./bpm-registration";
 import {
+  installedKjvPackage,
+  kjvArtifact,
+  kjvCorpus,
+  kjvEdition,
+  kjvImportedDataset,
+  kjvTransformations,
+} from "./kjv-registration";
+import { ebibleEditionRecords } from "./ebible-editions-registration";
+import {
   CORPUS_CANDIDATES,
   CORPUS_EDITIONS,
   CORPUS_PACKAGE_CANDIDATES,
@@ -243,25 +252,50 @@ export class CorpusRegistry {
 }
 
 export const corpusRegistry = new CorpusRegistry({
-  corpora: [...CORPUS_CANDIDATES, tagntCorpus, bpmCorpus],
-  editions: [...CORPUS_EDITIONS, tagntEdition, bpmEdition],
+  corpora: [
+    ...CORPUS_CANDIDATES,
+    tagntCorpus,
+    bpmCorpus,
+    kjvCorpus,
+    ...ebibleEditionRecords.corpora,
+  ],
+  editions: [
+    ...CORPUS_EDITIONS,
+    tagntEdition,
+    bpmEdition,
+    kjvEdition,
+    ...ebibleEditionRecords.editions,
+  ],
   packages: [
     ...CORPUS_PACKAGE_CANDIDATES.filter((p) => p.id !== BIBLIA_LIVRE_PACKAGE_ID),
     installedBibliaLivrePackage,
     installedTagntPackage,
     installedBpmPackage,
+    installedKjvPackage,
+    ...ebibleEditionRecords.packages,
   ],
-  artifacts: [...SOURCE_ARTIFACTS, ...bibliaLivreArtifacts, ...tagntDataset.artifacts, bpmArtifact],
+  artifacts: [
+    ...SOURCE_ARTIFACTS,
+    ...bibliaLivreArtifacts,
+    ...tagntDataset.artifacts,
+    bpmArtifact,
+    kjvArtifact,
+    ...ebibleEditionRecords.artifacts,
+  ],
   transformations: [
     ...CORPUS_TRANSFORMATIONS,
     ...bibliaLivreTransformations,
     ...tagntDataset.transformations,
     ...bpmTransformations,
+    ...kjvTransformations,
+    ...ebibleEditionRecords.transformations,
   ],
   datasets: [
     ...IMPORTED_DATASETS,
     bibliaLivreImportedDataset,
     tagntImportedDataset,
     bpmImportedDataset,
+    kjvImportedDataset,
+    ...ebibleEditionRecords.datasets,
   ],
 });

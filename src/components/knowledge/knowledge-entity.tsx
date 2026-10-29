@@ -25,7 +25,7 @@ import {
   t,
 } from "../../lib/i18n";
 
-export const ENTITY_ICONS: Record<EntityType, typeof User> = {
+const ENTITY_ICONS: Record<EntityType, typeof User> = {
   person: User,
   place: MapPin,
   event: CalendarClock,
@@ -52,7 +52,7 @@ export function EntityChip({
       onClick={onClick}
       aria-pressed={active}
       className={cn(
-        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-[13px] transition-colors",
+        "flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left text-sm transition-colors",
         active ? "bg-accent text-accent-foreground" : "hover:bg-accent/60",
       )}
     >
@@ -64,7 +64,7 @@ export function EntityChip({
           entity.name
         )}
       </span>
-      <span className="shrink-0 font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+      <span className="shrink-0 meta-label tracking-wider text-muted-foreground">
         {entityTypeLabel(entity.type)}
       </span>
     </button>
@@ -96,7 +96,7 @@ export function EntityTree({
             entity.name
           )}
         </h2>
-        <span className="rounded border border-border px-1.5 py-px font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+        <span className="rounded border border-border px-1.5 py-px meta-label tracking-wider text-muted-foreground">
           {entityTypeLabel(entity.type)}
         </span>
       </div>
@@ -105,7 +105,7 @@ export function EntityTree({
         <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{entity.description}</p>
       )}
 
-      <ul className="mt-3 border-l border-border pl-0 font-mono text-[13px]">
+      <ul className="mt-3 border-l border-border pl-0 font-mono text-sm">
         {relations.length === 0 && (
           <li className="pl-4 text-xs text-muted-foreground italic">
             {t("knowledge.noRelations")}
@@ -129,7 +129,7 @@ export function EntityTree({
                 {other ? (
                   <button
                     onClick={() => onSelect(other.id)}
-                    className="font-sans text-[13px] underline-offset-2 hover:underline"
+                    className="font-sans text-sm underline-offset-2 hover:underline"
                   >
                     {other.originalForm ? (
                       <span className="original-text">{other.originalForm}</span>
@@ -138,15 +138,15 @@ export function EntityTree({
                     )}
                   </button>
                 ) : (
-                  <span className="font-sans text-[13px]">{anchorKey(otherAnchor)}</span>
+                  <span className="font-sans text-sm">{anchorKey(otherAnchor)}</span>
                 )}
-                <span className="text-[10px] tracking-wider text-muted-foreground uppercase">
+                <span className="text-xs tracking-wider text-muted-foreground uppercase">
                   {relationLabel(rel.relation.value)}
                 </span>
                 {rel.evidence.map((evidence) => (
                   <EvidenceTag key={`${rel.id}:${evidence.kind}`} kind={evidence.kind} />
                 ))}
-                <span className="text-[10px] text-muted-foreground">
+                <span className="text-xs text-muted-foreground">
                   {rel.sourceFragmentIds.length
                     ? reviewStatusLabel(rel.reviewStatus)
                     : t("knowledge.noSource")}
@@ -165,7 +165,7 @@ export function EntityTree({
 
 export function EvidenceTag({ kind }: { kind: string }) {
   return (
-    <span className="rounded-sm border border-border bg-muted/60 px-1 py-px font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+    <span className="rounded-sm border border-border bg-muted/60 px-1 py-px meta-label tracking-wider text-muted-foreground">
       {evidenceLabel(kind)}
     </span>
   );

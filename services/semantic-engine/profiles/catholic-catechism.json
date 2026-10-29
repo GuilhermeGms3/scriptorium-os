@@ -1,0 +1,14 @@
+{
+  "id": "catholic-catechism-v1",
+  "checksum": "17a34221d239025a27503c061c0ce69b5bf3da1c8b5e35767f0b56c4de05d332",
+  "kind": "catechism",
+  "strategy": "numbered-paragraphs",
+  "firstPage": 6,
+  "lastPage": 367,
+  "headingPattern": "^\\d{1,4}\\.[ \\t]*",
+  "expectedSections": 2865,
+  "bodyHeight": 12,
+  "extraHeights": [10],
+  "authorLabel": "Igreja Católica",
+  "traditionLabel": "Católica romana"
+}

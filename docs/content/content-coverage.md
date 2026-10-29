@@ -3,6 +3,7 @@
 | Camada                              |                                            Conteúdo textual real | Estado                             |
 | ----------------------------------- | ---------------------------------------------------------------: | ---------------------------------- |
 | Escritura portuguesa                |     Bíblia Livre completa + Bíblia Portuguesa Mundial (rascunho) | instalado                          |
+| Escritura inglesa                   |                 King James Version (1769), 66 livros + apócrifos | instalado                          |
 | Deuterocanônicos e outros apócrifos |                              15 obras em português no pacote BPM | instalado, edição-fonte em revisão |
 | Novo Testamento grego               |                                               SBLGNT 1.2 + TAGNT | instalado                          |
 | Bíblia Hebraica                     |                                               WLC/OSHB 39 livros | instalado                          |
@@ -15,6 +16,13 @@
 | Agostinho                           |                       Confissões completas, 13 livros, em inglês | Reader + FTS                       |
 | Tomás de Aquino                     |                  quatro partes da Suma, 2.661 artigos, em inglês | Reader + FTS + shards por parte    |
 | Novas passagens                     |                                    Gn 1; Fp 2; Rm 3; Mc 1; Sl 22 | source-checked, machine-assisted   |
+
+A King James Version vem do eBible.org (`eng-kjv`, revisão de 26/09/2026), texto padronizado de
+1769, domínio público fora do Reino Unido. Tem 80 livros: os 66 e 14 apócrifos, entre eles Susana,
+Bel e o Dragão, Cântico dos Três Jovens e "Adições a Ester" (só os capítulos 10–16, sem alinhar
+ao Ester Grego da BPM). A numeração coincide com a da Bíblia Livre nos 1.189 capítulos canônicos,
+exceto Marcos 5:19, que a Bíblia Livre junta ao versículo 18. `npm run content:fetch:kjv` e
+`content:import:kjv` refazem a importação pelo mesmo leitor USFM da BPM (`scripts/content/ebible-usfm.ts`).
 
 A Bíblia Portuguesa Mundial é identificada na interface como **rascunho em revisão**.
 Sua presença não representa adoção de um cânon pelo Scriptorium: Tobias, Judite,

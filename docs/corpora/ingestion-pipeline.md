@@ -13,6 +13,67 @@ Every command resolves the registered package and adapter. Mutable revisions suc
 `master` and `latest` are forbidden. The rights gate runs before acquisition, verification and
 import, including development runs.
 
+## Execution guarantees
+
+- **Atomic installation.** `acquire` clones into `corpora/.staging/<corpus>-XXXX/checkout`, copies
+  the discovered artifacts to `snapshot/`, writes `artifact-manifest.json` and verifies the staged
+  snapshot. Only then is it moved to `corpora/source/<corpus>/<commit>`. An installed snapshot that
+  verifies is reused without cloning. One that does not verify is never replaced silently: the
+  command fails with `integrity`. `acquire --force` re-acquires and swaps the directories; if the
+  swap fails, the previous snapshot is restored.
+- **Lock per corpus.** `acquire`, `import` and `build` hold `corpora/.staging/<corpus>.lock`, created
+  with `open(path, "wx")` and holding the pid and start time. A lock whose process is alive and that
+  is younger than 6 hours makes the run fail with `locked`. A lock whose process is gone, or that is
+  older than 6 hours, is recovered and reported. The lock is reentrant within one process, because
+  `build` runs `acquire` and then `import`.
+- **Complete verification.** `verify` collects every problem before failing: missing file, size,
+  SHA-256, package digest, identity mismatch, and a discovered artifact that is not registered (or a
+  registered one that is no longer discovered). All of them are reported together as `integrity`.
+- **Incremental import.** `import` reuses the dataset when `importer.adapter`, `importer.version`
+  and `sourcePackageDigest` match and every `chapterFiles` entry exists. `--force` regenerates it.
+  **Bump the adapter's `importerVersion` whenever an adapter changes its output**; otherwise an
+  existing dataset still looks up to date and is reused.
+- **Atomic import.** Shards are generated in `generated/corpora/<corpus>/.staging/import-XXXX`. The
+  previous version is moved to `.staging/previous-*` and deleted only after the new one is in place;
+  if the swap fails, it is restored.
+- **Aggregated validation.** Parse and validation errors of every book, plus expected books that are
+  missing and books that are not expected, are reported together as `validation`, each as
+  `<source path> › <problem>`. The previous dataset stays untouched.
+
+The committed SBLGNT and WLC datasets were produced by earlier adapter revisions and already differ
+from what the current adapters emit. Their `importerVersion` still matches, so a plain `import`
+reuses them; `import --force` would rewrite them. Do that only together with an `importerVersion`
+bump and a review of the resulting diff.
+
+```bash
+npm run corpus:list
+npm run corpus:status -- biblia-livre
+npm run corpus:import -- biblia-livre --force
+npm run corpus:verify -- --all --json
+```
+
+| Command   | Effect                                                             |
+| --------- | ------------------------------------------------------------------ |
+| `list`    | Registered corpora, package, adapter and rights decision.          |
+| `status`  | `registered`, rights, `acquisition` and `dataset` state, with why. |
+| `acquire` | Pinned clone, verified in staging, installed atomically.           |
+| `verify`  | Full integrity report of the installed snapshot.                   |
+| `import`  | Incremental, atomic chapter-shard generation.                      |
+| `build`   | `acquire` + `import` under one lock.                               |
+
+Flags: `--all` (every registered corpus, including `stepbible-tagnt`), `--force` (`acquire`,
+`import`, `build`), `--json` (machine-readable stdout) and `--help`. Progress events go to stderr.
+`stepbible-tagnt` still runs through `tagnt-acquisition.ts` and `tagnt-import.ts`.
+
+Exit codes: `0` success, `1` pipeline failure (stderr shows `[code] message` and every detail),
+`2` usage error. Failure codes (`CorpusPipelineError.code`): `not-registered`, `rights-denied`,
+`mutable-revision`, `locked`, `integrity`, `validation`, `incomplete` (snapshot not acquired, or a
+directory without `artifact-manifest.json`) and `git`.
+
+`createCorpusPipeline({ projectRoot, registry, adapters, git, now, onEvent })` builds an isolated
+pipeline; the exported `acquireCorpus`, `verifyCorpus`, `importCorpus` and `buildCorpus` use the
+default instance.
+
 ## Boundaries
 
 - `scripts/corpus/pipeline.ts`: generic orchestration, Git acquisition, byte-level SHA-256,
