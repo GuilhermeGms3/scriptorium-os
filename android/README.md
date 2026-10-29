@@ -1,5 +1,20 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Referências na seleção de livros — 0.6.11
+
+Em Leitura, **Encontrar livro ou texto** aceita nomes, abreviações e referências
+como `Romanos 12`, `Romanos 12 2`, `Rm 12:2` e intervalos `1Co 13 4-7`.
+O resultado **Abrir passagem** abre o endereço indicado; a busca pelo livro
+continua disponível. Pequenos erros nos nomes completos são tolerados quando
+há correspondência única. Nomes ambíguos não escolhem um livro arbitrariamente.
+O mesmo interpretador atende Busca/Escrituras e o seletor de passagem existente.
+
+A consulta da seleção usa o catálogo instalado completo, independente da última
+edição lida e dos filtros de categoria. Capítulos e versículos são conferidos
+na edição real: `Salmos 67 15` mantém Salmos visível e informa endereço ausente,
+pois o capítulo não tem esse versículo; `Salmos 67` abre o capítulo.
+Atualização somente do APK, sem reimportar livros ou alterar dados pessoais.
+
 ## Indicador mobile restaurado — 0.6.10
 
 O indicador do celular retorna ao modelo anterior à0.6.9: traços verticais curtos,

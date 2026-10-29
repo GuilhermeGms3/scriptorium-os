@@ -12,6 +12,23 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class ReadingExperienceTest {
+    @Test fun typedReadingReferencesUseRealInstalledVersesAndRejectMissingAddresses() {
+        val repo = repository()
+        val catalog = repo.readingBooks()
+        for (input in listOf("romanos 12 2", "Romnaos 12:2", "Rm 12,2")) {
+            val passage = requireNotNull(repo.resolveReadingReference(input, catalog)) { input }
+            assertEquals("romans", passage.bookId)
+            assertEquals(12, passage.chapter)
+            assertEquals(2, passage.verse)
+            assertTrue(repo.verses(passage).any { it.number("verse_start") == 2 })
+        }
+        assertNull(repo.resolveReadingReference("salmos 67 15", catalog))
+        assertNull(repo.resolveReadingReference("romanos 12 99", catalog))
+        assertNull(repo.resolveReadingReference("romanos 99", catalog))
+        assertEquals(67, repo.resolveReadingReference("salmos 67", catalog)!!.chapter)
+        println("READING_REFERENCE_QA realRomans12v2/typo/invalidPsalm/references passed")
+    }
+
     @Test fun additionalTextsAndPortugueseTitlesResolveToInstalledContent() {
         val repo = repository()
         val catalog = repo.readingBooks()

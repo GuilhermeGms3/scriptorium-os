@@ -267,6 +267,23 @@ class ReadingUiTest {
         return MobileRepository(ContentPackageStore(File(context.filesDir, "content"), { pointer.openRead().use { it.readBytes().decodeToString() } }, { error("QA somente leitura") }, Sqlite::validate),
             ReadingNavigation(JSONObject(context.assets.open("reading-labels.json").bufferedReader().use { it.readText() })))
     }
+    @Test fun readingCatalogueFindsAndOpensTypedReferencesWithoutLosingTheBook() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        startAt("Gn1:1"); click("Leitura"); waitNode("Encontrar livro ou texto")
+        enter("romanos 12"); waitNode("Romanos 12"); waitNode("Romanos")
+        enter("romnaos 12 2"); waitNode("Romanos 12:2"); capture("reading-reference-match")
+        click("Abrir passagem"); waitNode("Romanos 12 ·", false); waitActiveIndicator("Navegar: Versículo 2")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val target = requireNotNull(decodePassage(preferences.lastPassage(), repository().scriptureEditions()))
+        assertEquals("romans", target.bookId); assertEquals(12, target.chapter); assertEquals(2, target.verse)
+        click("← Voltar pra escolha"); waitNode("Encontrar livro ou texto")
+        enter("salmos 67 15")
+        waitNode("Passagem não encontrada no acervo instalado. Confira o livro, o capítulo e o versículo.")
+        waitNode("Salmos"); capture("reading-reference-invalid")
+        enter("Salmos 67"); waitNode("Abrir passagem"); click("Abrir passagem"); waitNode("Salmos 67 ·", false)
+        println("READING_REFERENCE_UI_QA chapter/typo/exactVerse/invalidAddress passed")
+    }
+
     private fun openSavedReading() { click("Leitura"); click("Continuar leitura") }
     private fun startAt(reference: String) {
         val context = instrumentation.targetContext

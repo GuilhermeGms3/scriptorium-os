@@ -10,6 +10,26 @@ import java.util.Locale
 fun normalizedReading(value: String): String = Normalizer.normalize(value.lowercase(Locale.ROOT), Normalizer.Form.NFD)
     .replace(Regex("\\p{M}+"), "").replace(Regex("[^\\p{L}\\p{N}]"), "")
 
+private val referencePattern = Regex("^(.+?)\\s*(\\d{1,3})(?:(?:\\s*[:.,]\\s*|\\s+)(\\d{1,3})(?:\\s*[-–]\\s*(\\d{1,3}))?)?$")
+
+/** The same input drives catalogue filtering and passage navigation. */
+fun referenceBookName(value: String): String = referencePattern.matchEntire(value.trim())?.groupValues?.get(1)?.trim() ?: value.trim()
+fun isReadingReference(value: String): Boolean = referencePattern.matches(value.trim())
+
+/** Adjacent transpositions count as a single typo, like a missed or extra letter. */
+private fun bookNameDistance(left: String, right: String): Int {
+    val matrix = Array(left.length + 1) { IntArray(right.length + 1) }
+    for (i in 0..left.length) matrix[i][0] = i
+    for (j in 0..right.length) matrix[0][j] = j
+    for (i in 1..left.length) for (j in 1..right.length) {
+        matrix[i][j] = minOf(matrix[i - 1][j] + 1, matrix[i][j - 1] + 1,
+            matrix[i - 1][j - 1] + if (left[i - 1] == right[j - 1]) 0 else 1)
+        if (i > 1 && j > 1 && left[i - 1] == right[j - 2] && left[i - 2] == right[j - 1])
+            matrix[i][j] = minOf(matrix[i][j], matrix[i - 2][j - 2] + 1)
+    }
+    return matrix[left.length][right.length]
+}
+
 data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, val end: Int?)
 
 data class ReadingBook(val edition: Edition, val row: Row)
@@ -55,25 +75,59 @@ class ReadingNavigation(private val labels: JSONObject = JSONObject()) {
         "${bookTitle(bookId, fallback)} $chapter" + (verse?.let { ":$it" + if (end != null && end != it) "–$end" else "" } ?: "")
     fun group(id: String): String = book(id)?.optString("group")?.takeIf(String::isNotBlank) ?: "Deuterocanônicos e outros textos"
     fun symbol(id: String): String = book(id)?.optString("symbol")?.takeIf(String::isNotBlank) ?: "▤"
-    fun parse(value: String, books: List<Row>): RequestedReference? {
-        val match = Regex("^(.+?)\\s*(\\d{1,3})(?:\\s*[:.,]\\s*(\\d{1,3})(?:\\s*[-–]\\s*(\\d{1,3}))?)?$")
-            .matchEntire(value.trim()) ?: return null
-        val raw = match.groupValues[1].trim().replace(Regex("^III(?=\\s|[A-Za-zÀ-ÿ])", RegexOption.IGNORE_CASE), "3")
-            .replace(Regex("^II(?=\\s|[A-Za-zÀ-ÿ])", RegexOption.IGNORE_CASE), "2")
-            .replace(Regex("^I(?=\\s)", RegexOption.IGNORE_CASE), "1")
+    private fun aliases(row: Row): List<String> = book(row.text("book_id"))?.strings("aliases").orEmpty() +
+        bookTitle(row.text("book_id"), row.text("title")) + row.text("title") + row.text("book_id")
+
+    private fun romanBookName(value: String): String = value
+        .replace(Regex("^III(?=\\s|[A-Za-zÀ-ÿ])", RegexOption.IGNORE_CASE), "3")
+        .replace(Regex("^II(?=\\s|[A-Za-zÀ-ÿ])", RegexOption.IGNORE_CASE), "2")
+        .replace(Regex("^I(?=\\s)", RegexOption.IGNORE_CASE), "1")
+
+    private fun specialBook(raw: String): String? = when (raw.lowercase(Locale.ROOT).replace(".", "")) {
+        "jo" -> "john"; "jó" -> "job"; "jn" -> "jonah"; else -> null
+    }
+
+    fun matchesBookQuery(row: Row, value: String): Boolean {
+        val raw = romanBookName(referenceBookName(value))
+        if (raw.isBlank()) return true
+        specialBook(raw)?.let { return row.text("book_id") == it }
         val requested = normalizedReading(raw)
-        // Portuguese Jo=João, Jn=Jonas, Jó=Jó. Removing accents must not turn Jo into Jó.
-        val special = when (raw.lowercase(Locale.ROOT).replace(".", "")) { "jo" -> "john"; "jó" -> "job"; "jn" -> "jonah"; else -> null }
-        val candidates = books.filter { row ->
-            if (special != null) row.text("book_id") == special else {
-                val aliases = book(row.text("book_id"))?.strings("aliases").orEmpty()
-                (aliases + row.text("title") + row.text("book_id")).any {
-                    val normalized = normalizedReading(it)
-                    normalized == requested || (requested.length >= 3 && normalized.startsWith(requested))
+        return aliases(row).any {
+            val name = normalizedReading(it)
+            name.contains(requested) || typoDistance(requested, name) != null
+        }
+    }
+
+    private fun typoDistance(requested: String, name: String): Int? {
+        // Never autocorrect short abbreviations or change numbered books.
+        if (requested.length < 4 || name.length < 4 || requested.first().isDigit() != name.first().isDigit() ||
+            (requested.first().isDigit() && requested.first() != name.first())) return null
+        val limit = if (requested.length >= 8) 2 else 1
+        if (kotlin.math.abs(requested.length - name.length) > limit) return null
+        return bookNameDistance(requested, name).takeIf { it <= limit }
+    }
+
+    fun parse(value: String, books: List<Row>): RequestedReference? {
+        val match = referencePattern.matchEntire(value.trim()) ?: return null
+        val raw = romanBookName(match.groupValues[1].trim())
+        val requested = normalizedReading(raw)
+        val special = specialBook(raw)
+        val ranked = books.mapNotNull { row ->
+            val score = if (special != null) {
+                if (row.text("book_id") == special) 0 else null
+            } else aliases(row).mapNotNull {
+                val name = normalizedReading(it)
+                when {
+                    name == requested -> 0
+                    requested.length >= 3 && name.startsWith(requested) -> 1
+                    else -> typoDistance(requested, name)?.plus(2)
                 }
-            }
-        }.distinctBy { it.text("id") to it.text("scheme") }
-        val row = candidates.singleOrNull() ?: return null
+            }.minOrNull()
+            score?.let { row to it }
+        }
+        val best = ranked.minOfOrNull { it.second } ?: return null
+        val row = ranked.filter { it.second == best }.map { it.first }
+            .distinctBy { it.text("id") to it.text("scheme") }.singleOrNull() ?: return null
         val chapter = match.groupValues[2].toInt()
         val verse = match.groupValues[3].toIntOrNull()
         val end = match.groupValues[4].toIntOrNull()

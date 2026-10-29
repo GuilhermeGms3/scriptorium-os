@@ -1,5 +1,16 @@
 # Project Memory
 
+## Busca de referências na seleção — Android0.6.11 — 2026-10-29
+
+- Encontrar livro ou texto reconhece Romanos 12, Romanos 12 2, abreviações e pequenos
+  erros; Abrir passagem usa catálogo completo e valida endereço na edição real.
+- Parser compartilhado Android aceita espaço entre capítulo/versículo, prioriza
+  correspondência exata e rejeita empate. Salmos 67:15 informa ausência sem esconder Salmos.
+- 76 JVM/build/lint aprovados (0 erros/49 avisos); dois instrumentados com acervo real
+  no Pixel_8 aprovados, inclusive indicador no versículo 2. APK0.6.11/code23.
+- Sem celular físico conectado, sem instalação no Samsung. Desktop/indicadores/acervo
+  preservados. Evidência: docs/qa/android-reading-reference-2026-10-29.md.
+
 ## Explorar na barra superior — desktop — 2026-10-27
 
 - Botão movido do cabeçalho do capítulo para ScriptureToolbar, entre referência e

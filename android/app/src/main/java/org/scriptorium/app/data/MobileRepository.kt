@@ -329,8 +329,14 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
         }
     }
 
-    fun resolveReference(value: String, edition: Edition): Passage? {
-        val ref = navigation.parse(value, books(edition)) ?: return null
+    fun resolveReference(value: String, edition: Edition): Passage? = resolveReference(value, listOf(edition to books(edition)))
+
+    fun resolveReadingReference(value: String, catalog: List<ReadingBook>): Passage? =
+        resolveReference(value, catalog.groupBy { it.edition }.map { (edition, entries) -> edition to entries.map { it.row } })
+
+    private fun resolveReference(value: String, editions: List<Pair<Edition, List<Row>>>): Passage? {
+        val ref = navigation.parse(value, editions.flatMap { it.second }) ?: return null
+        val edition = editions.first { (_, books) -> ref.book in books }.first
         val passage = Passage(edition, ref.book.text("id"), ref.book.text("book_id"), ref.book.text("title"), ref.chapter, ref.book.text("scheme"), ref.verse, ref.end)
         if (ref.verse != null) {
             val rows = verses(passage)

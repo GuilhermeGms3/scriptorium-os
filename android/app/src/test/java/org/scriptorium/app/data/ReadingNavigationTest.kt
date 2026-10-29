@@ -110,6 +110,40 @@ class ReadingNavigationTest {
     private val books = listOf("john" to 21, "job" to 42, "jonah" to 4, "1-corinthians" to 16, "psalms" to 150, "genesis" to 50).map { (id, chapters) ->
         mapOf("id" to "work:$id", "book_id" to id, "title" to navigation.book(id)?.getString("title"), "chapters" to "$chapters", "scheme" to "scriptorium-bcv-1")
     }
+    @Test fun readingSearchUnderstandsReferencesSpacesAliasesAndTypos() {
+        val catalog = listOf("romans" to 16, "psalms" to 150, "john" to 21, "job" to 42,
+            "jonah" to 4, "1-corinthians" to 16, "2-corinthians" to 13).map { (id, chapters) ->
+            mapOf("id" to "work:$id", "book_id" to id, "title" to navigation.bookTitle(id, id),
+                "chapters" to "$chapters", "scheme" to "scriptorium-bcv-1")
+        }
+        for ((input, id, chapter) in listOf(
+            Triple("romanos 12", "romans", 12), Triple("romanos 12 2", "romans", 12),
+            Triple("Rm12:2", "romans", 12), Triple("romnaos 12 2", "romans", 12),
+            Triple("romans 12,2", "romans", 12), Triple("salmos 67 15", "psalms", 67),
+            Triple("salms 119 105", "psalms", 119), Triple("1 corintios 13 4-7", "1-corinthians", 13),
+            Triple("II Coríntios 3 2", "2-corinthians", 3), Triple("Jo 3 16", "john", 3),
+            Triple("Jó 3 16", "job", 3), Triple("Jn 3 2", "jonah", 3)
+        )) {
+            val ref = requireNotNull(navigation.parse(input, catalog)) { input }
+            assertEquals(input, id, ref.book.text("book_id"))
+            assertEquals(input, chapter, ref.chapter)
+            assertTrue(input, navigation.matchesBookQuery(ref.book, input))
+        }
+        assertEquals(2, navigation.parse("romanos 12 2", catalog)!!.verse)
+        assertEquals(7, navigation.parse("1 corintios 13 4-7", catalog)!!.end)
+        assertNull(navigation.parse("romanos 99 2", catalog))
+        assertNull(navigation.parse("romanos 12 0", catalog))
+        assertNull(navigation.parse("romanos 12 5-2", catalog))
+        assertNull(navigation.parse("romanos 12 2 lixo", catalog))
+        assertNull(navigation.parse("J 3 2", catalog))
+        // Ambiguous typos must never open an arbitrary book.
+        val ambiguous = listOf("abcde", "abcef").map { id -> mapOf("id" to id, "book_id" to id, "title" to id, "chapters" to "5") }
+        assertNull(ReadingNavigation().parse("abced 1 2", ambiguous))
+        assertTrue(navigation.matchesBookQuery(catalog.first(), "romnaos"))
+        assertTrue(navigation.matchesBookQuery(catalog.first(), "Rm"))
+        assertFalse(navigation.matchesBookQuery(catalog.first(), "Salmos 12"))
+    }
+
     /** The same cases run on the site (scripture-reference.test.ts): both readers must agree. */
     @Test fun typedReferencesMatchTheSharedCasesOfTheSite() {
         val cases = JSONObject(File("../../src/lib/application/scripture-reference.cases.json").readText())
