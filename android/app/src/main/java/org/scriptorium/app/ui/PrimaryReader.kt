@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -19,6 +20,7 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
     BackHandler(onBack = close)
     val appearance = LocalReadingAppearance.current
     val edition = repository.editions().first { it.id == work.text("edition_id") }
+    var translateFeed by rememberSaveable(work.text("id")) { mutableStateOf(false) }
     var offset by remember { mutableIntStateOf(0) }
     var note by remember { mutableStateOf<String?>(null) }
     var translatedVolume by remember { mutableStateOf<StudyReading?>(null) }
@@ -51,7 +53,8 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
                 val scope = rememberCoroutineScope()
                 val active by remember { derivedStateOf { (list.firstVisibleItemIndex - 1).coerceIn(0, (units.size - 1).coerceAtLeast(0)) } }
                 LaunchedEffect(offset) { list.scrollToItem(0) }
-                Row(Modifier.fillMaxSize()) {
+                PrimaryFeedTranslation(units, metadata.text("language"), personal, translateFeed, { translateFeed = it }) { translations ->
+                Row(Modifier.weight(1f)) {
                 ReadingSectionIndicators(units.size, active, { units[it].text("display_address").ifBlank { "Unidade ${offset + it + 1}" } }) { section ->
                     scope.launch { if (appearance.motion) list.animateScrollToItem(section + 1) else list.scrollToItem(section + 1) }
                 }
@@ -62,14 +65,14 @@ fun PrimaryReader(repository: MobileRepository, personal: PersonalRepository, wo
                     } }
                     items(units, key = { it.text("id") }) { unit -> Column {
                         Text(unit.text("display_address"), style = MaterialTheme.typography.labelSmall)
-                        Load(unit.text("id"), { repository.preparedTranslation(unit.text("id"), unit.text("surface_text")) }) { prepared ->
+                        if (translations[unit.text("id")] == null) Load(unit.text("id"), { repository.preparedTranslation(unit.text("id"), unit.text("surface_text")) }) { prepared ->
                             if (prepared != null) { Text("Tradução preparada no PC · ${org.json.JSONObject(prepared.text("metadata_json")).optString("review_status")}", style = MaterialTheme.typography.labelSmall); Text(prepared.text("body"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
-                            TranslationBlock(unit.text("surface_text"), metadata.text("language"), personal)
                         }
-                        SelectionContainer { Text(libraryReadingSections(unit.text("surface_text")).joinToString("\n\n"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
+                        SelectionContainer { Text(libraryReadingSections(translations[unit.text("id")] ?: unit.text("surface_text")).joinToString("\n\n"), fontFamily = appearance.fontFamily, fontSize = appearance.size.sp, lineHeight = (appearance.size * 1.55f).sp) }
                         TextButton(onClick = { note = unit.text("id") }) { Text("Anotar") }
                     } }
                     item { Text("Unidades ${offset + 1}–${offset + units.size} de ${work.number("unit_count")}") }
+                }
                 }
                 }
             }

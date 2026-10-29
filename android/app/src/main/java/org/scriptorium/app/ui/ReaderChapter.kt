@@ -29,6 +29,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
     val audio = LocalAudioClient.current
     BoxWithConstraints(Modifier.fillMaxSize()) {
         val readerHeight = maxHeight
+        val readerPixels = with(androidx.compose.ui.platform.LocalDensity.current) { readerHeight.toPx() }
+        var dockFraction by rememberSaveable { mutableFloatStateOf(0.48f) }
         Column(Modifier.fillMaxSize()) {
             Load(current.copy(verse = null, verseEnd = null), {
                 Triple(repository.verses(current), repository.books(current.edition).find { it.text("id") == current.workId }?.number("chapters") ?: current.chapter, repository.editionMetadata(current.edition).text("language"))
@@ -79,7 +81,7 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                         }
                         if (explanations && comments == null) Text("Carregando comentários… A escritura já está disponível.", style = MaterialTheme.typography.labelSmall)
                         comments?.exceptionOrNull()?.let { Text("Comentários indisponíveis nesta abertura. O texto permanece disponível.", style = MaterialTheme.typography.labelSmall) }
-                        if (!appearance.dockedComments) groups.find { it.verse == null }?.comments?.forEach { CommentPreview(it, personal, source) }
+                        if (!appearance.dockedComments) commentsBySource(groups.find { it.verse == null }?.comments.orEmpty()).forEach { CommentSourcePreview(it, personal, source) }
                         if (explanations && all.isNotEmpty() && filtered.isEmpty()) Text("Nenhum comentário corresponde aos filtros. Use Limpar filtros.", style = MaterialTheme.typography.bodySmall)
                     }
                     items(verses, key = { it.text("id") }) { verse ->
@@ -121,8 +123,9 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                             if (!appearance.dockedComments) {
                                 val linked = groups.find { it.verse == verseNumber }?.comments.orEmpty()
                                 var more by rememberSaveable(current, verse.text("id")) { mutableStateOf(false) }
-                                (if (more) linked else linked.take(2)).forEach { comment -> key(comment.text("id")) { CommentPreview(comment, personal, source) } }
-                                if (linked.size > 2) TextButton(onClick = { more = !more }) { Text(if (more) "Recolher outras fontes" else "Mais ${linked.size - 2} comentários") }
+                                val sources = commentsBySource(linked)
+                                (if (more) sources else sources.take(2)).forEach { excerpts -> key(excerpts.first().text("id")) { CommentSourcePreview(excerpts, personal, source) } }
+                                if (sources.size > 2) TextButton(onClick = { more = !more }) { Text(if (more) "Recolher outras fontes" else "Mais ${sources.size - 2} fontes") }
                             }
                             HorizontalDivider(Modifier.padding(top = 8.dp), color = MaterialTheme.colorScheme.outline.copy(alpha = 0.25f))
                         }
@@ -138,7 +141,8 @@ fun ReaderChapter(repository: MobileRepository, personal: PersonalRepository, cu
                 if (appearance.dockedComments) CommentsDock(groups, activeVerse, "${current.title} ${current.chapter}", personal, source,
                     all, filtered.size, explanations, toggle, category, document, chooseCategory, chooseDocument,
                     filtersOpen, { filtersOpen = !filtersOpen }, dockExpanded, { dockExpanded = !dockExpanded },
-                    Modifier.fillMaxWidth().height(if (dockExpanded) (readerHeight * 0.48f).coerceAtLeast(190.dp).coerceAtMost(readerHeight * 0.7f) else 52.dp))
+                    { delta -> dockExpanded = true; dockFraction = resizedCommentDock(dockFraction, -delta / readerPixels.coerceAtLeast(1f)) },
+                    Modifier.fillMaxWidth().height(if (dockExpanded) readerHeight * dockFraction else 52.dp))
             }
         }
     }

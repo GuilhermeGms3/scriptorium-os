@@ -12,6 +12,45 @@ import kotlinx.coroutines.runBlocking
 import java.io.File
 
 class ReadingExperienceTest {
+    @Test fun groupedGenesisSourcesKeepAllInstalledComments() {
+        InstrumentationRegistry.getArguments().getString("readerPackage")?.let { path ->
+            require(android.os.Build.FINGERPRINT.contains("generic") || android.os.Build.MODEL.contains("sdk")) { "Pacote de QA somente no emulador" }
+            val context = InstrumentationRegistry.getInstrumentation().targetContext
+            val pointer = AtomicFile(File(context.filesDir, "active-content"))
+            ContentPackageStore(File(context.filesDir, "content"),
+                { pointer.openRead().use { it.readBytes().decodeToString() } },
+                { id -> val output = pointer.startWrite(); output.write(id.toByteArray()); pointer.finishWrite(output) }, Sqlite::validate)
+                .install(File(path).inputStream())
+        }
+        val repo = repository()
+        val passage = requireNotNull(repo.resolveReadingReference("Gn 3:1", repo.readingBooks()))
+        val all = repo.comments(passage)
+        val groups = commentGroups(passage, repo.verses(passage), all, repo.chapterTargets(passage))
+        val verse = groups.first { it.verse == 1 }
+        val sources = commentsBySource(verse.comments)
+        assertEquals(verse.comments.size, sources.sumOf { it.size })
+        assertEquals(verse.comments.toSet(), sources.flatten().toSet())
+        assertTrue(sources.any { it.size > 1 })
+        println("GROUPED_GENESIS_QA excerpts=${verse.comments.size} sources=${sources.size} noDiscard passed")
+    }
+
+    @Test fun didacheFeedTranslatesEveryLoadedUnitWithTheRealLocalModel() = runBlocking {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("translationQa") == "true")
+        val repo = repository()
+        val context = InstrumentationRegistry.getInstrumentation().targetContext
+        val work = repo.primaryWorks().first { normalizedReading(it.text("title")).let { title -> title.contains("dida") } }
+        val edition = repo.editions().first { it.id == work.text("edition_id") }
+        val units = repo.primaryUnits(edition, work.text("id"), 0)
+        val personal = PersonalRepository(File(context.filesDir, "translation-feed-qa.sqlite3"))
+        val output = linkedMapOf<String, String>()
+        translateReadingFeed(units, { LocalTranslation.translate(context, personal, it, "en") {} }) { id, text -> output[id] = text }
+        assertEquals(units.count { it.text("surface_text").isNotBlank() }, output.size)
+        assertTrue(output.values.all { it.isNotBlank() })
+        assertTrue(output.values.zip(units).any { (translated, unit) -> translated != unit.text("surface_text") })
+        assertEquals(units, repo.primaryUnits(edition, work.text("id"), 0))
+        println("DIDACHE_FEED_QA realLocalModel units=${output.size} originalsUnchanged passed")
+    }
+
     @Test fun typedReadingReferencesUseRealInstalledVersesAndRejectMissingAddresses() {
         val repo = repository()
         val catalog = repo.readingBooks()

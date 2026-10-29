@@ -1,5 +1,18 @@
 # Project Memory
 
+## Tradução de leitura e painel agrupado — Android0.6.12 — 2026-10-29
+
+- PrimaryReader: uma ação para traduzir o feed carregado, progresso, original e
+  continuidade por lote; ML Kit/cache existentes, sem tocar IDs ou fontes.
+- Comentários agrupados por fonte dentro do versículo, contador discreto, todos os
+  recortes e seus acessos preservados. Cartões neutros, acentos suaves. Dock com
+  alça arrastável 25–75%, inicial48%; filtros em janela e índices de sincronização corrigidos.
+- 80 JVM/build/lint aprovados (0 erros/49 avisos); três instrumentados reais:
+  Gn3:1 (8 recortes/4 fontes), Didaquê16 unidades traduzidas, arrasto/filtros/original.
+- Snapshot antigo de QA não tinha esses dados; exportação real sem PDFs/notas foi
+  instalada somente no emulador. Sem celular físico. APK0.6.12/code24.
+- Evidência e limites: docs/qa/android-reader-panel-2026-10-29.md.
+
 ## Busca de referências na seleção — Android0.6.11 — 2026-10-29
 
 - Encontrar livro ou texto reconhece Romanos 12, Romanos 12 2, abreviações e pequenos

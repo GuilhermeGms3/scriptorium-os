@@ -21,3 +21,10 @@ fun commentGroups(passage: Passage, verses: List<Row>, comments: List<Row>, targ
         if (linked.isNotEmpty()) add(CommentGroup(verse.number("verse_start"), linked))
     }
 }
+
+/** Presentation grouping only: no excerpt, ID or source locator is removed. */
+fun commentsBySource(comments: List<Row>): List<List<Row>> = comments.groupBy {
+    it.text("document_id").ifBlank { it.text("source_id").ifBlank { it.text("source_title").ifBlank { it.text("id") } } }
+}.values.toList()
+
+fun resizedCommentDock(fraction: Float, deltaFraction: Float): Float = (fraction + deltaFraction).coerceIn(0.25f, 0.75f)

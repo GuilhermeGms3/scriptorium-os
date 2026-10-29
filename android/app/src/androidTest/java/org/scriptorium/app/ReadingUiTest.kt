@@ -267,6 +267,43 @@ class ReadingUiTest {
         return MobileRepository(ContentPackageStore(File(context.filesDir, "content"), { pointer.openRead().use { it.readBytes().decodeToString() } }, { error("QA somente leitura") }, Sqlite::validate),
             ReadingNavigation(JSONObject(context.assets.open("reading-labels.json").bufferedReader().use { it.readText() })))
     }
+    @Test fun commentsPanelDragsInBothDirectionsAndAncientFeedHasOneTranslationAction() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = appearance.copy(dockedComments = true)
+            startAt("Gn3:1"); openSavedReading()
+            val handle = "Ajustar altura dos comentários"
+            fun handleY(): Int = Rect().also { waitNode(handle).getBoundsInScreen(it) }.centerY()
+            fun drag(delta: Int) {
+                val bounds = Rect(); waitNode(handle).getBoundsInScreen(bounds)
+                automation.executeShellCommand("input swipe ${bounds.centerX()} ${bounds.centerY()} ${bounds.centerX()} ${bounds.centerY() + delta} 650").use { descriptor ->
+                    android.os.ParcelFileDescriptor.AutoCloseInputStream(descriptor).use { it.readBytes() }
+                }
+                SystemClock.sleep(600)
+            }
+            val originalY = handleY(); drag(-230); val raisedY = handleY()
+            assertTrue("Panel must grow upward", raisedY < originalY - 80)
+            drag(150); assertTrue("Panel must shrink downward", handleY() > raisedY + 50)
+            capture("grouped-resized-comments")
+            click("Filtrar ▾"); waitNode("Filtrar comentários"); click("Concluir")
+            click("← Voltar pra escolha"); click("Todos"); waitNode("Encontrar livro ou texto"); enter("Dida")
+            val title = repository().primaryWorks().first { normalizedReading(it.text("title")).contains("dida") }.text("title")
+            waitNode(title); click(title); waitNode("Traduzir leitura")
+            assertEquals(1, nodes().count { it.text?.toString() == "Traduzir leitura" })
+            assertFalse(nodes().any { it.text?.toString() == "Traduzir para português" })
+            click("Traduzir leitura"); waitNode("Traduzir"); click("Traduzir")
+            val end = SystemClock.uptimeMillis() + 180_000
+            while (SystemClock.uptimeMillis() < end && nodes().none { it.text?.toString() == "Tradução automática local" }) SystemClock.sleep(500)
+            waitNode("Tradução automática local"); waitNode("Ver original"); capture("didache-single-translation")
+            click("Ver original"); waitNode("Traduzir leitura")
+            preferences.appearance = appearance.copy(dockedComments = true, theme = ReadingTheme.LIGHT)
+            startAt("Gn3:1"); openSavedReading(); waitNode(handle); capture("grouped-comments-light")
+            println("READING_PANEL_UI_QA dragBothWays/filters/oneFeedTranslation passed")
+        } finally { preferences.appearance = appearance }
+    }
+
     @Test fun readingCatalogueFindsAndOpensTypedReferencesWithoutLosingTheBook() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         startAt("Gn1:1"); click("Leitura"); waitNode("Encontrar livro ou texto")

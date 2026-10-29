@@ -9,8 +9,8 @@ android {
         applicationId = "org.scriptorium.app"
         minSdk = 28
         targetSdk = 36
-        versionCode = 23
-        versionName = "0.6.11"
+        versionCode = 24
+        versionName = "0.6.12"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     buildFeatures { compose = true }

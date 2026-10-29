@@ -1,5 +1,24 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Tradução de leitura e painel de fontes — 0.6.12
+
+- Fontes antigas: **Traduzir leitura** traduz todas as unidades do trecho carregado
+  com uma confirmação, substituindo visualmente o original. O modo continua nas
+  próximas unidades; **Ver original** restaura o texto. A tradução é local, progressiva,
+  cancelável e reutiliza o cache existente. IDs, anotações e texto-fonte não mudam.
+  Inglês/espanhol suportados; modelos podem precisar de download no primeiro uso.
+- Comentários da mesma fonte/versículo ficam em um cartão, com contador discreto.
+  Expandir mostra todos os recortes; tocar num trecho abre sua origem específica.
+  Fontes distintas e comentários de versículos distintos permanecem separados.
+- Painel inferior: arraste a alça superior para alterar a altura entre 25% e 75%
+  da área do leitor. A altura inicial segue 48%, e os filtros continuam em janela.
+  Acessibilidade oferece ações Aumentar/Diminuir painel. A proporção acompanha
+  a rotação durante a sessão; não altera a configuração do desktop.
+- Cartões neutros e acentos suaves em sálvia, malva, areia e ardósia, com texto
+  principal na cor de leitura do tema. Sem novos rótulos no cabeçalho do painel.
+
+Somente APK, sem reimportar o acervo e sem alterar os indicadores de leitura.
+
 ## Referências na seleção de livros — 0.6.11
 
 Em Leitura, **Encontrar livro ou texto** aceita nomes, abreviações e referências
