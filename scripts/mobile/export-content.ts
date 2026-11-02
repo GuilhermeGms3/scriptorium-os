@@ -19,6 +19,7 @@ import { KnowledgeProposalPayloadSchema } from "../../src/lib/domain/document-kn
 import { noteTargets } from "../../src/lib/domain/note-placement";
 import { bookLabel } from "../../src/lib/i18n";
 import { projectReadingExtras, writeReadingCatalog } from "./reading-catalog";
+import { projectPrivateEditions } from "./private-editions";
 
 export const MobileManifestSchema = z.object({
   format: z.literal("scriptorium-mobile-v1"),
@@ -256,7 +257,7 @@ export function exportMobile(options: {
     );
   const selected = options.editions.includes("all")
     ? registry.packages.map((edition) => edition.editionId)
-    : options.editions;
+    : options.editions.filter((id) => !id.startsWith("private:"));
   const editions = selected.map((id) => {
     const edition = registry.packages.find((item) => item.editionId === id);
     if (!edition || !/^[a-z0-9][a-z0-9.-]{0,160}$/.test(id))
@@ -273,6 +274,18 @@ export function exportMobile(options: {
       const source = new DatabaseSync(resolve(options.workspace), { readOnly: true });
       try {
         counts = projectWorkspace(source, content, options.includePersonal);
+        const privateEditions = projectPrivateEditions(
+          source,
+          root,
+          output,
+          options.editions.includes("all")
+            ? undefined
+            : options.editions.filter((id) => id.startsWith("private:")),
+        );
+        for (const edition of privateEditions) {
+          editions.push(edition);
+          files.set(edition.path, join(output, edition.path));
+        }
         if (options.includePdfs)
           for (const row of source
             .prepare("SELECT checksum FROM private_documents ORDER BY checksum")

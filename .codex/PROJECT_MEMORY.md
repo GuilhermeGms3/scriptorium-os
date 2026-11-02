@@ -1,5 +1,21 @@
 # Project Memory
 
+## TEB integral + acervo mobile — 2026-11-02
+
+- app.teb_source varreu2.492p/19.100recortes. Banco:11.095contextos TEB visíveis,
+  maioria capítulo;828pares livro/capítulo;8.001recortes sem destino contextual no
+  relatório. Não declarar cobertura auditada de todos os versículos/notas únicas.
+- 25substituições automáticas e37retiradas com histórico; Lucas1:32 corrigido;
+  metadados de escore não trocam identidade. Human reviews protegidas por supersedes.
+- Exportador leva oito edições privadas via contrato corpus Android/FTS. Kit único
+  Desktop/Scriptorium-Acervo-2026-11-02:65PDFs/24edições/75.967registros/2.389.199.361B.
+  ID7328f5e7…85c64. APK0.6.12/code24,instalador,semZIP extra; aparelhoUSB ausente.
+- 698TS/111arquivos,150Python,mypy23,lint/typecheck/buildweb aprovados;
+  Android80JVM/build/lint0erros49avisos.97arquivos do pacote SHA/tamanho/FK conferidos.
+  QAÊxodo3 NVI+TEB,26notas panorama,sempageerror.
+- Índice semântico anterior preservado, novos embeddings não calculados. Sem notas
+  pessoais desktop no pacote. Operação/staging/limites:docs/qa/teb-mobile-2026-11-02.md.
+
 ## Bíblias privadas e Anchor — desktop — 2026-11-02
 
 - Schema29 aditivo no workspace canônico; oito edições PDF parciais, 199.161 textos

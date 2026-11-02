@@ -55,9 +55,11 @@ Não confundir Git, imagem Docker, backup estrutural e transporte do acervo.
 
 `app.annotated_bible_sources` produz o contrato contextual já usado pelo Reader:
 
-- **TEB:** mapa calibrado da página física 50, marcadores de nota separados do texto
-  bíblico; remissões internas não escolhem o destino principal. Lote inicial,
-  não extrator validado para todas as 2.492 páginas.
+- **TEB:** o mapa inicial da página 50 foi preservado. `app.teb_source` agora varre
+  as 2.492 páginas, separa as colunas e propõe contextos por correspondência do corpo
+  bíblico, mantendo destinos incertos como leitura documental. Alcance de capítulo
+  não é comentário individual de todos os versículos. Veja a
+  [cobertura integral e entrega mobile](../qa/teb-mobile-2026-11-02.md).
 - **LTT:** referência explícita no início da nota, com posição editorial
   Texto Tradicional/Textus Receptus e preservação verbal identificada na fonte.
 - **Ave-Maria:** notas ao final de cada livro, usando cabeçalhos tipográficos para

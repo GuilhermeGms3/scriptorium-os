@@ -1,5 +1,8 @@
 # Incorporação de Bíblias e Anchor — 1–2 de novembro de 2026
 
+Este é o retrato da primeira entrega. A TEB foi ampliada posteriormente e o acervo
+foi entregue para Android: [relatório atualizado](teb-mobile-2026-11-02.md).
+
 ## Resultado no workspace canônico
 
 65 documentos; 70.434 páginas/itens armazenados, 70.111 com texto. O total inclui
