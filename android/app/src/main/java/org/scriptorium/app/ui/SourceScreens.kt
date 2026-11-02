@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.verticalScroll
@@ -88,6 +87,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
     var collection by rememberSaveable { mutableStateOf("Meus livros") }
     var filter by rememberSaveable { mutableStateOf("") }
     var primary by remember(requested?.id) { mutableStateOf(requested?.work) }
+    var showNagCatalog by rememberSaveable { mutableStateOf(false) }
     val current = document
     fun openBook(row: Row) {
         focus.clearFocus(); keyboard?.hide()
@@ -108,20 +108,27 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
             }
             OutlinedTextField(filter, { filter = it.take(200) }, label = { Text("Filtrar títulos") }, modifier = Modifier.fillMaxWidth())
             if (collection == "Fontes primárias") {
-                Load("primary-works", repository::primaryWorks) { works -> LazyColumn {
-                    items(works.filter { it["chapters"].isNullOrEmpty() && it.text("title").contains(filter, true) }) { work -> ListItem(headlineContent = { Text(work.text("title")) }, supportingContent = { Text("${work.text("edition_title")} · ${work.text("unit_count")} unidades") }, modifier = Modifier.clickable { primary = work }) }
-                } }; return@Column
+                Load("primary-works", repository::primaryWorks) { works ->
+                    LibraryShelf(repository, works.filter { it["chapters"].isNullOrEmpty() }, filter, Modifier.weight(1f)) { primary = it }
+                }; return@Column
             }
             if (collection == "Nag Hammadi") {
-                Load("nag-hammadi", { repository.catalogItem("nag-hammadi") to repository.documents().filter { it.text("title").contains("hammadi", true) || it.text("title").contains("gnósti", true) } }) { (catalog, volumes) -> LazyColumn {
-                    item { Text("Volumes integrais privados", Modifier.padding(vertical = 16.dp)) }
-                    items(volumes) { volume -> TextButton(onClick = { openBook(volume) }) { Text(volume.text("title")) } }
-                    item { Text(catalog?.optString("rightsNote").orEmpty(), style = MaterialTheme.typography.bodySmall) }
-                    items(catalog?.objects("texts").orEmpty().filter { it.toString().contains(filter, true) }) { entry ->
-                        Text(entry.optString("portugueseTitle", entry.optString("title", entry.optString("id"))), Modifier.padding(vertical = 10.dp))
+                Load("nag-hammadi", { repository.catalogItem("nag-hammadi") to repository.documents().filter { it.text("title").contains("hammadi", true) || it.text("title").contains("gnósti", true) } }) { (catalog, volumes) ->
+                    Column(Modifier.weight(1f)) {
+                        LibraryShelf(repository, volumes, filter, Modifier.weight(1f), ::openBook)
+                        TextButton(onClick = { showNagCatalog = true }) { Text("Ver catálogo de tratados") }
                     }
-                    item { Text("O catálogo não equivale a uma tradução instalada. Abra os volumes privados acima para ler os textos disponíveis.") }
-                } }; return@Column
+                    if (showNagCatalog) AlertDialog(onDismissRequest = { showNagCatalog = false }, title = { Text("Catálogo de Nag Hammadi") },
+                        confirmButton = { TextButton(onClick = { showNagCatalog = false }) { Text("Fechar") } }, text = {
+                            LazyColumn {
+                                item { Text(catalog?.optString("rightsNote").orEmpty(), style = MaterialTheme.typography.bodySmall) }
+                                items(catalog?.objects("texts").orEmpty().filter { it.toString().contains(filter, true) }) { entry ->
+                                    Text(libraryBookTitle(entry.optString("portugueseTitle", entry.optString("title", entry.optString("id")))), Modifier.padding(vertical = 10.dp))
+                                }
+                                item { Text("O catálogo não equivale a uma tradução instalada. Abra os volumes da coleção para ler os textos disponíveis.") }
+                            }
+                        })
+                }; return@Column
             }
             if (collection == "Referências") {
                 Load("bibliography", { repository.bibliography() + personal.references() }) { references -> LazyColumn {
@@ -130,15 +137,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
             }
         }
         if (current == null) Load("documents", repository::documents) { documents ->
-            LazyColumn {
-                if (documents.isEmpty()) item { Text("Nenhum livro privado neste pacote. Exporte com --workspace no PC para incluir o acervo.") }
-                itemsIndexed(documents.filter { it.text("title").contains(filter, true) }, key = { _, it -> it.text("id") }) { index, item ->
-                    Row(Modifier.fillMaxWidth().revealSection(index).clickable { openBook(item) }.padding(vertical = 12.dp), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                        Box(Modifier.width(76.dp).height(112.dp)) { BookCover(repository, item) }
-                        Column(Modifier.weight(1f)) { Text(item.text("title")); Text("${item.number("pages")} páginas · ${item.text("language")}", style = MaterialTheme.typography.labelSmall) }
-                    }
-                }
-            }
+            LibraryShelf(repository, documents, filter, Modifier.weight(1f), ::openBook)
         }
     }
 }

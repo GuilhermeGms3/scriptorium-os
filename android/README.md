@@ -1,5 +1,22 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Biblioteca em duas colunas — 0.6.13
+
+- Meus livros, fontes primárias e volumes instalados de Nag Hammadi usam uma grade
+  com duas colunas no celular e até quatro em telas maiores.
+- Cada livro mostra capa e título curto abaixo, sem linhas de páginas/idioma.
+  Capas usam miniaturas locais de 480 px, carregadas sob demanda.
+- Títulos de apresentação têm capitalização consistente, abreviações reconhecíveis
+  e volumes preservados. Os metadados originais, IDs e citações não mudam.
+- Busca aceita tanto o título apresentado quanto o original. Ordenação em português;
+  estados vazios e livros sem capa continuam acessíveis.
+- O catálogo informativo de Nag Hammadi fica em “Ver catálogo de tratados”; os
+  volumes instalados abrem diretamente no leitor. Referências bibliográficas mantêm
+  sua apresentação de registros, sem simular livros integrais.
+
+Atualização do aplicativo por cima da versão existente, sem desinstalação. O acervo
+completo de 02/11/2026 é instalado separadamente pelo mesmo instalador do kit.
+
 ## Tradução de leitura e painel de fontes — 0.6.12
 
 - Fontes antigas: **Traduzir leitura** traduz todas as unidades do trecho carregado

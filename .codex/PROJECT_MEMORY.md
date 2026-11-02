@@ -1,5 +1,16 @@
 # Project Memory
 
+## Biblioteca Android + Samsung atualizado — 2026-11-02
+
+- 0.6.13/code25:LibraryShelf2–4colunas,capa480px+título curto,sem páginas/idioma;
+  Meus livros/primárias/volumesNag;catálogoNag emdiálogo. Display-only, IDs/metadados intactos.
+- 84JVM/build/lint aprovados,0erros49avisos. SamsungSM-S906E instalado com -r;
+  acervo7328f5e7…85c64 ativo (65PDFs/24edições/75.967registros),incoming vazio.
+- personal.sqlite3 SHA2dbb3c35…55f74 igual antes/depois;nenhum backup/wipe no telefone.
+  QAreal:2colunas,NDITAT2+4,livro retomoup11,primárias ecatálogoNag.
+- KitDesktop/Scriptorium-Acervo-2026-11-02 recebeuAPKnovo,semrecriarpacote.
+  Evidências/limites:docs/qa/android-library-2026-11-02.md.
+
 ## TEB integral + acervo mobile — 2026-11-02
 
 - app.teb_source varreu2.492p/19.100recortes. Banco:11.095contextos TEB visíveis,

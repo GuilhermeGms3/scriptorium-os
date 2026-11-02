@@ -21,6 +21,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import java.io.File
@@ -44,10 +45,10 @@ internal object BookPdfArtwork {
 
     @Synchronized fun cover(pdf: File, checksum: String, cache: File): Bitmap {
         require(checksum.matches(Regex("[a-f0-9]{64}")))
-        val folder = File(cache, "library-covers-v1").also { check(it.isDirectory || it.mkdirs()) }
+        val folder = File(cache, "library-covers-v2").also { check(it.isDirectory || it.mkdirs()) }
         val target = File(folder, "$checksum.jpg")
         BitmapFactory.decodeFile(target.path)?.let { return it }
-        val bitmap = render(pdf, 0, 240)
+        val bitmap = render(pdf, 0, 480)
         val atomic = AtomicFile(target)
         val output = atomic.startWrite()
         try { check(bitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)); atomic.finishWrite(output) }
@@ -62,9 +63,9 @@ internal fun BookCover(repository: MobileRepository, document: Row) {
     Load(document.text("checksum"), {
         runCatching { repository.pdf(document.text("checksum"))?.let { BookPdfArtwork.cover(it, document.text("checksum"), cache) } }.getOrNull()
     }) { bitmap ->
-        if (bitmap != null) Image(bitmap.asImageBitmap(), "Capa de ${document.text("title")}", Modifier.fillMaxWidth().height(112.dp))
-        else Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxWidth().height(112.dp)) {
-            Box(contentAlignment = Alignment.Center) { Text("▤", style = MaterialTheme.typography.headlineLarge) }
+        if (bitmap != null) Image(bitmap.asImageBitmap(), null, Modifier.fillMaxSize())
+        else Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxSize()) {
+            Box(Modifier.clearAndSetSemantics {}, contentAlignment = Alignment.Center) { Text("▤", style = MaterialTheme.typography.headlineLarge) }
         }
     }
 }
