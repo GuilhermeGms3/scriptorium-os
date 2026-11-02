@@ -11,6 +11,11 @@ envia apenas as unidades semânticas do lote escolhido para `127.0.0.1:8018`.
 
 ## Python
 
+Edições privadas, notas TEB/Ave-Maria/LTT e verbetes Anchor usam operadores offline
+próprios, sem LLM e sem endpoints que recebam caminhos. O conversor textual de EPUB
+requer `uv sync --extra reference`; esse extra não é necessário à tradução.
+Veja [arquitetura, comandos e limites](../../docs/architecture/private-bible-editions.md).
+
 A extração offline de comentários originais usa `app.commentary_cli`, com perfis calibrados de
 Shedd/Genebra e sem LLM. Requer o extra opcional `commentary` para evidência de fontes do PDF.
 Operação, integração canônica, cobertura e limites:

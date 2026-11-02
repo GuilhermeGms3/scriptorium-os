@@ -316,11 +316,13 @@ export function PrivateLinkCard({
             {relation.payload.contextualAnalysis.summary}
           </button>
           <p className="text-xs text-muted-foreground">
-            {relation.payload.contextualAnalysis.mode === "source-excerpt"
-              ? relation.payload.referenceRole === "proof-text"
-                ? "Texto confessional original · citação bíblica, não exegese universal."
-                : "Comentário original extraído · ligação automática, não revisada por pessoa."
-              : "Síntese contextual assistida por máquina · não revisada por pessoa."}
+            {relation.payload.referenceRole === "lexical-mention"
+              ? "Trecho de obra de referência · menção bíblica, não comentário direto do versículo."
+              : relation.payload.contextualAnalysis.mode === "source-excerpt"
+                ? relation.payload.referenceRole === "proof-text"
+                  ? "Texto confessional original · citação bíblica, não exegese universal."
+                  : "Comentário original extraído · ligação automática, não revisada por pessoa."
+                : "Síntese contextual assistida por máquina · não revisada por pessoa."}
           </p>
           {relation.payload.contextualAnalysis.sourceContext && (
             <p className="text-xs text-muted-foreground">

@@ -1,5 +1,24 @@
 # Project Memory
 
+## Bíblias privadas e Anchor — desktop — 2026-11-02
+
+- Schema29 aditivo no workspace canônico; oito edições PDF parciais, 199.161 textos
+  entre traduções/7.747 capítulos aceitos. Reader/comparação/áudio/FTS usam repositório
+  privado, SSR não inicializa banco. JSON estrutural exporta metadados, não versos.
+- Sete PDFs+derivado Anchor acrescentados:65 documentos. 9.909 páginas Anchor são
+  itens XHTML, não páginas impressas. Original EPUB preservado com SHA/derivação.
+- TEB9 notas iniciais, LTT1511, Ave2870+175temáticas; Anchor3050recortes+9413menções,
+  não comentários diretos. Automáticos/auditoria pendente; versificação ambígua retida.
+- Staging final `data/workspace/november-bibles`: verses-v3 EXCETO ACF; ACF correta
+  em verses-acf-v4; notes-v5; reference-v4. Não reimportar estágios antigos.
+- Snapshot anterior ao OCR reutilizado, sem nova cópia pesada. Docker estava parado.
+  Não houve APK/mobile. Cobertura/validação/limites e operação em
+  docs/qa/private-bibles-2026-11-02.md e docs/architecture/private-bible-editions.md.
+- 697TS/110arquivos+145Python aprovados; typecheck/mypy22/ESLint/Ruff/build aprovados.
+  QA real NAA/NVI/ACF/LTT e Anchor item120: dois realces, ligações e estado parcial.
+  Corrigida indicação de não desmontado que escondia importações especializadas.
+  Staging antigo ~440MiB mantido: revisão automática bloqueou limpeza.
+
 ## Tradução de leitura e painel agrupado — Android0.6.12 — 2026-10-29
 
 - PrimaryReader: uma ação para traduzir o feed carregado, progresso, original e

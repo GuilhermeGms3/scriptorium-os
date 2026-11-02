@@ -209,7 +209,7 @@ export function DocumentSidePanel({
               Processamento
             </span>
             <span className="block text-xs text-muted-foreground">
-              {documentProcessingStatusLine(context ? context.summary : undefined)}
+              {documentProcessingStatusLine(context ? context.summary : undefined, links.analyzed)}
             </span>
           </span>
           <ChevronRight

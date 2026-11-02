@@ -28,6 +28,7 @@ import migration25 from "./migrations/025_source_context_paragraphs.sql?raw";
 import migration26 from "./migrations/026_study_notebook.sql?raw";
 import migration27 from "./migrations/027_note_explorer.sql?raw";
 import migration28 from "./migrations/028_study_course_progress.sql?raw";
+import migration29 from "./migrations/029_private_scripture.sql?raw";
 import type { WorkspaceRequest, WorkspaceResponse, WorkspaceRow } from "./protocol";
 
 const migrations = [
@@ -59,6 +60,7 @@ const migrations = [
   migration26,
   migration27,
   migration28,
+  migration29,
 ] as const;
 let database: Database | null = null;
 let persistence: "opfs" | "memory" = "memory";

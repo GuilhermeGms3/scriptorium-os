@@ -30,6 +30,7 @@ import bibliaPortuguesaMundialManifestJson from "../../../generated/corpora/bibl
 import kingJamesManifestJson from "../../../generated/corpora/king-james-version/2026-09-26/manifest.json";
 import { ebibleEditionManifests, ebibleReaderEditions } from "./ebible-editions-registration";
 import { BIBLIA_LIVRE_EDITION, BIBLIA_LIVRE_EDITION_ID } from "../corpus-config/biblia-livre";
+import { PrivateScriptureRepository } from "./private-scripture-repository";
 
 export type EditionPassageQuery = {
   edition: string;
@@ -142,6 +143,11 @@ const ADDITIONAL_BOOKS: Book[] = [
 const GENERATED_BOOKS: Book[] = [...CANONICAL_BOOKS, ...ADDITIONAL_BOOKS];
 const loadedChapterCache = new Map<string, ChapterContent>();
 const loadedTextUnitCache = new Map<string, TextUnit[]>();
+if (typeof window !== "undefined")
+  window.addEventListener("scriptorium:knowledge-changed", () => {
+    loadedChapterCache.clear();
+    loadedTextUnitCache.clear();
+  });
 
 function chapterKey(bookId: string, chapter: number): string {
   return `${bookId}/${chapter}`;
@@ -279,6 +285,36 @@ async function loadChapterFromPackages(
       };
     }
   }
+  const privateUnits = await PrivateScriptureRepository.chapter(bookId, chapter);
+  for (const unit of privateUnits) {
+    const key = addressKey({
+      workId: `work:${bookId}`,
+      bookId,
+      chapter,
+      verseStart: unit.ref.verseStart!,
+      verseEnd: unit.ref.verseStart!,
+      versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+    });
+    const current = rows.get(key) ?? {
+      ref: unit.ref,
+      verse: unit.ref.verseStart!,
+      translations: {},
+      alignmentStatusByEdition: {},
+    };
+    current.translations[unit.editionId] = unit.text;
+    current.alignmentStatusByEdition ??= {};
+    current.alignmentStatusByEdition[unit.editionId] = "partial";
+    rows.set(key, current);
+    textUnits.push(unit);
+    provenanceByEdition[unit.editionId] = {
+      acquisition: "user-provided",
+      creationMethod: "machine-assisted",
+      sourceArtifactIds: [unit.id],
+      attribution:
+        "PDF privado fornecido pelo usuário; extração e correspondência de endereços automáticas, pendentes de revisão.",
+      note: "Capítulo estruturalmente conferido; não é alinhamento semântico palavra a palavra.",
+    };
+  }
   if (!rows.size) return null;
   loadedTextUnitCache.set(chapterKey(bookId, chapter), textUnits);
   return {
@@ -298,6 +334,7 @@ export const ScriptureRepository = {
       ...ebibleReaderEditions,
       SBLGNT_EDITION,
       OSHB_EDITION,
+      ...PrivateScriptureRepository.cachedEditions(),
     ];
   },
   listBooks(): Book[] {
@@ -339,6 +376,10 @@ export const ScriptureRepository = {
     chapter: number,
     editionId: string,
   ): Promise<TextUnit[]> {
+    if (editionId.startsWith("private:"))
+      return (await PrivateScriptureRepository.chapter(bookId, chapter)).filter(
+        (unit) => unit.editionId === editionId,
+      );
     const manifest = MANIFEST_BY_EDITION.get(editionId);
     if (!manifest || !manifest.books.some((book) => book.id === bookId)) return [];
     const storage = await corpusPackageRegistry.open(editionId, `work:${bookId}`);
@@ -434,14 +475,20 @@ export const ScriptureRepository = {
   },
   async getAvailableEditions(): Promise<Edition[]> {
     const available = await corpusPackageRegistry.listAvailable();
-    return this.listEditions().filter((edition) =>
-      available.some((item) => item.editionId === edition.id),
+    await PrivateScriptureRepository.listEditions();
+    return this.listEditions().filter(
+      (edition) =>
+        edition.id.startsWith("private:") ||
+        available.some((item) => item.editionId === edition.id),
     );
   },
   async getInstalledEditions(): Promise<Edition[]> {
     const installed = await corpusPackageRegistry.listInstalled();
-    return this.listEditions().filter((edition) =>
-      installed.some((item) => item.editionId === edition.id),
+    await PrivateScriptureRepository.listEditions();
+    return this.listEditions().filter(
+      (edition) =>
+        edition.id.startsWith("private:") ||
+        installed.some((item) => item.editionId === edition.id),
     );
   },
   async search(query: CorpusSearchQuery): Promise<CorpusSearchHit[]> {
@@ -457,6 +504,7 @@ export const ScriptureRepository = {
     );
     return results
       .flat()
+      .concat(await PrivateScriptureRepository.search(query))
       .sort((left, right) => right.rank - left.rank)
       .slice(0, query.limit ?? 30);
   },

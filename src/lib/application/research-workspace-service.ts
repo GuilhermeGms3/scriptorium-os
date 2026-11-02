@@ -106,6 +106,7 @@ const PrivateKnowledgeBackupSchema = z.object({
   libraryPipelineDocuments: rows.optional(),
   reviewBatches: rows.optional(),
   reviewBatchMembers: rows.optional(),
+  privateScriptureEditions: rows.optional(),
 });
 
 const BackupV3Schema = BackupV2Schema.omit({ schemaVersion: true, manifest: true }).extend({
@@ -360,11 +361,17 @@ async function exportPrivateKnowledge(
     libraryPipelineDocuments: serializableRows(libraryPipelineDocuments),
     reviewBatches: serializableRows(reviewBatches),
     reviewBatchMembers: serializableRows(reviewBatchMembers),
+    // Structural backup deliberately excludes protected verse text, like private PDF page text.
+    // A complete workspace snapshot carries the actual text; reimport reconstructs it otherwise.
+    privateScriptureEditions: serializableRows(
+      await database.query("SELECT * FROM private_scripture_editions ORDER BY id"),
+    ),
   };
 }
 
 const privateKnowledgeTables = {
   documents: "private_documents",
+  privateScriptureEditions: "private_scripture_editions",
   pageAnchors: "private_document_pages",
   knowledgeIndexes: "document_knowledge_indexes",
   nodes: "document_nodes",

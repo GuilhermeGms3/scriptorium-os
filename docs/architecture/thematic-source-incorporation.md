@@ -34,7 +34,8 @@ Uma objeção nunca é rotulada como conclusão do autor.
 - Uma unidade estável pode sustentar associações diferentes. Reimportação preserva decisões anteriores, inclusive rejeições.
 - Edição errada, hash ou offsets divergentes recusam o lote inteiro antes da escrita.
 - Limites: 100 entradas, 4 MiB por lote, 12 mil caracteres por fragmento.
-- Banco deve existir, schema 25–28 e FKs válidas. O importador não aplica migrations.
+- Banco deve existir, schema 25 até a versão atual (`WORKSPACE_SCHEMA_VERSION`) e
+  FKs válidas. O importador não aplica migrations.
 - Lock não é removido à força; pare os escritores legítimos antes da publicação.
 - Páginas com NUL ficam em quarentena: a API nativa pode truncar essas strings.
 - PDFs e trechos protegidos permanecem privados, não no Git.

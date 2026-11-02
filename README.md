@@ -4,6 +4,12 @@ O Scriptorium é um sistema local-first para leitura bíblica, investigação te
 
 ## Arquitetura
 
+As [edições privadas de Bíblias e fontes de referência](docs/architecture/private-bible-editions.md)
+alimentam o leitor pelo workspace canônico. ARA, NAA, BKJ, ARIB, NBV da compilação,
+NVI, ACF e LTT têm cobertura parcial, com evidências de página e busca FTS;
+TEB/Ave-Maria/LTT acrescentam notas e Anchor acrescenta verbetes e menções documentais.
+Consulte a [cobertura real e os limites do lote](docs/qa/private-bibles-2026-11-02.md).
+
 - React 19, TanStack Start/Router, Vite 8 e TypeScript estrito na interface.
 - Pacotes de corpus SQLite divididos por obra, verificados por SHA-256, instaláveis em Cache API e carregados sob demanda por SQLite WASM.
 - FTS5 para busca textual; componentes React acessam repositórios e serviços, nunca SQL.

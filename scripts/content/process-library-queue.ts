@@ -25,6 +25,7 @@ import {
 import { setTimeout as delay } from "node:timers/promises";
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
 import { WORKSPACE_SCHEMA_VERSION } from "../database/workspace-migrate";
+import { reuseImportBackup } from "./reuse-import-backup";
 import {
   chooseDocumentTitle,
   detectDocumentLanguage,
@@ -267,7 +268,12 @@ if (command === "pause") {
           if (job.status === "failed" && job.attempts < 3) job.status = "pending";
         saveQueue(queuePath, queue);
       }
-      const jobs = resumableJobs(queue);
+      const selection = process.argv.indexOf("--checksums");
+      const selected =
+        selection < 0 ? undefined : new Set((process.argv[selection + 1] ?? "").split(","));
+      if (selected && [...selected].some((id) => !/^[a-f0-9]{64}$/.test(id)))
+        throw Error("Seleção de checksums inválida.");
+      const jobs = resumableJobs(queue).filter((job) => !selected || selected.has(job.checksum));
       if (jobs.length) {
         const lock = await acquireLock(root);
         let db: DatabaseSync | undefined;
@@ -303,9 +309,12 @@ if (command === "pause") {
             },
           };
           if (!queue.backup) {
-            const destination = `${workspace}.before-library-queue-${Date.now()}`;
-            console.log("Criando backup consistente:", destination);
-            await backup(db, destination, { rate: 4096 });
+            const reused = reuseImportBackup(workspace, process.argv);
+            const destination = reused ?? `${workspace}.before-library-queue-${Date.now()}`;
+            if (!reused) {
+              console.log("Criando backup consistente:", destination);
+              await backup(db, destination, { rate: 4096 });
+            }
             queue.backup = destination;
             saveQueue(queuePath, queue);
           }
@@ -387,6 +396,14 @@ if (command === "pause") {
               );
               if (!document.textPageCount)
                 throw new Error("Original incorporado; exige OCR antes da desmontagem textual.");
+              if (process.argv.includes("--extraction-only")) {
+                job.status = "complete";
+                job.stage = "extraction";
+                progress(
+                  "Texto e geometria incorporados; contextualização especializada ainda pendente.",
+                );
+                continue;
+              }
               const profile = await DocumentProcessingRepository.ensureProfile(document, adapter);
               job.stage = "structure";
               progress("Desmontagem pelo analisador canônico");
@@ -452,7 +469,7 @@ if (command === "pause") {
           }
           if (db.prepare("PRAGMA foreign_key_check").all().length)
             throw new Error("Falha de integridade ao concluir fila.");
-          if (queue.jobs.some((job) => job.status === "failed")) process.exitCode = 1;
+          if (jobs.some((job) => job.status === "failed")) process.exitCode = 1;
           console.log(
             "Fila encerrada:",
             JSON.stringify(

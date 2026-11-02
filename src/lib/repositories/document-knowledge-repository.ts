@@ -101,6 +101,14 @@ function chunks<T>(values: readonly T[], size = 150): T[][] {
 }
 
 export const DocumentKnowledgeRepository = {
+  /** Specialized imports can provide evidence without completing the generic analyzer. */
+  async hasEvidenceUnits(documentId: string, database?: WorkspaceDatabase): Promise<boolean> {
+    const db = database ?? (await getWorkspaceDatabase());
+    const rows = await db.query("SELECT 1 FROM semantic_units WHERE document_id=? LIMIT 1", [
+      documentId,
+    ]);
+    return rows.length > 0;
+  },
   async getSummary(
     documentId: string,
     database?: WorkspaceDatabase,

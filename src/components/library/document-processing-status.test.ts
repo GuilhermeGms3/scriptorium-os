@@ -18,6 +18,13 @@ const summary = (
 });
 
 describe("documentProcessingStatusLine", () => {
+  it("recognizes specialized imports without declaring the generic pipeline complete", () => {
+    expect(documentProcessingStatusLine(null, true)).toBe(
+      "Conteúdo documental parcial disponível; a desmontagem integral ainda não foi executada.",
+    );
+    expect(documentProcessingStatusLine(summary("failed"), true)).toContain("não terminou");
+    expect(documentProcessingStatusLine(undefined, true)).toContain("Verificando");
+  });
   it("says in plain words where the book stands", () => {
     expect(documentProcessingStatusLine(undefined)).toBe("Verificando o estado do livro…");
     expect(documentProcessingStatusLine(null)).toBe(

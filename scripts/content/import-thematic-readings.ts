@@ -7,6 +7,7 @@ import { WorkspaceLock } from "../../src/lib/workspace-runtime/workspace-lock.se
 import type { WorkspaceDatabase, WorkspaceRow } from "../../src/lib/workspace-runtime/protocol";
 import { importThematicReadings } from "../../src/lib/application/thematic-reading-service";
 import { reuseImportBackup } from "./reuse-import-backup";
+import { WORKSPACE_SCHEMA_VERSION } from "../database/workspace-migrate";
 
 const [workspace, staging, mode] = process.argv.slice(2);
 if (!workspace || !staging || !["--runtime-stopped", "--verify", "--dry-run"].includes(mode ?? ""))
@@ -52,7 +53,7 @@ try {
   const version = Number(
     db.prepare("SELECT max(version) n FROM workspace_migrations").get()?.["n"],
   );
-  if (version < 25 || version > 28)
+  if (version < 25 || version > WORKSPACE_SCHEMA_VERSION)
     throw Error("Schema não suportado. Nenhuma migration é aplicada por este importador.");
   if (db.prepare("PRAGMA foreign_key_check").all().length)
     throw Error("Acervo com relacionamentos inválidos.");

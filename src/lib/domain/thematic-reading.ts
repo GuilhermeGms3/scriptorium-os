@@ -14,6 +14,14 @@ export const ThematicContextSchema = z.object({
   tradition: z.string().min(1).max(200),
   rationale: z.string().min(20).max(1500),
   limitations: z.array(z.string().min(3).max(500)).min(1).max(8),
+  referenceEntry: z
+    .object({
+      label: z.string().min(1).max(150),
+      kind: z.enum(["place", "person", "concept"]),
+      language: z.string().min(2).max(20),
+      extent: z.literal("page-local"),
+    })
+    .optional(),
   headword: z
     .object({
       lemma: z.string().min(1).max(100),

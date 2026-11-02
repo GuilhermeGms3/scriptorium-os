@@ -20,10 +20,14 @@ export function usePageLinks(documentId: string, pageIndex: number): PageLinks {
       void Promise.all([
         WorkspacePassageKnowledgeService.loadDocumentPage(documentId, pageIndex),
         DocumentKnowledgeRepository.getSummary(documentId),
+        DocumentKnowledgeRepository.hasEvidenceUnits(documentId),
       ]).then(
-        ([items, summary]) => {
+        ([items, summary, hasEvidence]) => {
           if (active && request === generation)
-            setState({ items, analyzed: summary?.status === "ready" });
+            setState({
+              items,
+              analyzed: summary?.status === "ready" || hasEvidence || items.length > 0,
+            });
         },
         (cause: unknown) => {
           if (active && request === generation)
