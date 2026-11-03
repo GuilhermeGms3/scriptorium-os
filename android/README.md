@@ -1,5 +1,19 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Filtros e rolagem da biblioteca — 0.6.14
+
+- Filtros combináveis por tipo de obra, assunto relacionado e idioma, com ordenação
+  A–Z/Z–A, contador e limpeza. Busca por título aceita diferenças de acentuação.
+- Tipo é uma sugestão de catálogo pelo título; assunto vem das leituras documentais
+  vinculadas e dos guias instalados. Pacotes antigos sem essa estrutura continuam
+  abrindo, com tipo/idioma e sem assuntos inventados.
+- Seleção de filtros e posição da estante permanecem ao abrir e voltar de um livro.
+- Cartões da estante não reiniciam animação de transparência ao rolar. Capas mantêm
+  marcador visível durante carregamento, cache em disco e cache em memória limitado
+  a 24 MiB. Renderização continua fora da thread da interface.
+- Proposta, ainda não implementada, para piloto com igreja e controle de acesso:
+  [distribuição e autorização](../docs/architecture/church-pilot-distribution.md).
+
 ## Biblioteca em duas colunas — 0.6.13
 
 - Meus livros, fontes primárias e volumes instalados de Nag Hammadi usam uma grade

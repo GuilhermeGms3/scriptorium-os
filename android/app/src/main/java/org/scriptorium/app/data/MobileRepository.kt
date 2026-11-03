@@ -94,7 +94,19 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
     fun recentTrace(): List<Row> = content {
         it.rows("SELECT t.*,c.title,c.rationale,d.title source_title FROM trace t JOIN comments c ON c.id=t.comment_id JOIN documents d ON d.id=c.document_id ORDER BY t.occurred_at DESC,t.id LIMIT 100")
     }
-    fun documents(): List<Row> = content { it.rows("SELECT * FROM documents ORDER BY title COLLATE NOCASE") }
+    fun documents(): List<Row> = content { db ->
+        val documents = db.rows("SELECT * FROM documents ORDER BY title COLLATE NOCASE")
+        val tables = db.rows("SELECT name FROM sqlite_master WHERE type='table' AND name IN ('documentary_readings','documentary_topics','reading_catalog')")
+        if (tables.size < 3) documents else {
+            // Only existing, source-backed thematic readings; no page-text scan or title-based topics.
+            val subjects = db.rows("""SELECT document_id,group_concat(title,'|') subjects FROM (SELECT DISTINCT r.document_id,c.title
+                FROM documentary_readings r JOIN documentary_topics t ON t.reading_id=r.id AND t.ordinal=r.ordinal
+                JOIN reading_catalog c ON c.id=CASE WHEN t.topic_id LIKE 'study-guide:%'
+                  THEN 'guide:'||substr(t.topic_id,13) ELSE 'lesson:'||t.topic_id END
+                ORDER BY c.title) GROUP BY document_id""".trimIndent()).associate { it.text("document_id") to it.text("subjects") }
+            documents.map { it + ("library_subjects" to subjects[it.text("id")].orEmpty()) }
+        }
+    }
     fun page(documentId: String, index: Int): Row? = content {
         it.rows("SELECT p.*,d.title source_title,d.checksum,d.language,d.pages document_pages FROM pages p JOIN documents d ON d.id=p.document_id WHERE p.document_id=? AND p.page_index=?", listOf(documentId, index.toString())).firstOrNull()
     }

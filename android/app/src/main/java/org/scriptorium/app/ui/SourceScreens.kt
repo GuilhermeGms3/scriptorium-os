@@ -11,6 +11,8 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalFocusManager
@@ -86,6 +88,18 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
     var pageIndex by rememberSaveable(requested?.id) { mutableIntStateOf(requested?.page?.number("page_index") ?: 0) }
     var collection by rememberSaveable { mutableStateOf("Meus livros") }
     var filter by rememberSaveable { mutableStateOf("") }
+    var bookType by rememberSaveable { mutableStateOf("") }
+    var subject by rememberSaveable { mutableStateOf("") }
+    var language by rememberSaveable { mutableStateOf("") }
+    var descending by rememberSaveable { mutableStateOf(false) }
+    val shelfState = rememberLazyGridState()
+    val scope = rememberCoroutineScope()
+    val filters = LibraryFilters(bookType, subject, language, descending)
+    fun resetScroll() { scope.launch { shelfState.scrollToItem(0) } }
+    fun changeFilters(value: LibraryFilters) {
+        bookType = value.type; subject = value.subject; language = value.language; descending = value.descending
+        resetScroll()
+    }
     var primary by remember(requested?.id) { mutableStateOf(requested?.work) }
     var showNagCatalog by rememberSaveable { mutableStateOf(false) }
     val current = document
@@ -104,18 +118,20 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
         Heading("Biblioteca", "Escolha uma capa para abrir o leitor.")
         if (current == null) {
             androidx.compose.foundation.lazy.LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(listOf("Meus livros", "Fontes primárias", "Nag Hammadi", "Referências")) { name -> FilterChip(collection == name, { collection = name }, label = { Text(name) }) }
+                items(listOf("Meus livros", "Fontes primárias", "Nag Hammadi", "Referências")) { name -> FilterChip(collection == name, {
+                    if (collection != name) { collection = name; filter = ""; changeFilters(LibraryFilters()) }
+                }, label = { Text(name) }) }
             }
-            OutlinedTextField(filter, { filter = it.take(200) }, label = { Text("Filtrar títulos") }, modifier = Modifier.fillMaxWidth())
+            OutlinedTextField(filter, { filter = it.take(200); resetScroll() }, label = { Text("Filtrar títulos") }, modifier = Modifier.fillMaxWidth(), singleLine = true)
             if (collection == "Fontes primárias") {
                 Load("primary-works", repository::primaryWorks) { works ->
-                    LibraryShelf(repository, works.filter { it["chapters"].isNullOrEmpty() }, filter, Modifier.weight(1f)) { primary = it }
+                    LibraryShelf(repository, works.filter { it["chapters"].isNullOrEmpty() }, filter, Modifier.weight(1f), filters, shelfState, ::changeFilters) { primary = it }
                 }; return@Column
             }
             if (collection == "Nag Hammadi") {
                 Load("nag-hammadi", { repository.catalogItem("nag-hammadi") to repository.documents().filter { it.text("title").contains("hammadi", true) || it.text("title").contains("gnósti", true) } }) { (catalog, volumes) ->
                     Column(Modifier.weight(1f)) {
-                        LibraryShelf(repository, volumes, filter, Modifier.weight(1f), ::openBook)
+                        LibraryShelf(repository, volumes, filter, Modifier.weight(1f), filters, shelfState, ::changeFilters, ::openBook)
                         TextButton(onClick = { showNagCatalog = true }) { Text("Ver catálogo de tratados") }
                     }
                     if (showNagCatalog) AlertDialog(onDismissRequest = { showNagCatalog = false }, title = { Text("Catálogo de Nag Hammadi") },
@@ -137,7 +153,7 @@ fun LibraryScreen(repository: MobileRepository, personal: PersonalRepository, re
             }
         }
         if (current == null) Load("documents", repository::documents) { documents ->
-            LibraryShelf(repository, documents, filter, Modifier.weight(1f), ::openBook)
+            LibraryShelf(repository, documents, filter, Modifier.weight(1f), filters, shelfState, ::changeFilters, ::openBook)
         }
     }
 }

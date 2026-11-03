@@ -1,5 +1,20 @@
 # Project Memory
 
+## Filtros da biblioteca Android e proposta de piloto — 2026-11-02
+
+- 0.6.14/code26: filtros combináveis de tipo sugerido, assunto documental, idioma,
+  ordem A–Z/Z–A; busca sem acentos; preservar filtros/scroll ao voltar do livro.
+- LibraryShelf sem revealSection nos cartões; cache de capas LRU24MiB + JPEG,
+  quatro locks e placeholder estável. Sem novas dependências/schema/conteúdo.
+- 89 JVM/build/lint passaram (0 erros/49 avisos); 2 instrumentados no Pixel8 passaram,
+  com pacote antigo57livros/23 com assuntos. Sem QA físico nem instalação no Samsung:
+  usuário desconectou. KitDesktop02/11 recebe apenas APK novo, acervo65/24 intacto.
+- Ideia de teste para igreja documentada, NÃO implementada: Firebase Auth + autorização
+  assinada offline72h, App Distribution, atualizações de APK/acervo separadas. Home lab
+  opcional para arquivos. Não distribuir automaticamente o kit privado como piloto.
+- Evidências/limites:docs/qa/android-library-filters-2026-11-02.md;
+  proposta:docs/architecture/church-pilot-distribution.md.
+
 ## Biblioteca Android + Samsung atualizado — 2026-11-02
 
 - 0.6.13/code25:LibraryShelf2–4colunas,capa480px+título curto,sem páginas/idioma;

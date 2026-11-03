@@ -5,6 +5,10 @@ import android.graphics.BitmapFactory
 import android.graphics.pdf.PdfRenderer
 import android.os.ParcelFileDescriptor
 import android.util.AtomicFile
+import android.util.LruCache
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.gestures.detectTransformGestures
@@ -29,6 +33,11 @@ import org.scriptorium.app.data.*
 
 /** One PDF page at a time, with bounded bitmaps. Covers never load extracted page text. */
 internal object BookPdfArtwork {
+    private val memory = object : LruCache<String, Bitmap>(24 * 1024 * 1024) {
+        override fun sizeOf(key: String, value: Bitmap): Int = value.allocationByteCount
+    }
+    private val coverLocks = Array(4) { Any() }
+    fun cachedCover(checksum: String): Bitmap? = memory.get(checksum)
     fun render(pdf: File, index: Int, requestedWidth: Int): Bitmap =
         ParcelFileDescriptor.open(pdf, ParcelFileDescriptor.MODE_READ_ONLY).use { descriptor ->
             PdfRenderer(descriptor).use { renderer ->
@@ -43,27 +52,39 @@ internal object BookPdfArtwork {
             }
         }
 
-    @Synchronized fun cover(pdf: File, checksum: String, cache: File): Bitmap {
+    fun cover(pdf: File, checksum: String, cache: File): Bitmap {
         require(checksum.matches(Regex("[a-f0-9]{64}")))
-        val folder = File(cache, "library-covers-v2").also { check(it.isDirectory || it.mkdirs()) }
-        val target = File(folder, "$checksum.jpg")
-        BitmapFactory.decodeFile(target.path)?.let { return it }
-        val bitmap = render(pdf, 0, 480)
-        val atomic = AtomicFile(target)
-        val output = atomic.startWrite()
-        try { check(bitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)); atomic.finishWrite(output) }
-        catch (failure: Exception) { atomic.failWrite(output); throw failure }
-        return bitmap
+        return synchronized(coverLocks[(checksum.hashCode() and Int.MAX_VALUE) % coverLocks.size]) {
+            cachedCover(checksum)?.let { return@synchronized it }
+            val folder = File(cache, "library-covers-v2").also { it.mkdirs(); check(it.isDirectory) }
+            val target = File(folder, "$checksum.jpg")
+            BitmapFactory.decodeFile(target.path)?.let { memory.put(checksum, it); return@synchronized it }
+            val bitmap = render(pdf, 0, 480)
+            val atomic = AtomicFile(target)
+            val output = atomic.startWrite()
+            try { check(bitmap.compress(Bitmap.CompressFormat.JPEG, 82, output)); atomic.finishWrite(output) }
+            catch (failure: Exception) { atomic.failWrite(output); throw failure }
+            memory.put(checksum, bitmap)
+            bitmap
+        }
     }
 }
 
 @Composable
 internal fun BookCover(repository: MobileRepository, document: Row) {
     val cache = LocalContext.current.cacheDir
-    Load(document.text("checksum"), {
-        runCatching { repository.pdf(document.text("checksum"))?.let { BookPdfArtwork.cover(it, document.text("checksum"), cache) } }.getOrNull()
-    }) { bitmap ->
-        if (bitmap != null) Image(bitmap.asImageBitmap(), null, Modifier.fillMaxSize())
+    val checksum = document.text("checksum")
+    val bitmap by produceState(BookPdfArtwork.cachedCover(checksum), checksum) {
+        value = BookPdfArtwork.cachedCover(checksum)
+        if (value == null) value = try {
+            withContext(Dispatchers.IO) { repository.pdf(checksum)?.let { BookPdfArtwork.cover(it, checksum, cache) } }
+        } catch (cancelled: CancellationException) { throw cancelled }
+        catch (_: Exception) { null }
+    }
+    // A stable, full-size cover placeholder keeps titles readable even during a fast fling.
+    Box(Modifier.fillMaxSize()) {
+        val loaded = bitmap
+        if (loaded != null) Image(loaded.asImageBitmap(), null, Modifier.fillMaxSize())
         else Surface(color = MaterialTheme.colorScheme.secondaryContainer, modifier = Modifier.fillMaxSize()) {
             Box(Modifier.clearAndSetSemantics {}, contentAlignment = Alignment.Center) { Text("▤", style = MaterialTheme.typography.headlineLarge) }
         }

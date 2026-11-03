@@ -11,6 +11,10 @@ import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
 import org.scriptorium.app.data.*
+import org.scriptorium.app.ui.LibraryFilters
+import org.scriptorium.app.ui.filterLibrary
+import org.scriptorium.app.ui.librarySubjects
+import org.scriptorium.app.ui.BookPdfArtwork
 import org.json.JSONObject
 import org.scriptorium.app.content.ContentPackageStore
 import android.util.AtomicFile
@@ -18,6 +22,76 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun libraryCoverUsesTheSameBoundedBitmapWithoutRewritingDiskCache() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val cache = instrumentation.targetContext.cacheDir
+        val fixture = File.createTempFile("library-cover-qa-", ".pdf", cache)
+        var cachedFile: File? = null
+        try {
+            val pdf = android.graphics.pdf.PdfDocument()
+            try {
+                val page = pdf.startPage(android.graphics.pdf.PdfDocument.PageInfo.Builder(300, 450, 1).create())
+                page.canvas.drawColor(android.graphics.Color.WHITE)
+                page.canvas.drawText("Capa de teste", 24f, 100f, android.graphics.Paint().apply { textSize = 22f })
+                pdf.finishPage(page)
+                fixture.outputStream().use(pdf::writeTo)
+            } finally { pdf.close() }
+            val checksum = java.security.MessageDigest.getInstance("SHA-256").digest(fixture.readBytes()).joinToString("") { "%02x".format(it) }
+            val first = BookPdfArtwork.cover(fixture, checksum, cache)
+            assertEquals(480, first.width)
+            cachedFile = File(cache, "library-covers-v2/$checksum.jpg")
+            assertTrue(cachedFile.isFile)
+            val modified = cachedFile.lastModified()
+            assertSame(first, BookPdfArtwork.cachedCover(checksum))
+            assertSame(first, BookPdfArtwork.cover(fixture, checksum, cache))
+            assertEquals(modified, cachedFile.lastModified())
+        } finally { fixture.delete(); cachedFile?.delete() }
+    }
+    @Test fun libraryFiltersCombineAndShelfStaysPresentAfterFastScroll() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        val preferences = ReadingPreferences(context)
+        val original = preferences.appearance
+        try {
+            preferences.appearance = original.copy(motion = true)
+            val books = repository().documents()
+            assertTrue(books.size > 10)
+            assertTrue(books.any { librarySubjects(it).isNotEmpty() })
+            startAt("Gn1:1"); click("Biblioteca")
+            waitNode("${books.size} de ${books.size} livros")
+            click("Filtros", false); waitNode("Encontrar uma leitura")
+            capture("library-filter-dialog-0614")
+            click("Tipo de obra: Todos")
+            click("Dicionários e léxicos")
+            val dictionaries = filterLibrary(books, "", LibraryFilters(type = "Dicionários e léxicos"))
+            assertTrue(dictionaries.isNotEmpty())
+            click("Ver ${dictionaries.size} livros")
+            waitNode("${dictionaries.size} de ${books.size} livros")
+            val target = dictionaries.first()
+            enter(target.first.text("title"))
+            waitNode(target.second)
+            capture("library-filters-0614")
+            enter(""); click("Limpar filtros")
+            waitNode("${books.size} de ${books.size} livros")
+            repeat(4) {
+                val scroller = nodes().filter { it.isScrollable }.maxByOrNull {
+                    val bounds = Rect(); it.getBoundsInScreen(bounds); bounds.height()
+                } ?: error("Estante sem rolagem")
+                scroller.performAction(AccessibilityNodeInfo.ACTION_SCROLL_FORWARD)
+                SystemClock.sleep(80)
+            }
+            assertTrue(nodes().any { it.isClickable && it.actionList.any { action -> action.label?.toString()?.startsWith("Abrir ") == true } })
+            capture("library-fast-scroll-0614")
+            val bookNode = nodes().first { it.isClickable && it.actionList.any { action -> action.label?.toString()?.startsWith("Abrir ") == true } }
+            val labels = label(bookNode)
+            assertTrue(bookNode.performAction(AccessibilityNodeInfo.ACTION_CLICK))
+            waitNode("Opções de leitura do livro")
+            automation.performGlobalAction(android.accessibilityservice.AccessibilityService.GLOBAL_ACTION_BACK)
+            waitNode("${books.size} de ${books.size} livros")
+            assertTrue(nodes().any { label(it) == labels })
+            println("LIBRARY0614_QA type/query/reset/scroll/return passed; ${books.count { librarySubjects(it).isNotEmpty() }} books with source-backed subjects")
+        } finally { preferences.appearance = original }
+    }
     @Test fun compactDockUsesModalFiltersWithoutConsumingCommentSpace() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val preferences = ReadingPreferences(instrumentation.targetContext)
