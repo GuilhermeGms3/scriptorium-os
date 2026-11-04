@@ -1,5 +1,16 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Leitura compacta e áudio no Menu — 0.6.16
+
+- Trocar a tradução fica somente na lista de livros, antes de escolher livro/capítulo.
+  O controle não ocupa espaço na leitura nem na grade de capítulos.
+- Com um capítulo aberto, **Menu → Ouvir passagem** mostra o livro/capítulo atual e
+  abre os mesmos controles de intervalo, Ouvir e À fila. O versículo visível preenche
+  o intervalo inicial, como antes; campos vazios continuam significando capítulo inteiro.
+- O Menu recebe a passagem diretamente do leitor. Na lista de livros ou em outro
+  módulo, não apresenta um atalho baseado em uma passagem antiga do histórico.
+- O módulo Áudio e o player permanecem disponíveis nos locais existentes.
+
 ## Troca de tradução bíblica — 0.6.15
 
 - Controle **Tradução da Bíblia → Trocar ▾** visível no topo da leitura e da escolha

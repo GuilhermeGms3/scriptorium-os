@@ -1,5 +1,19 @@
 # Project Memory
 
+## Leitura compacta e áudio no Menu — 2026-11-04
+
+- 0.6.16/code28: troca de tradução somente na lista de livros, oculta na grade de
+  capítulos e na leitura. Ouvir passagem removido do leitor e disponível no Menu
+  somente com capítulo aberto; recebe passagem/edição/versículo/intervalo diretamente
+  de ReaderScreen. Fora da leitura não reaproveita referência antiga do histórico.
+- Diálogo preserva Ouvir/À fila e intervalo (3–5); capítulo sem seleção usa campos
+  vazios para capítulo inteiro. Motor de áudio sem mudanças; Menu com rolagem.
+- 93JVM/build/lint passaram(0erros/48avisos); 2UI no Pixel8 passaram. Sem teste novo
+  de qualidade da voz. Samsung atualizado para APK final0.6.16, notas SHA e ponteiro
+  do acervo iguais antes/depois. Sem backup/wipe/importação de conteúdo.
+- KitDesktop02/11 atualizado apenas APK+delivery+LEIA-ME; SHA final9b0b2248…daa20f.
+  Evidências:docs/qa/android-reader-menu-2026-11-04.md. Emulador compartilhado preservado.
+
 ## Seletor de tradução Android — 2026-11-04
 
 - 0.6.15/code27: botão Tradução da Bíblia/Trocar visível em ReaderScreen, inclusive

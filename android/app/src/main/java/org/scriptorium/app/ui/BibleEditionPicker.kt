@@ -30,19 +30,17 @@ internal fun BibleEditionButton(edition: Edition, navigation: ReadingNavigation,
 
 @Composable
 internal fun BibleEditionPicker(editions: List<Edition>, selected: Edition, navigation: ReadingNavigation,
-                                loading: Boolean, error: String?, close: () -> Unit, choose: (Edition) -> Unit) {
-    AlertDialog(onDismissRequest = { if (!loading) close() }, title = { Text("Trocar tradução da Bíblia") },
-        confirmButton = { TextButton(onClick = close, enabled = !loading) { Text("Fechar") } }, text = {
+                                close: () -> Unit, choose: (Edition) -> Unit) {
+    AlertDialog(onDismissRequest = close, title = { Text("Trocar tradução da Bíblia") },
+        confirmButton = { TextButton(onClick = close) { Text("Fechar") } }, text = {
             Column {
                 Text("Traduções e textos originais instalados. Algumas edições possuem apenas parte da Bíblia.", style = MaterialTheme.typography.bodySmall)
-                if (loading) LinearProgressIndicator(Modifier.fillMaxWidth().padding(vertical = 8.dp))
-                error?.let { Text(it, Modifier.padding(vertical = 8.dp), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall) }
                 LazyColumn(Modifier.heightIn(max = 360.dp).selectableGroup()) {
                     items(editions, key = { it.id }) { edition ->
-                        Row(Modifier.fillMaxWidth().selectable(selected = edition.id == selected.id, enabled = !loading,
+                        Row(Modifier.fillMaxWidth().selectable(selected = edition.id == selected.id,
                             role = Role.RadioButton, onClick = { choose(edition) }).padding(vertical = 10.dp),
                             verticalAlignment = Alignment.CenterVertically) {
-                            RadioButton(selected = edition.id == selected.id, onClick = null, enabled = !loading)
+                            RadioButton(selected = edition.id == selected.id, onClick = null)
                             Text(navigation.editionTitle(edition.id, edition.title), Modifier.weight(1f).padding(start = 8.dp))
                         }
                     }

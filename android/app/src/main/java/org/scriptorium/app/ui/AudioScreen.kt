@@ -192,19 +192,17 @@ fun AudioTextActions(title: String, text: String, language: String, source: JSON
 }
 
 @Composable
-fun ScriptureAudioActions(repository: MobileRepository, passage: Passage) {
+fun ScriptureAudioDialog(repository: MobileRepository, passage: Passage, close: () -> Unit) {
     val audio = LocalAudioClient.current
-    var dialog by remember { mutableStateOf(false) }
     var start by remember(passage) { mutableStateOf(passage.verse?.toString().orEmpty()) }
     var end by remember(passage) { mutableStateOf((passage.verseEnd ?: passage.verse)?.toString().orEmpty()) }
-    TextButton(onClick = { dialog = true }) { Text("Ouvir passagem") }
-    if (dialog) AlertDialog(onDismissRequest = { dialog = false }, title = { Text("${passage.title} ${passage.chapter}") }, text = {
+    AlertDialog(onDismissRequest = close, title = { Text("${passage.title} ${passage.chapter}") }, text = {
         Column {
             Text("Deixe os campos vazios para o capítulo inteiro. Para ouvir capítulos sucessivos, adicione-os à mesma fila.")
             OutlinedTextField(start, { start = it.filter(Char::isDigit).take(3) }, label = { Text("Do versículo") })
             OutlinedTextField(end, { end = it.filter(Char::isDigit).take(3) }, label = { Text("Até o versículo") })
         }
-    }, confirmButton = { TextButton(onClick = { audio.scripture(repository, passage, start.toIntOrNull(), end.toIntOrNull() ?: start.toIntOrNull(), false); dialog = false }) { Text("Ouvir") } }, dismissButton = {
-        Row { TextButton(onClick = { audio.scripture(repository, passage, start.toIntOrNull(), end.toIntOrNull() ?: start.toIntOrNull(), true); dialog = false }) { Text("À fila") }; TextButton(onClick = { dialog = false }) { Text("Cancelar") } }
+    }, confirmButton = { TextButton(onClick = { audio.scripture(repository, passage, start.toIntOrNull(), end.toIntOrNull() ?: start.toIntOrNull(), false); close() }) { Text("Ouvir") } }, dismissButton = {
+        Row { TextButton(onClick = { audio.scripture(repository, passage, start.toIntOrNull(), end.toIntOrNull() ?: start.toIntOrNull(), true); close() }) { Text("À fila") }; TextButton(onClick = close) { Text("Cancelar") } }
     })
 }

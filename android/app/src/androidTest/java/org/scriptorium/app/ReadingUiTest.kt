@@ -50,26 +50,27 @@ class ReadingUiTest {
             val expected = requireNotNull(repo.passageInEdition(initial, target))
             preferences.savePassage(initial)
             context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
-            waitNode("Seu scriptorium"); openSavedReading()
-            waitNode("Tradução da Bíblia"); waitActiveIndicator("Navegar: Versículo 3")
-            capture("bible-edition-button-0615")
+            waitNode("Seu scriptorium"); click("Leitura")
+            waitNode("Tradução da Bíblia")
+            capture("bible-edition-book-list-0616")
             click("Trocar ▾"); waitNode("Trocar tradução da Bíblia")
             val title = repo.navigation.editionTitle(target.id, target.title)
-            reveal(title); capture("bible-edition-picker-0615"); click(title)
-            waitNode("Tradução da Bíblia"); waitActiveIndicator("Navegar: Versículo 3")
+            reveal(title); click(title)
+            click("Continuar leitura"); waitActiveIndicator("Navegar: Versículo 3")
+            assertFalse(nodes().any { it.text?.toString() in listOf("Tradução da Bíblia", "Trocar ▾", "Ouvir passagem") })
             val text = repo.verses(expected).first { 3 in it.number("verse_start")..it.number("verse_end").coerceAtLeast(it.number("verse_start")) }.text("surface_text")
             waitNode(text, false)
             val saved = requireNotNull(decodePassage(preferences.lastPassage(), editions))
             assertEquals(target.id, saved.edition.id); assertEquals("genesis", saved.bookId); assertEquals(1, saved.chapter); assertEquals(3, saved.verse)
-            capture("bible-edition-switched-0615")
+            capture("bible-reading-clean-0616")
+            click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
             editions.firstOrNull { repo.passageInEdition(expected, it) == null }?.let { unavailable ->
                 click("Trocar ▾"); val missingTitle = repo.navigation.editionTitle(unavailable.id, unavailable.title)
                 reveal(missingTitle); click(missingTitle)
-                waitNode("Esta passagem não está disponível nesta edição", false)
+                click("Continuar leitura")
+                waitNode("A última passagem não está disponível nesta tradução", false)
                 assertEquals(target.id, requireNotNull(decodePassage(preferences.lastPassage(), editions)).edition.id)
-                capture("bible-edition-unavailable-0615"); click("Fechar")
             }
-            click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
             click("Trocar ▾"); val sourceTitle = repo.navigation.editionTitle(source.id, source.title)
             reveal(sourceTitle); click(sourceTitle)
             assertEquals(source.id, preferences.bibleEditionId)
@@ -77,13 +78,43 @@ class ReadingUiTest {
             assertEquals(source.id, requireNotNull(decodePassage(preferences.lastPassage(), editions)).edition.id)
             click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
             click("Gênesis"); waitNode("Tradução: $sourceTitle")
-            capture("bible-edition-book-picker-0615")
-            println("BIBLE_EDITION0615_QA visible/switchActualText/sameVerse/unavailableRefused/bookPickerPreference/resumeWithChosenEdition passed")
+            assertFalse(nodes().any { it.text?.toString() == "Trocar ▾" })
+            capture("bible-chapter-picker-0616")
+            println("BIBLE_EDITION0616_QA onlyBookList/sameVerse/unavailableRefused/bookPickerPreference/resumeWithChosenEdition passed")
         } finally {
             preferences.appearance = appearance
             decodePassage(originalPassage, repo.scriptureEditions())?.let(preferences::savePassage)
             preferences.bibleEditionId = originalEdition
         }
+    }
+    @Test fun chapterNarrationAppearsOnlyInMenuAndTracksTheActiveChapter() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val preferences = ReadingPreferences(instrumentation.targetContext)
+        val appearance = preferences.appearance
+        try {
+            preferences.appearance = appearance.copy(motion = false)
+            startAt("Gn1:3–5"); click("Leitura"); waitNode("Tradução da Bíblia")
+            click("Menu"); waitNode("Seu scriptorium")
+            assertFalse(nodes().any { it.text?.toString() == "Ouvir passagem" })
+            click("Voltar à página"); click("Continuar leitura"); waitActiveIndicator("Navegar: Versículo 3")
+            assertFalse(nodes().any { it.text?.toString() in listOf("Tradução da Bíblia", "Trocar ▾", "Ouvir passagem") })
+            click("Menu"); waitNode("Ouvir passagem"); waitNode("Gênesis 1")
+            capture("chapter-audio-menu-0616"); click("Ouvir passagem")
+            waitNode("Gênesis 1"); waitNode("Do versículo"); waitNode("Até o versículo")
+            assertEquals(listOf("3", "5"), nodes().filter { it.isEditable }.map { it.text.toString() })
+            waitNode("Ouvir"); waitNode("À fila"); capture("chapter-audio-range-0616"); click("Cancelar")
+            click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
+            click("Gênesis"); click("2"); waitActiveIndicator("Navegar: Versículo 1")
+            click("Menu"); waitNode("Ouvir passagem"); waitNode("Gênesis 2"); click("Ouvir passagem")
+            waitNode("Gênesis 2")
+            // A chapter opened without a selected verse keeps both fields empty: narrate the whole chapter.
+            assertEquals(listOf("", ""), nodes().filter { it.isEditable }.map { it.text.toString() })
+            capture("chapter-audio-current-chapter-0616"); click("Cancelar")
+            click("Biblioteca"); waitNode("Filtrar títulos"); click("Menu"); waitNode("Seu scriptorium")
+            assertFalse(nodes().any { it.text?.toString() == "Ouvir passagem" })
+            click("Voltar à página")
+            println("CHAPTER_AUDIO0616_QA cleanReader/menuOnly/liveChapter/liveVerse/rangeControls/noStaleLibraryAction passed")
+        } finally { preferences.appearance = appearance }
     }
     @Test fun libraryCoverUsesTheSameBoundedBitmapWithoutRewritingDiskCache() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")

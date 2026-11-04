@@ -16,15 +16,15 @@ import org.scriptorium.app.content.Edition
 import org.scriptorium.app.data.*
 
 @Composable
-fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, requestPanel: Boolean = false, consumePanel: () -> Unit = {}, panelAvailable: (Boolean) -> Unit = {}, consumePassage: () -> Unit = {}) {
+fun ReaderScreen(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, requestPanel: Boolean = false, consumePanel: () -> Unit = {}, panelAvailable: (Boolean) -> Unit = {}, consumePassage: () -> Unit = {}, readingPassage: (Passage?) -> Unit = {}) {
     Load("scripture-editions", repository::scriptureEditions) { editions ->
         if (editions.isEmpty()) Text("Nenhuma edição bíblica instalada. Instale um pacote em Menu → Pacotes.", Modifier.padding(24.dp))
-        else ReaderContent(repository, personal, requested, editions, requestPanel, consumePanel, panelAvailable, consumePassage)
+        else ReaderContent(repository, personal, requested, editions, requestPanel, consumePanel, panelAvailable, consumePassage, readingPassage)
     }
 }
 
 @Composable
-private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit, consumePassage: () -> Unit) {
+private fun ReaderContent(repository: MobileRepository, personal: PersonalRepository, requested: Passage?, editions: List<Edition>, requestPanel: Boolean, consumePanel: () -> Unit, panelAvailable: (Boolean) -> Unit, consumePassage: () -> Unit, readingPassage: (Passage?) -> Unit) {
     val context = LocalContext.current
     val preferences = remember { ReadingPreferences(context) }
     fun restore(raw: String?) = decodePassage(raw, editions)?.let { it.copy(title = repository.navigation.bookTitle(it.bookId, it.title)) }
@@ -47,18 +47,20 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     var readerHistory by rememberSaveable { mutableStateOf(listOf<String>()) }
     var navigationRevision by rememberSaveable { mutableIntStateOf(0) }
     var choosingEdition by rememberSaveable { mutableStateOf(false) }
-    var changingEdition by remember { mutableStateOf(false) }
-    var editionError by remember { mutableStateOf<String?>(null) }
     var resuming by remember { mutableStateOf(false) }
     LaunchedEffect(requested) {
         requested?.let {
             editionId = it.edition.id; passage = it; bookId = null; mode = "Leitura"; visibleVerse = it.verse
-            primary = null; panelOpen = false; readerHistory = emptyList(); preferences.savePassage(it)
+            primary = null; panelOpen = false; choosingEdition = false; readerHistory = emptyList(); preferences.savePassage(it)
             navigationRevision++
             consumePassage()
         }
     }
-    SideEffect { panelAvailable(passage != null && primary == null && page == null) }
+    SideEffect {
+        val available = passage != null && primary == null && page == null
+        panelAvailable(available)
+        readingPassage(if (available) passage?.copy(verse = visibleVerse) else null)
+    }
     LaunchedEffect(requestPanel, passage) { if (requestPanel && passage != null) { panelOpen = true; consumePanel() } }
     val scope = rememberCoroutineScope()
     fun rememberPage() {
@@ -82,27 +84,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
         }
     }
     fun changeEdition(target: Edition) {
-        if (changingEdition) return
-        editionError = null
-        if (target.id == edition.id) { choosingEdition = false; return }
-        val current = passage?.copy(verse = visibleVerse, verseEnd = null)
-        if (current == null) {
-            editionId = target.id; bookId = null; preferences.bibleEditionId = target.id; choosingEdition = false
-            return
-        }
-        changingEdition = true
-        scope.launch {
-            try {
-                val candidate = withContext(Dispatchers.IO) { repository.passageInEdition(current, target) }
-                if (candidate == null) editionError = "Esta passagem não está disponível nesta edição com a mesma referência. Escolha outra tradução ou volte à escolha dos livros."
-                else {
-                    val previousMode = mode
-                    open(candidate); mode = previousMode; panelOpen = false; feedback = null; choosingEdition = false
-                }
-            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
-            catch (_: Exception) { editionError = "Não foi possível abrir esta edição. Tente novamente." }
-            finally { changingEdition = false }
-        }
+        editionId = target.id; bookId = null; preferences.bibleEditionId = target.id; choosingEdition = false; feedback = null
     }
     fun openTool(value: String) {
         passage = passage?.copy(verse = visibleVerse, verseEnd = null)
@@ -137,7 +119,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
                 }
 
             }
-            BibleEditionButton(edition, repository.navigation) { editionError = null; choosingEdition = true }
+            if (passage == null && bookId == null) BibleEditionButton(edition, repository.navigation) { choosingEdition = true }
             feedback?.let { Text(it, Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.labelSmall) }
             val current = passage
             if (current == null && bookId == null) restore(preferences.lastPassage())?.let { last ->
@@ -150,7 +132,6 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             }
             if (current == null) ReadingBookPicker(repository, edition, bookId, { rememberPage(); bookId = it }, ::open, { primary = it }, { page = it })
             else {
-                ScriptureAudioActions(repository, current.copy(verse = visibleVerse))
                 PrimaryTabRow(selectedTabIndex = listOf("Leitura", "Interlinear", "Comparação").indexOf(mode).coerceAtLeast(0)) {
                     listOf("Leitura", "Interlinear", "Comparação").forEach { label ->
                         Tab(selected = mode == label, onClick = { mode = label; panelOpen = false }, text = { Text(label, style = MaterialTheme.typography.labelMedium) })
@@ -168,7 +149,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             }
         }
     }
-    if (choosingEdition) BibleEditionPicker(editions, edition, repository.navigation, changingEdition, editionError,
+    if (choosingEdition && passage == null && bookId == null) BibleEditionPicker(editions, edition, repository.navigation,
         { choosingEdition = false }, ::changeEdition)
     if (panelOpen && passage != null) PassagePanel(repository, personal, requireNotNull(passage).copy(verse = visibleVerse, verseEnd = null),
         explanations, { explanations = it }, category, document, { category = it }, { document = it }, { selected = it },

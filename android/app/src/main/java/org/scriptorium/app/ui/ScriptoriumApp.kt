@@ -30,6 +30,8 @@ fun ScriptoriumApp(model: AppModel) {
     var requestedGuide by rememberSaveable { mutableStateOf<String?>(null) }
     var menu by remember { mutableStateOf(false) }
     var readerHasPassage by remember { mutableStateOf(false) }
+    var readingPassage by remember { mutableStateOf<Passage?>(null) }
+    var narrationPassage by remember { mutableStateOf<Passage?>(null) }
     var requestPanel by remember { mutableStateOf(false) }
     val motion = LocalReadingAppearance.current.motion
     var requestedPassage by remember { mutableStateOf<Passage?>(null) }
@@ -45,6 +47,7 @@ fun ScriptoriumApp(model: AppModel) {
             history = (history + destination).takeLast(30)
             destination = route
             requestPanel = false
+            if (route != "Leitura") { readerHasPassage = false; readingPassage = null }
             val audio = context.getSystemService(android.content.Context.AUDIO_SERVICE) as android.media.AudioManager
             if (preferences.sound && audio.ringerMode == android.media.AudioManager.RINGER_MODE_NORMAL)
                 tones?.startTone(when (route) { "Leitura" -> android.media.ToneGenerator.TONE_PROP_ACK; "Estudos" -> android.media.ToneGenerator.TONE_PROP_PROMPT; else -> android.media.ToneGenerator.TONE_PROP_BEEP }, 65)
@@ -78,7 +81,7 @@ fun ScriptoriumApp(model: AppModel) {
               NavigationBar {
                 listOf("Leitura" to "א", "Biblioteca" to "▤", "Estudos" to "◇", "Notas" to "✎", "Busca" to "⌕").forEach { (route, symbol) ->
                     NavigationBarItem(selected = destination == route, onClick = {
-                        if (route == "Leitura") { requestedPassage = null; readerHasPassage = false; readingEntry++ }
+                        if (route == "Leitura") { requestedPassage = null; readerHasPassage = false; readingPassage = null; readingEntry++ }
                         if (route == "Biblioteca") { requestedLibrary = null; libraryEntry++ }
                         navigate(route)
                     },
@@ -115,7 +118,7 @@ fun ScriptoriumApp(model: AppModel) {
                 (fadeIn(tween(if (motion) 440 else 0)) + slideInVertically(tween(if (motion) 440 else 0)) { if (motion) it / 28 else 0 }).togetherWith(fadeOut(tween(if (motion) 140 else 0)))
             }, label = "Abrir módulo") { route -> screenState.SaveableStateProvider(route) {
                 when (route) {
-                    "Leitura" -> key(readingEntry) { ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it }, { requestedPassage = null }) }
+                    "Leitura" -> key(readingEntry) { ReaderScreen(model.repository, model.personal, requestedPassage, requestPanel, { requestPanel = false }, { readerHasPassage = it }, { requestedPassage = null }, { readingPassage = it }) }
                     "Início" -> TodayScreen(model.repository, open = { requestedPassage = it; navigate("Leitura") }, openGuide = { requestedGuide = it; navigate("Estudos") })
                     "Biblioteca" -> key(libraryEntry) { LibraryScreen(model.repository, model.personal, requestedLibrary) }
                     "Estudos" -> StudyScreen(model.repository, model.personal, requestedGuide, { requestedPassage = it; navigate("Leitura") }, { requestedLibrary = it; navigate("Biblioteca") })
@@ -132,8 +135,16 @@ fun ScriptoriumApp(model: AppModel) {
     }
     if (menu) androidx.compose.ui.window.Dialog(onDismissRequest = { menu = false }) {
         Surface(shape = MaterialTheme.shapes.extraLarge, tonalElevation = 8.dp) {
-            Column(Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Column(Modifier.padding(20.dp).verticalScroll(rememberScrollState()), verticalArrangement = Arrangement.spacedBy(12.dp)) {
                 Text("Seu scriptorium", style = MaterialTheme.typography.titleLarge)
+                if (destination == "Leitura" && readerHasPassage && state.ready && !state.busy) readingPassage?.let { passage ->
+                    OutlinedCard(onClick = { menu = false; narrationPassage = passage }, modifier = Modifier.fillMaxWidth()) {
+                        Column(Modifier.padding(16.dp)) {
+                            Text("Ouvir passagem", style = MaterialTheme.typography.titleSmall)
+                            Text("${passage.title} ${passage.chapter}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.secondary)
+                        }
+                    }
+                }
                 listOf("Início" to "Aparência e leitura", "Áudio" to "Mapa", "Rastro" to "Pacotes", "Notas" to "Ajustes e backup").forEach { pair ->
                     Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                         listOf(pair.first, pair.second).forEach { route ->
@@ -149,4 +160,5 @@ fun ScriptoriumApp(model: AppModel) {
             }
         }
     }
+    narrationPassage?.let { passage -> ScriptureAudioDialog(model.repository, passage) { narrationPassage = null } }
 }
