@@ -22,6 +22,69 @@ import java.io.File
 
 /** Opt-in against the isolated private QA emulator, using the real native accessibility tree. */
 class ReadingUiTest {
+    @Test fun bibleEditionPickerIsVisibleAndSwitchesTheActualTextWithoutLosingThePassage() {
+        assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
+        val context = instrumentation.targetContext
+        InstrumentationRegistry.getArguments().getString("editionPatch")?.let { supplied ->
+            val pointer = AtomicFile(File(context.filesDir, "active-content"))
+            val store = ContentPackageStore(File(context.filesDir, "content"),
+                { pointer.openRead().use { it.readBytes().decodeToString() } }, { id ->
+                    val output = pointer.startWrite()
+                    try { output.write(id.toByteArray()); pointer.finishWrite(output) }
+                    catch (failure: Exception) { pointer.failWrite(output); throw failure }
+                }, Sqlite::validate)
+            File(supplied).inputStream().use { store.install(it) }
+        }
+        val repo = repository()
+        val preferences = ReadingPreferences(context)
+        val appearance = preferences.appearance
+        val originalEdition = preferences.bibleEditionId
+        val originalPassage = preferences.lastPassage()
+        try {
+            preferences.appearance = appearance.copy(motion = false)
+            val editions = repo.scriptureEditions()
+            val source = repo.readingBooks().first { it.row.text("book_id") == "genesis" }.edition
+            val initial = requireNotNull(repo.resolveReference("Gn1:3", source))
+            val target = editions.firstOrNull { it.id != source.id && repo.passageInEdition(initial, it) != null }
+                ?: error("Nenhuma alternativa para ${initial.encoded()}: " + editions.joinToString { "${it.id}/${repo.editionMetadata(it).text("language")}: ${repo.books(it).filter { row -> row.text("book_id") == "genesis" }}" })
+            val expected = requireNotNull(repo.passageInEdition(initial, target))
+            preferences.savePassage(initial)
+            context.startActivity(Intent(context, MainActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK))
+            waitNode("Seu scriptorium"); openSavedReading()
+            waitNode("Tradução da Bíblia"); waitActiveIndicator("Navegar: Versículo 3")
+            capture("bible-edition-button-0615")
+            click("Trocar ▾"); waitNode("Trocar tradução da Bíblia")
+            val title = repo.navigation.editionTitle(target.id, target.title)
+            reveal(title); capture("bible-edition-picker-0615"); click(title)
+            waitNode("Tradução da Bíblia"); waitActiveIndicator("Navegar: Versículo 3")
+            val text = repo.verses(expected).first { 3 in it.number("verse_start")..it.number("verse_end").coerceAtLeast(it.number("verse_start")) }.text("surface_text")
+            waitNode(text, false)
+            val saved = requireNotNull(decodePassage(preferences.lastPassage(), editions))
+            assertEquals(target.id, saved.edition.id); assertEquals("genesis", saved.bookId); assertEquals(1, saved.chapter); assertEquals(3, saved.verse)
+            capture("bible-edition-switched-0615")
+            editions.firstOrNull { repo.passageInEdition(expected, it) == null }?.let { unavailable ->
+                click("Trocar ▾"); val missingTitle = repo.navigation.editionTitle(unavailable.id, unavailable.title)
+                reveal(missingTitle); click(missingTitle)
+                waitNode("Esta passagem não está disponível nesta edição", false)
+                assertEquals(target.id, requireNotNull(decodePassage(preferences.lastPassage(), editions)).edition.id)
+                capture("bible-edition-unavailable-0615"); click("Fechar")
+            }
+            click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
+            click("Trocar ▾"); val sourceTitle = repo.navigation.editionTitle(source.id, source.title)
+            reveal(sourceTitle); click(sourceTitle)
+            assertEquals(source.id, preferences.bibleEditionId)
+            click("Continuar leitura"); waitActiveIndicator("Navegar: Versículo 3")
+            assertEquals(source.id, requireNotNull(decodePassage(preferences.lastPassage(), editions)).edition.id)
+            click("← Voltar pra escolha"); waitNode("Escrituras e textos antigos")
+            click("Gênesis"); waitNode("Tradução: $sourceTitle")
+            capture("bible-edition-book-picker-0615")
+            println("BIBLE_EDITION0615_QA visible/switchActualText/sameVerse/unavailableRefused/bookPickerPreference/resumeWithChosenEdition passed")
+        } finally {
+            preferences.appearance = appearance
+            decodePassage(originalPassage, repo.scriptureEditions())?.let(preferences::savePassage)
+            preferences.bibleEditionId = originalEdition
+        }
+    }
     @Test fun libraryCoverUsesTheSameBoundedBitmapWithoutRewritingDiskCache() {
         assumeTrue(InstrumentationRegistry.getArguments().getString("uiQa") == "true")
         val cache = instrumentation.targetContext.cacheDir

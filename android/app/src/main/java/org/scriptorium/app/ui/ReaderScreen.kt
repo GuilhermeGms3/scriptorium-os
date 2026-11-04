@@ -30,7 +30,7 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     fun restore(raw: String?) = decodePassage(raw, editions)?.let { it.copy(title = repository.navigation.bookTitle(it.bookId, it.title)) }
     val passageSaver = Saver<Passage?, String>(save = { it?.encoded().orEmpty() }, restore = ::restore)
     var passage by rememberSaveable(stateSaver = passageSaver) { mutableStateOf<Passage?>(null) }
-    var editionId by rememberSaveable { mutableStateOf(passage?.edition?.id ?: editions.first().id) }
+    var editionId by rememberSaveable { mutableStateOf(passage?.edition?.id ?: preferences.bibleEditionId ?: restore(preferences.lastPassage())?.edition?.id ?: editions.first().id) }
     val edition = editions.firstOrNull { it.id == editionId } ?: editions.first()
     var bookId by rememberSaveable { mutableStateOf<String?>(null) }
     var explanations by rememberSaveable { mutableStateOf(true) }
@@ -46,6 +46,10 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
     var feedback by remember { mutableStateOf<String?>(null) }
     var readerHistory by rememberSaveable { mutableStateOf(listOf<String>()) }
     var navigationRevision by rememberSaveable { mutableIntStateOf(0) }
+    var choosingEdition by rememberSaveable { mutableStateOf(false) }
+    var changingEdition by remember { mutableStateOf(false) }
+    var editionError by remember { mutableStateOf<String?>(null) }
+    var resuming by remember { mutableStateOf(false) }
     LaunchedEffect(requested) {
         requested?.let {
             editionId = it.edition.id; passage = it; bookId = null; mode = "Leitura"; visibleVerse = it.verse
@@ -61,6 +65,45 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
         readerHistory = (readerHistory + org.json.JSONObject().put("edition", editionId).put("book", bookId).put("passage", passage?.encoded()).toString()).takeLast(30)
     }
     fun open(value: Passage) { if (value != passage) rememberPage(); editionId = value.edition.id; passage = value; mode = "Leitura"; preferences.savePassage(value) }
+    fun resume(last: Passage) {
+        if (resuming) return
+        resuming = true
+        val selectedEdition = edition
+        val selectionId = editionId
+        scope.launch {
+            try {
+                val candidate = withContext(Dispatchers.IO) { repository.passageInEdition(last, selectedEdition) }
+                if (editionId != selectionId) return@launch
+                if (candidate != null) { feedback = null; open(candidate) }
+                else feedback = "A última passagem não está disponível nesta tradução. Escolha outro livro ou outra tradução."
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) { feedback = "Não foi possível retomar a leitura. Tente novamente." }
+            finally { resuming = false }
+        }
+    }
+    fun changeEdition(target: Edition) {
+        if (changingEdition) return
+        editionError = null
+        if (target.id == edition.id) { choosingEdition = false; return }
+        val current = passage?.copy(verse = visibleVerse, verseEnd = null)
+        if (current == null) {
+            editionId = target.id; bookId = null; preferences.bibleEditionId = target.id; choosingEdition = false
+            return
+        }
+        changingEdition = true
+        scope.launch {
+            try {
+                val candidate = withContext(Dispatchers.IO) { repository.passageInEdition(current, target) }
+                if (candidate == null) editionError = "Esta passagem não está disponível nesta edição com a mesma referência. Escolha outra tradução ou volte à escolha dos livros."
+                else {
+                    val previousMode = mode
+                    open(candidate); mode = previousMode; panelOpen = false; feedback = null; choosingEdition = false
+                }
+            } catch (cancelled: kotlinx.coroutines.CancellationException) { throw cancelled }
+            catch (_: Exception) { editionError = "Não foi possível abrir esta edição. Tente novamente." }
+            finally { changingEdition = false }
+        }
+    }
     fun openTool(value: String) {
         passage = passage?.copy(verse = visibleVerse, verseEnd = null)
         mode = value
@@ -94,12 +137,13 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
                 }
 
             }
+            BibleEditionButton(edition, repository.navigation) { editionError = null; choosingEdition = true }
             feedback?.let { Text(it, Modifier.padding(horizontal = 20.dp), style = MaterialTheme.typography.labelSmall) }
             val current = passage
             if (current == null && bookId == null) restore(preferences.lastPassage())?.let { last ->
-                OutlinedButton(onClick = { open(last) }, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
+                OutlinedButton(onClick = { resume(last) }, enabled = !resuming, modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp)) {
                     Row(Modifier.fillMaxWidth(), verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Text("Continuar leitura", style = MaterialTheme.typography.labelLarge)
+                        Text(if (resuming) "Abrindo leitura…" else "Continuar leitura", style = MaterialTheme.typography.labelLarge)
                         Text("${last.title} ${last.chapter}${last.verse?.let { ":$it" }.orEmpty()}", Modifier.weight(1f).padding(start = 8.dp), maxLines = 1, overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis, textAlign = androidx.compose.ui.text.style.TextAlign.End, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.secondary)
                     }
                 }
@@ -124,6 +168,8 @@ private fun ReaderContent(repository: MobileRepository, personal: PersonalReposi
             }
         }
     }
+    if (choosingEdition) BibleEditionPicker(editions, edition, repository.navigation, changingEdition, editionError,
+        { choosingEdition = false }, ::changeEdition)
     if (panelOpen && passage != null) PassagePanel(repository, personal, requireNotNull(passage).copy(verse = visibleVerse, verseEnd = null),
         explanations, { explanations = it }, category, document, { category = it }, { document = it }, { selected = it },
         ::openTool, { panelOpen = false })

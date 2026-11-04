@@ -29,7 +29,7 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
     var filter by rememberSaveable { mutableStateOf("Bíblia") }
     var group by rememberSaveable { mutableStateOf<String?>(null) }
     var query by rememberSaveable { mutableStateOf("") }
-    Load("reading-book-catalog", repository::readingBooks) { catalog ->
+    Load("reading-book-catalog:${edition.id}", { repository.readingBooks(edition.id) }) { catalog ->
         val books = catalog.map { it.row }
         val referenceQuery = isReadingReference(query)
         val referenceLookup by produceState<ReadingLookup?>(null, query, catalog) {
@@ -68,6 +68,7 @@ fun ReadingBookPicker(repository: MobileRepository, edition: Edition, bookId: St
             Column(Modifier.padding(horizontal = 16.dp)) {
                 TextButton(onClick = { chooseBook(null) }) { Text("← Livros") }
                 Heading(chosen.text("title"), "Escolha o capítulo para abrir a leitura.")
+                Text("Tradução: ${repository.navigation.editionTitle(chosenEdition.id, chosenEdition.title)}", style = MaterialTheme.typography.labelSmall)
                 LazyVerticalGrid(GridCells.Adaptive(64.dp), contentPadding = PaddingValues(bottom = 24.dp)) {
                     items((1..chosen.number("chapters")).toList()) { chapter ->
                         OutlinedButton(onClick = { open(Passage(chosenEdition, chosen.text("id"), chosen.text("book_id"), chosen.text("title"), chapter, chosen.text("scheme"))) }, modifier = Modifier.padding(4.dp), contentPadding = PaddingValues(4.dp)) { Text(chapter.toString()) }

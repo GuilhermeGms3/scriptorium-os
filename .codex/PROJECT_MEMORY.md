@@ -1,5 +1,20 @@
 # Project Memory
 
+## Seletor de tradução Android — 2026-11-04
+
+- 0.6.15/code27: botão Tradução da Bíblia/Trocar visível em ReaderScreen, inclusive
+  na seleção de livros. Controle estava ausente até0.6.14; não era apenas menu oculto.
+- Troca consulta edição real, preserva referência com mesmo work/book/scheme e valida
+  verso disponível. Indisponibilidade mantém leitura. Preferência local; catálogo
+  prioriza edição escolhida sem remover livros exclusivos de outras edições.
+- Continuar leitura respeita a edição selecionada e recusa passagem indisponível,
+  em vez de restaurar silenciosamente a tradução anterior do histórico.
+- 93JVM/build/lint passaram (0erros/48avisos); 1UIinstrumentado passou com BPM/SBL reais
+  adicionados por patch QA ao Pixel8. Acervo antigo só tinha BLI navegável. Patch69MB
+  temporário removido; sem cópia integral nova. Emulador compartilhado mantido aberto.
+- KitDesktop02/11 recebeuAPK0.6.15,manifesto/LEIA-ME atualizados; acervo65/24 intacto.
+  NÃO instalado no telefone físico. docs/qa/android-bible-edition-picker-2026-11-04.md.
+
 ## Filtros da biblioteca Android e proposta de piloto — 2026-11-02
 
 - 0.6.14/code26: filtros combináveis de tipo sugerido, assunto documental, idioma,

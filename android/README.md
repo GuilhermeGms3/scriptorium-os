@@ -1,5 +1,20 @@
 # Scriptorium Android — leitura nativa e kit completo
 
+## Troca de tradução bíblica — 0.6.15
+
+- Controle **Tradução da Bíblia → Trocar ▾** visível no topo da leitura e da escolha
+  de livros. O diálogo lista as edições bíblicas instaladas e identifica a atual.
+- A troca preserva livro, capítulo e versículo visível quando a outra edição contém
+  a passagem no mesmo esquema de referência. Não assume equivalência entre esquemas
+  diferentes; quando falta a passagem, mantém a leitura atual e explica o motivo.
+- A seleção é lembrada no aparelho. A escolha de livros prioriza a tradução escolhida;
+  livros disponíveis somente em outras edições continuam acessíveis, com a edição
+  efetivamente usada indicada na seleção de capítulos.
+- Continuar leitura também respeita a tradução escolhida, validando a passagem
+  antes de retomar; não retorna silenciosamente à edição anterior.
+- Traduções parciais e textos originais permanecem identificados como edições do
+  acervo. O seletor não baixa novas traduções automaticamente.
+
 ## Filtros e rolagem da biblioteca — 0.6.14
 
 - Filtros combináveis por tipo de obra, assunto relacionado e idioma, com ordenação

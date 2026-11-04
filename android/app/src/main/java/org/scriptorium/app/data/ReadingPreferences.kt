@@ -1,12 +1,16 @@
 package org.scriptorium.app.data
 
 import android.content.Context
+import androidx.core.content.edit
 
 /** Device navigation/preferences only; never written to an immutable content package. */
 class ReadingPreferences(context: Context) {
     private val preferences = context.getSharedPreferences("reading", Context.MODE_PRIVATE)
     fun lastPassage(): String? = preferences.getString("last-passage", null)
-    fun savePassage(passage: Passage) { preferences.edit().putString("last-passage", passage.encoded()).apply() }
+    fun savePassage(passage: Passage) { preferences.edit { putString("last-passage", passage.encoded()); putString("bible-edition", passage.edition.id) } }
+    var bibleEditionId: String?
+        get() = preferences.getString("bible-edition", null)
+        set(value) { preferences.edit { putString("bible-edition", value) } }
     fun bookPage(documentId: String): Int = preferences.getInt("book-page:$documentId", 0).coerceAtLeast(0)
     fun saveBookPage(documentId: String, page: Int) { preferences.edit().putInt("book-page:$documentId", page.coerceAtLeast(0)).apply() }
     /** Until the reader opens a verse's actions once, the chapter shows how to reach them. */

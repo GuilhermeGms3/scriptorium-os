@@ -35,8 +35,8 @@ data class RequestedReference(val book: Row, val chapter: Int, val verse: Int?, 
 data class ReadingBook(val edition: Edition, val row: Row)
 
 /** The book catalogue is independent of the last passage's (possibly partial) edition. */
-fun readingBookCatalog(editions: List<Pair<Edition, List<Row>>>): List<ReadingBook> = editions
-    .sortedBy { if (it.first.id == "biblia-livre-n4-2025.1.0") 0 else 1 }
+fun readingBookCatalog(editions: List<Pair<Edition, List<Row>>>, preferredEditionId: String? = null): List<ReadingBook> = editions
+    .sortedBy { when (it.first.id) { preferredEditionId -> 0; "biblia-livre-n4-2025.1.0" -> 1; else -> 2 } }
     .flatMap { (edition, books) -> books.map { ReadingBook(edition, it) } }
     .distinctBy { it.row.text("book_id") }
 

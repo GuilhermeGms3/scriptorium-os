@@ -60,7 +60,11 @@ class MobileRepository(private val store: ContentPackageStore, val navigation: R
             } }
         }
     }
-    fun readingBooks(): List<ReadingBook> = readingBookCatalog(scriptureEditions().map { it to books(it) })
+    fun readingBooks(preferredEditionId: String? = null): List<ReadingBook> = readingBookCatalog(scriptureEditions().map { it to books(it) }, preferredEditionId)
+    fun passageInEdition(passage: Passage, edition: Edition): Passage? {
+        val candidate = editionPassage(passage, edition, books(edition)) ?: return null
+        return candidate.takeIf { passageAvailable(it, verses(it)) }
+    }
     fun books(edition: Edition): List<Row> {
         val cacheKey = "${store.current()?.manifest?.id}:${edition.id}"
         return bookCache.getOrPut(cacheKey) {
