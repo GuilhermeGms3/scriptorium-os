@@ -1,7 +1,12 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
+import { Sparkles } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { replayIntro } from "../components/shell/intro-controller";
 import { useWorkbench } from "../lib/workbench/workbench-context";
 import { t } from "../lib/i18n";
+import { PageContainer } from "../components/layout/page-container";
+import { PageHeader } from "../components/layout/page-header";
 
 export const Route = createFileRoute("/about")({
   head: () => ({ meta: [{ title: t("about.metaTitle") }] }),
@@ -12,12 +17,12 @@ function AboutPage() {
   const { setPassageContext } = useWorkbench();
   useEffect(() => setPassageContext(null), [setPassageContext]);
   return (
-    <article className="mx-auto max-w-3xl px-5 py-8 md:px-8">
-      <p className="meta-label">{t("common.about")}</p>
-      <h1 className="mt-1 font-serif text-3xl font-semibold">Scriptorium</h1>
-      <p className="mt-1 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-        {t("about.tagline")}
-      </p>
+    <PageContainer width="narrow">
+      <PageHeader
+        eyebrow={t("common.about")}
+        title="Scriptorium"
+        description={t("about.tagline")}
+      />
       <p className="mt-6 font-serif text-lg leading-relaxed">{t("about.intro")}</p>
       <div className="mt-8 grid gap-6 sm:grid-cols-2">
         <Info title={t("about.whatIs")} text={t("about.whatIsText")} />
@@ -31,7 +36,12 @@ function AboutPage() {
           {t("about.perspectivesText")}
         </p>
       </section>
-    </article>
+      <section className="mt-8 border-t border-border pt-5">
+        <Button variant="outline" onClick={replayIntro}>
+          <Sparkles className="size-4" aria-hidden="true" /> Ver a abertura de novo
+        </Button>
+      </section>
+    </PageContainer>
   );
 }
 function Info({ title, text }: { title: string; text: string }) {

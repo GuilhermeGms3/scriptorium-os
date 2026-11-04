@@ -27,7 +27,10 @@ import sblgntManifestJson from "../../../generated/corpora/sblgnt/1.2/manifest.j
 import bibliaLivreManifestJson from "../../../generated/corpora/biblia-livre/2025.1.0/manifest.json";
 import oshbManifestJson from "../../../generated/corpora/wlc/2.2/manifest.json";
 import bibliaPortuguesaMundialManifestJson from "../../../generated/corpora/biblia-portuguesa-mundial/2026-08-19/manifest.json";
+import kingJamesManifestJson from "../../../generated/corpora/king-james-version/2026-09-26/manifest.json";
+import { ebibleEditionManifests, ebibleReaderEditions } from "./ebible-editions-registration";
 import { BIBLIA_LIVRE_EDITION, BIBLIA_LIVRE_EDITION_ID } from "../corpus-config/biblia-livre";
+import { PrivateScriptureRepository } from "./private-scripture-repository";
 
 export type EditionPassageQuery = {
   edition: string;
@@ -42,6 +45,7 @@ const BIBLIA_LIVRE_MANIFEST = bibliaLivreManifestJson as GeneratedCorpusManifest
 const OSHB_MANIFEST = oshbManifestJson as GeneratedCorpusManifest;
 const BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST =
   bibliaPortuguesaMundialManifestJson as GeneratedCorpusManifest;
+const KING_JAMES_MANIFEST = kingJamesManifestJson as GeneratedCorpusManifest;
 const BIBLIA_LIVRE_READER_EDITION: Edition = {
   id: BIBLIA_LIVRE_EDITION.id,
   corpusId: BIBLIA_LIVRE_EDITION.corpusId,
@@ -64,6 +68,18 @@ const BIBLIA_PORTUGUESA_MUNDIAL_EDITION: Edition = {
   direction: "ltr",
   kind: "translation",
   year: 2026,
+  licenseId: "Public-Domain",
+};
+const KING_JAMES_EDITION: Edition = {
+  id: KING_JAMES_MANIFEST.editionId,
+  corpusId: KING_JAMES_MANIFEST.corpusId,
+  title: "King James Version (1769)",
+  abbreviation: "KJV",
+  language: "en",
+  script: "Latn",
+  direction: "ltr",
+  kind: "translation",
+  year: 1769,
   licenseId: "Public-Domain",
 };
 const SBLGNT_EDITION: Edition = {
@@ -94,6 +110,8 @@ const MANIFEST_BY_EDITION = new Map<string, GeneratedCorpusManifest>([
   [SBLGNT_MANIFEST.editionId, SBLGNT_MANIFEST],
   [OSHB_MANIFEST.editionId, OSHB_MANIFEST],
   [BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.editionId, BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST],
+  [KING_JAMES_MANIFEST.editionId, KING_JAMES_MANIFEST],
+  ...ebibleEditionManifests.map((manifest) => [manifest.editionId, manifest] as const),
 ]);
 const CANONICAL_BOOKS: Book[] = BIBLIA_LIVRE_MANIFEST.books.map((book) => ({
   id: book.id,
@@ -104,8 +122,16 @@ const CANONICAL_BOOKS: Book[] = BIBLIA_LIVRE_MANIFEST.books.map((book) => ({
   testament: book.order <= 39 ? "ot" : "nt",
 }));
 const CANONICAL_BOOK_IDS = new Set(CANONICAL_BOOKS.map((book) => book.id));
-const ADDITIONAL_BOOKS: Book[] = BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.books
-  .filter((book) => !CANONICAL_BOOK_IDS.has(book.id))
+// Apocrypha of the BPM, then the ones only the KJV or the Vulgate has (Susanna, Bel, additions…).
+const ADDITIONAL_BOOKS: Book[] = [
+  ...BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.books,
+  ...KING_JAMES_MANIFEST.books,
+  ...ebibleEditionManifests.flatMap((manifest) => manifest.books),
+]
+  .filter(
+    (book, index, all) =>
+      !CANONICAL_BOOK_IDS.has(book.id) && all.findIndex((other) => other.id === book.id) === index,
+  )
   .map((book, index) => ({
     id: book.id,
     name: book.name,
@@ -117,6 +143,11 @@ const ADDITIONAL_BOOKS: Book[] = BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.books
 const GENERATED_BOOKS: Book[] = [...CANONICAL_BOOKS, ...ADDITIONAL_BOOKS];
 const loadedChapterCache = new Map<string, ChapterContent>();
 const loadedTextUnitCache = new Map<string, TextUnit[]>();
+if (typeof window !== "undefined")
+  window.addEventListener("scriptorium:knowledge-changed", () => {
+    loadedChapterCache.clear();
+    loadedTextUnitCache.clear();
+  });
 
 function chapterKey(bookId: string, chapter: number): string {
   return `${bookId}/${chapter}`;
@@ -254,6 +285,36 @@ async function loadChapterFromPackages(
       };
     }
   }
+  const privateUnits = await PrivateScriptureRepository.chapter(bookId, chapter);
+  for (const unit of privateUnits) {
+    const key = addressKey({
+      workId: `work:${bookId}`,
+      bookId,
+      chapter,
+      verseStart: unit.ref.verseStart!,
+      verseEnd: unit.ref.verseStart!,
+      versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+    });
+    const current = rows.get(key) ?? {
+      ref: unit.ref,
+      verse: unit.ref.verseStart!,
+      translations: {},
+      alignmentStatusByEdition: {},
+    };
+    current.translations[unit.editionId] = unit.text;
+    current.alignmentStatusByEdition ??= {};
+    current.alignmentStatusByEdition[unit.editionId] = "partial";
+    rows.set(key, current);
+    textUnits.push(unit);
+    provenanceByEdition[unit.editionId] = {
+      acquisition: "user-provided",
+      creationMethod: "machine-assisted",
+      sourceArtifactIds: [unit.id],
+      attribution:
+        "PDF privado fornecido pelo usuário; extração e correspondência de endereços automáticas, pendentes de revisão.",
+      note: "Capítulo estruturalmente conferido; não é alinhamento semântico palavra a palavra.",
+    };
+  }
   if (!rows.size) return null;
   loadedTextUnitCache.set(chapterKey(bookId, chapter), textUnits);
   return {
@@ -269,8 +330,11 @@ export const ScriptureRepository = {
     return [
       BIBLIA_LIVRE_READER_EDITION,
       BIBLIA_PORTUGUESA_MUNDIAL_EDITION,
+      KING_JAMES_EDITION,
+      ...ebibleReaderEditions,
       SBLGNT_EDITION,
       OSHB_EDITION,
+      ...PrivateScriptureRepository.cachedEditions(),
     ];
   },
   listBooks(): Book[] {
@@ -283,6 +347,7 @@ export const ScriptureRepository = {
     const generated =
       BIBLIA_LIVRE_MANIFEST.books.find((book) => book.id === bookId) ??
       BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST.books.find((book) => book.id === bookId) ??
+      KING_JAMES_MANIFEST.books.find((book) => book.id === bookId) ??
       SBLGNT_MANIFEST.books.find((book) => book.id === bookId);
     const resolved = generated ?? OSHB_MANIFEST.books.find((book) => book.id === bookId);
     return resolved
@@ -304,6 +369,30 @@ export const ScriptureRepository = {
     const loaded = await loadChapterFromPackages(bookId, chapter);
     if (loaded) loadedChapterCache.set(key, loaded);
     return loaded;
+  },
+  /** Edition-specific lazy read for narration: never falls back to a different translation. */
+  async loadEditionTextUnits(
+    bookId: string,
+    chapter: number,
+    editionId: string,
+  ): Promise<TextUnit[]> {
+    if (editionId.startsWith("private:"))
+      return (await PrivateScriptureRepository.chapter(bookId, chapter)).filter(
+        (unit) => unit.editionId === editionId,
+      );
+    const manifest = MANIFEST_BY_EDITION.get(editionId);
+    if (!manifest || !manifest.books.some((book) => book.id === bookId)) return [];
+    const storage = await corpusPackageRegistry.open(editionId, `work:${bookId}`);
+    const units = await storage.getTextUnits(
+      {
+        workId: `work:${bookId}`,
+        bookId,
+        chapter,
+        versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+      },
+      editionId,
+    );
+    return units.map(legacyTextUnit);
   },
   primeChapter(chapter: ChapterContent | null): void {
     if (!chapter) return;
@@ -348,21 +437,9 @@ export const ScriptureRepository = {
     if (!chapter) return {};
     if (chapter.provenanceByEdition) return chapter.provenanceByEdition;
     const result: Record<string, Provenance> = {};
-    if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, BIBLIA_LIVRE_EDITION_ID)))
-      result[BIBLIA_LIVRE_EDITION_ID] = provenanceFor(BIBLIA_LIVRE_MANIFEST, ref.bookId);
-    if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, SBLGNT_EDITION.id)))
-      result[SBLGNT_EDITION.id] = provenanceFor(SBLGNT_MANIFEST, ref.bookId);
-    if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, OSHB_EDITION.id)))
-      result[OSHB_EDITION.id] = provenanceFor(OSHB_MANIFEST, ref.bookId);
-    if (
-      chapter.verses.some((verse) =>
-        Object.hasOwn(verse.translations, BIBLIA_PORTUGUESA_MUNDIAL_EDITION.id),
-      )
-    )
-      result[BIBLIA_PORTUGUESA_MUNDIAL_EDITION.id] = provenanceFor(
-        BIBLIA_PORTUGUESA_MUNDIAL_MANIFEST,
-        ref.bookId,
-      );
+    for (const [editionId, manifest] of MANIFEST_BY_EDITION)
+      if (chapter.verses.some((verse) => Object.hasOwn(verse.translations, editionId)))
+        result[editionId] = provenanceFor(manifest, ref.bookId);
     return result;
   },
   getPassage(query: PassageRef | EditionPassageQuery): VerseContent[] {
@@ -398,14 +475,20 @@ export const ScriptureRepository = {
   },
   async getAvailableEditions(): Promise<Edition[]> {
     const available = await corpusPackageRegistry.listAvailable();
-    return this.listEditions().filter((edition) =>
-      available.some((item) => item.editionId === edition.id),
+    await PrivateScriptureRepository.listEditions();
+    return this.listEditions().filter(
+      (edition) =>
+        edition.id.startsWith("private:") ||
+        available.some((item) => item.editionId === edition.id),
     );
   },
   async getInstalledEditions(): Promise<Edition[]> {
     const installed = await corpusPackageRegistry.listInstalled();
-    return this.listEditions().filter((edition) =>
-      installed.some((item) => item.editionId === edition.id),
+    await PrivateScriptureRepository.listEditions();
+    return this.listEditions().filter(
+      (edition) =>
+        edition.id.startsWith("private:") ||
+        installed.some((item) => item.editionId === edition.id),
     );
   },
   async search(query: CorpusSearchQuery): Promise<CorpusSearchHit[]> {
@@ -421,6 +504,7 @@ export const ScriptureRepository = {
     );
     return results
       .flat()
+      .concat(await PrivateScriptureRepository.search(query))
       .sort((left, right) => right.rank - left.rank)
       .slice(0, query.limit ?? 30);
   },

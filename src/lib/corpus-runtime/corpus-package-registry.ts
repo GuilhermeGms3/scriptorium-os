@@ -11,6 +11,7 @@ import {
   StorageUnavailableError,
 } from "../domain/errors";
 import { SQLiteCorpusStorage } from "./sqlite-corpus-storage";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 interface RuntimeRegistryDocument {
   schemaVersion: 1;
@@ -38,8 +39,7 @@ async function responseBytes(path: string): Promise<Uint8Array> {
   return new Uint8Array(await (await publicAsset(path)).arrayBuffer());
 }
 async function checksum(bytes: Uint8Array): Promise<string> {
-  const digest = await globalThis.crypto.subtle.digest("SHA-256", new Uint8Array(bytes).buffer);
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(bytes, { operation: "A verificação dos textos bíblicos" });
 }
 function packagePaths(
   manifest: CorpusPackageManifest,

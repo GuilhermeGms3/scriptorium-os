@@ -5,6 +5,7 @@ import {
   type WorkspaceDatabase,
   type WorkspaceSqlValue,
 } from "../workspace-runtime/workspace-database";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 export type BibliographicImportFormat = "csl-json" | "bibtex" | "ris";
 export interface ImportIssue {
@@ -217,9 +218,7 @@ function parseRis(input: string): ImportCandidate[] {
 }
 
 async function sha256(value: string): Promise<string> {
-  const bytes = new TextEncoder().encode(value);
-  const digest = await crypto.subtle.digest("SHA-256", bytes);
-  return [...new Uint8Array(digest)].map((byte) => byte.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value);
 }
 function uid(prefix: string): string {
   return `${prefix}:${crypto.randomUUID()}`;

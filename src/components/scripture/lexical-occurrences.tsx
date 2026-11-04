@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { ScriptureKnowledgeEngine } from "../../lib/knowledge-engine/scripture-knowledge-engine";
 import { passageLabel } from "../../lib/i18n";
 import type { TokenOccurrence } from "../../lib/domain/scripture";
+import { LexicalStatistics } from "./lexical-statistics";
 
 export function LexicalOccurrences({
   lexemeId,
@@ -13,7 +14,10 @@ export function LexicalOccurrences({
 }) {
   const [offset, setOffset] = useState(0);
   const [retry, setRetry] = useState(0);
+  const [showStatistics, setShowStatistics] = useState(false);
+  const identity = `${token?.editionId ?? "tagnt"}:${token?.lemmaId ?? lexemeId}`;
   const [result, setResult] = useState<{
+    identity: string;
     offset: number;
     data?: Awaited<ReturnType<typeof ScriptureKnowledgeEngine.getLexicalOccurrences>>;
     error?: string;
@@ -29,17 +33,18 @@ export function LexicalOccurrences({
       : ScriptureKnowledgeEngine.getLexicalOccurrences(lexemeId, offset, 30);
     request.then(
       (data) => {
-        if (active) setResult({ offset, data });
+        if (active) setResult({ identity, offset, data });
       },
       () => {
-        if (active) setResult({ offset, error: "Não foi possível carregar as ocorrências." });
+        if (active)
+          setResult({ identity, offset, error: "Não foi possível carregar as ocorrências." });
       },
     );
     return () => {
       active = false;
     };
-  }, [lexemeId, offset, retry, token]);
-  const page = result?.offset === offset ? result : null;
+  }, [identity, lexemeId, offset, retry, token]);
+  const page = result?.identity === identity && result.offset === offset ? result : null;
   if (!page)
     return (
       <p role="status" className="text-sm text-muted-foreground">
@@ -64,6 +69,15 @@ export function LexicalOccurrences({
   const data = page.data!;
   return (
     <div className="space-y-3">
+      <button
+        type="button"
+        aria-expanded={showStatistics}
+        className="rounded border border-input px-2 py-1 text-xs"
+        onClick={() => setShowStatistics((value) => !value)}
+      >
+        {showStatistics ? "Ocultar estatísticas" : "Distribuição e palavras vizinhas"}
+      </button>
+      {showStatistics && <LexicalStatistics lexemeId={lexemeId} {...(token ? { token } : {})} />}
       <p className="text-sm">
         {token ? "Ocorrências no corpus" : "Ocorrências alinhadas no NT"}:{" "}
         <strong>{data.total.toLocaleString("pt-BR")}</strong>

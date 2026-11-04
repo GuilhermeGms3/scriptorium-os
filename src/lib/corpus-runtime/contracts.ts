@@ -21,7 +21,10 @@ export const CorpusPackageManifestSchema = z.object({
   databasePath: z.string().min(1),
   checksum: z.string().regex(/^[a-f0-9]{64}$/i),
   sourceChecksum: z.string().regex(/^[a-f0-9]{64}$/i),
-  buildFingerprint: z.string().regex(/^[a-f0-9]{64}$/i).optional(),
+  buildFingerprint: z
+    .string()
+    .regex(/^[a-f0-9]{64}$/i)
+    .optional(),
   sizeBytes: z.number().int().nonnegative(),
   downloadSizeBytes: z.number().int().nonnegative().optional(),
   storageSizeBytes: z.number().int().nonnegative().optional(),
@@ -144,6 +147,7 @@ export interface CorpusSearchHit {
 }
 
 export interface CorpusStorage {
+  getLexicalStatistics(lemmaId: string, window?: number): Promise<LexicalStatistics>;
   getPackageManifest(): Promise<CorpusPackageManifest>;
   getWork(workId: string): Promise<{ id: string; title: string; sequence: number } | null>;
   getTextUnits(address: PassageAddress, editionId?: string): Promise<StoredTextUnit[]>;
@@ -160,4 +164,13 @@ export interface CorpusStorage {
   getCrosswalk(anchor: TextAnchor, targetSchemeId: string): Promise<CrosswalkRelation[]>;
   search(query: CorpusSearchQuery): Promise<CorpusSearchHit[]>;
   close(): void;
+}
+
+export interface LexicalStatistics {
+  editionId: string;
+  lemmaId: string;
+  total: number;
+  window: number;
+  books: { bookId: string; count: number }[];
+  neighbors: { lemma: string; direction: "before" | "after"; distance: number; count: number }[];
 }

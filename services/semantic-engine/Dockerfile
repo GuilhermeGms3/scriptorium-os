@@ -3,15 +3,20 @@ FROM python:3.12-slim-bookworm
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     HF_HOME=/models/huggingface
+ENV PATH="/app/.venv/bin:$PATH" \
+    SCRIPTORIUM_PIPELINE_DATA=/models/semantic-index
 
 WORKDIR /app
 
 RUN groupadd --system --gid 1001 scriptorium \
     && useradd --system --uid 1001 --gid scriptorium --create-home scriptorium
 
-COPY pyproject.toml ./
+COPY pyproject.toml uv.lock ./
 COPY --chown=scriptorium:scriptorium app ./app
-RUN pip install --no-cache-dir .
+RUN pip install --no-cache-dir uv==0.11.26 \
+    && uv sync --locked --no-dev --no-cache
+
+RUN mkdir -p /models/huggingface && chown -R scriptorium:scriptorium /models
 
 USER scriptorium
 EXPOSE 8018

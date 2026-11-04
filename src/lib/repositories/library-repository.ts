@@ -12,7 +12,11 @@ import {
 } from "../domain/bibliography";
 import { SourceNotFoundError } from "../domain/errors";
 import type { PrivateDocument } from "../domain/private-document";
-import { getWorkspaceDatabase, type WorkspaceRow } from "../workspace-runtime/workspace-database";
+import {
+  getWorkspaceDatabase,
+  type WorkspaceDatabase,
+  type WorkspaceRow,
+} from "../workspace-runtime/workspace-database";
 import { PrivateDocumentRepository } from "./private-document-repository";
 
 function text(row: WorkspaceRow, key: string): string {
@@ -29,14 +33,6 @@ function json<T>(row: WorkspaceRow, key: string, fallback: T): T {
   return typeof value === "string" ? (JSON.parse(value) as T) : fallback;
 }
 
-async function authorIds(sourceId: string): Promise<string[]> {
-  const db = await getWorkspaceDatabase();
-  return (
-    await db.query("SELECT author_id FROM source_authors WHERE source_id=? ORDER BY ordinal", [
-      sourceId,
-    ])
-  ).map((row) => text(row, "author_id"));
-}
 async function identifiers(
   table: "source_identifiers" | "edition_identifiers",
   ownerColumn: "source_id" | "edition_id",
@@ -49,7 +45,55 @@ async function identifiers(
     ),
   );
 }
-async function mapSource(row: WorkspaceRow): Promise<BibliographicSource> {
+/**
+ * Many sources with their authors and identifiers in three queries, instead of two extra queries
+ * per source (each one a round trip to the worker, or an HTTP request in installation mode).
+ */
+async function mapSources(
+  rows: readonly WorkspaceRow[],
+  database?: WorkspaceDatabase,
+): Promise<BibliographicSource[]> {
+  const db = database ?? (await getWorkspaceDatabase());
+  const authorsBySource = new Map<string, string[]>();
+  const identifiersBySource = new Map<string, Record<string, string>>();
+  const ids = rows.map((row) => text(row, "id"));
+  for (let start = 0; start < ids.length; start += 400) {
+    const batch = ids.slice(start, start + 400);
+    const placeholders = batch.map(() => "?").join(",");
+    for (const author of await db.query(
+      `SELECT source_id,author_id FROM source_authors WHERE source_id IN (${placeholders}) ORDER BY source_id,ordinal`,
+      batch,
+    )) {
+      const sourceId = text(author, "source_id");
+      authorsBySource.set(sourceId, [
+        ...(authorsBySource.get(sourceId) ?? []),
+        text(author, "author_id"),
+      ]);
+    }
+    for (const identifier of await db.query(
+      `SELECT source_id,scheme,value FROM source_identifiers WHERE source_id IN (${placeholders})`,
+      batch,
+    )) {
+      const sourceId = text(identifier, "source_id");
+      identifiersBySource.set(sourceId, {
+        ...identifiersBySource.get(sourceId),
+        [text(identifier, "scheme")]: text(identifier, "value"),
+      });
+    }
+  }
+  return rows.map((row) =>
+    sourceFromRow(
+      row,
+      authorsBySource.get(text(row, "id")) ?? [],
+      identifiersBySource.get(text(row, "id")) ?? {},
+    ),
+  );
+}
+function sourceFromRow(
+  row: WorkspaceRow,
+  sourceAuthorIds: string[],
+  sourceIdentifiers: Record<string, string>,
+): BibliographicSource {
   return BibliographicSourceSchema.parse({
     id: text(row, "id"),
     ...(optionalText(row, "work_id") ? { workId: optionalText(row, "work_id") } : {}),
@@ -60,8 +104,8 @@ async function mapSource(row: WorkspaceRow): Promise<BibliographicSource> {
     title: text(row, "title"),
     sourceType: text(row, "source_type"),
     ...(optionalText(row, "language") ? { language: optionalText(row, "language") } : {}),
-    authorIds: await authorIds(text(row, "id")),
-    identifiers: await identifiers("source_identifiers", "source_id", text(row, "id")),
+    authorIds: sourceAuthorIds,
+    identifiers: sourceIdentifiers,
     ...(typeof row["publication_year"] === "number"
       ? { publicationYear: row["publication_year"] }
       : {}),
@@ -124,6 +168,9 @@ export interface LibraryFilters {
   collectionId?: string;
   hasCitations?: boolean;
   hasLocalFile?: boolean;
+  /** "title" (default) for the catalog; "recent" for what was added or changed last. */
+  orderBy?: "title" | "recent";
+  limit?: number;
 }
 export interface SourceDetails {
   source: BibliographicSource;
@@ -139,8 +186,11 @@ export type CatalogSearchHit =
   | { kind: "work"; id: string; label: string; detail?: string };
 
 export const LibraryRepository = {
-  async listSources(filters: LibraryFilters = {}): Promise<BibliographicSource[]> {
-    const db = await getWorkspaceDatabase();
+  async listSources(
+    filters: LibraryFilters = {},
+    database?: WorkspaceDatabase,
+  ): Promise<BibliographicSource[]> {
+    const db = database ?? (await getWorkspaceDatabase());
     const clauses: string[] = [];
     const bind: (string | number | null)[] = [];
     if (filters.query?.trim()) {
@@ -173,15 +223,15 @@ export const LibraryRepository = {
     if (filters.hasLocalFile)
       clauses.push("EXISTS(SELECT 1 FROM source_assets a WHERE a.source_id=s.id)");
     const result = await db.query(
-      `SELECT s.* FROM bibliographic_sources s ${clauses.length ? `WHERE ${clauses.join(" AND ")}` : ""} ORDER BY s.title COLLATE NOCASE`,
-      bind,
+      `SELECT s.* FROM bibliographic_sources s ${clauses.length ? `WHERE ${clauses.join(" AND ")}` : ""} ORDER BY ${filters.orderBy === "recent" ? "s.updated_at DESC" : "s.title COLLATE NOCASE"}${filters.limit ? " LIMIT ?" : ""}`,
+      filters.limit ? [...bind, filters.limit] : bind,
     );
-    return Promise.all(result.map(mapSource));
+    return mapSources(result, db);
   },
-  async getSource(id: string): Promise<BibliographicSource | null> {
-    const db = await getWorkspaceDatabase();
+  async getSource(id: string, database?: WorkspaceDatabase): Promise<BibliographicSource | null> {
+    const db = database ?? (await getWorkspaceDatabase());
     const row = (await db.query("SELECT * FROM bibliographic_sources WHERE id=?", [id]))[0];
-    return row ? mapSource(row) : null;
+    return row ? ((await mapSources([row], db))[0] ?? null) : null;
   },
   async searchCatalog(query: string, limit = 10): Promise<CatalogSearchHit[]> {
     const db = await getWorkspaceDatabase();

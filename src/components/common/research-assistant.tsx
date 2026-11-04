@@ -15,13 +15,13 @@ export function ResearchAssistant({ contextLabel }: { contextLabel?: string }) {
     >
       <div className="flex items-center gap-2">
         <Bot className="size-4 text-muted-foreground" strokeWidth={1.75} />
-        <h3 className="text-[13px] font-medium">{t("assistant.label")}</h3>
-        <span className="rounded border border-border px-1 py-px font-mono text-[9px] tracking-wider text-muted-foreground uppercase">
+        <h3 className="text-sm font-medium">{t("assistant.label")}</h3>
+        <span className="rounded border border-border px-1 py-px meta-label tracking-wider text-muted-foreground">
           {t("assistant.preview")}
         </span>
       </div>
 
-      <div className="mt-2.5 flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-[13px] text-muted-foreground">
+      <div className="mt-2.5 flex items-center gap-1.5 rounded-md border border-input bg-background px-2.5 py-1.5 text-sm text-muted-foreground">
         {t("assistant.ask", { context: contextLabel ?? t("assistant.thisPassage") })}
       </div>
 
@@ -47,12 +47,12 @@ export function ResearchAssistant({ contextLabel }: { contextLabel?: string }) {
 
       <div className="mt-2.5 flex items-center justify-between text-xs">
         <span className="meta-label">{t("assistant.provider")}</span>
-        <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-[11px] text-muted-foreground">
+        <span className="rounded border border-border bg-background px-1.5 py-0.5 font-mono text-xs text-muted-foreground">
           {t("assistant.localModel")}
         </span>
       </div>
 
-      <p className="mt-2.5 border-t border-border/60 pt-2 text-[11px] leading-relaxed text-muted-foreground">
+      <p className="mt-2.5 border-t border-border/60 pt-2 text-xs leading-relaxed text-muted-foreground">
         {t("assistant.disclaimer")}
       </p>
     </section>

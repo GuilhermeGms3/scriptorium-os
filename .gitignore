@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+data/workspace/
+# Private Android delivery packages and export reports are not software source.
+data/mobile*/
 __pycache__/
 *.py[cod]
 dist
@@ -32,6 +35,9 @@ generated/corpora/stepbible-tagnt/.import.lock
 # Large reproducible corpus indexes (manifests remain tracked; rebuild with corpus:index)
 public/corpus-packages/*.sqlite3
 public/corpus-packages/**/*.sqlite3
+# The registry lists those local files with their SHA-256; each machine builds different bytes,
+# so a tracked copy made every pull reject the local packages and rebuild them all.
+public/corpus-packages/registry.json
 
 # The small curated knowledge snapshot is intentionally tracked so a clone can
 # inspect the current graph without rebuilding it.

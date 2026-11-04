@@ -13,6 +13,39 @@ export default defineConfig({
   vite: {
     // SQLite's worker/WASM assets are resolved by the package at runtime.
     optimizeDeps: { exclude: ["@sqlite.org/sqlite-wasm"] },
+    // The optional Python companion keeps its virtualenv in the repository; watching its ~30k
+    // files stalls the dev server's SSR module requests on Windows.
+    server: {
+      watch: { ignored: ["**/.venv/**", "**/*.egg-info/**"] },
+      // The dev server serves any file under the project, to any localhost page (another dev
+      // server, a local tool). Private data must only leave through the /api/workspace gate.
+      // Setting deny replaces Vite's defaults, so they are repeated first.
+      fs: {
+        deny: [
+          ".env",
+          ".env.*",
+          "*.{crt,pem}",
+          "**/.git/**",
+          "**/data/workspace/**",
+          "**/livros/**",
+        ],
+      },
+    },
+    build: {
+      rolldownOptions: {
+        output: {
+          codeSplitting: {
+            groups: [
+              {
+                name: "react-runtime",
+                test: /node_modules[\\/](?:react|react-dom|scheduler)[\\/]/,
+                priority: 10,
+              },
+            ],
+          },
+        },
+      },
+    },
   },
   tanstackStart: {
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).

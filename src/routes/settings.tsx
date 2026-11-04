@@ -1,7 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
-import { useWorkbench, type ThemeMode } from "../lib/workbench/workbench-context";
+import { useWorkbench } from "../lib/workbench/workbench-context";
+import { THEMES } from "../lib/workbench/theme";
 import { DEFAULT_LOCALE, formatDecimal, languageLabel, t } from "../lib/i18n";
+import { PageContainer } from "../components/layout/page-container";
+import { PageHeader } from "../components/layout/page-header";
 
 export const Route = createFileRoute("/settings")({
   head: () => ({ meta: [{ title: t("settings.metaTitle") }] }),
@@ -12,26 +15,22 @@ function SettingsPage() {
   const { theme, setTheme, readingPrefs, setReadingPrefs, setPassageContext } = useWorkbench();
   useEffect(() => setPassageContext(null), [setPassageContext]);
   return (
-    <div className="mx-auto max-w-3xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("settings.section")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold">{t("settings.preferences")}</h1>
-        <p className="mt-1.5 text-sm text-muted-foreground">{t("settings.localNotice")}</p>
-      </header>
+    <PageContainer width="narrow">
+      <PageHeader
+        eyebrow={t("settings.section")}
+        title={t("settings.preferences")}
+        description={t("settings.localNotice")}
+      />
       <SettingSection title={t("settings.appearance")}>
         <div className="flex flex-wrap gap-2">
-          {(["light", "dark", "system"] as ThemeMode[]).map((mode) => (
+          {THEMES.map(({ id: mode, label }) => (
             <button
               key={mode}
               onClick={() => setTheme(mode)}
               aria-pressed={theme === mode}
-              className={`rounded-md border px-3 py-1.5 text-xs capitalize ${theme === mode ? "border-primary bg-accent" : "border-input"}`}
+              className={`rounded-md border px-3 py-1.5 text-xs capitalize pointer-coarse:min-h-11 ${theme === mode ? "border-primary bg-accent" : "border-input"}`}
             >
-              {mode === "light"
-                ? t("settings.light")
-                : mode === "dark"
-                  ? t("settings.dark")
-                  : t("settings.system")}
+              {label}
             </button>
           ))}
         </div>
@@ -103,7 +102,7 @@ function SettingsPage() {
           <dd>{t("settings.aiRule")}</dd>
         </dl>
       </SettingSection>
-    </div>
+    </PageContainer>
   );
 }
 function SettingSection({ title, children }: { title: string; children: React.ReactNode }) {

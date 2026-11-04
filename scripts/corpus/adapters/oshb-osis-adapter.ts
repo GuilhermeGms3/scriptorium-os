@@ -107,6 +107,14 @@ function render(tokens: TokenOccurrence[]): string {
 export class OshbOsisAdapter implements CorpusAdapter {
   readonly id = "oshb-osis";
   readonly importerVersion = "1.0.0";
+  readonly transformationType = "parse-osis";
+  readonly structuralDecisions = [
+    "Each OSIS <w> is preserved as a token; slash-delimited source segmentation is not fabricated into word alignments.",
+    "Hebrew surface text, niqqud and cantillation are preserved verbatim; normalization is search-only.",
+    "OSHB lemma and morphology codes are retained verbatim and decoded fields are additive.",
+    "WLC text is public domain; OSHB lemma and morphology data are attributed under CC BY 4.0.",
+    "Generated storage is partitioned by book and chapter.",
+  ];
   supports(manifest: CorpusPackageManifest): boolean {
     return manifest.corpusId === "wlc" && manifest.format === "osis";
   }

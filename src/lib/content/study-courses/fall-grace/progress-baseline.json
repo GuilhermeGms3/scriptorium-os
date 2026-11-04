@@ -1,0 +1,232 @@
+{
+  "id": "queda-graca-providencia",
+  "revision": 1,
+  "modules": [
+    {
+      "id": "sentido",
+      "lessons": [
+        {
+          "id": "sentido:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["sl13", "ec3"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "cinco-vias",
+      "lessons": [
+        {
+          "id": "vias:movimento",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        },
+        {
+          "id": "vias:causa",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        },
+        {
+          "id": "vias:contingencia",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        },
+        {
+          "id": "vias:graus",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        },
+        {
+          "id": "vias:finalidade",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["rm1-razao"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "adao",
+      "lessons": [
+        {
+          "id": "adao:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["gn2", "rm5"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "alteridade",
+      "lessons": [
+        {
+          "id": "alteridade:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["gn1-humanidade", "gn2-encontro", "gn3-acusacao"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "queda",
+      "lessons": [
+        {
+          "id": "queda:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["gn3-queda", "rm8"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "cristo",
+      "lessons": [
+        {
+          "id": "cristo:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["at2", "hb2"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "sheol",
+      "lessons": [
+        {
+          "id": "sheol:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["sl16", "lc16", "ap20"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "graca",
+      "lessons": [
+        {
+          "id": "graca:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["at17", "ef2"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "providencia",
+      "lessons": [
+        {
+          "id": "providencia:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["gn50", "rm8-bem"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "calvinismo",
+      "lessons": [
+        {
+          "id": "calvinismo:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["rm9", "ef1"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "luteranismo",
+      "lessons": [
+        {
+          "id": "luteranismo:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["rm3", "gl5"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "anglicanismo",
+      "lessons": [
+        {
+          "id": "anglicanismo:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["at2-comunidade", "rm12"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "oracao",
+      "lessons": [
+        {
+          "id": "oracao:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["mt6", "mt26"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    },
+    {
+      "id": "sintese",
+      "lessons": [
+        {
+          "id": "sintese:aula",
+          "kinds": ["introduction", "concept", "example", "discussion", "conclusion"]
+        }
+      ],
+      "readings": ["1co13"],
+      "criteria": [
+        "Distingui observações do texto e minhas interpretações.",
+        "Indiquei a passagem ou a fonte usada para sustentar meu argumento.",
+        "Considerei uma alternativa ou um limite da minha conclusão."
+      ]
+    }
+  ]
+}

@@ -1,6 +1,8 @@
 import type { PassageAnalysis, Perspective, StudyLens } from "./analysis";
+import type { Argument } from "./argument";
 import type { Availability, AvailabilityStatus } from "./availability";
 import type { KnowledgeClaim, KnowledgeEntity, KnowledgeRelation } from "./knowledge";
+import type { PerspectiveProfile } from "./perspective";
 import type {
   Edition,
   Lemma,
@@ -52,7 +54,19 @@ export interface PassageKnowledgeAvailability {
   evidence: AvailabilityStatus;
   sources: AvailabilityStatus;
   perspectives: AvailabilityStatus;
+  viewpoints: AvailabilityStatus;
   study: AvailabilityStatus;
+}
+
+/**
+ * Claims of a passage grouped by the perspective profile a cited source attributes them to. A
+ * claim with no linked profile belongs to the `profile: null` group; no profile is ever inferred.
+ */
+export interface PassageViewpoint {
+  profile: PerspectiveProfile | null;
+  claims: KnowledgeClaim[];
+  supportingArguments: Argument[];
+  opposingArguments: Argument[];
 }
 
 export interface PassageKnowledgeBundle {
@@ -76,6 +90,7 @@ export interface PassageKnowledgeBundle {
   claims: Availability<KnowledgeClaim[]>;
   crossReferences: Availability<KnowledgeRelation[]>;
   analyses: Availability<PassageAnalysis[]>;
+  viewpoints: Availability<PassageViewpoint[]>;
   evidence: Availability<SourceFragment[]>;
   lenses: StudyLens[];
   perspectives: Perspective[];

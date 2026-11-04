@@ -4,7 +4,11 @@
 
 The workspace database remains separate because it contains user-owned mutable data. Workspace schema 6 removes the bundled demo chain, including the known localStorage-imported fixture from already-upgraded OPFS databases; schema 5 adds `authors.canonical_entity_id` and seeds bibliographic metadata and reference-only citations. An author can point at a canonical person entity, while organizations, collectives, anonymous works and traditional attributions remain valid without a person identity.
 
-Workspace backup v2 exports library metadata, identifiers, citations, relations, collections, tags, local-asset metadata, studies, notes, questions, annotations, highlights and bookmarks. Binary assets are not embedded. Restore validates the document and checksum, writes in one transaction, rebuilds FTS and checks foreign keys. Schema-v1 research backups remain importable.
+Workspace backup v3 exports everything from v2 plus private-document identity, text-free page
+anchors, document knowledge, proposal decisions, translations and translation jobs. PDF bytes and
+protected extracted text are not embedded. Restore validates the checksum, writes in foreign-key
+order, rebuilds FTS and checks integrity; reimporting the original document rehydrates page text in
+place. Schema-v1 and v2 backups remain importable.
 
 The seed separates project-editorial taxonomy from source-derived observations. John 1 claims are direct observations anchored to SBLGNT/TAGNT, not theological verdicts. Historical creeds and early-Christian works are metadata-only until a concrete digital edition and translation pass a rights review. Synoptic records carry real bibliography but omit unverified page locators and quotations.
 

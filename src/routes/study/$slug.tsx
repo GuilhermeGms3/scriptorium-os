@@ -1,11 +1,19 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { FormEvent, useEffect, useState } from "react";
-import { BookOpen, Library, Network, StickyNote } from "lucide-react";
+import { useEffect, useState } from "react";
+import { BookOpen, Library, Network, Printer, StickyNote } from "lucide-react";
 import { useWorkbench } from "../../lib/workbench/workbench-context";
 import { AnalysisRepository } from "../../lib/repositories/analysis-repository";
 import { passageLabel, studyItemKindLabel, studyLensPresentation, t } from "../../lib/i18n";
 import { StudyRepository } from "../../lib/repositories/study-repository";
 import type { ResearchQuestion } from "../../lib/domain/research";
+import { useWorkspaceQuery } from "../../hooks/use-workspace-query";
+import { errorMessage } from "@/lib/utils";
+import { studyGuideById } from "../../lib/content/study-guides";
+import { PageContainer } from "../../components/layout/page-container";
+import { PageHeader } from "../../components/layout/page-header";
+import { Button } from "../../components/ui/button";
+import { usePrintJob } from "../../components/print/use-print-job";
+import { StudyPrint } from "../../components/print/study-print";
 
 export const Route = createFileRoute("/study/$slug")({
   head: ({ params }) => ({
@@ -26,21 +34,41 @@ const KIND_ICON = {
 
 function StudyWorkspace() {
   const { slug } = Route.useParams();
-  const { notes, studies, addNote, refreshUserData, setPassageContext, workspacePersistence } =
+  const { notes, studies, refreshUserData, setPassageContext, workspacePersistence } =
     useWorkbench();
   const study = studies.find((candidate) => candidate.slug === slug);
-  const [title, setTitle] = useState("");
-  const [body, setBody] = useState("");
   const [question, setQuestion] = useState("");
-  const [questions, setQuestions] = useState<ResearchQuestion[]>([]);
   const lenses = AnalysisRepository.listLenses();
   useEffect(() => setPassageContext(null), [setPassageContext]);
-  useEffect(() => {
-    if (study) void StudyRepository.listResearchQuestions(study.id).then(setQuestions);
-  }, [study]);
+  // Keyed by id: `study` is a new object after every note, which used to refetch the questions.
+  const studyId = study?.id;
+  const questionsQuery = useWorkspaceQuery(
+    ["research-questions", studyId],
+    () => StudyRepository.listResearchQuestions(studyId),
+    { enabled: studyId !== undefined },
+  );
+  const questions = questionsQuery.data ?? [];
+  const [questionError, setQuestionError] = useState<string>();
+  const print = usePrintJob(
+    study
+      ? {
+          title: `Estudo — ${study.title}`,
+          render: () => (
+            <StudyPrint
+              study={study}
+              questions={questions}
+              notes={notes.filter((note) =>
+                note.links.some((link) => link.kind === "study" && link.target === study.id),
+              )}
+              allNotes={notes}
+            />
+          ),
+        }
+      : null,
+  );
 
   if (!study && workspacePersistence === "loading")
-    return <p className="p-8 text-sm text-muted-foreground">Abrindo workspace local…</p>;
+    return <p className="p-8 text-sm text-muted-foreground">Abrindo o estudo…</p>;
   if (!study)
     return (
       <div className="p-8">
@@ -54,26 +82,33 @@ function StudyWorkspace() {
     note.links.some((link) => link.kind === "study" && link.target === study.id),
   );
 
-  const saveNote = async (event: FormEvent) => {
-    event.preventDefault();
-    if (!title.trim() && !body.trim()) return;
-    await addNote(title.trim() || t("study.untitledDeduction"), body.trim(), [
-      { kind: "study", target: study.id, label: study.title },
-    ]);
-    setTitle("");
-    setBody("");
-    await refreshUserData();
-  };
+  const guideId = study.items
+    .find((item) => item.refId.startsWith("study-guide:"))
+    ?.refId.slice("study-guide:".length);
+  const guide = guideId ? studyGuideById(guideId) : undefined;
 
   return (
-    <div className="mx-auto max-w-6xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("study.workspace")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold">{study.title}</h1>
-        <p className="mt-1.5 max-w-3xl text-sm text-muted-foreground">
-          {study.description ?? t("study.privateDescription")}
-        </p>
-      </header>
+    <PageContainer width="wide">
+      <PageHeader
+        eyebrow={t("study.workspace")}
+        title={study.title}
+        description={study.description ?? t("study.privateDescription")}
+        actions={
+          <Button variant="outline" size="sm" onClick={print}>
+            <Printer data-icon="inline-start" /> Imprimir ou salvar PDF
+          </Button>
+        }
+      >
+        {guide && (
+          <Link
+            to="/study/guide/$topic"
+            params={{ topic: guide.id }}
+            className="mb-3 inline-block text-xs text-primary hover:underline"
+          >
+            Voltar ao guia de {guide.title}
+          </Link>
+        )}
+      </PageHeader>
 
       <p className="mt-4 rounded-md border border-border bg-muted/30 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
         Use este estudo como uma mesa de pesquisa: formule uma pergunta, reúna passagens e fontes
@@ -93,13 +128,17 @@ function StudyWorkspace() {
             event.preventDefault();
             const clean = question.trim();
             if (!clean) return;
+            setQuestionError(undefined);
             void StudyRepository.createResearchQuestion({
               question: clean,
               studyId: study.id,
-            }).then(async () => {
-              setQuestion("");
-              setQuestions(await StudyRepository.listResearchQuestions(study.id));
-            });
+            }).then(
+              async () => {
+                setQuestion("");
+                await questionsQuery.refetch();
+              },
+              (cause: unknown) => setQuestionError(errorMessage(cause)),
+            );
           }}
         >
           <label className="min-w-0 flex-1">
@@ -118,14 +157,20 @@ function StudyWorkspace() {
             Adicionar
           </button>
         </form>
+        {(questionError || questionsQuery.error) && (
+          <p role="alert" className="mt-2 text-xs text-destructive">
+            {questionError ??
+              `As perguntas não puderam ser carregadas: ${errorMessage(questionsQuery.error)}`}
+          </p>
+        )}
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {questions.map((item) => (
             <ResearchQuestionItem
               key={item.id}
               item={item}
-              onChanged={async () =>
-                setQuestions(await StudyRepository.listResearchQuestions(study.id))
-              }
+              onChanged={async () => {
+                await questionsQuery.refetch();
+              }}
             />
           ))}
         </ul>
@@ -141,10 +186,10 @@ function StudyWorkspace() {
                 return (
                   <li key={item.id} className="flex items-center gap-2.5 py-2">
                     <Icon className="size-3.5 text-muted-foreground" />
-                    <span className="min-w-0 flex-1 text-[13px]">
+                    <span className="min-w-0 flex-1 text-sm">
                       {item.passageRef ? passageLabel(item.passageRef) : item.label}
                     </span>
-                    <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+                    <span className="meta-label tracking-wider text-muted-foreground">
                       {studyItemKindLabel(item.kind)}
                     </span>
                   </li>
@@ -187,7 +232,7 @@ function StudyWorkspace() {
                 return (
                   <div key={lens.id} className="border-b border-border p-2.5 sm:border-r">
                     <p className="text-xs font-medium">{presentation.label}</p>
-                    <p className="mt-1 text-[11px] leading-relaxed text-muted-foreground">
+                    <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                       {presentation.question}
                     </p>
                   </div>
@@ -199,32 +244,17 @@ function StudyWorkspace() {
 
         <aside id="notes">
           <h2 className="meta-label">3. {t("study.notesDeductions")}</h2>
-          <form
-            onSubmit={(event) => void saveNote(event)}
-            className="mt-2 space-y-2 rounded-md border border-border bg-card p-3"
+          <Link
+            to="/notes"
+            search={{ group: study.id }}
+            className="mt-3 inline-block text-sm text-primary underline"
           >
-            <input
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              placeholder={t("common.title")}
-              aria-label={t("study.noteTitle")}
-              className="h-8 w-full border-b border-border bg-transparent text-sm outline-none"
-            />
-            <textarea
-              value={body}
-              onChange={(e) => setBody(e.target.value)}
-              placeholder={t("study.notePlaceholder")}
-              aria-label={t("study.noteBody")}
-              className="min-h-24 w-full resize-y bg-transparent text-[13px] leading-relaxed outline-none"
-            />
-            <button className="rounded-md bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground">
-              {t("common.saveLocally")}
-            </button>
-          </form>
+            Abrir notas desta investigação
+          </Link>
           <ul className="mt-3 space-y-2">
-            {linkedNotes.map((note) => (
+            {linkedNotes.slice(0, 3).map((note) => (
               <li key={note.id} className="border-l-2 border-border pl-3">
-                <p className="text-[13px] font-medium">{note.title}</p>
+                <p className="text-sm font-medium">{note.title}</p>
                 <p className="mt-0.5 whitespace-pre-wrap text-xs leading-relaxed text-muted-foreground">
                   {note.body || t("study.emptyNote")}
                 </p>
@@ -236,7 +266,7 @@ function StudyWorkspace() {
           </ul>
         </aside>
       </div>
-    </div>
+    </PageContainer>
   );
 }
 
@@ -257,7 +287,7 @@ function ResearchQuestionItem({
           aria-label="Status da pergunta"
           value={status}
           onChange={(event) => setStatus(event.target.value as ResearchQuestion["status"])}
-          className="h-7 min-w-0 flex-1 rounded border border-input bg-background px-1 text-[10px]"
+          className="h-8 min-w-0 flex-1 rounded border border-input bg-background px-1 text-xs"
         >
           <option value="open">Aberta</option>
           <option value="investigating">Investigando</option>
@@ -273,7 +303,7 @@ function ResearchQuestionItem({
               ...(conclusion.trim() ? { provisionalConclusion: conclusion } : {}),
             }).then(onChanged)
           }
-          className="rounded border border-input px-2 text-[10px]"
+          className="rounded border border-input px-2 text-xs"
         >
           Salvar
         </button>
@@ -283,7 +313,7 @@ function ResearchQuestionItem({
         value={conclusion}
         onChange={(event) => setConclusion(event.target.value)}
         placeholder="Conclusão provisória pessoal"
-        className="mt-1 min-h-14 w-full rounded border border-input bg-background p-1.5 text-[10px]"
+        className="mt-1 min-h-14 w-full rounded border border-input bg-background p-1.5 text-xs"
       />
     </li>
   );

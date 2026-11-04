@@ -229,3 +229,13 @@ export function knowledgeLabel(id: string, fallback: string): string {
 export function knowledgeSourceLinks(id: string): readonly KnowledgeSourceLink[] {
   return SOURCE_LINKS[id] ?? [];
 }
+
+const ARGUMENT_LABELS: Readonly<Record<string, string>> = {
+  "argument:two-source": "Modelo das duas fontes",
+  "argument:farrer-alternative": "Alternativa de Farrer",
+  "argument:griesbach-alternative": "Alternativa de Griesbach",
+};
+
+export function argumentLabel(id: string, fallback?: string): string {
+  return ARGUMENT_LABELS[id] ?? fallback ?? id;
+}
