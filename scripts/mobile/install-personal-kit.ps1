@@ -1,7 +1,8 @@
 #requires -Version 5.1
 [CmdletBinding()]
-param([string]$Adb, [string]$Serial, [switch]$NoWait)
+param([string]$Adb, [string]$Serial, [switch]$NoWait, [string]$PackageId = 'org.scriptorium.app')
 $ErrorActionPreference = 'Stop'
+if ($PackageId -notmatch '^[A-Za-z][A-Za-z0-9_]*(\.[A-Za-z][A-Za-z0-9_]*)+$') { throw 'Identificador do aplicativo inválido.' }
 $kit = $PSScriptRoot
 $description = Get-Content -LiteralPath (Join-Path $kit 'delivery.json') -Raw | ConvertFrom-Json
 if ($description.format -ne 'scriptorium-private-kit-v1' -or $description.id -notmatch '^[a-f0-9]{64}$') { throw 'Kit incompatível.' }
@@ -37,12 +38,12 @@ function Invoke-AdbChecked([string[]]$CommandArguments) {
 }
 Write-Warning 'Salve suas notas antes da atualização. Não feche o aplicativo durante a preparação inicial do acervo. Na primeira instalação completa, reserve 8 GB livres. Atualizações reutilizam os arquivos já instalados.'
 Invoke-AdbChecked @('install', '-r', (Join-Path $kit 'Scriptorium.apk'))
-Invoke-AdbChecked @('shell', 'am', 'force-stop', 'org.scriptorium.app')
-try { $alreadyInstalled = (& $Adb -s $Serial shell run-as org.scriptorium.app cat files/active-content 2>$null | Out-String).Trim() } catch { $alreadyInstalled = '' }
+Invoke-AdbChecked @('shell', 'am', 'force-stop', $PackageId)
+try { $alreadyInstalled = (& $Adb -s $Serial shell run-as $PackageId cat files/active-content 2>$null | Out-String).Trim() } catch { $alreadyInstalled = '' }
 if ($alreadyInstalled -eq $description.id) {
     Write-Host 'Este acervo já está instalado. Atualizando somente o aplicativo, sem reenviar os livros.'
 } else {
-    Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mkdir', '-p', 'files/incoming')
+    Invoke-AdbChecked @('shell', 'run-as', $PackageId, 'mkdir', '-p', 'files/incoming')
     $target = "files/incoming/$($description.id)"
     if ($manifest.baseId) {
         Write-Host 'Transferindo somente o complemento. Livros e arquivos já instalados serão reutilizados.'
@@ -58,20 +59,20 @@ if ($alreadyInstalled -eq $description.id) {
         Invoke-AdbChecked @('push', (Join-Path $kit 'acervo.scriptorium'), "$staging/acervo.part")
         # The Android shell opens the protected file; run-as receives only a binary pipe.
         # Both paths contain exclusively validated generated identifiers, not user input.
-        Invoke-AdbChecked @('shell', "cat $staging/acervo.part | run-as org.scriptorium.app dd of=$target.part bs=1048576")
+        Invoke-AdbChecked @('shell', "cat $staging/acervo.part | run-as $PackageId dd of=$target.part bs=1048576")
     } finally {
         & $Adb -s $Serial shell rm -f "$staging/acervo.part" 2>$null | Out-Null
         & $Adb -s $Serial shell rmdir $staging 2>$null | Out-Null
     }
-    $receivedHash = (& $Adb -s $Serial shell run-as org.scriptorium.app sha256sum "$target.part" | Out-String).Trim()
+    $receivedHash = (& $Adb -s $Serial shell run-as $PackageId sha256sum "$target.part" | Out-String).Trim()
     if ($LASTEXITCODE -ne 0 -or $receivedHash -notmatch '^([a-fA-F0-9]{64})\s' -or $Matches[1].ToLowerInvariant() -ne $description.packageSha256) { throw 'A cópia no aparelho ficou incompleta ou divergente. Ela não foi entregue ao aplicativo. Confira o cabo USB e execute o instalador novamente; seus dados foram preservados.' }
-    Invoke-AdbChecked @('shell', 'run-as', 'org.scriptorium.app', 'mv', "$target.part", "$target.scriptorium")
+    Invoke-AdbChecked @('shell', 'run-as', $PackageId, 'mv', "$target.part", "$target.scriptorium")
 }
-Invoke-AdbChecked @('shell', 'am', 'start', '-n', 'org.scriptorium.app/.MainActivity')
+Invoke-AdbChecked @('shell', 'am', 'start', '-n', "$PackageId/.MainActivity")
 if ($NoWait) { Write-Host 'Arquivos entregues. Aguarde a conferência no aplicativo; a instalação do acervo ainda não foi confirmada.'; return }
 $deadline = [DateTime]::UtcNow.AddMinutes(30)
 while ([DateTime]::UtcNow -lt $deadline) {
-    try { $active = (& $Adb -s $Serial shell run-as org.scriptorium.app cat files/active-content 2>$null | Out-String).Trim() } catch { $active = '' }
+    try { $active = (& $Adb -s $Serial shell run-as $PackageId cat files/active-content 2>$null | Out-String).Trim() } catch { $active = '' }
     if ($active -eq $description.id) { Write-Host 'Acervo confirmado no aparelho. Aplicativo e livros foram entregues juntos; os dados pessoais foram mantidos.'; return }
     Write-Progress -Activity 'Preparando o acervo no Android' -Status 'Aguarde a verificação no aplicativo. A primeira instalação pode demorar.'
     Start-Sleep -Seconds 5

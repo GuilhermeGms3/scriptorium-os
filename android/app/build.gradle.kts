@@ -12,8 +12,27 @@ android {
         versionCode = 28
         versionName = "0.6.16"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
+        manifestPlaceholders["appLabel"] = "Scriptorium"
     }
-    buildFeatures { compose = true }
+    buildFeatures {
+        compose = true
+        buildConfig = true
+    }
+    buildTypes {
+        create("trial") {
+            initWith(getByName("debug"))
+            applicationIdSuffix = ".trial"
+            versionNameSuffix = "-30d"
+            manifestPlaceholders["appLabel"] = "Scriptorium • 30 dias"
+            buildConfigField("boolean", "TRIAL_BUILD", "true")
+        }
+        getByName("debug") {
+            buildConfigField("boolean", "TRIAL_BUILD", "false")
+        }
+        getByName("release") {
+            buildConfigField("boolean", "TRIAL_BUILD", "false")
+        }
+    }
     sourceSets.getByName("main").assets.directories.add(layout.buildDirectory.dir("generated/reading-assets").get().asFile.absolutePath)
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17

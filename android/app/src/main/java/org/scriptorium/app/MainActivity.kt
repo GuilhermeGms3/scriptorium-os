@@ -9,6 +9,7 @@ import androidx.compose.runtime.*
 import androidx.compose.material3.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import org.scriptorium.app.ui.ScriptoriumApp
+import org.scriptorium.app.ui.TrialAccessGate
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,7 +33,10 @@ class MainActivity : ComponentActivity() {
             val model: AppModel = viewModel()
             CompositionLocalProvider(org.scriptorium.app.ui.LocalReadingAppearance provides appearance,
                 org.scriptorium.app.ui.LocalAudioClient provides model.audio) {
-                MaterialTheme(colorScheme = org.scriptorium.app.ui.readingColors(appearance.theme)) { ScriptoriumApp(model) }
+                MaterialTheme(colorScheme = org.scriptorium.app.ui.readingColors(appearance.theme)) {
+                    if (BuildConfig.TRIAL_BUILD) TrialAccessGate { ScriptoriumApp(model) }
+                    else ScriptoriumApp(model)
+                }
             }
         }
     }

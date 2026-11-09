@@ -5,7 +5,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
     <queries><intent><action android:name="android.intent.action.TTS_SERVICE" /></intent></queries>
-    <application android:theme="@style/AppTheme" android:label="Scriptorium"
+    <application android:theme="@style/AppTheme" android:label="${appLabel}"
         android:allowBackup="false" android:fullBackupContent="false"
         android:icon="@drawable/scriptorium_icon" android:dataExtractionRules="@xml/data_extraction_rules"
         android:supportsRtl="true" android:usesCleartextTraffic="false">

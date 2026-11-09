@@ -3,6 +3,7 @@ import { afterEach, beforeEach, expect, it, vi } from "vitest";
 import {
   mkdtempSync,
   mkdirSync,
+  existsSync,
   writeFileSync,
   readFileSync,
   rmSync,
@@ -33,7 +34,10 @@ function fixture() {
   writeFileSync(apk, "DEMO APK — not installable; tests packaging only");
   const installerDirectory = join(root, "scripts/mobile");
   mkdirSync(installerDirectory, { recursive: true });
-  writeFileSync(join(installerDirectory, "install-personal-kit.ps1"), "# DEMO installer fixture");
+  writeFileSync(
+    join(installerDirectory, "install-personal-kit.ps1"),
+    readFileSync(resolve(import.meta.dirname, "install-personal-kit.ps1"), "utf8"),
+  );
   const database = join(source, "content.sqlite3");
   writeFileSync(database, "DEMO bytes — tests packaging, not SQLite");
   const manifest = MobileManifestSchema.parse({
@@ -79,6 +83,50 @@ it("ships the APK, the whole package, an installer and checksums in one private 
     Object.keys(unzipSync(readFileSync(join(output, "Scriptorium-completo.zip")))),
   ).toHaveLength(6);
   expect(readFileSync(join(output, "instalar.ps1"), "utf8").charCodeAt(0)).toBe(0xfeff);
+});
+it("accepts a separate trial APK and describes its 30-day activation flow", () => {
+  const { root, source, output } = fixture();
+  const trialApk = join(root, "trial.apk");
+  writeFileSync(trialApk, "TRIAL APK fixture");
+  buildPersonalKit(root, source, output, false, trialApk, 30);
+  const files = unzipSync(readFileSync(join(output, "Scriptorium-completo.zip")));
+  expect(Buffer.from(files["Scriptorium.apk"]!)).toEqual(readFileSync(trialApk));
+  expect(Buffer.from(files["LEIA-ME.md"]!).toString()).toContain("primeira abertura com internet");
+  const description = JSON.parse(readFileSync(join(output, "delivery.json"), "utf8")) as Record<
+    string,
+    unknown
+  >;
+  expect(description["apkSha256"]).toBe(fileHash(trialApk));
+});
+it("can move a freshly exported corpus into a standalone folder without duplicating it", () => {
+  const { root, source, output } = fixture();
+  const trialApk = join(root, "trial.apk");
+  writeFileSync(trialApk, "TRIAL APK fixture");
+  const originalPackage = readFileSync(join(source, "acervo.scriptorium"));
+  buildPersonalKit(root, source, output, false, trialApk, 30, false, true);
+  expect(readFileSync(join(output, "acervo.scriptorium"))).toEqual(originalPackage);
+  expect(existsSync(join(source, "acervo.scriptorium"))).toBe(false);
+  expect(existsSync(join(output, "Scriptorium-completo.zip"))).toBe(false);
+  expect(readFileSync(join(output, "Scriptorium.apk"))).toEqual(readFileSync(trialApk));
+});
+it("targets the trial package in its USB installer without changing the standard default", () => {
+  const { root, source, output } = fixture();
+  const trialApk = join(root, "trial.apk");
+  writeFileSync(trialApk, "TRIAL APK fixture");
+  buildPersonalKit(
+    root,
+    source,
+    output,
+    false,
+    trialApk,
+    30,
+    false,
+    false,
+    "org.scriptorium.app.trial",
+  );
+  const installer = readFileSync(join(output, "instalar.ps1"), "utf8");
+  expect(installer).toContain("$PackageId = 'org.scriptorium.app.trial'");
+  expect(installer).toContain("run-as $PackageId");
 });
 it("never overwrites an existing output directory", () => {
   const { root, source, output } = fixture();

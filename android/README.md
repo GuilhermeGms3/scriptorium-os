@@ -371,6 +371,26 @@ Linux/macOS: `./gradlew` com as mesmas tarefas. APK de desenvolvimento:
 `app/build/outputs/apk/debug/app-debug.apk`. O APK sozinho não contém livros; o kit os coentrega.
 A assinatura de produção e publicação na Play Store ainda não estão configuradas.
 
+## Distribuição privada com prazo de 30 dias
+
+Gere um pacote completo novo sem as notas pessoais do proprietário e depois o kit separado:
+
+```powershell
+npm run mobile:export -- --output "$env:TEMP/mobile-trial-20261109" --workspace data/workspace/workspace.sqlite3 --complete --without-personal
+npm run mobile:trial-bundle -- --package "$env:TEMP/mobile-trial-20261109" --output F:/DSF/Scriptorium-Android-30-dias
+```
+
+O comando cria uma variante Android com ID próprio (`org.scriptorium.app.trial`), que pode coexistir
+com a instalação normal. O prazo começa na primeira abertura com internet; uma data HTTPS alimenta
+a validação e o estado local fica cifrado pelo Android Keystore. Após ativada, a aplicação funciona
+offline e detecta regressões no relógio local que exigem nova validação. O kit final deixa o APK,
+o acervo e instruções na mesma pasta. O arquivo grande é preparado no disco do sistema e copiado
+uma única vez para F:, evitando faltar espaço durante a montagem.
+
+Sem backend de licenças, limpar os dados ou reinstalar apaga o estado local e permite nova ativação;
+isso atende uma distribuição privada simples, mas não é controle comercial resistente a adulteração.
+O kit pode incluir fontes privadas protegidas por direitos; compartilhe somente com autorização.
+
 ## Levar o acervo do PC
 
 Na raiz do repositório, após os índices existentes estarem gerados:
