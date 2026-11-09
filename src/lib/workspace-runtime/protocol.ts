@@ -3,6 +3,7 @@ export type WorkspaceRow = Record<string, WorkspaceSqlValue>;
 
 export type WorkspaceRequest =
   | { id: number; type: "init" }
+  | { id: number; type: "export-snapshot" }
   | { id: number; type: "query"; sql: string; bind?: WorkspaceSqlValue[] }
   | { id: number; type: "execute"; sql: string; bind?: WorkspaceSqlValue[] }
   | { id: number; type: "transaction"; statements: { sql: string; bind?: WorkspaceSqlValue[] }[] }
@@ -18,7 +19,7 @@ export type WorkspaceResponse =
   | { id: number; ok: false; error: { name: string; message: string } };
 
 export interface WorkspaceDatabase {
-  readonly persistence: "opfs" | "memory";
+  readonly persistence: "opfs" | "memory" | "installation";
   query(sql: string, bind?: WorkspaceSqlValue[]): Promise<WorkspaceRow[]>;
   execute(sql: string, bind?: WorkspaceSqlValue[]): Promise<void>;
   transaction(statements: { sql: string; bind?: WorkspaceSqlValue[] }[]): Promise<void>;

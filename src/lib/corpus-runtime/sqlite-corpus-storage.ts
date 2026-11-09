@@ -8,6 +8,7 @@ import type {
   CorpusSearchHit,
   CorpusSearchQuery,
   CorpusStorage,
+  LexicalStatistics,
   StoredToken,
   StoredTokenAnnotation,
   StoredTokenLocation,
@@ -301,6 +302,42 @@ export class SQLiteCorpusStorage implements CorpusStorage {
       items.push({ token, textUnit });
     }
     return { total: totalRow ? numberValue(totalRow, "total") : 0, items };
+  }
+
+  async getLexicalStatistics(lemmaId: string, window = 2): Promise<LexicalStatistics> {
+    if (!Number.isSafeInteger(window) || window < 1 || window > 5)
+      throw new RangeError("Janela lexical inválida.");
+    const manifest = await this.getPackageManifest();
+    const books = rows(
+      this.#database,
+      `SELECT coalesce((SELECT a.book_id FROM text_addresses a WHERE a.text_unit_id=u.id AND a.versification_scheme_id=u.versification_scheme_id ORDER BY a.id LIMIT 1),'unknown') AS book_id,count(*) AS n
+      FROM tokens t JOIN text_units u ON u.id=t.text_unit_id WHERE t.lemma_id=? AND u.edition_id=? GROUP BY book_id ORDER BY n DESC,book_id`,
+      [lemmaId, manifest.editionId],
+    ).map((row) => ({ bookId: stringValue(row, "book_id"), count: numberValue(row, "n") }));
+    const neighbors = rows(
+      this.#database,
+      `SELECT CASE WHEN n.language IN ('hbo','arc') OR n.lemma_text IS NULL OR n.lemma_text GLOB '*[0-9]*' THEN n.surface_form ELSE n.lemma_text END AS lemma,
+      CASE WHEN n.position<t.position THEN 'before' ELSE 'after' END AS direction,
+      abs(n.position-t.position) AS distance,count(*) AS n
+      FROM tokens t JOIN text_units u ON u.id=t.text_unit_id
+      JOIN tokens n ON n.text_unit_id=t.text_unit_id AND n.position BETWEEN t.position-? AND t.position+? AND n.position<>t.position
+      WHERE t.lemma_id=? AND u.edition_id=? GROUP BY lemma,direction,distance ORDER BY n DESC,lemma,direction,distance LIMIT 24`,
+      [window, window, lemmaId, manifest.editionId],
+    ).map((row) => ({
+      lemma: stringValue(row, "lemma"),
+      direction:
+        stringValue(row, "direction") === "before" ? ("before" as const) : ("after" as const),
+      distance: numberValue(row, "distance"),
+      count: numberValue(row, "n"),
+    }));
+    return {
+      editionId: manifest.editionId,
+      lemmaId,
+      window,
+      total: books.reduce((sum, book) => sum + book.count, 0),
+      books,
+      neighbors,
+    };
   }
 
   async getLexicalEntriesByReference(system: string, value: string): Promise<StoredLexicalEntry[]> {

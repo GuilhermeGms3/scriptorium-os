@@ -1,6 +1,11 @@
 @import "tailwindcss" source(none);
 @source "../src";
 @import "tw-animate-css";
+@import "./components/shell/intro-splash.css";
+@import "./components/shell/today-inscriptions.css";
+@import "./study-reading.css";
+@import "./components/study/study-topic.css";
+@import "./components/study/academic-course.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -179,8 +184,7 @@
   /* Dense, unobtrusive scrollbars for panel-heavy layouts */
   * {
     scrollbar-width: thin;
-    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent)
-      transparent;
+    scrollbar-color: color-mix(in oklab, var(--foreground) 22%, transparent) transparent;
   }
   *::-webkit-scrollbar {
     width: 8px;
@@ -212,7 +216,7 @@
   /* Small metadata / reference label used across panels */
   .meta-label {
     font-family: var(--font-mono);
-    font-size: 0.625rem;
+    font-size: 0.75rem;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     color: var(--color-muted-foreground);

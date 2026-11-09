@@ -1,3 +1,4 @@
+import { installationAvailable, installationFetch } from "../workspace-runtime/installation-client";
 const ROOT_DIRECTORY = "scriptorium";
 const DOCUMENT_DIRECTORY = "private-documents";
 
@@ -19,9 +20,28 @@ async function directory(): Promise<FileSystemDirectoryHandle> {
   const application = await root.getDirectoryHandle(ROOT_DIRECTORY, { create: true });
   return application.getDirectoryHandle(DOCUMENT_DIRECTORY, { create: true });
 }
+export async function readBrowserOriginal(checksum: string): Promise<File> {
+  if (!/^[a-f0-9]{64}$/iu.test(checksum)) throw new Error("Checksum inválido.");
+  return (await (await directory()).getFileHandle(`${checksum}.pdf`)).getFile();
+}
 
 export const PrivateDocumentStorage = {
+  async read(checksum: string): Promise<File> {
+    if (!/^[a-f0-9]{64}$/iu.test(checksum)) throw new Error("Checksum do documento inválido.");
+    if (await installationAvailable())
+      return new File(
+        [await (await installationFetch(`documents/${checksum}`)).blob()],
+        `${checksum}.pdf`,
+        { type: "application/pdf" },
+      );
+    return (await (await directory()).getFileHandle(`${checksum}.pdf`)).getFile();
+  },
   async persist(file: File, checksum: string): Promise<string> {
+    if (!/^[a-f0-9]{64}$/iu.test(checksum)) throw new Error("Checksum do documento inválido.");
+    if (await installationAvailable()) {
+      await installationFetch(`documents/${checksum}`, { method: "PUT", body: file });
+      return `installation:/documents/${checksum}.pdf`;
+    }
     const target = await (await directory()).getFileHandle(`${checksum}.pdf`, { create: true });
     const writer = await target.createWritable();
     try {
@@ -35,6 +55,8 @@ export const PrivateDocumentStorage = {
   },
 
   async remove(checksum: string): Promise<void> {
+    if (await installationAvailable())
+      throw new Error("PDF preservado na instalação; exclusão física exige manutenção com backup.");
     const folder = await directory();
     await folder.removeEntry(`${checksum}.pdf`).catch(() => undefined);
   },

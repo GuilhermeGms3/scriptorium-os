@@ -50,7 +50,7 @@ export function AnalysisLenses({
             {t("scripture.studyThroughLenses", { passage: passageLabel })}
           </h2>
         </div>
-        <span className="rounded border border-border px-1.5 py-0.5 font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
+        <span className="rounded border border-border px-1.5 py-0.5 meta-label tracking-wider text-muted-foreground">
           {t("scripture.sourcedContent")}
         </span>
       </div>
@@ -74,17 +74,15 @@ export function AnalysisLenses({
                 ) : (
                   <LibraryBig className="size-3.5 text-muted-foreground" />
                 )}
-                <h3 className="text-[13px] font-medium">{presentation.label}</h3>
+                <h3 className="text-sm font-medium">{presentation.label}</h3>
               </div>
               <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
                 {presentation.description}
               </p>
-              <p className="mt-2 font-mono text-[10px] leading-relaxed text-foreground/75">
+              <p className="mt-2 font-mono text-xs leading-relaxed text-foreground/75">
                 {presentation.question}
               </p>
-              <p className="mt-2 text-[10px] italic text-muted-foreground">
-                {lensAnalysis.summary}
-              </p>
+              <p className="mt-2 text-xs italic text-muted-foreground">{lensAnalysis.summary}</p>
             </article>
           );
         })}

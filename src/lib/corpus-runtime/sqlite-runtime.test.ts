@@ -50,4 +50,34 @@ describe("SQLite corpus runtime", () => {
     const hits = await ScriptureRepository.search({ text: "G3056", lemma: "G3056", limit: 5 });
     expect(hits.some((hit) => hit.textUnit.text.includes("λόγος"))).toBe(true);
   });
+  it("aggregates Greek and Hebrew lexical statistics from indexed tokens", async () => {
+    for (const edition of ["sblgnt-1.2", "wlc-oshb-2.2"]) {
+      const storage = await corpusPackageRegistry.openPart(edition, "linguistic");
+      const units = await storage.getTextUnits({
+        workId: edition === "sblgnt-1.2" ? "work:john" : "work:genesis",
+        versificationSchemeId: DEFAULT_BIBLICAL_VERSIFICATION,
+        chapter: 1,
+        verseStart: 1,
+      });
+      const tokens = await storage.getTokens(units[0]!.id);
+      const token = tokens.find((item) => item.lemmaId);
+      expect(token?.lemmaId).toBeTruthy();
+      const statistics = await storage.getLexicalStatistics(token!.lemmaId!);
+      const occurrences = await storage.findTokensByLemma(token!.lemmaId!, 0, 1);
+      expect(statistics.total).toBe(occurrences.total);
+      expect(statistics.books.reduce((sum, book) => sum + book.count, 0)).toBe(statistics.total);
+      expect(
+        statistics.neighbors.every(
+          (item) => item.distance > 0 && item.distance <= 2 && item.count > 0,
+        ),
+      ).toBe(true);
+      expect(statistics.editionId).toBe(edition);
+      if (edition === "wlc-oshb-2.2")
+        expect(statistics.neighbors.some((item) => /\p{Script=Hebrew}/u.test(item.lemma))).toBe(
+          true,
+        );
+      expect((await storage.getLexicalStatistics("nonexistent")).total).toBe(0);
+      await expect(storage.getLexicalStatistics(token!.lemmaId!, 99)).rejects.toThrow();
+    }
+  }, 60_000);
 });

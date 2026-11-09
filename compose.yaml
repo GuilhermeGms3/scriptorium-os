@@ -7,7 +7,12 @@ services:
     init: true
     restart: unless-stopped
     ports:
-      - "3000:3000"
+      - "127.0.0.1:${SCRIPTORIUM_PORT:-3000}:3000"
+    environment:
+      SCRIPTORIUM_WORKSPACE_DIR: /app/workspace
+      SCRIPTORIUM_SEMANTIC_URL: http://semantic-engine:8018
+    volumes:
+      - ./data/workspace:/app/workspace
     read_only: true
     tmpfs:
       - /tmp:size=64m,mode=1777

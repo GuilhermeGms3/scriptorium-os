@@ -128,6 +128,16 @@ export const PrimarySourceRepository = {
     return result;
   },
 
+  async getUnit(workId: string, unitId: string): Promise<StoredTextUnit | null> {
+    const manifest = (await corpusPackageRegistry.listAvailable()).find((candidate) =>
+      candidate.works.includes(workId),
+    );
+    if (!manifest || !(PRIMARY_SOURCE_EDITIONS as readonly string[]).includes(manifest.editionId))
+      return null;
+    const storage = await corpusPackageRegistry.open(manifest.editionId, workId);
+    const unit = await storage.getTextUnit(unitId);
+    return unit?.workId === workId ? unit : null;
+  },
   async getDocument(workId: string): Promise<PrimarySourceDocument | null> {
     const manifest = (await corpusPackageRegistry.listAvailable()).find((candidate) =>
       candidate.works.includes(workId),

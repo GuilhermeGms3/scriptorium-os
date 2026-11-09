@@ -1,0 +1,13 @@
+{
+  "id": "westminster-confession-v1",
+  "checksum": "3e96a03b674d9c78acaf7e9d15608cf3ae56c1e9190b79777acde87cb77f11e6",
+  "kind": "confession",
+  "strategy": "articles",
+  "firstPage": 3,
+  "lastPage": 21,
+  "headingPattern": "^CAPÍTULO \\d+:[^\\n]*",
+  "expectedSections": 33,
+  "bodyHeight": 12,
+  "authorLabel": "Confissão de Westminster",
+  "traditionLabel": "Reformada"
+}

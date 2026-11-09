@@ -276,6 +276,14 @@ export const LinguisticRepository = {
     };
   },
 
+  async getLexicalStatistics(id: string, token?: TokenOccurrence) {
+    const storage = await corpusPackageRegistry.openPart(
+      token?.editionId ?? manifest.targetEditionId,
+      "linguistic",
+    );
+    return storage.getLexicalStatistics(token?.lemmaId ?? id);
+  },
+
   async getOccurrencesByLexeme(
     id: string,
     offset = 0,
@@ -320,8 +328,7 @@ export const LinguisticRepository = {
     editionId = manifest.targetEditionId,
   ): Promise<LexicalDictionaryEntry[]> {
     const supported = references.filter(
-      (reference) =>
-        reference.system === "strong" && /^[GH]?\d+[A-Za-z]*$/.test(reference.value),
+      (reference) => reference.system === "strong" && /^[GH]?\d+[A-Za-z]*$/.test(reference.value),
     );
     if (!supported.length) return [];
     const storage = await corpusPackageRegistry.openPart(editionId, "linguistic");

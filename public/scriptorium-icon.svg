@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32">
+  <title>Scriptorium</title>
+  <rect width="32" height="32" rx="6" fill="#171b20"/>
+  <path d="M10 6h14v20H10a3 3 0 0 1-3-3V9a3 3 0 0 1 3-3Z" fill="none" stroke="#e5dcc6" stroke-width="2" stroke-linejoin="round"/>
+  <path d="M7 23a3 3 0 0 1 3-3h14M12 6v14" fill="none" stroke="#e5dcc6" stroke-width="2"/>
+  <path d="M16 6v9l3-2 3 2V6" fill="#bca16a"/>
+</svg>

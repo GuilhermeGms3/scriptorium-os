@@ -1,0 +1,677 @@
+/*
+ * Printouts (Imprimir ou salvar PDF). The document waits hidden in .print-root; when a screen has
+ * one, printing shows only it, on A4 sheets in Scriptorium's identity: warm paper, the logo's gold
+ * (#bca16a) and ink (#171b20), Source Serif for reading and IBM Plex for labels.
+ * Unlayered on purpose: it must win over the utility classes the note text reuses.
+ */
+
+.print-root {
+  display: none;
+}
+
+@media print {
+  /* No page margins: the paper reaches the edges and the text keeps its own (see .pd-flow). It also
+     leaves no room for the browser's own header and footer (URL, date), which spoiled the page. */
+  @page {
+    size: A4;
+    margin: 0;
+  }
+
+  /* The dark scheme of a dark theme would paint the page dark when the reader prints
+     backgrounds, even under a white page. */
+  html.print-document-active,
+  html.print-document-active body {
+    height: auto !important;
+    overflow: visible !important;
+    background: #fff !important;
+    color: #2b2823 !important;
+    color-scheme: light !important;
+  }
+
+  html.print-document-active body > :not(.print-root) {
+    display: none !important;
+  }
+
+  html.print-document-active .print-root {
+    display: block;
+  }
+}
+
+/* The page: its own colors, so a dark or sepia reading theme never reaches the paper. */
+.pd-page {
+  --pd-ink: #1d232b;
+  --pd-text: #2b2823;
+  --pd-muted: #6b6456;
+  --pd-gold: #bca16a;
+  --pd-gold-deep: #86682c;
+  --pd-tint: rgb(188 161 106 / 0.1);
+  /* Read by the utility classes inside note text. */
+  --background: #fdfaf3;
+  --foreground: var(--pd-text);
+  --card: #fffdf8;
+  --muted: rgb(188 161 106 / 0.12);
+  --muted-foreground: var(--pd-muted);
+  --primary: var(--pd-ink);
+  --primary-foreground: #fff;
+  --border: rgb(188 161 106 / 0.45);
+  color: var(--pd-text);
+  font-family: var(--font-serif);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pd-page * {
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.pd-page p {
+  margin: 0;
+}
+
+/* Paper, frame and watermark: one fixed layer, repeated on every sheet. */
+.pd-sheet {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  background:
+    radial-gradient(ellipse 80% 70% at 50% 42%, #fffdf8 0%, #fcf7ec 55%, #f2e7cf 100%), #fcf7ec;
+}
+
+.pd-frame {
+  position: absolute;
+  inset: 8mm;
+  border: 0.8pt solid var(--pd-gold);
+}
+
+.pd-frame::after {
+  content: "";
+  position: absolute;
+  inset: 1.3mm;
+  border: 0.35pt solid rgb(188 161 106 / 0.55);
+}
+
+.pd-corner {
+  position: absolute;
+  width: 2.4mm;
+  height: 2.4mm;
+  background: var(--pd-gold);
+  transform: rotate(45deg);
+}
+
+.pd-corner-tl {
+  top: -1.2mm;
+  left: -1.2mm;
+}
+.pd-corner-tr {
+  top: -1.2mm;
+  right: -1.2mm;
+}
+.pd-corner-bl {
+  bottom: -1.2mm;
+  left: -1.2mm;
+}
+.pd-corner-br {
+  bottom: -1.2mm;
+  right: -1.2mm;
+}
+
+.pd-watermark {
+  position: absolute;
+  left: 50%;
+  top: 52%;
+  width: 110mm;
+  height: 110mm;
+  transform: translate(-50%, -50%);
+  opacity: 0.025;
+}
+
+.pd-watermark .pd-mark-book,
+.pd-watermark .pd-mark-ribbon {
+  fill: none;
+  stroke: var(--pd-ink);
+  stroke-width: 0.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Logo and document name at the top of every sheet; motto and date at the bottom. */
+.pd-running-header,
+.pd-running-footer {
+  position: fixed;
+  left: 24mm;
+  right: 24mm;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8mm;
+}
+
+.pd-running-header {
+  top: 14mm;
+  padding-bottom: 2.2mm;
+  border-bottom: 0.5pt solid var(--pd-gold);
+}
+
+.pd-running-footer {
+  bottom: 13mm;
+  padding-top: 2.2mm;
+  border-top: 0.5pt solid var(--pd-gold);
+  font-family: var(--font-sans);
+  font-size: 7.5pt;
+  letter-spacing: 0.04em;
+  color: var(--pd-muted);
+}
+
+.pd-motto {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 8.5pt;
+  letter-spacing: 0;
+}
+
+.pd-brand {
+  display: inline-flex;
+  align-items: center;
+  gap: 2mm;
+  font-family: var(--font-mono);
+  font-size: 8.5pt;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  color: var(--pd-ink);
+}
+
+.pd-brand-mark {
+  width: 4.2mm;
+  height: 4.2mm;
+}
+
+.pd-brand-mark .pd-mark-book {
+  fill: none;
+  stroke: var(--pd-ink);
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.pd-brand-mark .pd-mark-ribbon {
+  fill: var(--pd-gold);
+  stroke: var(--pd-gold);
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.pd-running-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-sans);
+  font-size: 7.5pt;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--pd-muted);
+}
+
+/* The text column, centered between the frame's sides; its header and footer rows repeat on
+   every sheet, keeping each page's text clear of the running header and footer. */
+.pd-flow {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.pd-flow td {
+  padding: 0 26mm;
+}
+
+.pd-space-top {
+  height: 29mm;
+}
+
+.pd-space-bottom {
+  height: 25mm;
+}
+
+.pd {
+  font-size: 12.5pt;
+  line-height: 1.6;
+  orphans: 3;
+  widows: 3;
+}
+
+/* Title block: centered, over the old scripts of the opening screen. */
+.pd-title-block {
+  position: relative;
+  margin: 2mm 0 9mm;
+  text-align: center;
+}
+
+.pd-scripts {
+  font-family: var(--font-original);
+  font-size: 15pt;
+  line-height: 1.2;
+  color: var(--pd-gold-deep);
+  opacity: 0.22;
+  white-space: nowrap;
+}
+
+.pd-scripts-he {
+  margin-bottom: 3mm !important;
+}
+
+.pd-scripts-el {
+  margin-top: 3mm !important;
+  font-size: 13pt;
+}
+
+.pd-kind,
+.pd-heading,
+.pd-meta,
+.pd-label,
+.pd-comment-source,
+.pd-comment-meta,
+.pd-colophon,
+.pd-verse-number,
+.pd-badge {
+  font-family: var(--font-sans);
+}
+
+.pd-kind {
+  font-size: 8pt;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--pd-gold-deep);
+}
+
+.pd-title {
+  margin: 2.5mm 0 0;
+  font-size: 30pt;
+  line-height: 1.12;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--pd-ink);
+}
+
+.pd-subtitle {
+  margin-top: 2.5mm;
+  font-size: 12.5pt;
+  font-style: italic;
+  color: var(--pd-muted);
+}
+
+.pd-subtitle p + p {
+  margin-top: 1mm;
+}
+
+.pd-ornament {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 2.5mm;
+  margin-top: 5mm;
+}
+
+.pd-ornament span {
+  width: 24mm;
+  height: 0.6pt;
+  background: var(--pd-gold);
+}
+
+.pd-ornament i {
+  width: 2mm;
+  height: 2mm;
+  background: var(--pd-gold);
+  transform: rotate(45deg);
+}
+
+/* Sections: a centered small-caps title between gold rules. */
+.pd-section {
+  margin-top: 9mm;
+}
+
+.pd-heading {
+  display: flex;
+  align-items: center;
+  gap: 4mm;
+  margin: 0 0 4mm;
+  font-size: 8.5pt;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--pd-gold-deep);
+  break-after: avoid;
+}
+
+.pd-heading::before,
+.pd-heading::after {
+  content: "";
+  flex: 1;
+  height: 0.5pt;
+  background: rgb(188 161 106 / 0.7);
+}
+
+.pd-subheading {
+  margin: 0 0 2mm;
+  font-size: 15pt;
+  line-height: 1.25;
+  font-weight: 600;
+  color: var(--pd-ink);
+  break-after: avoid;
+}
+
+.pd-meta,
+.pd-label {
+  font-size: 8pt;
+  color: var(--pd-muted);
+}
+
+.pd-label {
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pd-gold-deep);
+}
+
+.pd-empty {
+  font-style: italic;
+  color: var(--pd-muted);
+}
+
+/* Study */
+.pd-questions {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pd-question {
+  break-inside: avoid;
+  padding: 3.5mm 4.5mm;
+  border: 0.6pt solid rgb(188 161 106 / 0.6);
+  border-radius: 2pt;
+  background: rgb(255 253 248 / 0.75);
+}
+
+.pd-question + .pd-question {
+  margin-top: 3mm;
+}
+
+.pd-question-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 4mm;
+}
+
+.pd-badge {
+  padding: 0.6mm 2.2mm;
+  border: 0.5pt solid var(--pd-gold);
+  border-radius: 10pt;
+  font-size: 7pt;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--pd-gold-deep);
+  white-space: nowrap;
+}
+
+.pd-question-text {
+  margin-top: 1.5mm !important;
+  font-size: 13.5pt;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--pd-ink);
+}
+
+.pd-conclusion {
+  margin-top: 2.5mm !important;
+  padding-left: 3.5mm;
+  border-left: 1.4pt solid var(--pd-gold);
+  font-style: italic;
+}
+
+.pd-conclusion .pd-label {
+  font-style: normal;
+}
+
+.pd-items {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  columns: 2;
+  column-gap: 8mm;
+}
+
+.pd-items li {
+  break-inside: avoid;
+  padding: 1.6mm 0;
+  border-bottom: 0.4pt solid rgb(188 161 106 / 0.4);
+}
+
+.pd-items .pd-meta {
+  display: block;
+  font-size: 7pt;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.pd-note + .pd-note {
+  margin-top: 7mm;
+}
+
+.pd-note + .pd-note::before {
+  content: "✦";
+  display: block;
+  margin-bottom: 5mm;
+  text-align: center;
+  font-size: 9pt;
+  color: var(--pd-gold);
+}
+
+/* Note text: the same formatting as "Ler", at paper size. */
+.pd-markdown > div {
+  display: block;
+  font-size: 12.5pt;
+  line-height: 1.6;
+}
+
+.pd-markdown > div > * + * {
+  margin-top: 3mm;
+}
+
+.pd-markdown h2 {
+  font-size: 17pt;
+  margin-top: 6mm;
+  color: var(--pd-ink);
+  break-after: avoid;
+}
+
+.pd-markdown h3 {
+  font-size: 14.5pt;
+  margin-top: 5mm;
+  color: var(--pd-ink);
+  break-after: avoid;
+}
+
+.pd-markdown h4 {
+  font-size: 12.5pt;
+  margin-top: 4mm;
+  color: var(--pd-ink);
+  break-after: avoid;
+}
+
+.pd-markdown blockquote {
+  margin-left: 4mm;
+  padding: 2mm 4mm;
+  border-left: 1.6pt solid var(--pd-gold);
+  background: var(--pd-tint);
+  font-style: italic;
+  color: var(--pd-text);
+}
+
+.pd-markdown pre {
+  white-space: pre-wrap;
+  background: rgb(255 253 248 / 0.8);
+  border: 0.5pt solid rgb(188 161 106 / 0.6);
+  padding: 2.5mm;
+  font-size: 10pt;
+}
+
+.pd-markdown code {
+  background: none;
+}
+
+/* A single note opens with an illuminated first letter. */
+.pd-markdown.pd-note-alone > div > p:first-of-type::first-letter {
+  float: left;
+  margin: 1.3mm 2mm 0 0;
+  font-size: 3.3em;
+  line-height: 0.8;
+  font-weight: 600;
+  color: var(--pd-gold-deep);
+}
+
+/* Inside a study each note has its own title, so the note's headings sit below it. */
+.pd-note .pd-markdown h2 {
+  font-size: 13.5pt;
+}
+
+.pd-note .pd-markdown h3,
+.pd-note .pd-markdown h4 {
+  font-size: 12.5pt;
+}
+
+/* Scripture */
+.pd-scripture {
+  font-size: 13pt;
+  line-height: 1.7;
+}
+
+.pd-verse,
+.pd-paragraph {
+  text-align: justify;
+  hyphens: auto;
+}
+
+.pd-verse-block + .pd-verse-block {
+  margin-top: 1.6mm;
+}
+
+.pd-paragraph + .pd-paragraph,
+.pd-comments + .pd-paragraph,
+.pd-comments + .pd-verse-block,
+.pd-verse-block + .pd-comments {
+  margin-top: 2.5mm;
+}
+
+.pd-verse-number {
+  margin-inline-end: 0.8mm;
+  font-size: 7.5pt;
+  font-weight: 600;
+  color: var(--pd-gold-deep);
+}
+
+/* The chapter opens with its number, large, as in printed Bibles; verse 1 then needs none. */
+.pd-chapter-numeral {
+  float: inline-start;
+  margin-block-start: 1.2mm;
+  margin-inline-end: 3mm;
+  font-size: 46pt;
+  line-height: 0.8;
+  font-weight: 600;
+  color: var(--pd-gold-deep);
+}
+
+.pd-comments {
+  margin: 2mm 0 0 6mm;
+}
+
+.pd-comment {
+  padding: 2.6mm 3.8mm;
+  border-left: 1.6pt solid var(--pd-gold);
+  border-radius: 0 2pt 2pt 0;
+  background: var(--pd-tint);
+  font-size: 11pt;
+  line-height: 1.5;
+}
+
+.pd-comment + .pd-comment {
+  margin-top: 2.4mm;
+}
+
+/* A source line never ends a page alone; a long comment may continue on the next page. */
+.pd-comment-source {
+  font-size: 8.5pt;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  color: var(--pd-ink);
+  break-after: avoid;
+  overflow-wrap: anywhere;
+}
+
+.pd-comment-text {
+  margin-top: 1.2mm !important;
+}
+
+.pd-comment-meta {
+  margin-top: 1.2mm !important;
+  font-size: 7.5pt;
+  color: var(--pd-muted);
+}
+
+/* Marked verses keep their highlighter color on paper, lighter than on screen. */
+.pd-mark {
+  background-color: rgb(var(--mark) / 0.35);
+  -webkit-box-decoration-break: clone;
+  box-decoration-break: clone;
+}
+
+.pd-star {
+  color: var(--pd-gold-deep);
+}
+
+.pd-marks {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pd-marked-verse {
+  break-inside: avoid;
+  padding: 1mm 0 1mm 4mm;
+  border-left: 2.4pt solid rgb(188 161 106 / 0.5);
+}
+
+.pd-marked-verse[class*="verse-mark-"] {
+  border-left-color: rgb(var(--mark));
+}
+
+.pd-marked-verse + .pd-marked-verse {
+  margin-top: 4mm;
+}
+
+.pd-marked-verse .pd-comment-source {
+  margin-bottom: 1mm !important;
+}
+
+/* Credits at the end: edition, license, how comments were linked. */
+.pd-colophon {
+  margin-top: 10mm;
+  text-align: center;
+  font-size: 7.5pt;
+  line-height: 1.6;
+  color: var(--pd-muted);
+  break-inside: avoid;
+}
+
+.pd-colophon .pd-ornament {
+  margin: 0 0 3mm;
+}
+
+.pd-colophon .pd-ornament span {
+  width: 14mm;
+}

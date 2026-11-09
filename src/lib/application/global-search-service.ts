@@ -1,3 +1,5 @@
+import { scriptureHref } from "./scripture-href";
+import { parseScriptureReference, referenceBook } from "./scripture-reference";
 import type { SearchResult } from "../domain/search";
 import { ScriptureRepository } from "../repositories/scripture-repository";
 import { KnowledgeRepository } from "../repositories/knowledge-repository";
@@ -11,26 +13,6 @@ export interface GlobalSearchOptions {
   limit?: number;
 }
 
-function parseReference(query: string): { bookId: string; chapter: number; verse?: number } | null {
-  const match = query
-    .trim()
-    .toLowerCase()
-    .match(/^([\p{L}\d -]+?)\s+(\d+)(?::(\d+))?$/u);
-  if (!match) return null;
-  const bookQuery = match[1]?.trim();
-  const book = ScriptureRepository.listBooks().find((candidate) =>
-    [candidate.id, candidate.name, candidate.abbreviation, bookLabel(candidate.id, candidate.name)]
-      .map((value) => value.toLowerCase())
-      .includes(bookQuery ?? ""),
-  );
-  if (!book) return null;
-  return {
-    bookId: book.id,
-    chapter: Number(match[2]),
-    ...(match[3] ? { verse: Number(match[3]) } : {}),
-  };
-}
-
 export const GlobalSearchService = {
   async search(query: string, options: GlobalSearchOptions = {}): Promise<SearchResult[]> {
     const q = query.trim();
@@ -39,20 +21,23 @@ export const GlobalSearchService = {
     const results: SearchResult[] = [];
     const lemma = /^lemma:(.+)$/i.exec(q)?.[1]?.trim();
     const morphology = /^morph(?:ology)?:([A-Z0-9-]+)$/i.exec(q)?.[1]?.trim();
-    const reference = parseReference(q);
+    const reference = parseScriptureReference(
+      q,
+      ScriptureRepository.listBooks().map(referenceBook),
+    );
     if (reference) {
       const book = ScriptureRepository.getBook(reference.bookId);
       results.push({
         kind: "scripture-passage",
         id: `reference:${reference.bookId}:${reference.chapter}:${reference.verse ?? "chapter"}`,
-        label: `${bookLabel(reference.bookId, book?.name)} ${reference.chapter}${reference.verse ? `:${reference.verse}` : ""}`,
+        label: `${bookLabel(reference.bookId, book?.name)} ${reference.chapter}${reference.verse ? `:${reference.verse}` : ""}${reference.end ? `–${reference.end}` : ""}`,
         detail: "Referência exata",
         score: 10_000,
         corpusId: "passage-abstraction",
         editionId: "all-enabled",
         workId: `work:${reference.bookId}`,
         address: `${reference.bookId}.${reference.chapter}.${reference.verse ?? "*"}`,
-        to: `/scripture/${reference.bookId}/${reference.chapter}`,
+        to: scriptureHref(reference.bookId, reference.chapter, { verse: reference.verse }),
       });
     }
 
@@ -79,7 +64,10 @@ export const GlobalSearchService = {
         editionId: hit.textUnit.editionId,
         workId: hit.textUnit.workId,
         address: hit.textUnit.displayAddress ?? "",
-        to: `/scripture/${address.bookId}/${address.chapter}`,
+        to: scriptureHref(address.bookId, address.chapter, {
+          verse: address.verseStart,
+          edition: hit.textUnit.editionId,
+        }),
       });
     }
 
@@ -128,11 +116,11 @@ export const GlobalSearchService = {
         ...(kind === "concept" ? { entityId: hit.id } : { recordKind: hit.kind, recordId: hit.id }),
         to:
           hit.kind === "claim"
-            ? `/knowledge?claim=${encodeURIComponent(hit.id)}`
-            : `/knowledge?entity=${encodeURIComponent(hit.id)}`,
+            ? `/study?claim=${encodeURIComponent(hit.id)}`
+            : `/study?entity=${encodeURIComponent(hit.id)}`,
       } as SearchResult);
     }
-    for (const resource of await LibraryRepository.listSources({ query: q })) {
+    for (const resource of await LibraryRepository.listSources({ query: q, limit })) {
       results.push({
         kind: "source",
         id: `library:${resource.id}`,

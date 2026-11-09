@@ -6,7 +6,14 @@ import type {
   SemanticSegment,
   SemanticSegmentBundle,
 } from "../domain/semantic-content";
-import { parseBiblicalReferences } from "./biblical-reference-parser";
+import { biblicalRelationType, parseBiblicalReferences } from "./biblical-reference-parser";
+import {
+  detectPageZone,
+  detectReferenceZone,
+  isBibliographyTitle,
+  titleZone,
+} from "./reference-zone";
+import { sha256Hex } from "../workspace-runtime/secure-context";
 
 export const SEMANTIC_ENGINE_VERSION = "deterministic-pt-en-1";
 const MAX_SEGMENT_CHARACTERS = 1_800;
@@ -33,6 +40,27 @@ const DOMAIN_TERMS: Readonly<Record<Exclude<SemanticDomain, "other">, readonly s
     "império romano",
     "roman empire",
     "segundo templo",
+  ],
+  "social-history": [
+    "história social",
+    "social history",
+    "classe social",
+    "social class",
+    "família",
+    "kinship",
+    "honra e vergonha",
+    "honor and shame",
+  ],
+  "political-history": [
+    "história política",
+    "political history",
+    "poder romano",
+    "roman rule",
+    "herodes",
+    "herod",
+    "tributação",
+    "taxation",
+    "governador",
   ],
   archaeology: [
     "arqueologia",
@@ -78,6 +106,47 @@ const DOMAIN_TERMS: Readonly<Record<Exclude<SemanticDomain, "other">, readonly s
     "origen",
   ],
   liturgy: ["liturgia", "liturgy", "culto", "worship", "eucaristia", "eucharist", "oração"],
+  tradition: [
+    "tradição",
+    "tradition",
+    "católico",
+    "catholic",
+    "ortodoxo",
+    "orthodox",
+    "reformado",
+    "reformed",
+    "pentecostal",
+  ],
+  soteriology: [
+    "soteriologia",
+    "soteriology",
+    "salvação",
+    "salvation",
+    "justificação",
+    "justification",
+    "expiação",
+    "atonement",
+  ],
+  eschatology: [
+    "escatologia",
+    "eschatology",
+    "ressurreição final",
+    "final resurrection",
+    "juízo final",
+    "last judgment",
+    "parousia",
+  ],
+  "religious-currents": [
+    "gnosticismo",
+    "gnosticism",
+    "hermetismo",
+    "hermeticism",
+    "mistério",
+    "mystery religion",
+    "nag hammadi",
+    "esotérico",
+    "esoteric",
+  ],
   "philosophy-of-religion": [
     "filosofia da religião",
     "philosophy of religion",
@@ -94,8 +163,7 @@ function normalized(value: string): string {
 }
 
 async function sha256(value: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(value));
-  return [...new Uint8Array(digest)].map((part) => part.toString(16).padStart(2, "0")).join("");
+  return sha256Hex(value, { operation: "A análise do livro" });
 }
 
 function structuralKind(text: string): SemanticSegment["structuralKind"] {
@@ -182,11 +250,43 @@ function classify(segmentId: string, text: string): SemanticClassification[] {
       ];
 }
 
+/** Where the page starts: the section it continues and whether that section is a bibliography. */
+export interface PageAnalysisContext {
+  sectionTitle?: string;
+  bibliographyMode?: boolean;
+}
+
 export async function analyzePrivateDocumentPage(
   document: PrivateDocument,
   page: PrivateDocumentPage,
+  context: PageAnalysisContext = {},
 ): Promise<SemanticSegmentBundle[]> {
   const spans = pageSpans(page.text);
+  const language = document.language ? { language: document.language } : {};
+  const pageZone = detectPageZone(page.text, document.language);
+  let sectionTitle = context.sectionTitle;
+  let inBibliography = context.bibliographyMode ?? false;
+  // Sequential on purpose: a heading changes the zone of every span after it, and the first prose
+  // paragraph closes a table of contents or an index.
+  const zones = spans.map((span) => {
+    const kind = structuralKind(span.text);
+    if (kind === "heading") {
+      sectionTitle = span.text.trim();
+      inBibliography = isBibliographyTitle(sectionTitle);
+    }
+    const zone = detectReferenceZone({
+      text: span.text,
+      ...(sectionTitle ? { sectionTitle } : {}),
+      ...(inBibliography && (kind === "paragraph" || kind === "list-item")
+        ? { unitKind: "bibliography-entry" as const }
+        : {}),
+      pageZone,
+      ...language,
+    });
+    const announced = sectionTitle ? titleZone(sectionTitle) : null;
+    if (zone === "body" && (announced === "toc" || announced === "index")) sectionTitle = undefined;
+    return { zone, sectionTitle };
+  });
   return Promise.all(
     spans.map(async (span, ordinal) => {
       const checksum = await sha256(span.text);
@@ -203,30 +303,34 @@ export async function analyzePrivateDocumentPage(
         textChecksum: checksum,
         language: document.language ?? "und",
       };
-      const passageLinks: SemanticPassageLink[] = parseBiblicalReferences(span.text).map(
-        (reference, index) => ({
-          id: `${segmentId}:passage:${index + 1}:${reference.bookId}:${reference.chapter}:${reference.verseStart ?? 0}`,
-          segmentId,
-          documentId: document.id,
-          pageIndex: page.pageIndex,
-          rawReference: reference.rawReference,
-          workId: reference.workId,
-          bookId: reference.bookId,
-          chapter: reference.chapter,
-          ...(reference.verseStart !== undefined ? { verseStart: reference.verseStart } : {}),
-          ...(reference.verseEnd !== undefined ? { verseEnd: reference.verseEnd } : {}),
-          versificationSchemeId: reference.versificationSchemeId,
-          relationType: "cites",
-          confidence: reference.confidence,
-          method: SEMANTIC_ENGINE_VERSION,
-          reviewStatus: "machine-proposed",
-        }),
-      );
+      const { zone, sectionTitle: titleAfterSpan } = zones[ordinal] ?? { zone: "body" as const };
+      const passageLinks: SemanticPassageLink[] = parseBiblicalReferences(span.text, {
+        zone,
+        ...language,
+      }).map((reference, index) => ({
+        id: `${segmentId}:passage:${index + 1}:${reference.bookId}:${reference.chapter}:${reference.verseStart ?? 0}`,
+        segmentId,
+        documentId: document.id,
+        pageIndex: page.pageIndex,
+        rawReference: reference.rawReference,
+        workId: reference.workId,
+        bookId: reference.bookId,
+        chapter: reference.chapter,
+        ...(reference.verseStart !== undefined ? { verseStart: reference.verseStart } : {}),
+        ...(reference.verseEnd !== undefined ? { verseEnd: reference.verseEnd } : {}),
+        versificationSchemeId: reference.versificationSchemeId,
+        relationType: biblicalRelationType(span.text, reference),
+        ...(reference.zone ? { referenceZone: reference.zone } : {}),
+        confidence: reference.confidence,
+        method: SEMANTIC_ENGINE_VERSION,
+        reviewStatus: "machine-proposed",
+      }));
       return {
         segment,
         text: span.text,
         classifications: classify(segmentId, span.text),
         passageLinks,
+        ...(titleAfterSpan ? { sectionTitle: titleAfterSpan } : {}),
       };
     }),
   );

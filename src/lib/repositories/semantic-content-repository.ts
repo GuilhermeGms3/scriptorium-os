@@ -101,6 +101,7 @@ function mapPassageLink(row: WorkspaceRow): SemanticPassageLink {
   });
 }
 
+/** @deprecated Read/write compatibility for the pre-schema-13 semantic index. */
 export const SemanticContentRepository = {
   async getIndexSummary(
     documentId: string,

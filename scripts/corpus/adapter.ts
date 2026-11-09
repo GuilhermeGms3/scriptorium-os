@@ -25,6 +25,8 @@ export interface NormalizedCorpusBook {
 export interface CorpusAdapter {
   readonly id: string;
   readonly importerVersion: string;
+  readonly transformationType: "parse-xml" | "parse-osis" | "parse-f4";
+  readonly structuralDecisions: readonly string[];
   supports(manifest: CorpusPackageManifest): boolean;
   discover(
     sourceRoot: string,

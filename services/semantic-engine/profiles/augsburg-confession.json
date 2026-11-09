@@ -1,0 +1,13 @@
+{
+  "id": "augsburg-confession-v1",
+  "checksum": "f6f4069eaadc0f2070a16665b4e70562df30d1ee7d93019496ad7bdf7d178351",
+  "kind": "confession",
+  "strategy": "articles",
+  "firstPage": 6,
+  "lastPage": 29,
+  "headingPattern": "^(?:ARTIGO|Artigo) \\d+:[^\\n]*",
+  "expectedSections": 28,
+  "bodyHeight": 12,
+  "authorLabel": "Confissão de Augsburgo",
+  "traditionLabel": "Luterana"
+}

@@ -1,0 +1,55 @@
+import { z } from "zod";
+import { SourceSelectionSchema } from "./source-selection";
+
+export const StudyColorSchema = z.string().regex(/^#[\da-f]{6}$/iu);
+const identity = z.string().min(1).max(500);
+/** Locators, never a second copy of the source book or an arbitrary URL. Pages are one-based. */
+export const StudySourceSchema = z.discriminatedUnion("kind", [
+  z.object({
+    kind: z.literal("bibliographic"),
+    sourceId: identity,
+    title: z.string().min(1).max(1000),
+    locator: z.string().max(1000).optional(),
+  }),
+  z.object({
+    kind: z.literal("private-document"),
+    documentId: identity,
+    unitId: identity.optional(),
+    title: z.string().min(1).max(1000),
+    page: z.number().int().positive(),
+    selection: SourceSelectionSchema.optional(),
+  }),
+  z.object({
+    kind: z.literal("primary-text"),
+    workId: identity,
+    selection: SourceSelectionSchema.optional(),
+    unitId: identity.optional(),
+    title: z.string().min(1).max(1000),
+  }),
+]);
+export type StudySource = z.infer<typeof StudySourceSchema>;
+export interface NoteConnection {
+  sourceId: string;
+  targetId: string;
+  createdAt: string;
+}
+export function studySourceHref(source: StudySource): string {
+  const valid = StudySourceSchema.parse(source);
+  if (valid.kind === "bibliographic")
+    return `/library?source=${encodeURIComponent(valid.sourceId)}`;
+  return valid.kind === "private-document"
+    ? `/library/document/${encodeURIComponent(valid.documentId)}?page=${valid.page}${valid.unitId ? `&unit=${encodeURIComponent(valid.unitId)}` : ""}`
+    : `/library/read/${encodeURIComponent(valid.workId)}${valid.unitId ? `?unit=${encodeURIComponent(valid.unitId)}` : ""}`;
+}
+/** "Livro X · p. 12": where the note's source excerpt came from, as the editor names it. */
+export function studySourceLabel(source: StudySource): string {
+  if (source.kind === "private-document") return `${source.title} · p. ${source.page}`;
+  if (source.kind === "bibliographic" && source.locator)
+    return `${source.title} · ${source.locator}`;
+  return source.title;
+}
+
+export function orderedNotePair(a: string, b: string): [string, string] {
+  if (!a || !b || a === b) throw new Error("Escolha duas notas diferentes.");
+  return a < b ? [a, b] : [b, a];
+}

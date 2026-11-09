@@ -1,0 +1,15 @@
+{
+  "id": "genebra-notes-only-v1",
+  "checksum": "504c2c2665f24c40bf29287605cacc5f1e81e05206fcd4c6452a0fab9cd7bc6c",
+  "layout": "notes-only",
+  "firstPage": 23,
+  "markerStyle": "bold-font",
+  "headingAliases": {
+    "song-of-songs": ["Cantares de Salomão", "Cântico de Salomão"],
+    "1-corinthians": ["CORINTHIANS"],
+    "2-corinthians": ["CORINTHIANS"],
+    "1-timothy": ["TIMÓTEO"],
+    "2-timothy": ["TIMÓTEO"],
+    "philemon": ["FILEMON"]
+  }
+}

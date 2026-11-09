@@ -1,0 +1,12 @@
+{
+  "checksum": "11e7f5fd585a01f6b23a76ab7ce2ed9819ace2063d7284798a058bcf63af4195",
+  "strategy": "homilies",
+  "author": "João Crisóstomo; edição inglesa organizada por Philip Schaff",
+  "quarantine_unaligned_pages": true,
+  "opening_excerpt_only": true,
+  "minimum_inline_height": 8,
+  "segments": [
+    { "first": 21, "last": 611, "books": ["acts"] },
+    { "first": 621, "last": 1000, "books": ["romans"] }
+  ]
+}

@@ -1,209 +1,274 @@
-import { createFileRoute, Link, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect, useNavigate } from "@tanstack/react-router";
 import { FormEvent, useEffect, useState } from "react";
-import { ArrowRight, BookOpen, Download, Plus, Search, StickyNote, Upload } from "lucide-react";
-import { useWorkbench } from "../../lib/workbench/workbench-context";
-import { formatNumber, t } from "../../lib/i18n";
+import { ArrowRight, Network, Plus, Route as RouteIcon, Upload } from "lucide-react";
+import { StudyLearningMap } from "../../components/study/study-learning-map";
+import { StudyKnowledgeDetail } from "../../components/study/study-knowledge-detail";
 import { ResearchWorkspaceService } from "../../lib/application/research-workspace-service";
-import { STUDY_PATHS } from "../../lib/content/study-paths";
+import { formatNumber, t } from "../../lib/i18n";
+import type { Study } from "../../lib/domain/study";
+import { useWorkbench } from "../../lib/workbench/workbench-context";
+import { useSecureContextProblem } from "../../lib/workspace-runtime/use-secure-context";
+import { SecureContextNotice } from "../../components/common/secure-context-notice";
+import { WorkspaceBackupButton } from "../../components/common/workspace-backup-button";
+import { PageHeader } from "../../components/layout/page-header";
+import { EmptyState } from "../../components/layout/empty-state";
+import { z } from "zod";
+import { withFeedback } from "../../components/common/feedback";
+
+type StudyView = "journey" | "investigations" | "notebook";
 
 export const Route = createFileRoute("/study/")({
+  validateSearch: z.object({
+    view: z.enum(["journey", "investigations", "notebook"]).optional().catch(undefined),
+    entity: z.string().max(500).optional().catch(undefined),
+    claim: z.string().max(500).optional().catch(undefined),
+  }),
   head: () => ({ meta: [{ title: t("study.metaTitle") }] }),
+  beforeLoad: ({ search }) => {
+    if (search.view === "notebook") throw redirect({ to: "/notes", replace: true });
+    if (search.entity?.startsWith("study-course:")) {
+      const [, courseId, , module] = search.entity.split(":");
+      if (courseId)
+        throw redirect({
+          to: "/study/course/$courseId",
+          params: { courseId },
+          search: module ? { module } : {},
+          replace: true,
+        });
+    }
+  },
   component: StudyIndex,
 });
 
 function StudyIndex() {
+  const search = Route.useSearch();
   const { studies, createStudy, refreshUserData, setPassageContext } = useWorkbench();
   const navigate = useNavigate();
+  const view: StudyView = search.view ?? "journey";
+  const setView = (next: StudyView) => {
+    void navigate({ to: "/study", search: { view: next } });
+  };
   const [title, setTitle] = useState("");
   const [backupStatus, setBackupStatus] = useState<string>();
   useEffect(() => setPassageContext(null), [setPassageContext]);
+
+  const createAndOpenStudy = async (studyTitle: string) => {
+    const study = await withFeedback(createStudy(studyTitle), {
+      failure: "Não foi possível criar o estudo.",
+    });
+    if (study) await navigate({ to: "/study/$slug", params: { slug: study.slug } });
+  };
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
     const clean = title.trim();
     if (!clean) return;
-    const study = await createStudy(clean);
-    await navigate({ to: "/study/$slug", params: { slug: study.slug } });
+    await createAndOpenStudy(clean);
   };
 
   return (
-    <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
-      <header className="border-b border-border pb-3">
-        <p className="meta-label">{t("study.section")}</p>
-        <h1 className="mt-1 font-serif text-2xl font-semibold">{t("study.workspaces")}</h1>
-        <p className="mt-1.5 max-w-2xl text-sm text-muted-foreground">{t("study.description")}</p>
-      </header>
-
-      <ol className="mt-5 grid gap-3 sm:grid-cols-3" aria-label="Como usar a área de estudos">
-        {[
-          {
-            icon: Search,
-            heading: "1. Defina uma pergunta",
-            description: "Comece por uma dúvida real que você deseja investigar.",
-          },
-          {
-            icon: BookOpen,
-            heading: "2. Reúna o material",
-            description: "Adicione passagens e fontes enquanto navega pelo Scriptorium.",
-          },
-          {
-            icon: StickyNote,
-            heading: "3. Registre conclusões",
-            description: "Escreva notas e diferencie observações de deduções.",
-          },
-        ].map(({ icon: Icon, heading, description }) => (
-          <li key={heading} className="rounded-md border border-border bg-card p-3">
-            <Icon className="size-4 text-primary" />
-            <p className="mt-2 text-sm font-medium">{heading}</p>
-            <p className="mt-1 text-xs leading-relaxed text-muted-foreground">{description}</p>
-          </li>
-        ))}
-      </ol>
-
-      <section className="mt-6 border-y border-border py-4">
-        <div className="flex flex-wrap items-end justify-between gap-2">
-          <div>
-            <p className="meta-label">Pontos de partida com fontes instaladas</p>
-            <h2 className="mt-1 font-serif text-lg font-semibold">Conteúdo organizado por área</h2>
-          </div>
-          <Link to="/library" className="text-xs text-primary hover:underline">
-            Ver catálogo completo
-          </Link>
-        </div>
-        <p className="mt-1 max-w-3xl text-xs text-muted-foreground">
-          Estes roteiros apontam para documentos reais no acervo. Eles não são conclusões prontas:
-          abra uma fonte, escolha um trecho e adicione sua nota ao estudo.
-        </p>
-        <div className="mt-3 grid gap-2 md:grid-cols-2">
-          {STUDY_PATHS.map((path) => (
-            <article key={path.id} className="rounded-md border border-border bg-card p-3">
-              <div className="flex items-start justify-between gap-2">
-                <h3 className="text-sm font-medium">{path.title}</h3>
-                <span className="font-mono text-[9px] uppercase tracking-wider text-muted-foreground">
-                  {path.coverage === "installed" ? "instalado" : "parcial"}
-                </span>
+    <div className="min-h-full">
+      {!search.entity && !search.claim && (
+        <header className="border-b border-border bg-background px-5 py-4 md:px-7">
+          <PageHeader
+            className="border-b-0 pb-0"
+            title="Estudos"
+            actions={
+              <div
+                className="flex flex-wrap border border-input bg-card p-0.5"
+                role="group"
+                aria-label="Modo de estudo"
+              >
+                <button
+                  type="button"
+                  aria-pressed={view === "journey"}
+                  onClick={() => setView("journey")}
+                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                    view === "journey" ? "bg-primary text-primary-foreground" : "hover:bg-accent"
+                  }`}
+                >
+                  <RouteIcon className="size-3.5" /> Formação
+                </button>
+                <button
+                  type="button"
+                  aria-pressed={view === "investigations"}
+                  onClick={() => setView("investigations")}
+                  className={`inline-flex h-8 items-center gap-1.5 px-2.5 text-xs ${
+                    view === "investigations"
+                      ? "bg-primary text-primary-foreground"
+                      : "hover:bg-accent"
+                  }`}
+                >
+                  <Network className="size-3.5" /> Investigações
+                </button>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
-                {path.description}
-              </p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {path.resources.map((resource) => (
-                  <Link
-                    key={resource.workId}
-                    to="/library/read/$workId"
-                    params={{ workId: resource.workId }}
-                    className="rounded border border-input px-2 py-1 text-[11px] hover:bg-accent"
-                  >
-                    {resource.label}
-                  </Link>
-                ))}
-              </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <form onSubmit={(event) => void submit(event)} className="mt-6 flex max-w-xl gap-2">
-        <label className="min-w-0 flex-1">
-          <span className="sr-only">{t("study.newTitle")}</span>
-          <input
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            placeholder="Ex.: O Logos em João 1"
-            className="h-9 w-full rounded-md border border-input bg-background px-3 text-sm"
-          />
-        </label>
-        <button
-          className="inline-flex h-9 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
-          disabled={!title.trim()}
-        >
-          <Plus className="size-3.5" /> Criar estudo
-        </button>
-      </form>
-
-      <details className="mt-4 max-w-xl rounded-md border border-border px-3 py-2">
-        <summary className="cursor-pointer text-xs font-medium">Backup e restauração</summary>
-        <p className="mt-2 text-xs text-muted-foreground">
-          Baixe uma cópia dos seus estudos ou restaure um arquivo salvo anteriormente.
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <button
-            type="button"
-            onClick={() =>
-              void ResearchWorkspaceService.exportJson().then((content) => {
-                const url = URL.createObjectURL(new Blob([content], { type: "application/json" }));
-                const anchor = document.createElement("a");
-                anchor.href = url;
-                anchor.download = `scriptorium-estudos-${new Date().toISOString().slice(0, 10)}.json`;
-                anchor.click();
-                URL.revokeObjectURL(url);
-                setBackupStatus("Backup baixado.");
-              })
             }
-            className="inline-flex h-8 items-center gap-1.5 rounded border border-input px-2.5 text-xs"
-          >
-            <Download className="size-3.5" /> Baixar backup
-          </button>
-          <label className="inline-flex h-8 cursor-pointer items-center gap-1.5 rounded border border-input px-2.5 text-xs">
-            <Upload className="size-3.5" /> Restaurar backup
-            <input
-              type="file"
-              accept="application/json,.json"
-              className="sr-only"
-              onChange={(event) => {
-                const file = event.target.files?.[0];
-                if (!file) return;
-                void file
-                  .text()
-                  .then(ResearchWorkspaceService.importJson)
-                  .then(async (result) => {
-                    await refreshUserData();
-                    setBackupStatus(
-                      `${result.studies} estudos, ${result.notes} notas e ${result.researchQuestions} perguntas processados.`,
-                    );
-                  })
-                  .catch((error: unknown) =>
-                    setBackupStatus(error instanceof Error ? error.message : String(error)),
-                  );
-              }}
-            />
-          </label>
-        </div>
-        {backupStatus && (
-          <p role="status" className="mt-2 text-xs text-muted-foreground">
-            {backupStatus}
-          </p>
-        )}
-      </details>
-
-      <ul className="mt-6 divide-y divide-border border-y border-border">
-        {studies.map((study) => (
-          <li key={study.id}>
-            <Link
-              to="/study/$slug"
-              params={{ slug: study.slug }}
-              className="group grid gap-1 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
-            >
-              <span>
-                <span className="block text-sm font-medium">{study.title}</span>
-                <span className="mt-0.5 block max-w-2xl text-xs text-muted-foreground">
-                  {study.description ?? t("study.localDescription")}
-                </span>
-              </span>
-              <span className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                {formatNumber(study.items.length)} {t("common.items")}{" "}
-                <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
-              </span>
-            </Link>
-          </li>
-        ))}
-      </ul>
-      {studies.length === 0 && (
-        <p className="mt-6 rounded-md border border-dashed border-border p-5 text-sm text-muted-foreground">
-          Você ainda não criou um estudo. Dê um nome ao primeiro tema acima; depois, ao ler uma
-          passagem ou fonte, use a ação de adicionar ao estudo.
-        </p>
+          />
+        </header>
       )}
+
+      {search.entity || search.claim ? (
+        <StudyKnowledgeDetail
+          {...(search.entity ? { entityId: search.entity } : {})}
+          {...(search.claim ? { claimId: search.claim } : {})}
+        />
+      ) : view === "journey" ? (
+        <StudyLearningMap
+          studies={studies}
+          onSelectEntity={(entity) => void navigate({ to: "/study", search: { entity } })}
+        />
+      ) : (
+        <PersonalInvestigations
+          studies={studies}
+          title={title}
+          backupStatus={backupStatus}
+          onTitleChange={setTitle}
+          onBackupStatus={setBackupStatus}
+          onSubmit={submit}
+          onRefresh={refreshUserData}
+        />
+      )}
+    </div>
+  );
+}
+
+function PersonalInvestigations({
+  studies,
+  title,
+  backupStatus,
+  onTitleChange,
+  onBackupStatus,
+  onSubmit,
+  onRefresh,
+}: {
+  studies: readonly Study[];
+  title: string;
+  backupStatus: string | undefined;
+  onTitleChange: (value: string) => void;
+  onBackupStatus: (value: string) => void;
+  onSubmit: (event: FormEvent) => Promise<void>;
+  onRefresh: () => Promise<void>;
+}) {
+  const backupProblem = useSecureContextProblem("O backup");
+  return (
+    <div className="mx-auto max-w-5xl px-5 py-6 md:px-8">
+      <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_280px]">
+        <section aria-labelledby="personal-studies-title">
+          <p className="meta-label">Seu trabalho</p>
+          <h2 id="personal-studies-title" className="mt-1 font-serif text-xl font-semibold">
+            Investigações pessoais
+          </h2>
+          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-muted-foreground">
+            Cada estudo reúne perguntas, passagens, fontes, notas e conclusões provisórias, e pode
+            ser retomado quando quiser.
+          </p>
+
+          <form onSubmit={(event) => void onSubmit(event)} className="mt-5 flex max-w-xl gap-2">
+            <label className="min-w-0 flex-1">
+              <span className="sr-only">{t("study.newTitle")}</span>
+              <input
+                value={title}
+                onChange={(event) => onTitleChange(event.target.value)}
+                placeholder="Ex.: O uso de Isaías no Evangelho de Mateus"
+                className="h-9 w-full border border-input bg-background px-3 text-sm"
+              />
+            </label>
+            <button
+              className="inline-flex h-9 items-center gap-1.5 bg-primary px-3 text-xs font-medium text-primary-foreground disabled:opacity-50"
+              disabled={!title.trim()}
+            >
+              <Plus className="size-3.5" /> Criar
+            </button>
+          </form>
+
+          <ul className="mt-7 divide-y divide-border border-y border-border">
+            {studies.map((study) => (
+              <li key={study.id}>
+                <Link
+                  to="/study/$slug"
+                  params={{ slug: study.slug }}
+                  className="group grid gap-1 py-3 sm:grid-cols-[1fr_auto] sm:items-center"
+                >
+                  <span>
+                    <span className="block text-sm font-medium">{study.title}</span>
+                    <span className="mt-0.5 block max-w-2xl text-xs text-muted-foreground">
+                      {study.description ?? t("study.localDescription")}
+                    </span>
+                  </span>
+                  <span className="flex items-center gap-2 meta-label tracking-wider text-muted-foreground">
+                    {formatNumber(study.items.length)} {t("common.items")}
+                    <ArrowRight className="size-3 transition-transform group-hover:translate-x-0.5" />
+                  </span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+          {studies.length === 0 && (
+            <EmptyState className="mt-6" title="Nenhuma investigação criada">
+              Volte à Jornada para começar por uma trilha com fontes, ou crie uma pergunta própria
+              acima.
+            </EmptyState>
+          )}
+        </section>
+
+        <aside className="border-t border-border pt-5 lg:border-l lg:border-t-0 lg:pl-5 lg:pt-0">
+          <p className="meta-label">Portabilidade</p>
+          <h2 className="mt-1 text-sm font-medium">Cópia de segurança dos estudos e notas</h2>
+          <p className="mt-1.5 text-xs leading-relaxed text-muted-foreground">
+            Exporte perguntas, notas e estudos antes de trocar de navegador, origem ou dispositivo.
+          </p>
+          {backupProblem && (
+            <div className="mt-3">
+              <SecureContextNotice problem={backupProblem} />
+            </div>
+          )}
+          <div className="mt-4 grid gap-2">
+            <WorkspaceBackupButton
+              fileName={`scriptorium-estudos-${new Date().toISOString().slice(0, 10)}.json`}
+              disabled={Boolean(backupProblem)}
+              onDownloaded={() => onBackupStatus("Backup baixado.")}
+              onError={onBackupStatus}
+              className="inline-flex h-9 items-center gap-2 border border-input px-3 text-xs hover:bg-accent disabled:opacity-50"
+            />
+            <label className="inline-flex h-9 cursor-pointer items-center gap-2 border border-input px-3 text-xs hover:bg-accent has-[:disabled]:cursor-not-allowed has-[:disabled]:opacity-50">
+              <Upload className="size-3.5" /> Restaurar backup
+              <input
+                type="file"
+                accept="application/json,.json"
+                disabled={Boolean(backupProblem)}
+                className="sr-only"
+                onChange={(event) => {
+                  const file = event.target.files?.[0];
+                  if (!file) return;
+                  void file
+                    .text()
+                    .then(ResearchWorkspaceService.importJson)
+                    .then(async (result) => {
+                      await onRefresh();
+                      onBackupStatus(
+                        `${result.studies} estudos, ${result.notes} notas e ${result.researchQuestions} perguntas processados.`,
+                      );
+                    })
+                    .catch((error: unknown) =>
+                      onBackupStatus(error instanceof Error ? error.message : String(error)),
+                    );
+                }}
+              />
+            </label>
+          </div>
+          {backupStatus && (
+            <p role="status" className="mt-2 text-xs text-muted-foreground">
+              {backupStatus}
+            </p>
+          )}
+          <Link
+            to="/library"
+            className="mt-6 inline-flex items-center gap-1.5 text-xs text-primary hover:underline"
+          >
+            Consultar acervo <ArrowRight className="size-3" />
+          </Link>
+        </aside>
+      </div>
     </div>
   );
 }

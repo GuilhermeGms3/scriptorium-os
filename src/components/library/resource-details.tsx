@@ -4,6 +4,8 @@ import { CitationService } from "../../lib/application/citation-service";
 import type { Citation } from "../../lib/domain/bibliography";
 import type { SourceDetails } from "../../lib/repositories/library-repository";
 import { EntityRelationPicker } from "../common/entity-relation-picker";
+import { AppLink } from "../common/app-link";
+import { citationKindLabel } from "../../lib/i18n";
 
 export function ResourceDetails({
   details,
@@ -41,7 +43,7 @@ export function ResourceDetails({
       setContent("");
       setPage("");
       setClaimId("");
-      setStatus("Citação persistida no workspace local.");
+      setStatus("Citação salva.");
       await onChanged?.();
     } catch (cause) {
       setStatus(cause instanceof Error ? cause.message : String(cause));
@@ -78,12 +80,12 @@ export function ResourceDetails({
             {privateDocument.textPageCount} de {privateDocument.pageCount} páginas pesquisáveis ·{" "}
             somente neste dispositivo
           </p>
-          <a
+          <AppLink
             href={`/library/document/${encodeURIComponent(privateDocument.id)}`}
             className="mt-3 inline-flex h-8 items-center rounded bg-primary px-3 text-xs text-primary-foreground"
           >
             Ler e pesquisar
-          </a>
+          </AppLink>
         </section>
       )}
       {Object.keys(source.identifiers).length > 0 && (
@@ -91,7 +93,7 @@ export function ResourceDetails({
           <h3 className="meta-label">Identificadores</h3>
           <ul className="mt-2 space-y-1">
             {Object.entries(source.identifiers).map(([scheme, value]) => (
-              <li key={scheme} className="font-mono text-[11px]">
+              <li key={scheme} className="font-mono text-xs">
                 <span className="uppercase text-muted-foreground">{scheme}</span> {value}
               </li>
             ))}
@@ -106,7 +108,7 @@ export function ResourceDetails({
           <button
             type="button"
             onClick={() => setShowCitation((value) => !value)}
-            className="inline-flex items-center gap-1 rounded border border-input px-2 py-1 text-[10px]"
+            className="inline-flex items-center gap-1 rounded border border-input px-2 py-1 text-xs"
           >
             <Plus className="size-3" /> Criar
           </button>
@@ -155,7 +157,7 @@ export function ResourceDetails({
               Persistir citação
             </button>
             {status && (
-              <p role="status" className="text-[10px] text-muted-foreground">
+              <p role="status" className="text-xs text-muted-foreground">
                 {status}
               </p>
             )}
@@ -165,8 +167,8 @@ export function ResourceDetails({
           <ul className="mt-2 space-y-3">
             {citations.map((citation) => (
               <li key={citation.id} className="border-l-2 border-primary/40 pl-3">
-                <p className="font-mono text-[10px] uppercase text-muted-foreground">
-                  {citation.contentKind.replaceAll("-", " ")} ·{" "}
+                <p className="meta-label text-muted-foreground">
+                  {citationKindLabel(citation.contentKind)} ·{" "}
                   {citation.locator?.canonicalLocator ??
                     citation.locator?.pageStart ??
                     "sem localizador"}
@@ -177,7 +179,7 @@ export function ResourceDetails({
                   </blockquote>
                 )}
                 {citation.note && (
-                  <p className="mt-1 text-[11px] text-muted-foreground">{citation.note}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{citation.note}</p>
                 )}
               </li>
             ))}
@@ -194,20 +196,20 @@ export function ResourceDetails({
           <ul className="mt-2 space-y-1">
             {relatedClaimIds.map((id) => (
               <li key={id}>
-                <a
-                  href={`/knowledge?claim=${encodeURIComponent(id)}`}
+                <AppLink
+                  href={`/study?claim=${encodeURIComponent(id)}`}
                   className="inline-flex items-center gap-1 text-xs underline underline-offset-2"
                 >
                   Abrir claim relacionada
                   <ExternalLink className="size-3" />
-                </a>
+                </AppLink>
               </li>
             ))}
           </ul>
         </section>
       )}
       {source.provenance.isDemo && (
-        <p className="mt-5 rounded border border-amber-500/30 bg-amber-500/5 p-2 text-[11px] text-muted-foreground">
+        <p className="mt-5 rounded border border-amber-500/30 bg-amber-500/5 p-2 text-xs text-muted-foreground">
           DEMO — registro sintético, não é uma publicação acadêmica real.
         </p>
       )}
